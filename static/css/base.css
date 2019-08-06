@@ -1,0 +1,29 @@
+* {
+    padding: 0;
+    margin: 0;
+    border: 0;
+}
+
+body {
+    background: #eee;
+}
+
+.top-navbar {
+    width: 100%;
+    background-color: #fafafb;
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-bottom: 10px;
+    position: fixed;
+    z-index: 10;
+    top: 0px;
+}
+
+.content-outer {
+    top: 39px;
+    position: relative;
+}
+
+.user-content {
+    display: inline;
+}

@@ -1,0 +1,55 @@
+
+.no-whitespace {
+    line-height: 0;
+    font-size: 0;
+}
+
+.hidden {
+    display: none;
+}
+
+.central-form {
+    width: 600px;
+    margin: auto;
+    background-color: seashell;
+    position: relative;
+    top: 50px;
+}
+
+.central-element {
+    margin-top: 20px;
+}
+
+.width {
+    margin-left: 100px;
+    margin-right: 100px;
+    width: 400px;
+}
+
+.narrow {
+    margin-left: 250px;
+    margin-right: 250px;
+    width: 100px;
+}
+
+.bottom-element {
+    margin-bottom: 20px;
+}
+
+.line-element {
+    margin-top: 20px;
+    width: 400px;
+}
+
+.line-text-input {
+    border: 2px solid rebeccapurple;
+    border-radius: 2px;
+}
+
+.video-title {
+    line-height: 20px;
+    text-align: center;
+    font-size: 20px;
+}
+
+

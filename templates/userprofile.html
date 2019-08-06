@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{username}}'s Profile{% endblock %}
+{% block content_outer %}
+<meta id="session" content="{{session}}"></meta>
+<div>
+    <form id="user-info" method="POST">
+        <div class="central-form">
+            <h2><p class="central-element width" id="password-prompt" style="text-align: center;">{{username}}'s Profile</p></h2>
+            <p id="desc" name="desc" class="central-element width">{{desc}}</p>
+        </div>
+    </form>
+</div>
+{% endblock %}

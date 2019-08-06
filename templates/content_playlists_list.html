@@ -1,0 +1,28 @@
+{% extends "content_base.html" %}
+{% block content %}
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/playlists_list.css') }}">
+<script src="{{ url_for('static',filename='js/playlists_list.js') }}"></script>
+<meta id="page" content="{{page}}"></meta>
+<meta id="query" content="{{query}}"></meta>
+<meta id="page-size" content="{{page_size}}"></meta>
+<meta id="page-count" content="{{page_count}}"></meta>
+<meta id="order" content="{{order}}"></meta>
+<div class="playlists-list">
+    <h4 id="list-prompt"></h4>
+    <p><h3><a href="/lists/new">[Create New Playlist]</a></h3></p>
+    <form>
+        <input type="text" id="playlist_search_term" placeholder="Search Playlists" value="{{search_term}}"></input>
+        <input type="button" value="Search" onclick="javascript:search();"></input>
+    </form>
+    <ul id="primary-list">
+        {% for l in lists %}
+        <li class="list-item">
+            <p><a href="/list/{{l._id}}">{{l.title.english}}</a></p>
+        </li>
+        {% endfor %}
+    </ul>
+    <p class="page-selector">{{page_selector_text|safe}}</p>
+</div>
+{% endblock %}
+{% block title %}Playlists{% endblock %}
+

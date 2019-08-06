@@ -1,0 +1,19 @@
+{% extends "content_base.html" %}
+{% block content %}
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/videolist.css') }}">
+<script src="{{ url_for('static',filename='js/videolist.js') }}"></script>
+<meta id="page" content="{{page}}"></meta>
+<meta id="query" content="{{query}}"></meta>
+<meta id="page-size" content="{{page_size}}"></meta>
+<meta id="page-count" content="{{page_count}}"></meta>
+<meta id="order" content="{{order}}"></meta>
+<div class="video-list">
+    <h4 id="list-prompt"></h4>
+    <ul id="primary-list">
+        <h1>{{reason}}</h1>
+    </ul>
+    <p class="page-selector">{{page_selector_text|safe}}</p>
+</div>
+{% endblock %}
+{% block title %}Video List{% endblock %}
+

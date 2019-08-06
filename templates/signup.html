@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Sign up{% endblock %}
+{% block content_outer %}
+<script src="{{ url_for('static',filename='js/signup.js') }}"></script>
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/signup.css') }}">
+<meta id="session" content="{{session}}"></meta>
+<div>
+    <form id="signup-info" method="POST">
+        <div class="central-form">
+            <input id="username" name="username" class="central-element width line-text-input" type="text" placeholder="Username"></input>
+            <input id="password1" name="password1" class="central-element width line-text-input" type="password" placeholder="Password"></input>
+            <input id="password2" name="password2" class="central-element width line-text-input" type="password" placeholder="Repeat Password"></input>
+            <input id="email" name="email" class="central-element width line-text-input" type="email" placeholder="Email(Optional)"></input>
+            <p class="central-element width" id="status" style="text-align: center;">Ready</p>
+            <input class="central-element narrow bottom-element line-text-input" type="button" onclick="javascript:signup();" value="Sign Up"></input>
+        </div>
+    </form>
+</div>
+{% endblock %}

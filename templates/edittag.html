@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Tags{% endblock %}
+{% block content_outer %}
+<script src="{{ url_for('static',filename='js/edittag.js') }}"></script>
+<script src="{{ url_for('static',filename='js/tabtable.js') }}"></script>
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/tabtable.css') }}">
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/edittag.css') }}">
+<div id="primary" class="tag-categories">
+    <div class="tab-header">
+    </div>
+</div>
+{% endblock %}

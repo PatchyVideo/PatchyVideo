@@ -1,0 +1,37 @@
+{% extends "content_base.html" %}
+{% block content %}
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/videolist.css') }}">
+<script src="{{ url_for('static',filename='js/videolist.js') }}"></script>
+<meta id="page" content="{{page}}"></meta>
+<meta id="query" content="{{query}}"></meta>
+<meta id="page-size" content="{{page_size}}"></meta>
+<meta id="page-count" content="{{page_count}}"></meta>
+<meta id="order" content="{{order}}"></meta>
+<div class="video-list">
+    <h4 id="list-prompt"></h4>
+    <ul id="primary-list">
+        {% for vid in videos %}
+        <li class="list-item">
+            <div class="video-thumbnail">
+                {% if vid.item.cover_image|length == 0 %}
+                <img src="/proxy?url={{vid.item.thumbnail_url}}&amp;header=%7B%22User-Agent%22:%22Mozilla/5.0%20(X11;%20Ubuntu;%20Linu%E2%80%A6)%20Gecko/20100101%20Firefox/65.0%22%7D" width="160px" height="100px">
+                {% else %}
+                <img src="/images/covers/{{vid.item.cover_image}}" width="160px" height="100px">
+                {% endif %}
+            </div>
+            <div class="video-detail">
+                <h4>{{vid.item.title}} <a href="/video?id={{vid._id}}">[Detail]</a>
+                </h4>
+                <p>{{vid.item.desc}}</p>
+                <div>
+                    <a href="{{vid.item.url}}">{{vid.item.url}}</a>
+                </div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    <p class="page-selector">{{page_selector_text|safe}}</p>
+</div>
+{% endblock %}
+{% block title %}Video List{% endblock %}
+

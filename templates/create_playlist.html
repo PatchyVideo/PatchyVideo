@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Create Playlist{% endblock %}
+{% block content_outer %}
+<script src="{{ url_for('static',filename='js/create_playlist.js') }}"></script>
+<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/create_playlist.css') }}">
+<meta id="copy" content="{{copy}}"></meta>
+<meta id="pid" content="{{pid}}"></meta>
+<div class="central-form">
+    <input class="central-element width" type="text" name="playlist-title" id="playlist-title" placeholder="Playlist title" value="{{title}}"/>
+    <p><h2>TODO: Playlist cover image upload here</h2></p>
+    <textarea name="playlist-desc" id="playlist-desc" class="central-element width" placeholder="Playlist description" style="height: 300px;">{{desc}}</textarea>
+    <p class="central-element width" id="status" style="text-align: center;">Ready</p>
+    <button class="central-element narrow bottom-element" id="create-playlist-button">Create</button>
+</div>
+{% endblock %}
