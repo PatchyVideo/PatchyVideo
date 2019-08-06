@@ -1,13 +1,4 @@
 
-"""
-File:
-    postvideo.py
-Location:
-    /pages/postvideo.py
-Description:
-    Display post video page
-"""
-
 import time
 
 from flask import render_template, request, jsonify, redirect, session
@@ -17,14 +8,6 @@ from utils.interceptors import loginOptional, loginRequired
 
 from services.getVideo import getVideoDetail
 
-"""
-Function:
-    pages_postvideo
-Location:
-    /pages/postvideo.py
-Description:
-    display postvideo page
-"""
 @app.route('/postvideo')
 @loginRequired
 def pages_postvideo(rd, user):

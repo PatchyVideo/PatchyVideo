@@ -16,14 +16,6 @@ from init import app
 from utils.interceptors import jsonRequest
 from utils.encodings import makeUTF8
 
-"""
-Function:
-    ajax_resource_proxy
-Location:
-    /ajax_backend/resource_proxy.py
-Description:
-    Proxy resources
-"""
 @app.route('/proxy', methods = ['GET'])
 def ajax_resource_proxy():
     if not request.args['url'] or not request.args['header']:

@@ -1,14 +1,4 @@
 
-"""
-Package:
-    db
-Location:
-    /db
-Description:
-    All operations use database need to go through functions defined here
-    No one outside should directly do CRUDs on any databases/tables/collections
-"""
-
 from init import app
 import os
 

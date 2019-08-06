@@ -1,13 +1,4 @@
 
-"""
-File:
-    index.py
-Location:
-    /pages/index.py
-Description:
-    Index page
-"""
-
 import time
 
 from flask import render_template, request, jsonify, redirect, session
@@ -17,14 +8,6 @@ from utils.interceptors import loginOptional
 from services.listVideo import listVideo, listVideoQuery
 from utils.html import buildPageSelector
 
-"""
-Function:
-    pages_index
-Location:
-    /pages/index.py
-Description:
-    index page dispatcher
-"""
 
 @app.route('/', methods = ['POST', 'GET'])
 @loginOptional

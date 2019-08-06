@@ -1,11 +1,3 @@
-"""
-File:
-    ajax_edittag.py
-Location:
-    /ajax_backend/ajax_edittag.py
-Description:
-    Handle editTag AJAX post
-"""
 
 import time
 
@@ -22,14 +14,7 @@ from spiders import dispatch
 
 from services.editTag import addTag, queryTags, queryCategories
 
-"""
-Function:
-    ajax_query_categories
-Location:
-    /ajax_backend/ajax_edittag.py
-Description:
-    handle query tag categories from webpages
-"""
+
 @app.route('/tags/query_categories.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
@@ -40,14 +25,7 @@ def ajax_query_categories(rd, user, data):
     })
     return "json", ret
 
-"""
-Function:
-    ajax_query_tags
-Location:
-    /ajax_backend/ajax_edittag.py
-Description:
-    handle tag query from webpages
-"""
+
 @app.route('/tags/query_tags.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
@@ -61,14 +39,7 @@ def ajax_query_tags(rd, user, data):
     })
     return "json", ret
 
-"""
-Function:
-    ajax_add_tag
-Location:
-    /ajax_backend/ajax_edittag.py
-Description:
-    handle add tag query from webpages
-"""
+
 @app.route('/tags/add_tag.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest

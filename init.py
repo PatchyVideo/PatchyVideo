@@ -1,14 +1,4 @@
 
-"""
-File:
-    main.py
-Location:
-    /main.py
-Description:
-    Entry point for PathcyVideo, import all modules from 5 packages: db, pages, ajax_backend, services, utils
-    Then run the website
-"""
-
 import os
 
 from flask import Flask

@@ -1,12 +1,4 @@
 
-"""
-File:
-    editTag.py
-Location:
-    /services/editTag.py
-Description:
-    Service module for editing tags
-"""
 
 from utils.dbtools import makeUserMeta, MongoTransaction
 from utils.tagtools import verifyAndSanitizeTag

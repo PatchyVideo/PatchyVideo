@@ -1,11 +1,3 @@
-"""
-File:
-    ajax_postvideo.py
-Location:
-    /ajax_backend/ajax_postvideo.py
-Description:
-    Handle postVideo AJAX post
-"""
 
 import time
 
