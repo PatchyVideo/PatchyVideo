@@ -57,7 +57,10 @@ def _make_video_data(data, copies, playlists, url) :
         'site': data['site'],
         "unique_id": data['unique_id'],
         'series': playlists,
-        'copies': copies
+        'copies': copies,
+        'upload_time': '',
+        'views': -1,
+        'rating': -1.0
     }
 
 def getAllcopies(vid, session) :

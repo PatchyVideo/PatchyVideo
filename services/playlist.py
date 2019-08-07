@@ -12,6 +12,8 @@ from bson import ObjectId
 
 import redis_lock
 
+MAX_VIDEO_PER_PLAYLIST = 10000
+
 def getPlaylist(pid) :
     return db.playlists.find_one({'_id': ObjectId(pid)})
 
