@@ -78,3 +78,11 @@ def update_crypto_PBKDF2(old_password, new_password, salt2, master_key_encrypted
     password_hashed = PBKDF2(new_password, salt1).read(32)
     master_key_encrypted = AES_Encrypt(new_password, master_key, salt2)
     return 'PBKDF2', password_hashed, salt1, salt2, master_key_encrypted
+
+if __name__ == "__main__":
+    key = '123'
+    text = b'abc'
+    salt = random_bytes(16)
+    encrypted = AES_Encrypt(key ,text, salt)
+    decrypted = AES_Decrypt(key, encrypted, salt)
+    print(text, decrypted)
