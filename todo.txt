@@ -21,6 +21,8 @@ spiders:
 spider error page handling(js)
 #av/sm number expand
 #batch video post
+user sees his playlists
+user subscript to playlists
 jsproxy for sites
 UI beautify
 redirect to previous url after login
@@ -32,6 +34,7 @@ documents
 user access control
 add https to URL when crawling to prevent rediect
 UI beautify level 2
+navbar tags
 
 *future functions:
 multi-language support
@@ -39,5 +42,4 @@ user subscriptions
 danmaku
 comment section
 video downloading
-navbar tags
 tag prompt/auto-complete
