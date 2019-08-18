@@ -22,10 +22,11 @@ def _renderAnonymousIndex(rd):
     rd.page_size = int(request.values['page_size'] if 'page_size' in request.values else 20)
     rd.query = request.values['query'] if 'query' in request.values else ""
     rd.order = "latest"
-    videos = listVideo(rd.page - 1, rd.page_size)
-    video_count = videos.count()
-    rd.videos = [i for i in videos]
+    videos, tags = listVideo(rd.page - 1, rd.page_size)
+    video_count = len(videos)
+    rd.videos = videos
     rd.count = video_count
+    rd.tags_list = tags
     rd.page_count = (video_count - 1) // rd.page_size + 1
     rd.page_selector_text = buildPageSelector(rd.page, rd.page_count, lambda a: 'javascript:gotoPage(%d);'%a)
     return 'content_videolist.html'
@@ -35,10 +36,11 @@ def _renderRegisteredIndex(rd, user):
     rd.page_size = int(request.values['page_size'] if 'page_size' in request.values else 20)
     rd.query = request.values['query'] if 'query' in request.values else ""
     rd.order = "latest"
-    videos = listVideo(rd.page - 1, rd.page_size)
-    video_count = videos.count()
-    rd.videos = [i for i in videos]
+    videos, tags = listVideo(rd.page - 1, rd.page_size)
+    video_count = len(videos)
+    rd.videos = videos
     rd.count = video_count
+    rd.tags_list = tags
     rd.page_count = (video_count - 1) // rd.page_size + 1
     rd.page_selector_text = buildPageSelector(rd.page, rd.page_count, lambda a: 'javascript:gotoPage(%d);'%a)
     return 'content_videolist.html'

@@ -270,5 +270,5 @@ def parse(query, tag_translator, group_translator):
         if tree is None:
                 return None
         _, ans = _parse_tree(tree, group_map)
-        return ans
+        return ans, tags
 

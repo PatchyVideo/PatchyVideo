@@ -23,16 +23,17 @@ def pages_search(rd, user):
         if len(rd.query) > 256:
             rd.reason = 'Query too long(max 256 characters)'
             return 'content_videolist_failed.html'
-        status, videos = listVideoQuery(rd.query, rd.page - 1, rd.page_size)
+        status, videos, related_tags = listVideoQuery(rd.query, rd.page - 1, rd.page_size)
     else :
-        videos = listVideo(rd.page - 1, rd.page_size)
+        videos, related_tags = listVideo(rd.page - 1, rd.page_size)
         status = "succeed"
     if status == "failed":
         rd.reason = "Syntax error in query"
         return 'content_videolist_failed.html'
-    video_count = videos.count()
-    rd.videos = [i for i in videos]
+    video_count = len(videos)
+    rd.videos = videos
     rd.count = video_count
+    rd.tags_list = related_tags
     rd.page_count = (video_count - 1) // rd.page_size + 1
     rd.page_selector_text = buildPageSelector(rd.page, rd.page_count, lambda a: 'javascript:gotoPage(%d);'%a)
     return 'content_videolist.html'

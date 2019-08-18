@@ -1,16 +1,8 @@
 
-"""
-Package:
-    services
-Location:
-    /services
-Description:
-    Website logics go here, leaving the pages package only handling page display,
-    reset of the processes are handled here
-"""
+import os
 
-#from . import editTag
-#from . import listVideo
-#from . import postVideo
-#from . import addTagAlias
+if os.getenv("FLASK_ENV", "development") == "production" :
+    TAG_TRACKER_ADDRESS = 'http://tagtracker:5001'
+else :
+    TAG_TRACKER_ADDRESS = 'http://localhost:5001'
 

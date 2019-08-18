@@ -255,10 +255,10 @@ class TagDB():
         return gm
 
     def compile_query(self, query, session = None):
-        query_obj = Parser.parse(query, self.translate_tags, self.translate_tag_group)
+        query_obj, tags = Parser.parse(query, self.translate_tags, self.translate_tag_group)
         if query_obj is None:
             return 'INCORRECT_QUERY'
-        return query_obj
+        return query_obj, tags
 
     def _tag_type(self, tag, session = None):
         tag_obj = self.db.tags.find_one({'tag': tag}, session = session)

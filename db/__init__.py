@@ -7,7 +7,7 @@ from pymongo import MongoClient
 if os.getenv("FLASK_ENV", "development") == "production" :
     client = MongoClient(os.getenv('MONGODB_URL', "mongodb://db:27017/"), replicaSet = 'rs1')
 else :
-    client = MongoClient(os.getenv('MONGODB_URL', "mongodb://db:27017/"))
+    client = MongoClient(os.getenv('MONGODB_URL', "mongodb://localhost:27017/"))
 db = client['patchyvideo']
 
 from .TagDB import TagDB
