@@ -2,7 +2,7 @@
 from db import db, client as dbclient
 from utils.dbtools import MongoTransaction
 from utils.interceptors import jsonRequest, basePage
-from flask import Flask
+from flask import Flask, request
 from collections import Counter
 from bson import ObjectId
 
@@ -73,7 +73,7 @@ class PopularityTracker(object) :
             self._try_save(s())
         return self.hitmap_sorted
 
-tracker = PopularityTracker(5)
+tracker = PopularityTracker(7 * 24 * 6)
 
 import json
 
@@ -81,7 +81,7 @@ import json
 @basePage
 @jsonRequest
 def hit_page(rd, data) :
-    print('hit', data.hitmap)
+    #print('hit', data.hitmap)
     update_lock.acquire()
     try:
         tracker.update_current_bin(data.hitmap)
@@ -93,10 +93,15 @@ def hit_page(rd, data) :
 @app.route("/get")
 @basePage
 def get_page(rd) :
+    try :
+        count = int(request.values['count'])
+    except :
+        count = 20
     hitmap_update_lock.acquire()
-    hitmap = tracker.hitmap_sorted
+    count = min(count, len(tracker.hitmap_sorted))
+    hitmap = list(tracker.hitmap_sorted.keys())[:count]
     hitmap_update_lock.release()
-    return "json", {"hitmap": hitmap}
+    return "json", {"tags": hitmap}
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -105,13 +110,13 @@ scheduler = BackgroundScheduler(daemon = True)
 scheduler.start()
 
 def update_popularity() :
-    print('update')
+    #print('update')
     tracker.update_popularity_and_move_to_next_bin()
 
 atexit.register(lambda: scheduler.shutdown(wait = False))
 
 if __name__ == "__main__":
-    scheduler.add_job(update_popularity, 'interval', minutes = 1)
-    print('started')
-    app.run(port=5001)
+    scheduler.add_job(update_popularity, 'interval', minutes = 10)
+    #print('started')
+    app.run(port = 5001)
 

@@ -109,3 +109,13 @@ def jsonRequest(func):
         return ret
     return wrapper
 
+def ignoreError(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            ret = func(*args, **kwargs)
+        except Exception as e :
+            import traceback
+            traceback.print_stack()
+        return ret
+    return wrapper

@@ -30,8 +30,8 @@ def pages_search(rd, user):
     if status == "failed":
         rd.reason = "Syntax error in query"
         return 'content_videolist_failed.html'
-    video_count = videos.count()
-    rd.videos = [i for i in videos]
+    video_count = len(videos)
+    rd.videos = videos
     rd.count = video_count
     rd.tags_list = related_tags
     rd.page_count = (video_count - 1) // rd.page_size + 1
