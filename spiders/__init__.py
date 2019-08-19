@@ -2,14 +2,15 @@
 import re
 from lxml import html
 import requests
-
 from utils.jsontools import makeResponseFailed
+from utils.http import clear_url
 
 class Spider :
 	def __init__(self) :
 		pass
 	def get_metadata( self, link ) :
 		try :
+			link = clear_url(link)
 			page = requests.get( link, headers = self.HEADERS )
 			if page.status_code == 200 :
 				tree = html.fromstring( page.text )

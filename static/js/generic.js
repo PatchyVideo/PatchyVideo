@@ -44,3 +44,26 @@ function setStatus(prompt, color = "black") {
     $("#status").text(prompt);
     $("#status").css('color', color);
 }
+
+function getQueryVariable(query, variable) {
+    var vars = query.split('&');
+    for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split('=');
+        if (decodeURIComponent(pair[0]) == variable) {
+            return decodeURIComponent(pair[1]);
+        }
+    }
+    console.log('Query variable %s not found', variable);
+}
+
+function addHTTP(url) {
+    if (!/^(?:f|ht)tps?\:\/\//.test(url)) {
+        url = "http://" + url;
+    }
+    return url;
+}
+
+function clearURL(url) {
+    url_parsed = new URL(addHTTP(url));
+    return "https://" + url_parsed.host + url_parsed.pathname + url_parsed.search;
+}

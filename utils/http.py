@@ -1,6 +1,7 @@
 
 import requests
 import json
+from urllib.parse import urlparse
 
 def post_json(url, json_obj_or_string) :
     if not isinstance(json_obj_or_string, str) :
@@ -12,3 +13,15 @@ def post_json(url, json_obj_or_string) :
 
 def get_page(url) :
     return requests.get(url).text
+
+def clear_url(url) :
+    link_parsed = urlparse(url)
+    if link_parsed.query :
+        return "https://%s%s?%s" % (
+            link_parsed.netloc,
+            link_parsed.path,
+            link_parsed.query)
+    else :
+        return "https://%s%s" % (
+            link_parsed.netloc,
+            link_parsed.path)

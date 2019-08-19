@@ -84,19 +84,20 @@ function buildParsersAdnExpanders() {
         thumbnailURL = "https://img.youtube.com/vi/" + vidid + "/hqdefault.jpg";
         info_file_link = proxyResource("https://www.youtube.com/get_video_info?video_id=" + vidid);
         $.get(info_file_link, function(data, status) {
-            if (status == 200) {
-                let searchParams = new URLSearchParams(data);
-                player_response = searchParams.get("player_response");
+            if (status == "success") {
+                //let searchParams = new URLSearchParams(data);
+                //player_response = searchParams.get("player_response");
+                player_response = getQueryVariable(data, "player_response")
                 videoDetails = JSON.parse(player_response)['videoDetails'];
                 title = videoDetails.title;
                 desc = videoDetails.shortDescription;
+                setVideoMetadata(thumbnailURL, title, desc);
             } else {
                 setVideoMetadata("", "", "");
                 setStatus("Error fetching video", "red");
                 return;
             }
         });
-        setVideoMetadata(thumbnailURL, title, desc);
     };
 }
 
@@ -110,6 +111,7 @@ function checkURL(url) {
             break;
         }
     }
+    url = clearURL(url);
     for(var key in PARSERS) {
         if (new RegExp(key).test(url)) {
             pass = true;
@@ -123,7 +125,7 @@ function checkURL(url) {
 function dispatchParser(url, responseDOM) {
     for(var key in PARSERS) {
         if (new RegExp(key).test(url)) {
-            PARSERS[key](responseDOM);
+            PARSERS[key](responseDOM, url);
         }
     }
 }

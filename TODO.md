@@ -14,7 +14,7 @@ When you think of something, put it here.
 |Bilibili Crawler Py|Completed||
 |Nicovideo Crawler JS|Completed||
 |Nicovideo Crawler Py|Completed||
-|Youtube Crawler JS|Not tested||
+|Youtube Crawler JS|Completed||
 |Youtube Crawler Py|Completed||
 |Twitter video cover image generation|Not started||
 |Twitter Crawler JS|Not started||
@@ -26,6 +26,7 @@ When you think of something, put it here.
 |Cover image for playlist|Not started||
 |Activity logging|Not started||
 |Flexible user access control|Not started||
-|Adding https to URL when crawling to prevent rediecting|Not started||
+|Adding https to URL when crawling to prevent rediecting|Completed||
 |Navbar tags when showing list of videos|Not started||
 |UI beautify|In development||
+|Related tags|Completed||

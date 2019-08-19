@@ -5,6 +5,7 @@ from init import app, rdb
 from utils.jsontools import *
 from utils.dbtools import makeUserMeta, MongoTransaction
 from utils.crypto import random_bytes_str
+from utils.http import clear_url
 
 from spiders import dispatch
 from db import tagdb, db, client
@@ -92,6 +93,7 @@ def addThiscopy(dst_vid, this_vid, session):
 def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
     try :
         ret = parsed.get_metadata(parsed, url)
+        url = clear_url(url)
         if ret["status"] == 'failed' :
             return "FETCH_FAILED", ret
         lock_id = "postVideo:" + ret["data"]["unique_id"]
