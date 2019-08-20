@@ -27,6 +27,8 @@ def pages_videodetail(rd, user):
     rd.tags = ' '.join(obj['tags'])
     rd.tags_list = obj['tags']
     rd.tag_by_category = getTagCategories(rd.tags_list)
+    for category in rd.tag_by_category :
+        rd.tag_by_category[category] = list(sorted(rd.tag_by_category[category]))
     rd.video_id = vidid
     rd.copies = []
     for item in obj['item']['copies'] :
