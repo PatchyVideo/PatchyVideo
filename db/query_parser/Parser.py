@@ -1,6 +1,5 @@
 
 from .SLR import Parser
-
 from anytree import Node, RenderTree
 
 """
