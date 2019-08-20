@@ -129,6 +129,13 @@ class TagDB():
             ans[obj['category']].append(obj['tag'])
         return ans
 
+    def get_tag_category_map(self, tags, session = None):
+        tag_objs = self.db.tags.find({'tag': {'$in': tags}}, session = session)
+        ans = {}
+        for obj in tag_objs:
+            ans[obj['tag']] = obj['category']
+        return ans
+
     def add_item(self, tags, item, user = '', session = None):
         item_id = self.db.items.insert_one({'tags': tags, 'item': item, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session).inserted_id
         self.db.tags.update_many({'tag': {'$in': tags}}, {'$inc': {'count': 1}}, session = session)

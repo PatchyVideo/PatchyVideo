@@ -21,12 +21,12 @@ When you think of something, put it here.
 |Twitter Crawler Py|Not started||
 |User sees his playlists|Not started||
 |User subscript to playlists|Not started||
-|Tag display with category|In development||
+|Tag display with category|Completed||
 |Redirect to previous url after login|Not started||
 |Cover image for playlist|Not started||
 |Activity logging|Not started||
 |Flexible user access control|Not started||
 |Adding https to URL when crawling to prevent rediecting|Completed||
-|Navbar tags when showing list of videos|Not started||
+|Navbar tags when showing list of videos|Completed||
 |UI beautify|In development||
 |Related tags|Completed||

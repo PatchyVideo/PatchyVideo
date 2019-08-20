@@ -50,8 +50,8 @@
             <div class="left_list">
                 <h1>Tags</h1>
                 <ul>
-                    {% for tag in tags_list %}
-                    <li><a href="/search?query={{tag}}">{{tag}}</a></li>
+                    {% for tag, color in tags_list.items() %}
+                    <li><a style="color: {{color}};" href="/search?query={{tag}}">{{tag}}</a></li>
                     {% endfor %}
                 </ul>
             </div>

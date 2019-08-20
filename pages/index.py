@@ -5,7 +5,9 @@ from flask import render_template, request, jsonify, redirect, session
 
 from init import app
 from utils.interceptors import loginOptional
+from utils.tagtools import getTagColor
 from services.listVideo import listVideo, listVideoQuery
+from services.getVideo import getTagCategoryMap
 from utils.html import buildPageSelector
 
 
@@ -26,7 +28,9 @@ def _renderAnonymousIndex(rd):
     video_count = videos.count()
     rd.videos = [item for item in videos]
     rd.count = video_count
-    rd.tags_list = tags
+    tag_category_map = getTagCategoryMap(tags)
+    tag_color_map = getTagColor(tag_category_map)
+    rd.tags_list = tag_color_map
     rd.page_count = (video_count - 1) // rd.page_size + 1
     rd.page_selector_text = buildPageSelector(rd.page, rd.page_count, lambda a: 'javascript:gotoPage(%d);'%a)
     return 'content_videolist.html'
@@ -40,7 +44,9 @@ def _renderRegisteredIndex(rd, user):
     video_count = videos.count()
     rd.videos = [item for item in videos]
     rd.count = video_count
-    rd.tags_list = tags
+    tag_category_map = getTagCategoryMap(tags)
+    tag_color_map = getTagColor(tag_category_map)
+    rd.tags_list = tag_color_map
     rd.page_count = (video_count - 1) // rd.page_size + 1
     rd.page_selector_text = buildPageSelector(rd.page, rd.page_count, lambda a: 'javascript:gotoPage(%d);'%a)
     return 'content_videolist.html'
