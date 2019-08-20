@@ -40,6 +40,7 @@ def pages_search(rd, user):
     tag_category_map = getTagCategoryMap(related_tags)
     tag_color_map = getTagColor(tag_category_map)
     rd.tags_list = tag_color_map
+    rd.title = 'Search'
     rd.page_count = (video_count - 1) // rd.page_size + 1
     rd.page_selector_text = buildPageSelector(rd.page, rd.page_count, lambda a: 'javascript:gotoPage(%d);'%a)
     return 'content_videolist.html'

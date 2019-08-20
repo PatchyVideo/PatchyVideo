@@ -29,7 +29,7 @@
         <li><a href="/">Home</a></li>
         <li><a href="/lists">Playlists</a></li>
         <li><a href="/postvideo">Post Video</a></li>
-        <li><a href="/edittag">Edit Tags</a></li>
+        <li><a href="/edittag">Tags</a></li>
       </ul>
     </div>
 
@@ -50,7 +50,9 @@
     <div class="left-navbar ">
       <div class="left_list">
         <h1>Tags</h1>
+        {% if _user is not none %}
         <button class="edit-tag-button" onclick="javascript:showModal();">Edit</button>
+        {% endif %}
         {% if 'Copyright' in tag_by_category %}
         <span>Copyright</span>
         <ul>

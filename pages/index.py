@@ -24,6 +24,7 @@ def _renderAnonymousIndex(rd):
     rd.page_size = int(request.values['page_size'] if 'page_size' in request.values else 20)
     rd.query = request.values['query'] if 'query' in request.values else ""
     rd.order = "latest"
+    rd.title = 'PatchyVideo'
     videos, tags = listVideo(rd.page - 1, rd.page_size)
     video_count = videos.count()
     rd.videos = [item for item in videos]
@@ -40,6 +41,7 @@ def _renderRegisteredIndex(rd, user):
     rd.page_size = int(request.values['page_size'] if 'page_size' in request.values else 20)
     rd.query = request.values['query'] if 'query' in request.values else ""
     rd.order = "latest"
+    rd.title = 'PatchyVideo'
     videos, tags = listVideo(rd.page - 1, rd.page_size)
     video_count = videos.count()
     rd.videos = [item for item in videos]
