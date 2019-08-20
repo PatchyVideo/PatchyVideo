@@ -118,5 +118,5 @@ atexit.register(lambda: scheduler.shutdown(wait = False))
 if __name__ == "__main__":
     scheduler.add_job(update_popularity, 'interval', minutes = 10)
     #print('started')
-    app.run(port = 5001)
+    app.run(host = '0.0.0.0', port = 5001)
 
