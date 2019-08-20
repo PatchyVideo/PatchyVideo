@@ -27,7 +27,7 @@ def getCommonTags(videos, max_count = 20) :
     tag_map = Counter(all_tags).most_common(n = max_count)
     return [item[0] for item in tag_map]
 
-#@ignoreError
+@ignoreError
 def updateTagSearch(tags) :
     tags = list(set(tags))
     payload = {

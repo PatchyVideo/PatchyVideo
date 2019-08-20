@@ -68,6 +68,12 @@ class TagDB():
         self.db.cats.update_one({'name': category}, {'$inc': {'count': 1}}, session = session)
         return 'SUCCESS'
 
+    def filter_tags(self, tags, session = None):
+        found = self.db.tags.aggregate([
+            {'$match':{'tag':{'$in':tags}}},
+            {'$project':{'tag':1}}], session = session)
+        return [item['tag'] for item in found]
+
     def remove_tag(self, tag, user = '', session = None):
         tt, tag_obj = self._tag_type(tag, session = session)
         if tt == 'tag':   

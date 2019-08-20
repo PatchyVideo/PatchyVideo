@@ -1,5 +1,5 @@
 
-from db import db, client as dbclient
+from db import db, tagdb, client as dbclient
 from utils.dbtools import MongoTransaction
 from utils.interceptors import jsonRequest, basePage
 from flask import Flask, request
@@ -61,7 +61,11 @@ class PopularityTracker(object) :
         next_bin_idx = (self.idx + 1) % (self.num_bins + 2)
         to_subtract_bin_idx = (self.idx + 2) % (self.num_bins + 2)
         all_hitmap = Counter(self.hitmap)
-        current_hitmap = Counter(self.bins[self.idx])
+        current_bin = self.bins[self.idx]
+        current_bin_tags = list(current_bin.keys())
+        current_bin_tags = tagdb.filter_tags(current_bin_tags)
+        current_bin = {tag: current_bin[tag] for tag in current_bin_tags}
+        current_hitmap = Counter(current_bin)
         all_hitmap = all_hitmap + current_hitmap
         if self.bins[to_subtract_bin_idx] is not None :
             to_subtract_hitmap = Counter(self.bins[to_subtract_bin_idx])
@@ -110,7 +114,6 @@ scheduler = BackgroundScheduler(daemon = True)
 scheduler.start()
 
 def update_popularity() :
-    #print('update')
     tracker.update_popularity_and_move_to_next_bin()
 
 atexit.register(lambda: scheduler.shutdown(wait = False))

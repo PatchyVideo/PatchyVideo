@@ -7,8 +7,10 @@
   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail_Tag_left.css') }}">
   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail.css') }}">
   <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Top-navbar.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/singlevideo.css') }}">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="{{ url_for('static',filename='js/generic.js') }}"></script>
+  <script src="{{ url_for('static',filename='js/singlevideo.js') }}"></script>
   <style type="text/css"></style>
   <meta id="thumbnail-url" content="{{thumbnail_url}}">
   </meta>
@@ -48,11 +50,55 @@
     <div class="left-navbar ">
       <div class="left_list">
         <h1>Tags</h1>
+        <button class="edit-tag-button" onclick="javascript:showModal();">Edit</button>
+        {% if 'Copyright' in tag_by_category %}
+        <span>Copyright</span>
         <ul>
-          {% for tag in tags_list %}
+          {% for tag in tag_by_category['Copyright'] %}
           <li><a href="/search?query={{tag}}">{{tag}}</a></li>
           {% endfor %}
         </ul>
+        {% endif %}
+        {% if 'Language' in tag_by_category %}
+        <span>Language</span>
+        <ul>
+          {% for tag in tag_by_category['Language'] %}
+          <li><a href="/search?query={{tag}}">{{tag}}</a></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% if 'Character' in tag_by_category %}
+        <span>Character</span>
+        <ul>
+          {% for tag in tag_by_category['Character'] %}
+          <li><a href="/search?query={{tag}}">{{tag}}</a></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% if 'Author' in tag_by_category %}
+        <span>Author</span>
+        <ul>
+          {% for tag in tag_by_category['Author'] %}
+          <li><a href="/search?query={{tag}}">{{tag}}</a></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% if 'General' in tag_by_category %}
+        <span>General</span>
+        <ul>
+          {% for tag in tag_by_category['General'] %}
+          <li><a href="/search?query={{tag}}">{{tag}}</a></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% if 'Meta' in tag_by_category %}
+        <span>Meta</span>
+        <ul>
+          {% for tag in tag_by_category['Meta'] %}
+          <li><a href="/search?query={{tag}}">{{tag}}</a></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
       </div>
     </div>
     <div class="content">
@@ -147,7 +193,13 @@
   <div class="footer w">
     text
   </div>
-
+  <div id="edit-tag-modal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <textarea id="edit-tags-area" class="tags-area"></textarea>
+        <button class="ok">Confirm</button>
+    </div>
+</div>
 
 </body>
 

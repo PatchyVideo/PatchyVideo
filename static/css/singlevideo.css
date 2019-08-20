@@ -79,3 +79,16 @@
     top: 60px;
     background-color: yellow;
 }
+
+.edit-tag-button {
+    padding: 5px;
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
+.left_list > span {
+    margin-top: 20px;
+    margin-left: 20px;
+    display: block;
+    font-weight: 600;
+}
