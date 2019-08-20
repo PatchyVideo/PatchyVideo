@@ -268,7 +268,7 @@ def parse(query, tag_translator, group_translator):
                         ti += 1
         tree = _p.Parse(ts, ss)
         if tree is None:
-                return None
+                return None, None
         _, ans = _parse_tree(tree, group_map)
         return ans, tags
 

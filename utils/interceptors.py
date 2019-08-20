@@ -114,8 +114,9 @@ def ignoreError(func):
     def wrapper(*args, **kwargs):
         try:
             ret = func(*args, **kwargs)
+            return ret
         except Exception as e :
             import traceback
             traceback.print_stack()
-        return ret
+        return None
     return wrapper

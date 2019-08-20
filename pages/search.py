@@ -23,15 +23,17 @@ def pages_search(rd, user):
         if len(rd.query) > 256:
             rd.reason = 'Query too long(max 256 characters)'
             return 'content_videolist_failed.html'
-        status, videos, related_tags = listVideoQuery(rd.query, rd.page - 1, rd.page_size)
+        status, videos, related_tags, video_count = listVideoQuery(rd.query, rd.page - 1, rd.page_size)
+        rd.videos = videos
     else :
         videos, related_tags = listVideo(rd.page - 1, rd.page_size)
+        video_count = videos.count()
+        rd.videos = [item for item in videos]
         status = "succeed"
+        
     if status == "failed":
         rd.reason = "Syntax error in query"
         return 'content_videolist_failed.html'
-    video_count = len(videos)
-    rd.videos = videos
     rd.count = video_count
     rd.tags_list = related_tags
     rd.page_count = (video_count - 1) // rd.page_size + 1

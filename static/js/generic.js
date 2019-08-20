@@ -30,6 +30,13 @@ function downloadPage(url, success, error = null, complete = null) {
     })
 }
 
+function gotoPage(page) {
+    query = $("#query").attr("content");
+    form = $(`<form style="display: none;" action="${window.location.href}" method="POST"><input style="display: none;" name="query" type="text" value="${query}" /><input name="page" type="text" value="${page}" /></form>`);
+    $("body").append(form);
+    form.submit();
+}
+
 function proxyResource(url, referrer = "", user_agent = "Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0") {
     url = encodeURI(url);
     if (referrer)

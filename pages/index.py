@@ -23,8 +23,8 @@ def _renderAnonymousIndex(rd):
     rd.query = request.values['query'] if 'query' in request.values else ""
     rd.order = "latest"
     videos, tags = listVideo(rd.page - 1, rd.page_size)
-    video_count = len(videos)
-    rd.videos = videos
+    video_count = videos.count()
+    rd.videos = [item for item in videos]
     rd.count = video_count
     rd.tags_list = tags
     rd.page_count = (video_count - 1) // rd.page_size + 1
@@ -37,8 +37,8 @@ def _renderRegisteredIndex(rd, user):
     rd.query = request.values['query'] if 'query' in request.values else ""
     rd.order = "latest"
     videos, tags = listVideo(rd.page - 1, rd.page_size)
-    video_count = len(videos)
-    rd.videos = videos
+    video_count = videos.count()
+    rd.videos = [item for item in videos]
     rd.count = video_count
     rd.tags_list = tags
     rd.page_count = (video_count - 1) // rd.page_size + 1

@@ -1,62 +1,154 @@
-{% extends "content_base.html" %}
-{% block content %}
-<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/singlevideo.css') }}">
-<script src="{{ url_for('static',filename='js/singlevideo.js') }}"></script>
-<meta id="thumbnail-url" content="{{thumbnail_url}}"></meta>
-<meta id="tags" content="{{tags}}"></meta>
-<meta id="video-id" content="{{video_id}}"></meta>
-<div class="video-detail">
-    <a href="{{link}}">{{link}}</a>
-    <img id="video-thumbnail" src="/images/covers/{{cover_image}}" width="320px"></img>
-    <h2>{{title}}</h2>
-    <p>{{desc}}</p>
-</div>
-<div class="copies-area">
-    {% if _user is not none %}
-    <h2>Copies <a href="/postvideo?copy={{video_id}}">[Add another copy]</a>{% if copies|length > 0 %} <a href="javascript:breaklink();">[Break Copy Link]</a>{% endif %}</h2>
-    {% else %}
-    <h2>Copies</h2>
-    {% endif %}
-    {% if copies|length == 0 %}
-        <span>This video has no other copies.</span>
-    {% else %}
-        <ul>
-        {% for copy in copies %}
-            <li>
-                <a href="/video?id={{copy._id}}">[Goto]</a>
-                <span>{{copy.item.site}}</span>
-                <span>{{copy.item.title}}</span>
-            </li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-</div>
-<div class="series-area">
-    <h2>Playlists</h2>
-    {% if playlists|length == 0 %}
-        <span>This video is not included in any playlists.</span>
-    {% else %}
-        {% for playlist in playlists %}
-            <li>
-                <a href="/list/{{playlist._id}}">[Goto]</a>
-                <span>{{playlist.title.english}}</span>
-                {% if playlist.prev|length > 0 %}
-                    <a href="/video?id={{playlist.prev}}">[Prev]</a>
-                {% endif %}
-                {% if playlist.next|length > 0 %}
-                    <a href="/video?id={{playlist.next}}">[Next]</a>
-                {% endif %}
-            </li>
-        {% endfor %}
-    {% endif %}
-</div>
-<div id="edit-tag-modal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <textarea id="edit-tags-area" class="tags-area"></textarea>
-        <button class="ok">Confirm</button>
-    </div>
-</div>
-{% endblock %}
-{% block title %}{{title}}{% endblock %}
+<!-- saved from url=(0056)file:///C:/Users/Administrator/Desktop/Video%20List.html -->
+<html>
 
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/common.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail_Tag_left.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Top-navbar.css') }}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="{{ url_for('static',filename='js/generic.js') }}"></script>
+  <style type="text/css"></style>
+  <meta id="thumbnail-url" content="{{thumbnail_url}}">
+  </meta>
+  <meta id="tags" content="{{tags}}">
+  </meta>
+  <meta id="video-id" content="{{video_id}}">
+  </meta>
+  <title>{{title}}</title>
+</head>
+
+<body>
+  <div class="top-navbar w " id="top-navbar">
+
+    <div class="nav_left">
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/lists">Playlists</a></li>
+        <li><a href="/postvideo">Post Video</a></li>
+        <li><a href="/edittag">Edit Tags</a></li>
+      </ul>
+    </div>
+
+    <div class="nav_right">
+      <ul>
+        {% include "searchbar_new.html" %}
+        {% if _user is none %}
+        <li><a href="/login">Login</a></li>
+        <li><a href="/signup">Sign up</a></li>
+        {% else %}
+        <li><a href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
+        <li><a href="/logout">Log out</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+  <div class="w">
+    <div class="left-navbar ">
+      <div class="left_list">
+        <h1>Tags</h1>
+        <ul>
+          {% for tag in tags_list %}
+          <li><a href="/search?query={{tag}}">{{tag}}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="content">
+
+      <div class="deemo">
+        ——————————————————自定义模块————————————
+        <br />
+        ——————————————————可隐藏————————————
+      </div>
+
+      <!-- 推荐视频栏开始  -->
+      <div class="recommend">
+        <div class="re_top">
+          <h2>{{title}}</h2>
+        </div>
+        <h4 class="video_link"><a href="{{link}}">{{link}}</a></h4>
+
+        <div class="re_video">
+
+          <img src="/images/covers/{{cover_image}}" width="320px" alt="{{title}}" title="{{title}}">
+          <p>{{desc}}</p>
+
+          <!--     <div class="tag">
+        
+      <ul>
+        <li><a href="">百合</a></li>  最大长度6个汉字
+        <li><a href="">长度随意</a></li>
+      </ul>
+        
+    </div>  -->
+
+        </div>
+        <!-- re_video栏结束  -->
+      </div>
+      <!-- 推荐视频栏结束  -->
+
+      <div class="Copies_blibili">
+
+
+        <div class="new_top">
+          <h2>Copies</h2>
+          {% if copies|length > 0 %}
+          This video has {{copies|length}} copies.
+          {% else %}
+          This video has no other copies.
+          {% endif %}
+          {% if _user is not none %}
+          <a href="/postvideo?copy={{video_id}}">[Add Copy]</a>{% if copies|length > 0 %} <a
+            href="javascript:breaklink();">[Remove This Copy]</a>{% endif %}
+          {% endif %}
+        </div>
+        <ul>
+          {% for copy in copies %}
+          <li>
+            <img src="{{ url_for('static',filename='img/' + copy.item.site + '.ico') }}" width="16px"></img>
+            <a href="/video?id={{copy._id}}">{{copy.item.title}}</a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+
+
+      <div class="Playlists">
+        <!-- 新视频栏开始  -->
+
+        <div class="new_top">
+          <h2>Playlists</h2>
+          {% if playlists|length == 0 %}
+          <p>This video is not included in any playlists.</p>
+          {% else %}
+          <p>This video is incldued in {{playlists|length}} playlists.</p>
+
+          {% endif %}
+        </div>
+      </div>
+      <ul>
+        {% for playlist in playlists %}
+        <li>
+          {% if playlist.prev|length > 0 %}
+          <a href="/video?id={{playlist.prev}}" style="float: left;">[Prev]</a>
+          {% endif %}
+          <a href="/list/{{playlist._id}}" class="">{{playlist.title.english}}</a>
+          {% if playlist.next|length > 0 %}
+          <a href="/video?id={{playlist.next}}" style="float: right;">[Next]</a>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="footer w">
+    text
+  </div>
+
+
+</body>
+
+</html>

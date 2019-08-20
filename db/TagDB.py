@@ -257,7 +257,7 @@ class TagDB():
     def compile_query(self, query, session = None):
         query_obj, tags = Parser.parse(query, self.translate_tags, self.translate_tag_group)
         if query_obj is None:
-            return 'INCORRECT_QUERY'
+            return 'INCORRECT_QUERY', []
         return query_obj, tags
 
     def _tag_type(self, tag, session = None):

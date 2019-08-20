@@ -1,37 +1,96 @@
-{% extends "content_base.html" %}
-{% block content %}
-<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/videolist.css') }}">
-<script src="{{ url_for('static',filename='js/videolist.js') }}"></script>
-<meta id="page" content="{{page}}"></meta>
-<meta id="query" content="{{query}}"></meta>
-<meta id="page-size" content="{{page_size}}"></meta>
-<meta id="page-count" content="{{page_count}}"></meta>
-<meta id="order" content="{{order}}"></meta>
-<div class="video-list">
-    <h4 id="list-prompt"></h4>
-    <ul id="primary-list">
-        {% for vid in videos %}
-        <li class="list-item">
-            <div class="video-thumbnail">
-                {% if vid.item.cover_image|length == 0 %}
-                <img src="/proxy?url={{vid.item.thumbnail_url}}&amp;header=%7B%22User-Agent%22:%22Mozilla/5.0%20(X11;%20Ubuntu;%20Linu%E2%80%A6)%20Gecko/20100101%20Firefox/65.0%22%7D" width="160px" height="100px">
-                {% else %}
-                <img src="/images/covers/{{vid.item.cover_image}}" width="160px" height="100px">
-                {% endif %}
-            </div>
-            <div class="video-detail">
-                <h4>{{vid.item.title}} <a href="/video?id={{vid._id}}">[Detail]</a>
-                </h4>
-                <p>{{vid.item.desc}}</p>
-                <div>
-                    <a href="{{vid.item.url}}">{{vid.item.url}}</a>
-                </div>
-            </div>
-        </li>
-        {% endfor %}
-    </ul>
-    <p class="page-selector">{{page_selector_text|safe}}</p>
-</div>
-{% endblock %}
-{% block title %}Video List{% endblock %}
+<!-- saved from url=(0056)file:///C:/Users/Administrator/Desktop/Video%20List.html -->
+<html>
 
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/common.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail_Tag_left.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/index.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/index_left.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Top-navbar.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/videolist.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="{{ url_for('static',filename='js/generic.js') }}"></script>
+    <style type="text/css"></style>
+    <meta id="thumbnail-url" content="{{thumbnail_url}}">
+    </meta>
+    <meta id="tags" content="{{tags}}">
+    </meta>
+    <meta id="video-id" content="{{video_id}}">
+    </meta>
+    <title>{{title}}</title>
+</head>
+
+<body>
+    <div class="top-navbar w " id="top-navbar">
+        <div class="nav_left">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/lists">Playlists</a></li>
+                <li><a href="/postvideo">Post Video</a></li>
+                <li><a href="/edittag">Edit Tags</a></li>
+            </ul>
+        </div>
+        <div class="nav_right">
+            <ul>
+                {% include "searchbar_new.html" %}
+                {% if _user is none %}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/signup">Sign up</a></li>
+                {% else %}
+                <li><a href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
+                <li><a href="/logout">Log out</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    <div class="w">
+        <div class="left-navbar ">
+            <div class="left_list">
+                <h1>Tags</h1>
+                <ul>
+                    {% for tag in tags_list %}
+                    <li><a href="/search?query={{tag}}">{{tag}}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="content">
+            <div class="deemo">
+                ——————————————————自定义模块————————————
+                <br />
+                ——————————————————可隐藏————————————
+            </div>
+            <ul>
+            {% for vid in videos %}
+            <li class="list-item">
+                <div class="video-thumbnail">
+                    {% if vid.item.cover_image|length == 0 %}
+                    <img src="/proxy?url={{vid.item.thumbnail_url}}&amp;header=%7B%22User-Agent%22:%22Mozilla/5.0%20(X11;%20Ubuntu;%20Linu%E2%80%A6)%20Gecko/20100101%20Firefox/65.0%22%7D" width="160px" height="100px">
+                    {% else %}
+                    <img src="/images/covers/{{vid.item.cover_image}}" width="160px" height="100px">
+                    {% endif %}
+                </div>
+                <div class="video-detail">
+                    <h4>{{vid.item.title}} <a href="/video?id={{vid._id}}">[Detail]</a>
+                    </h4>
+                    <p>{{vid.item.desc}}</p>
+                    <div>
+                        <a href="{{vid.item.url}}">{{vid.item.url}}</a>
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+            </ul>
+            <p class="page-selector">{{page_selector_text|safe}}</p>
+        </div>
+    </div>
+    <div class="footer w">
+        text
+    </div>
+
+
+</body>
+
+</html>

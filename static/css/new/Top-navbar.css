@@ -1,0 +1,52 @@
+
+
+  .top-navbar{
+
+        margin: 0px 30px;
+        flex: none;
+        margin: 0 auto;
+        background-color: white;
+        height: 70px;
+        display: flex;
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center;
+        overflow: hidden;
+        position: relative;
+        background-color: #F8F5F8;
+          box-shadow: 0 2px 8px rgba(0,0,0,.1);
+
+    }
+    a{
+    	 text-decoration: none;
+    }
+
+    .nav_left {
+
+width: 65%;
+    }
+    .nav_right {
+width: 35%;
+    }
+    .nav_left li{
+    	display: inline-block;
+    	margin-left: 5%; 
+    font-family: YourWebFontName
+    text-align: center;
+    font-size: 19px;
+    color: #333;
+
+    }
+    .nav_right li{
+     float: left;
+     margin-left: 5%; 
+     display: inline-block;
+    font-family: YourWebFontName
+    text-align: center;
+    font-size: 19px;
+    color: #333;
+    }
+    .nav_right li #submit
+    {
+    	margin:10px auto;
+    }
