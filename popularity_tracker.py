@@ -54,22 +54,29 @@ class PopularityTracker(object) :
 
     def _sort(self) :
         hitmap_update_lock.acquire()
-        self.hitmap_sorted = dict(sorted(self.hitmap.items(), key = operator.itemgetter(0), reverse = True))
+        self.hitmap_sorted = dict(sorted(self.hitmap.items(), key = operator.itemgetter(1), reverse = True))
         hitmap_update_lock.release()
 
     def update_popularity_and_move_to_next_bin(self) :
         next_bin_idx = (self.idx + 1) % (self.num_bins + 2)
         to_subtract_bin_idx = (self.idx + 2) % (self.num_bins + 2)
         all_hitmap = Counter(self.hitmap)
-        current_bin = self.bins[self.idx]
+        current_bin = self.bins[self.idx] or {}
+        #print('current')
+        #print(current_bin)
         current_bin_tags = list(current_bin.keys())
         current_bin_tags = tagdb.filter_tags(current_bin_tags)
         current_bin = {tag: current_bin[tag] for tag in current_bin_tags}
         current_hitmap = Counter(current_bin)
         all_hitmap = all_hitmap + current_hitmap
         if self.bins[to_subtract_bin_idx] is not None :
+            #print('subtracting')
+            #print(self.bins[to_subtract_bin_idx])
             to_subtract_hitmap = Counter(self.bins[to_subtract_bin_idx])
             all_hitmap = all_hitmap - to_subtract_hitmap
+            self.bins[to_subtract_bin_idx] = {}
+        #print('all_hitmap')
+        #print(all_hitmap)
         self.hitmap = all_hitmap
         self.idx = next_bin_idx
         self._sort()
@@ -102,6 +109,8 @@ def get_page(rd) :
     except :
         count = 20
     hitmap_update_lock.acquire()
+    #print('get')
+    #print(tracker.hitmap_sorted)
     count = min(count, len(tracker.hitmap_sorted))
     hitmap = list(tracker.hitmap_sorted.keys())[:count]
     hitmap_update_lock.release()
@@ -114,6 +123,7 @@ scheduler = BackgroundScheduler(daemon = True)
 scheduler.start()
 
 def update_popularity() :
+    #print('update')
     tracker.update_popularity_and_move_to_next_bin()
 
 atexit.register(lambda: scheduler.shutdown(wait = False))
