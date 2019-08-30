@@ -1,32 +1,122 @@
-{% extends "base.html" %}
-{% block title %}Post a video{% endblock %}
-{% block content_outer %}
-<script src="{{ url_for('static',filename='js/postvideo.js') }}"></script>
-<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/postvideo.css') }}">
-<meta id="copy" content="{{copy}}"></meta>
-<meta id="pid" content="{{pid}}"></meta>
-<meta id="rank" content="{{rank}}"></meta>
-<div class="central-form">
-    <div class="no-whitespace">
-        <button id="tab-button-single" class="tab-button active" onclick="javascript:gotoTab('single');">Single</button>
-        <button id="tab-button-batch" class="tab-button" onclick="javascript:gotoTab('batch');">Batch</button>
-    </div>
-    <div id="tab-single" class="tab-element">
-        <div class="video-url-bar central-element width no-whitespace">
-            <input type="text" name="video-url" id="video-url" placeholder="Video URL" />
-            <button type="button" id="fetch-video">Fetch Video</button>
+<!-- saved from url=(0056)file:///C:/Users/Administrator/Desktop/Video%20List.html -->
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/common.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail_Tag_left.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Top-navbar.css') }}">
+    <!--<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/postvideo.css') }}">-->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/generic.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="{{ url_for('static',filename='js/generic.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/postvideo.js') }}"></script>
+    <style type="text/css">
+    .video-form {
+    width: 600px;
+    margin: auto;
+}
+
+.video-url-bar {
+    display: inline-block;
+}
+
+.video-url-bar > input {
+    width: 305px;
+    border: 1px solid #becad7;
+    padding: 2px;
+}
+
+.video-url-bar > button {
+    border: 1px solid #becad7;
+    background-color: #becad7;
+    padding: 2px;
+    width: 95px;
+}
+
+.video-description {
+    display: block;
+    height: auto;
+    font-size: 1.0rem;
+    font-weight: 400;
+    line-height: 1.1rem;
+    white-space: pre-wrap;
+}
+
+.tab-button {
+    width: 50%;
+    padding: 8px;
+    border: none;
+}
+
+.active {
+    background-color: seashell;
+}
+
+    </style>
+    <meta id="thumbnail-url" content="{{thumbnail_url}}">
+    </meta>
+    <meta id="tags" content="{{tags}}">
+    </meta>
+    <meta id="video-id" content="{{video_id}}">
+    </meta>
+    <title>{{title}}</title>
+</head>
+
+<body>
+    <div class="top-navbar w " id="top-navbar">
+
+        <div class="nav_left">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/lists">Playlists</a></li>
+                <li><a href="/postvideo">Post Video</a></li>
+                <li><a href="/edittag">Tags</a></li>
+            </ul>
         </div>
-        <img class="central-element width" width="400px" height="250px" id="video-thumbnail"></img>
-        <h3 class="central-element width video-title" id="video-title"></h3>
-        <div class="video-description central-element width" id="video-description">
+
+        <div class="nav_right">
+            <ul>
+                {% include "searchbar_new.html" %}
+                {% if _user is none %}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/signup">Sign up</a></li>
+                {% else %}
+                <li><a href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
+                <li><a href="/logout">Log out</a></li>
+                {% endif %}
+            </ul>
         </div>
     </div>
-    <div id="tab-batch" style="display: none;" class="tab-element">
-        <textarea id="video-list" class="central-element width" placeholder="Videos&#13;&#10;One video on each line" style="height: 300px;"></textarea>
-    </div>
-    <textarea id="tags" class="central-element width" placeholder="Tags&#13;&#10;One tag on each line" style="height: 300px;">{{default_tags}}</textarea>
-    <p class="central-element width" id="status" style="text-align: center;">Ready</p>
-    <p class="central-element width" id="status2" style="text-align: center; display: none;"><a id="result-link">Click me</a> to see result.</p>
-    <button class="central-element narrow bottom-element" id="post-video-button" value="Post">Post</button>
-</div>
-{% endblock %}
+    <div class="w">
+
+        <div class="content">
+            <div class="central-form" style="top: 0px;">
+                <div class="no-whitespace">
+                    <button id="tab-button-single" class="tab-button active" onclick="javascript:gotoTab('single');">Single</button>
+                    <button id="tab-button-batch" class="tab-button" onclick="javascript:gotoTab('batch');">Batch</button>
+                </div>
+                <div id="tab-single" class="tab-element">
+                    <div class="video-url-bar central-element width no-whitespace">
+                        <input type="text" name="video-url" id="video-url" placeholder="Video URL" />
+                        <button type="button" id="fetch-video">Fetch Video</button>
+                    </div>
+                    <img class="central-element width" width="400px" height="250px" id="video-thumbnail"></img>
+                    <h3 class="central-element width video-title" id="video-title"></h3>
+                    <div class="video-description central-element width" id="video-description">
+                    </div>
+                </div>
+                <div id="tab-batch" style="display: none;" class="tab-element">
+                    <textarea id="video-list" class="central-element width" placeholder="Videos&#13;&#10;One video on each line" style="height: 300px;"></textarea>
+                </div>
+                <textarea id="tags" class="central-element width" placeholder="Tags&#13;&#10;One tag on each line" style="height: 300px;">{{default_tags}}</textarea>
+                <p class="central-element width" id="status" style="text-align: center;">Ready</p>
+                <p class="central-element width" id="status2" style="text-align: center; display: none;"><a id="result-link">Click me</a> to see result.</p>
+                <button class="central-element narrow bottom-element" id="post-video-button" value="Post">Post</button>
+            </div>
+        </div>
+
+</body>
+
+</html>
