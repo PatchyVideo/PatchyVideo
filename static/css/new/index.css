@@ -48,7 +48,7 @@
 }
 .re_top,.new_top{
     padding-bottom: 10px;
-    border-bottom:3px solid red; 
+    border-bottom:2px solid #c5464a;
 }
 .re_video ul{
   display: inline-block;
@@ -105,13 +105,20 @@
     float: left;
 
 }
+.img_message{
+overflow: hidden;
+        text-overflow: ellipsis; 
+        -o-text-overflow: ellipsis;
+   
+}
 .img_message span{   
  margin: 15px;
 display:block;
+
 }
 .img_message{
     padding:20px;
-    padding-left: 350px;
+    
 }
 .new_bottom{
     margin-top: 30px;

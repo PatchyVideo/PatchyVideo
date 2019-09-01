@@ -21,13 +21,6 @@
 
   }
 
-#search-bar-query{
-  width: 200px;
-  height: 40px;
-  padding-left:10px;
-  border-radius: 25px;  
-}
-
 
   .re_video,.new_video-detail{
    width:100%;
@@ -71,4 +64,3 @@
   text-align: center;
   margin-top: 6px;
 }
-

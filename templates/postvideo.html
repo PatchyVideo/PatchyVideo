@@ -5,10 +5,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/common.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail_Tag_left.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Top-navbar.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Post Video.css') }}">
     <!--<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/postvideo.css') }}">-->
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/generic.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="{{ url_for('static',filename='js/generic.js') }}"></script>
     <script src="{{ url_for('static',filename='js/postvideo.js') }}"></script>
@@ -19,7 +18,7 @@
         }
 
         .video-url-bar {
-            display: inline-block;
+            /*display: inline-block;*/
         }
 
         .video-url-bar>input {
@@ -51,9 +50,19 @@
         }
 
         .active {
-            background-color: seashell;
+            background-color: inherit;
+            border-bottom-width: 2px;
+            border-bottom-style: solid;
+            border-bottom-left-radius: 2px;
+            border-bottom-right-radius: 2px;
+            border-bottom-color: blue;
+            text-align: center;
+            color: blue;
         }
     </style>
+    <meta id="copy" content="{{copy}}"></meta>
+    <meta id="pid" content="{{pid}}"></meta>
+    <meta id="rank" content="{{rank}}"></meta>
     <meta id="thumbnail-url" content="{{thumbnail_url}}">
     </meta>
     <meta id="tags" content="{{tags}}">
@@ -94,9 +103,9 @@
             <div class="central-form" style="top: 0px;">
                 <div class="no-whitespace">
                     <button id="tab-button-single" class="tab-button active"
-                        onclick="javascript:gotoTab('single');">Single</button>
-                    <button id="tab-button-batch" class="tab-button"
-                        onclick="javascript:gotoTab('batch');">Batch</button>
+                        onclick="javascript:gotoTab('single');">Single Upload</button>
+                    <button id="tab-button-batch" class="tab-button" onclick="javascript:gotoTab('batch');">Batch
+                        Upload</button>
                 </div>
                 <div id="tab-single" class="tab-element">
                     <div class="video-url-bar central-element width no-whitespace">
@@ -110,7 +119,8 @@
                 </div>
                 <div id="tab-batch" style="display: none;" class="tab-element">
                     <textarea id="video-list" class="central-element width"
-                        placeholder="Videos&#13;&#10;One video on each line" style="height: 300px;"></textarea>
+                        placeholder="Videos&#13;&#10;One video on each line"
+                        style="height: 300px; margin-top: 20px;"></textarea>
                 </div>
                 <textarea id="tags" class="central-element width" placeholder="Tags&#13;&#10;One tag on each line"
                     style="height: 300px;">{{default_tags}}</textarea>
@@ -120,7 +130,10 @@
                 <button class="central-element narrow bottom-element" id="post-video-button" value="Post">Post</button>
             </div>
         </div>
-
+    </div>
+    <div class="footer w">
+        <p> © 2019 www.patchyvideo.com Touhou Projeject </p>
+    </div>
 </body>
 
 </html>

@@ -9,7 +9,7 @@
 body{
     width: 100%;
     height:100%;
-    background:  url("../../img/reimu_miko.jpg") no-repeat top center ;
+    background:  url("../../img/imoto.jpg") no-repeat top center ;
     opacity: 0.9;
     background-size:cover;
     background-attachment: fixed;
@@ -18,26 +18,20 @@ body{
 
     .w{
         background-color: white;
-        width: 80%;
+        width: 1600px;
         margin: auto;
         display: flex;
         padding:10px; 
     }
 
-#search-bar-query{
-  width: 200px;
- height: 40px;
- padding-left:10px;
- border-radius: 25px;  
- padding-bottom: 0px;
 
-}
 
 ul{
     list-style: none;
 
 }
 .content{
+  top: 3px;
   width: 80%;
   position: relative;
       flex: 1;
@@ -54,7 +48,20 @@ ul{
 
 }
 .footer{
-  background-color: #95A9AE;
 
+  height:100px;
+  width: 1600px;
+  background-color: #fff;
+border-top: 1px solid  #c5464a;
+ 
+text-align: left;
+    line-height: 100px;
+    font-size: 14px;
+    color: #73777a;
+    letter-spacing: .5px;
 
+}
+.footer p{
+  margin: auto;
+  text-align: center;
 }

@@ -1,11 +1,10 @@
 
 
-  .top-navbar{
+  html .top-navbar{
 
-        margin: 0px 30px;
+    
         flex: none;
         margin: 0 auto;
-        background-color: white;
         height: 70px;
         display: flex;
         -webkit-align-items: center;
@@ -13,12 +12,22 @@
         align-items: center;
         overflow: hidden;
         position: relative;
-        background-color: #F8F5F8;
-          box-shadow: 0 2px 8px rgba(0,0,0,.1);
+        background-color: #fff;
+        
+        box-shadow: 0 2px 20px #A78C97;
 
     }
-    a{
+   .top-navbar li a{
     	 text-decoration: none;
+         color: #761226;
+    }
+   .top-navbar a:hover{
+    
+      color: #FF88A0;
+    }
+
+    #submit{
+
     }
 
     .nav_left {
@@ -29,24 +38,79 @@ width: 65%;
 width: 35%;
     }
     .nav_left li{
+        height:70px;
+        line-height: 70px;
     	display: inline-block;
     	margin-left: 5%; 
     font-family: YourWebFontName
     text-align: center;
     font-size: 19px;
-    color: #333;
+    
 
     }
     .nav_right li{
+      
+      height:70px;
+      line-height: 70px;
      float: left;
      margin-left: 5%; 
      display: inline-block;
     font-family: YourWebFontName
     text-align: center;
+  
     font-size: 19px;
-    color: #333;
+ 
     }
-    .nav_right li #submit
-    {
-    	margin:10px auto;
-    }
+     .nav_right li a{
+
+     }
+
+
+
+     #search-bar-query{
+
+         width: 220px;
+          height: 42px;
+    outline: none;
+    border: none;
+       padding-left: 13px;
+       position: relative;
+       top: 0px;
+         
+}
+#search-bar-query:focus{
+    font-size: 15px;
+    
+    border: 1px solid #d1d1d1;
+}
+
+    
+     #search-bar-submit{  
+
+     
+    background: #c5464a;
+    width: 74.3px;
+    color: white;
+    height: 42px;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+       top: 0px;
+   
+}
+#submit:hover{
+
+      background: #FF88A0;
+}
+.nav_right  li#s1{
+    line-height: 0px;
+    border-radius:5px;
+    background:transparent;
+    height: 42px;
+    width: 322px;
+  position: relative;
+  top: 10px;
+  right: 50px;
+  
+}
