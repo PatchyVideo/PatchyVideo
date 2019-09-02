@@ -21,7 +21,8 @@
   padding-inline-start: 20px;
   font-size: 100%;
   line-height: 1.25em;
-
+    width: 200px;
+    word-break: break-all;
 }
 .left_list h1{
   font-family: Tahoma,Verdana,Helvetica,sans-serif;

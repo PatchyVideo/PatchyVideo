@@ -35,7 +35,7 @@
 width: 65%;
     }
     .nav_right {
-width: 35%;
+width: 50%;
     }
     .nav_left li{
         height:70px;
@@ -53,7 +53,7 @@ width: 35%;
       height:70px;
       line-height: 70px;
      float: left;
-     margin-left: 5%; 
+     margin-left: 2%; 
      display: inline-block;
     font-family: YourWebFontName
     text-align: center;

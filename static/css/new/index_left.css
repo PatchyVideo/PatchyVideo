@@ -17,7 +17,8 @@
     font-size: 30px;
     color: #999;
     text-decoration: none;
-
+    width: 200px;
+    word-break: break-all;
 
 }
 
