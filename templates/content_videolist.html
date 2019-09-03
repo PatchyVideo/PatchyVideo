@@ -81,6 +81,7 @@
                     </h4>
                     <p>{{vid.item.desc}}</p>
                     <div>
+                        <img src="{{ url_for('static',filename='img/' + vid.item.site + '.ico') }}" width="16px"></img>
                         <a href="{{vid.item.url}}">{{vid.item.url}}</a>
                     </div>
                 </div>
