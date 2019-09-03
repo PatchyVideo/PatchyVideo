@@ -87,10 +87,10 @@ function buildParsersAdnExpanders() {
             if (status == "success") {
                 //let searchParams = new URLSearchParams(data);
                 //player_response = searchParams.get("player_response");
-                player_response = getQueryVariable(data, "player_response")
+                player_response = getQueryVariable(data, "player_response");
                 videoDetails = JSON.parse(player_response)['videoDetails'];
-                title = videoDetails.title;
-                desc = videoDetails.shortDescription;
+                title = decodeURI(videoDetails.title);
+                desc = decodeURI(videoDetails.shortDescription);
                 setVideoMetadata(thumbnailURL, title, desc);
             } else {
                 setVideoMetadata("", "", "");
