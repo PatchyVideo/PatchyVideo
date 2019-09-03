@@ -16,7 +16,8 @@
     </form>
     <ul id="primary-list">
         {% for l in lists %}
-        <li class="list-item">
+        <li class="list-item" style="height: 160px;">
+            <img style="display: inline; float: left;" src="/images/covers/{{l.cover}}" width="160px" height="100px">
             <p><a href="/list/{{l._id}}">{{l.title.english}}</a></p>
         </li>
         {% endfor %}
