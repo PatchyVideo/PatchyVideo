@@ -28,6 +28,8 @@ class PopularityTracker(object) :
             item = db.popular_tags.find_one({}, session = session)
             self.hitmap = dict.fromkeys(item['hitmap'], 0)
             self.hitmap_sorted = self.hitmap
+            print('Loaded tags')
+            print(self.hitmap)
         except :
             pass
 
