@@ -15,7 +15,8 @@
         <span><a href="/list/{{playlist_id}}/edit">[Edit]</a></span>
         <span><a href="/list/{{playlist_id}}/del">[Delete]</a></span>
         {% endif %}
-        <p>{{playlist_desc}}</p>
+        <img style="display: block;" src="/images/covers/{{playlist_cover_image}}" width="320px" height="200px">
+        <p style="white-space: pre-wrap;">{{playlist_desc}}</p>
         {% if playlist_editable %}
         <a href="/list/{{playlist_id}}/add">[Add video]</a>
         {% endif %}
@@ -31,6 +32,7 @@
                 <span><a href="javascript:moveDown('{{vid._id}}');">[Move Down]</a></span>
                 <span><a href="/list/{{playlist_id}}/insert?rank={{vid.rank}}">[Insert Video here]</a></span>
                 <span><a href="javascript:deleteVideo('{{vid._id}}');">[Delete]</a></span>
+                <span><a href="javascript:setCover('{{vid._id}}');">[Set Video Cover as Playlist Cover]</a></span>
                 {% endif %}
             </div>
             <div class="video-thumbnail">

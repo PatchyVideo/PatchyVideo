@@ -94,3 +94,15 @@ function moveDown(vid) {
         alert(result.data);
     });
 }
+
+function setCover(vid) {
+    postJSON("/list/setcover.do",
+    {
+        "pid": $("#playlist-id").attr("content"),
+        "vid": vid,
+    }, function(result){
+        location.reload();
+    }, function(result){
+        alert(result.data);
+    });
+}

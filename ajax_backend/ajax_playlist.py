@@ -8,6 +8,16 @@ from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from services.playlist import *
 from utils.html import buildPageSelector
 
+@app.route('/list/setcover.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_playlist_setcover_do(rd, user, data):
+    ret = updatePlaylistCoverVID(data.pid, data.vid, user)
+    if ret == 'SUCCEED' :
+        return "json", makeResponseSuccess('')
+    else :
+        return "json", makeResponseFailed(ret)
+
 @app.route('/list/delete.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest

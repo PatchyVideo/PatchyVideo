@@ -43,6 +43,49 @@ def removePlaylist(pid, user) :
         db.playlists.delete_one({"_id": ObjectId(pid)}, session = s())
         return "SUCCEED"
 
+def updatePlaylistCover(pid, cover, user) :
+    with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
+        if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
+            s.mark_failover()
+            return "PLAYLIST_NOT_EXIST"
+        if not is_authorised(pid, user) :
+            s.mark_failover()
+            return "UNAUTHORISED_OPERATION"
+        db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {"cover": cover}}, session = s())
+        if user is not None :
+            db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
+                'meta.modified_by': ObjectId(user['_id']),
+                'meta.modified_at': datetime.now()}}, session = s())
+        else :
+            db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
+                'meta.modified_by': '',
+                'meta.modified_at': datetime.now()}}, session = s())
+        return "SUCCEED"
+
+
+def updatePlaylistCoverVID(pid, vid, user) :
+    with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
+        if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
+            s.mark_failover()
+            return "PLAYLIST_NOT_EXIST"
+        if not is_authorised(pid, user) :
+            s.mark_failover()
+            return "UNAUTHORISED_OPERATION"
+        video_obj = tagdb.retrive_item({"_id": ObjectId(vid)})
+        if video_obj is None :
+            return "VIDEO_NOT_EXIST"
+        cover = video_obj['item']['cover_image']
+        db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {"cover": cover}}, session = s())
+        if user is not None :
+            db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
+                'meta.modified_by': ObjectId(user['_id']),
+                'meta.modified_at': datetime.now()}}, session = s())
+        else :
+            db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
+                'meta.modified_by': '',
+                'meta.modified_at': datetime.now()}}, session = s())
+        return "SUCCEED"
+
 def updatePlaylistInfo(pid, language, title, desc, cover, user) :
     with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
         if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
@@ -51,6 +94,8 @@ def updatePlaylistInfo(pid, language, title, desc, cover, user) :
         if not is_authorised(pid, user) :
             s.mark_failover()
             return "UNAUTHORISED_OPERATION"
+        if cover :
+            db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {"cover": cover}}, session = s())
         if user is not None :
             db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
                 "title.%s" % language: title,
@@ -63,8 +108,6 @@ def updatePlaylistInfo(pid, language, title, desc, cover, user) :
                 "desc.%s" % language: desc,
                 'meta.modified_by': '',
                 'meta.modified_at': datetime.now()}}, session = s())
-        if cover :
-            db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {"cover": cover}}, session = s())
         return "SUCCEED"
 
 def addVideoToPlaylist(pid, vid, user) :
