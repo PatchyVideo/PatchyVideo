@@ -53,7 +53,10 @@ def basePage(func):
 def loginRequired(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        encoded_url = urllib.parse.quote(request.url)
+        path = request.full_path
+        if path[-1] == '?' :
+            path = path[:-1]
+        encoded_url = urllib.parse.quote(path)
         if 'sid' in session:
             rd = Namespace()
             kwargs['user'] = _get_user_obj(session['sid'])
