@@ -22,7 +22,7 @@ When you think of something, put it here.
 |User sees his playlists|Not started||
 |User subscript to playlists|Not started||
 |Tag display with category|Completed||
-|Redirect to previous url after login|Not started||
+|Redirect to previous url after login|Completed||
 |Cover image for playlist|Not started||
 |Activity logging|Not started||
 |Flexible user access control|Not started||
