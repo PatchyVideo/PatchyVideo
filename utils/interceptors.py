@@ -1,5 +1,6 @@
 
 import json
+import urllib
 from functools import wraps
 from flask import render_template, request, jsonify, current_app, redirect, session, url_for
 from types import SimpleNamespace as Namespace
@@ -7,7 +8,7 @@ from bson.json_util import dumps, loads
 from init import rdb
 
 from . import Namespace
-from .jsontools import makeResponseError
+from .jsontools import makeResponseError, makeResponseFailed, jsonResponse
 
 
 def _handle_return(ret, rd):
@@ -31,7 +32,7 @@ def _handle_return(ret, rd):
             if command == 'data':
                 return param
             if command == "json":
-                return current_app.response_class(dumps(param) + '\n', mimetype = current_app.config['JSONIFY_MIMETYPE'])
+                return jsonResponse(param)
             return ""
 
 def _get_user_obj(sid) :
@@ -52,17 +53,18 @@ def basePage(func):
 def loginRequired(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
+        encoded_url = urllib.parse.quote(request.url)
         if 'sid' in session:
             rd = Namespace()
             kwargs['user'] = _get_user_obj(session['sid'])
             if kwargs['user'] is None :
-                return redirect('/login')
+                return redirect('/login?redirect_url=' + encoded_url)
             rd._user = kwargs['user']
             kwargs['rd'] = rd
             ret = func(*args, **kwargs)
             return _handle_return(ret, rd)
         else :
-            return redirect('/login')
+            return redirect('/login?redirect_url=' + encoded_url)
     return wrapper
 
 def loginRequiredJSON(func):
@@ -72,13 +74,13 @@ def loginRequiredJSON(func):
             rd = Namespace()
             kwargs['user'] = _get_user_obj(session['sid'])
             if kwargs['user'] is None :
-                return ""
+                return jsonResponse(makeResponseError("You are not authorised for this operation"))
             rd._user = kwargs['user']
             kwargs['rd'] = rd
             ret = func(*args, **kwargs)
             return _handle_return(ret, rd)
         else :
-            return ""
+            return jsonResponse(makeResponseError("You are not authorised for this operation"))
     return wrapper
 
 def loginOptional(func):
@@ -100,12 +102,12 @@ def jsonRequest(func):
     def wrapper(*args, **kwargs):
         data = request.get_json()
         if data is None:
-            return "json", makeResponseError("Request must be a JSON form")
+            return jsonResponse(makeResponseFailed("Incomplete JSON form"))
         kwargs['data'] = Namespace.create_from_dict(data)
         try:
             ret = func(*args, **kwargs)
         except AttributeError:
-            return "json", makeResponseError("Incomplete JSON form")
+            return jsonResponse(makeResponseFailed("Incomplete JSON form"))
         return ret
     return wrapper
 

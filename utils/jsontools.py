@@ -1,5 +1,7 @@
 
 from . import Namespace
+from flask import current_app
+import json
 
 def makeResponseSuccess(data):
     return {
@@ -18,6 +20,12 @@ def makeResponseError(data):
         "status": "error",
         "data": data
     }
+
+def jsonResponse(json_obj_or_str) :
+    if isinstance(json_obj_or_str, str) :
+        return current_app.response_class(json_obj_or_str + '\n', mimetype = current_app.config['JSONIFY_MIMETYPE'])
+    else :
+        return current_app.response_class(json.dumps(json_obj_or_str) + '\n', mimetype = current_app.config['JSONIFY_MIMETYPE'])
 
 makeObject = Namespace.create_from_dict
 
