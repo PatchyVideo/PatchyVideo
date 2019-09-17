@@ -29,7 +29,20 @@
     #submit{
 
     }
+.nav_left {
+    width: 50%;
+}
 
+.nav_right li#s1{
+  width: 426px;
+  height: 70px;
+    line-height: 70px;
+   
+    position: relative;
+    top: 0px;
+    right: 50px;
+
+}
     .nav_left {
 
 width: 65%;
@@ -103,14 +116,4 @@ width: 50%;
 
       background: #FF88A0;
 }
-.nav_right  li#s1{
-    line-height: 0px;
-    border-radius:5px;
-    background:transparent;
-    height: 42px;
-    width: 322px;
-  position: relative;
-  top: 10px;
-  right: 50px;
-  
-}
+

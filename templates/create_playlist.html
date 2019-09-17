@@ -1,15 +1,82 @@
-{% extends "base.html" %}
-{% block title %}Create Playlist{% endblock %}
-{% block content_outer %}
-<script src="{{ url_for('static',filename='js/create_playlist.js') }}"></script>
-<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/create_playlist.css') }}">
-<meta id="copy" content="{{copy}}"></meta>
-<meta id="pid" content="{{pid}}"></meta>
-<div class="central-form">
-    <input class="central-element width" type="text" name="playlist-title" id="playlist-title" placeholder="Playlist title" value="{{title}}"/>
-    <p><h2>TODO: Playlist cover image upload here</h2></p>
-    <textarea name="playlist-desc" id="playlist-desc" class="central-element width" placeholder="Playlist description" style="height: 300px;">{{desc}}</textarea>
-    <p class="central-element width" id="status" style="text-align: center;">Ready</p>
-    <button class="central-element narrow bottom-element" id="create-playlist-button">Create</button>
-</div>
-{% endblock %}
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/common.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail_Tag_left.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Top-navbar.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Post Video.css') }}">
+    <!--<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/postvideo.css') }}">-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="{{ url_for('static',filename='js/generic.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/create_playlist.js') }}"></script>
+    <style type="text/css">
+        .central-element {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        .create-button {
+            width: 400px;
+            height: 50px;
+            position: relative;
+            right: -100px;
+            border: 1px solid #6F6F6F;
+            margin-bottom: 20px;
+            color: black;
+            background-color: #fafafa;
+        }
+
+        .create-button:hover {
+            color: white;
+            background-color: #5E5E5E;
+        }
+    </style>
+    <meta id="copy" content="{{copy}}"></meta>
+    <meta id="pid" content="{{pid}}"></meta>
+    <title>Create Playlist - PatchyVideo</title>
+</head>
+
+<body>
+    <div class="top-navbar w " id="top-navbar">
+
+        <div class="nav_left">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/lists">Playlists</a></li>
+                <li><a href="/postvideo">Post Video</a></li>
+                <li><a href="/edittag">Tags</a></li>
+            </ul>
+        </div>
+
+        <div class="nav_right">
+            <ul>
+                {% include "searchbar_new.html" %}
+                {% if _user is none %}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/signup">Sign up</a></li>
+                {% else %}
+                <li><a href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
+                <li><a href="/logout">Log out</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    <div class="w">
+
+        <div class="content">
+            <div class="central-form" style="top: 0px;">
+                <input class="central-element width" type="text" name="playlist-title" id="playlist-title" placeholder="Playlist title" value="{{title}}"/>
+                <!-- <p><h2>TODO: Playlist cover image upload here</h2></p> -->
+                <textarea name="playlist-desc" id="playlist-desc" class="central-element width" placeholder="Playlist description" style="height: 300px;">{{desc}}</textarea>
+                <p class="central-element width" id="status" style="text-align: center;">Ready</p>
+                <button class="central-element narrow bottom-element create-button" id="create-playlist-button">Create</button>
+            </div>
+        </div>
+    </div>
+    <div class="footer w">
+        <p> © 2019 www.patchyvideo.com Touhou Projeject </p>
+    </div>
+</body>
+
+</html>

@@ -1,60 +1,127 @@
-{% extends "content_base.html" %}
-{% block content %}
-<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/playlist.css') }}">
-<script src="{{ url_for('static',filename='js/playlist.js') }}"></script>
-<meta id="page" content="{{page}}"></meta>
-<meta id="query" content="{{query}}"></meta>
-<meta id="page-size" content="{{page_size}}"></meta>
-<meta id="page-count" content="{{page_count}}"></meta>
-<meta id="order" content="{{order}}"></meta>
-<meta id="playlist-id" content="{{playlist_id}}"></meta>
-<div class="video-list">
-    <div>
-        <h1>{{playlist_title}}</h1>
-        {% if playlist_editable %}
-        <span><a href="/list/{{playlist_id}}/edit">[Edit]</a></span>
-        <span><a href="/list/{{playlist_id}}/del">[Delete]</a></span>
-        {% endif %}
-        <img style="display: block;" src="/images/covers/{{playlist_cover_image}}" width="320px" height="200px">
-        <p style="white-space: pre-wrap;">{{playlist_desc}}</p>
-        {% if playlist_editable %}
-        <a href="/list/{{playlist_id}}/add">[Add video]</a>
-        {% endif %}
-    </div>
-    <h4 id="list-prompt"></h4>
-    <ul id="primary-list">
-        {% for vid in videos %}
-        <li class="list-item">
-            <div>
-                <span><h3>{{vid.rank + 1}}</h3></span>
-                {% if playlist_editable %}
-                <span><a href="javascript:moveUp('{{vid._id}}');">[Move Up]</a></span>
-                <span><a href="javascript:moveDown('{{vid._id}}');">[Move Down]</a></span>
-                <span><a href="/list/{{playlist_id}}/insert?rank={{vid.rank}}">[Insert Video here]</a></span>
-                <span><a href="javascript:deleteVideo('{{vid._id}}');">[Delete]</a></span>
-                <span><a href="javascript:setCover('{{vid._id}}');">[Set Video Cover as Playlist Cover]</a></span>
-                {% endif %}
-            </div>
-            <div class="video-thumbnail">
-                {% if vid.item.cover_image|length == 0 %}
-                <img src="/proxy?url={{vid.item.thumbnail_url}}&amp;header=%7B%22User-Agent%22:%22Mozilla/5.0%20(X11;%20Ubuntu;%20Linu%E2%80%A6)%20Gecko/20100101%20Firefox/65.0%22%7D" width="160px" height="100px">
+<!-- saved from url=(0056)file:///C:/Users/Administrator/Desktop/Video%20List.html -->
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/common.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Top-navbar.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/videolist.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/component.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Playlists.css') }}">
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="{{ url_for('static',filename='js/generic.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/playlist.js') }}"></script>
+
+    <style type="text/css">
+    .operation {
+        display: inline;
+    }
+    </style>
+    <title>{{playlist_title}} - PatchyVideo</title>
+</head>
+
+<body>
+    <meta id="page" content="{{page}}">
+    </meta>
+    <meta id="query" content="{{query}}">
+    </meta>
+    <meta id="page-size" content="{{page_size}}">
+    </meta>
+    <meta id="page-count" content="{{page_count}}">
+    </meta>
+    <meta id="order" content="{{order}}">
+    </meta>
+    <meta id="playlist-id" content="{{playlist_id}}">
+    </meta>
+    <div class="top-navbar w " id="top-navbar">
+        <div class="nav_left">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/lists">Playlists</a></li>
+                <li><a href="/postvideo">Post Video</a></li>
+                <li><a href="/edittag">Tags</a></li>
+            </ul>
+        </div>
+        <div class="nav_right">
+            <ul>
+                {% include "searchbar_new.html" %}
+                {% if _user is none %}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/signup">Sign up</a></li>
                 {% else %}
-                <img src="/images/covers/{{vid.item.cover_image}}" width="160px" height="100px">
+                <li><a href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
+                <li><a href="/logout">Log out</a></li>
                 {% endif %}
-            </div>
-            <div class="video-detail">
-                <h4>{{vid.item.title}} <a href="/video?id={{vid._id}}">[Detail]</a>
-                </h4>
-                <p>{{vid.item.desc}}</p>
-                <div>
-                    <a href="{{vid.item.url}}">{{vid.item.url}}</a>
+            </ul>
+        </div>
+    </div>
+    <div class="w">
+        <div class="content">
+            <div class="deemo shadow">
+                <div class="d_t">
+                    <h2>{{playlist_title}}</h2>
+                    {% if playlist_editable %}
+                    <div style="text-align: center">
+                        <span><a class="operation" href="/list/{{playlist_id}}/add">[Add video]</a></span>
+                        <span><a class="operation" href="/list/{{playlist_id}}/edit">[Edit]</a></span>
+                        <span><a class="operation" href="/list/{{playlist_id}}/del">[Delete]</a></span>
+                    </div>
+                    {% endif %}
+                    <a href=""><img src="/images/covers/{{playlist_cover_image}}" width="320px" height="200px" alt=""
+                            title=""></a>
+                    <p style="white-space: pre-wrap;">{{playlist_desc}}</p>
                 </div>
             </div>
-        </li>
-        {% endfor %}
-    </ul>
-    <p class="page-selector">{{page_selector_text|safe}}</p>
-</div>
-{% endblock %}
-{% block title %}{{playlist_title}}{% endblock %}
+            <ul>
+                {% for vid in videos %}
+                <li class="list-item">
+                    <div>
+                        <span>
+                            <h3 style="display: inline">{{vid.rank + 1}}</h3>
+                        </span>
+                        {% if playlist_editable %}
+                        <span><a class="operation" href="javascript:moveUp('{{vid._id}}');">[Move Up]</a></span>
+                        <span><a class="operation" href="javascript:moveDown('{{vid._id}}');">[Move Down]</a></span>
+                        <span><a class="operation" href="/list/{{playlist_id}}/insert?rank={{vid.rank}}">[Insert Video here]</a></span>
+                        <span><a class="operation" href="javascript:deleteVideo('{{vid._id}}');">[Delete]</a></span>
+                        <span><a class="operation" href="javascript:setCover('{{vid._id}}');">[Set Video Cover as Playlist Cover]</a></span>
+                        {% endif %}
+                    </div>
+                    <div class="video-thumbnail">
+                        {% if vid.item.cover_image|length == 0 %}
+                        <img src="/proxy?url={{vid.item.thumbnail_url}}&amp;header=%7B%22User-Agent%22:%22Mozilla/5.0%20(X11;%20Ubuntu;%20Linu%E2%80%A6)%20Gecko/20100101%20Firefox/65.0%22%7D"
+                            width="160px" height="100px">
+                        {% else %}
+                        <img src="/images/covers/{{vid.item.cover_image}}" width="160px" height="100px">
+                        {% endif %}
+                    </div>
+                    <div class="video-detail">
+                        <h4>{{vid.item.title}} <a href="/video?id={{vid._id}}">[Detail]</a>
+                        </h4>
+                        <p>{{vid.item.desc}}</p>
+                        <div>
+                            <img src="{{ url_for('static',filename='img/' + vid.item.site + '.ico') }}"
+                                width="16px"></img>
+                            <a href="{{vid.item.url}}">{{vid.item.url}}</a>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            <p class="page-selector">{{page_selector_text|safe}}</p>
+        </div>
+    </div>
+    <div class="footer w">
+        <p> © 2019 www.patchyvideo.com Touhou Project </p>
+    </div>
 
+
+    </div>
+
+
+</body>
+
+</html>

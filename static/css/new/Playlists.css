@@ -1,0 +1,49 @@
+ .d_t{
+ width:100%;
+
+ }
+ .d_t > a{
+  display: block;
+  width: 300px;
+  margin: auto;
+ }
+
+
+
+
+.d_t{
+  padding:20px 0px;
+}
+ .d_t:hover{
+ background-color: rgba(255,255,255,0.3);
+ }
+.d_t h2{
+
+  text-align: center;
+    word-wrap: break-word;
+    word-break: normal;
+    margin: 10px 0px;
+}
+.d_t  p{
+<<<<<<< HEAD
+width: 70%;
+line-height: 25px;
+text-align: center;
+      margin: auto ; 
+=======
+
+  text-align: center;
+      margin: 10px 0px 0px ;
+>>>>>>> 231c49f285a42257430ade960e8e421b8e41c1e9
+}
+#s1{
+  width: 200px;
+}
+.deemo{
+background:  url("../../img/5.jpg")  left  no-repeat,
+ url("../../img/1.jpg")  right  no-repeat;
+/* url("../../img/4.jpg") center  no-repeat,
+             url("../../img/2.jpg") right  no-repeat; */
+ background-size: 150px 223px ; 
+}
+ 

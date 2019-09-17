@@ -95,6 +95,10 @@ function moveDown(vid) {
     });
 }
 
+function deletePlaylist() {
+    $.get("/list/{{playlist_id}}/del");
+}
+
 function setCover(vid) {
     postJSON("/list/setcover.do",
     {

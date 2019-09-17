@@ -1,5 +1,9 @@
 <li id="s1">
 <form id="search-bar" action="/search" method="POST">
+    <select class="form_select">
+        <option value="0">All Videos</option>
+        <option value="1">All Playlists</option>
+    </select>
     <input id="search-bar-query" name="query" type="text" placeholder="Search" value="{{query}}">
     <input id="search-bar-submit" type="submit" value="Search">
 </form>

@@ -1,12 +1,57 @@
-{% extends "base.html" %}
-{% block title %}Tags{% endblock %}
-{% block content_outer %}
-<script src="{{ url_for('static',filename='js/edittag.js') }}"></script>
-<script src="{{ url_for('static',filename='js/tabtable.js') }}"></script>
-<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/tabtable.css') }}">
-<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/edittag.css') }}">
-<div id="primary" class="tag-categories">
-    <div class="tab-header">
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/common.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Top-navbar.css') }}">
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/tabtable.css') }}">
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/edittag.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="{{ url_for('static',filename='js/generic.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/edittag.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/tabtable.js') }}"></script>
+    <meta id="copy" content="{{copy}}"></meta>
+    <meta id="pid" content="{{pid}}"></meta>
+    <title>Tags - PatchyVideo</title>
+</head>
+
+<body>
+    <div class="top-navbar w " id="top-navbar">
+
+        <div class="nav_left">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/lists">Playlists</a></li>
+                <li><a href="/postvideo">Post Video</a></li>
+                <li><a href="/edittag">Tags</a></li>
+            </ul>
+        </div>
+
+        <div class="nav_right">
+            <ul>
+                {% include "searchbar_new.html" %}
+                {% if _user is none %}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/signup">Sign up</a></li>
+                {% else %}
+                <li><a href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
+                <li><a href="/logout">Log out</a></li>
+                {% endif %}
+            </ul>
+        </div>
     </div>
-</div>
-{% endblock %}
+    <div class="w">
+
+        <div class="content">
+            <div id="primary" class="tag-categories">
+                <div class="tab-header">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer w">
+        <p> © 2019 www.patchyvideo.com Touhou Projeject </p>
+    </div>
+</body>
+
+</html>
