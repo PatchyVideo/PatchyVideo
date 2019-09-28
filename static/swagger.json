@@ -1,0 +1,240 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "description": "sean",
+        "version": "1.0.0",
+        "title": "PatchyVideo",
+        "contact": {
+            "email": "zyddnys@outlook.com"
+        }
+    },
+    "paths": {
+        "/list/setcover.do": {
+            "post": {
+                "tags": [
+                    "Book Request"
+                ],
+                "requestBody": {
+                    "description": "Playlist Edit Post Object",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/playlist_request"
+                            }
+                        }
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Set cover image of this video as the cover image of this playlist",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/components/schemas/playlist_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/list/delete.do": {
+            "post": {
+                "tags": [
+                    "Book Request"
+                ],
+                "requestBody": {
+                    "description": "Playlist Edit Post Object",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/playlist_request"
+                            }
+                        }
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Delete this video from this playlist",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/components/schemas/playlist_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/list/moveup.do": {
+            "post": {
+                "tags": [
+                    "Book Request"
+                ],
+                "requestBody": {
+                    "description": "Playlist Edit Post Object",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/playlist_request"
+                            }
+                        }
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Move this video up",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/components/schemas/playlist_response"
+                        }
+                    }
+                }
+            }
+        },
+        "/list/movedown.do": {
+            "post": {
+                "tags": [
+                    "Book Request"
+                ],
+                "requestBody": {
+                    "description": "Playlist Edit Post Object",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/playlist_request"
+                            }
+                        }
+                    }
+                },
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Move this video down",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/components/schemas/playlist_response"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "playlist_request": {
+                "type": "object",
+                "properties": {
+                    "pid": {
+                        "description": "Playlist id",
+                        "type": "string",
+                        "format": "id"
+                    },
+                    "vid": {
+                        "description": "Video id",
+                        "type": "string",
+                        "format": "id"
+                    },
+                    "page": {
+                        "description": "Page number",
+                        "type": "number",
+                        "format": "uint64"
+                    },
+                    "page_size": {
+                        "description": "Page size",
+                        "type": "number",
+                        "format": "uint64"
+                    }
+                }
+            },
+            "playlist_response": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "format": "one of success/failed/error"
+                    },
+                    "data": {
+                        "type": "object",
+                        "properties": {
+                            "page": {
+                                "description": "Resulting page index",
+                                "type": "number"
+                            },
+                            "video_count": {
+                                "description": "Total number of videos in this playlist",
+                                "type": "number"
+                            },
+                            "videos": {
+                                "description": "Videos",
+                                "type": "array"
+                            }
+                        }
+                    }
+                }
+            },
+            "video": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "format": "url"
+                    },
+                    "title": {
+                        "type": "string",
+                        "format": "string"
+                    },
+                    "desc": {
+                        "type": "string",
+                        "format": "string"
+                    },
+                    "thumbnail_url": {
+                        "type": "string",
+                        "format": "url"
+                    },
+                    "cover_image": {
+                        "type": "string",
+                        "format": "string"
+                    },
+                    "site": {
+                        "type": "string",
+                        "format": "string"
+                    },
+                    "unique_id": {
+                        "type": "string",
+                        "format": "string"
+                    },
+                    "series": {
+                        "type": "object"
+                    },
+                    "copies": {
+                        "type": "object",
+                        "format": "uuid"
+                    },
+                    "upload_time": {
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "views": {
+                        "type": "number",
+                        "format": "uint64"
+                    },
+                    "rating": {
+                        "type": "number",
+                        "format": "float"
+                    }
+                }
+            }
+        }
+    }
+}
