@@ -8,13 +8,14 @@ from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from services.playlist import *
 from utils.html import buildPageSelector
 
+
 @app.route('/list/setcover.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_playlist_setcover_do(rd, user, data):
-    ret = updatePlaylistCoverVID(data.pid, data.vid, user)
+    ret, new_list = updatePlaylistCoverVID(data.pid, data.vid, int(data.page), int(data.page_size), user)
     if ret == 'SUCCEED' :
-        return "json", makeResponseSuccess('')
+        return "json", makeResponseSuccess(new_list)
     else :
         return "json", makeResponseFailed(ret)
 
@@ -22,9 +23,9 @@ def ajax_playlist_setcover_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_playlist_deletevideo_do(rd, user, data):
-    ret = removeVideoFromPlaylist(data.pid, data.vid, user)
+    ret, new_list = removeVideoFromPlaylist(data.pid, data.vid, int(data.page), int(data.page_size), user)
     if ret == 'SUCCEED' :
-        return "json", makeResponseSuccess('')
+        return "json", makeResponseSuccess(new_list)
     else :
         return "json", makeResponseFailed(ret)
 
@@ -32,9 +33,9 @@ def ajax_playlist_deletevideo_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_playlist_moveup_do(rd, user, data):
-    ret = editPlaylist_MoveUp(data.pid, data.vid, user)
+    ret, new_list = editPlaylist_MoveUp(data.pid, data.vid, int(data.page), int(data.page_size), user)
     if ret == 'SUCCEED' :
-        return "json", makeResponseSuccess('')
+        return "json", makeResponseSuccess(new_list)
     else :
         return "json", makeResponseFailed(ret)
 
@@ -42,8 +43,8 @@ def ajax_playlist_moveup_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_playlist_movedown_do(rd, user, data):
-    ret = editPlaylist_MoveDown(data.pid, data.vid, user)
+    ret, new_list = editPlaylist_MoveDown(data.pid, data.vid, int(data.page), int(data.page_size), user)
     if ret == 'SUCCEED' :
-        return "json", makeResponseSuccess('')
+        return "json", makeResponseSuccess(new_list)
     else :
         return "json", makeResponseFailed(ret)
