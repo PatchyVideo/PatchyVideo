@@ -4,4 +4,5 @@ set IMAGE_PATH=J:\pvdata2
 set MONGODB_URL=mongodb://localhost:27017/patchyvideo
 set REDISTOGO_URL=localhost
 set ENABLE_TRANSACTION=false
+set USE_RQ=false
 python main.py
