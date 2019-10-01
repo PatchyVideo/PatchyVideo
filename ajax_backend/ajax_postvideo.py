@@ -20,6 +20,7 @@ else :
     USE_RQ = False
 
 if USE_RQ :
+    print('Using RQ')
     @app.route('/postvideo.do', methods = ['POST'])
     @loginRequiredJSON
     @jsonRequest
@@ -82,10 +83,12 @@ if USE_RQ :
             ret =  makeResponseFailed("Unsupported website")
         return "json", ret
 else :
+    print('Not using RQ')
     @app.route('/postvideo.do', methods = ['POST'])
     @loginRequiredJSON
     @jsonRequest
     def ajax_postvideo_do(rd, user, data):
+        print('post video')
         if len(data.url) > 500 :
             return "json", makeResponseFailed("URL too long")
         if len(data.tags) > 200 :
@@ -96,16 +99,20 @@ else :
         obj, cleanURL = dispatch(data.url)
         if obj is None:
             return "json", makeResponseFailed("Unsupported website")
+        print('post video preliminary check completed')
         tags_ret, unrecognized_tag = verifyTags(data.tags)
         dst_copy = data.copy if 'copy' in data.__dict__ else ''
         dst_playlist = data.pid if 'pid' in data.__dict__ else ''
         dst_rank = data.rank if 'rank' in data.__dict__ else -1
         if tags_ret == 'TAG_NOT_EXIST':
             return "json", makeResponseFailed("Tag %s not recognized" % unrecognized_tag)
+        print('post video tag check completed')
         result_msg, result_id = postVideo(cleanURL, data.tags, obj, dst_copy, dst_playlist, dst_rank, user)
         if result_msg == "SUCCEESS" :
+            print('post video SUCCEESS')
             ret = makeResponseFailed("operation succeed, last video_id=%s" % str(result_id))
         else :
+            print('post video %s'%result_msg)
             ret =  makeResponseFailed("operation failed, last err_code=%s" % result_msg)
         return "json", ret
 
