@@ -102,7 +102,7 @@ else :
         dst_rank = data.rank if 'rank' in data.__dict__ else -1
         if tags_ret == 'TAG_NOT_EXIST':
             return "json", makeResponseFailed("Tag %s not recognized" % unrecognized_tag)
-        result_msg, result_id = postVideo(cleanURL, data.tags, obj, dst_copy, dst_playlist, dst_rank + next_idx, user)
+        result_msg, result_id = postVideo(cleanURL, data.tags, obj, dst_copy, dst_playlist, dst_rank, user)
         if result_msg == "SUCCEESS" :
             ret = makeResponseFailed("operation succeed, last video_id=%s" % str(result_id))
         else :
