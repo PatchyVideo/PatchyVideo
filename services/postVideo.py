@@ -173,4 +173,4 @@ def verifyUniqueness(postingId):
     return val is None, val
 
 def verifyTags(tags):
-    return tagdb.verify_tags(tags)
+    return tagdb.verify_tags([tag.strip() for tag in tags])
