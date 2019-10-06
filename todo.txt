@@ -36,6 +36,10 @@ user access control
 UI beautify level 2
 #navbar tags
 A better tag editting mechanism
+log error, don't want others to see filenames in error response
+change background image to include more patchouli
+trim url
+batch tag update in playlist
 
 *future functions:
 multi-language support
