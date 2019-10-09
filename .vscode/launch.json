@@ -56,7 +56,23 @@
                 "MONGODB_URL": "localhost:27017",
                 "REDISTOGO_URL": "127.0.0.1",
                 "REDISTOGO_URL_WORKER": "redis://127.0.0.1",
-                "IMAGE_PATH": "images",
+                "IMAGE_PATH": "~/images",
+                "ENABLE_TRANSACTION": "false"
+            }
+        },
+        {
+            "name": "Local Run (WSL)",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/main.py",
+            "console": "integratedTerminal",
+            "jinja": true,
+            "env": {
+                "MONGODB_URL": "192.168.0.50:27017",
+                "REDISTOGO_URL": "192.168.0.50",
+                "REDISTOGO_URL_WORKER": "redis://192.168.0.50",
+                "IMAGE_PATH": "~/images",
                 "ENABLE_TRANSACTION": "false"
             }
         },
