@@ -31,3 +31,5 @@ def addTag(user, tag, category):
         result = tagdb.add_tag(sanitized_tag, category, makeUserMeta(user), s())
         return result
 
+def queryTagCategories(tags) :
+    return tagdb.get_tag_category_map(tags)

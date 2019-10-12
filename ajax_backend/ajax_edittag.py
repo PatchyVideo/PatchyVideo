@@ -12,7 +12,7 @@ from utils.jsontools import *
 
 from spiders import dispatch
 
-from services.editTag import addTag, queryTags, queryCategories
+from services.editTag import addTag, queryTags, queryCategories, queryTagCategories
 
 
 @app.route('/tags/query_categories.do', methods = ['POST'])
@@ -25,6 +25,15 @@ def ajax_query_categories(rd, user, data):
     })
     return "json", ret
 
+@app.route('/tags/query_tag_categories.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_query_tag_categories(rd, user, data):
+    cats = queryTagCategories(data.tags)
+    ret = makeResponseSuccess({
+        "categorie_map": cats
+    })
+    return "json", ret
 
 @app.route('/tags/query_tags.do', methods = ['POST'])
 @loginOptional
