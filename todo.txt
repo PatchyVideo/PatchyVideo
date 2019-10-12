@@ -40,6 +40,7 @@ log error, don't want others to see filenames in error response
 change background image to include more patchouli
 #trim url
 batch tag update in playlist
+searchbar search for video link
 
 *future functions:
 multi-language support

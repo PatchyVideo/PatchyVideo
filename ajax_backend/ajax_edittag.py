@@ -54,6 +54,7 @@ def ajax_query_tags(rd, user, data):
 @jsonRequest
 def ajax_add_tag(rd, user, data):
     #print('Adding tag %s to %s' % (data.tag, data.category))
+    data.tag = data.tag.strip()
     if len(data.tag) > 48 or len(data.category) > 16 :
         return "json", makeResponseFailed("Tag or category length too large(48 characters for tag)")
     ret = addTag(user, data.tag, data.category)
