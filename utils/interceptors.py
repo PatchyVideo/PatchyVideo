@@ -34,6 +34,8 @@ def _handle_return(ret, rd):
             if command == "json":
                 return jsonResponse(param)
             return ""
+    else :
+        return ret
 
 def _get_user_obj(sid) :
     obj_json = rdb.get(sid)
