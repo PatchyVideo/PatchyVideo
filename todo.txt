@@ -25,7 +25,6 @@ user sees his playlists
 user subscript to playlists
 jsproxy for sites
 UI beautify
-#redirect to previous url after login
 #tag display with category
 thumbnail for playlist
 user photo storing
@@ -41,6 +40,8 @@ change background image to include more patchouli
 #trim url
 batch tag update in playlist
 searchbar search for video link
+redirect to previous url after login
+common tags amount playlist
 
 *future functions:
 multi-language support
