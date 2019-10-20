@@ -1,16 +1,36 @@
 
 PAGE_SIZE = 30
+USER_ID = ""
 
 //////////////////////////////////////////////////////
 //    jQuery
 //////////////////////////////////////////////////////
 $(document).ready(function(){
     buildTab();
+    USER_ID = $("#uid").attr("content");
 }
 );
 
 function refreshTable(category) {
     alert("refresh "+category);
+}
+
+function removeTag(tag, category) {
+    status_obj = $(`p[meta-category="${category}"]`);
+    postJSON("/tags/remove_tag.do",
+    {
+        "tag": tag
+    }, function (result){
+        gotoPage(category, 1);
+        status_obj = $(`p[meta-category="${category}"]`);
+        status_obj.css("display", "block");
+        status_obj.css("color", "green");
+        status_obj.html(result.data.message);
+    }, function (result){
+        status_obj.css("display", "block");
+        status_obj.css("color", "red");
+        status_obj.html(result.data);
+    });
 }
 
 function addTag(category, tag) {
@@ -59,26 +79,30 @@ function gotoPage(category, page) {
     if (div_obj.length == 0)
         return;
     div_obj.html('');
-    postJSON("/tags/query_tags.do",
-        {
-            "page": page,
-            "page_size": PAGE_SIZE,
-            "category": category
-        }, function (result) {
-            table_obj = $(`<table content="${category}"></table>`);
-            toolbar_obj = buildToolBar(category, result.data.count, result.data.tags.length);
-            tr = $(`<tr><th class="col-1">Count</th><th>Tag</th></tr>`);
-            table_obj.append(tr);
-            result.data.tags.forEach(element => {
+    postJSON("/tags/query_tags.do", {
+        "page": page,
+        "page_size": PAGE_SIZE,
+        "category": category
+    }, function (result) {
+        table_obj = $(`<table content="${category}"></table>`);
+        toolbar_obj = buildToolBar(category, result.data.count, result.data.tags.length);
+        tr = $(`<tr><th class="col-1">Count</th><th>Tag</th></tr>`);
+        table_obj.append(tr);
+        result.data.tags.forEach(element => {
+            if (element.meta.created_by.$oid == USER_ID && element.count == 0) {
+                tr = $(`<tr class="table-content"><td class="col-1">${element.count}</td><td><a href="/search?query=${element.tag}">${element.tag}</a>
+                <a class="tag-operation" href="javascript:removeTag('${element.tag}', '${category}');">Remove</a>
+                </tr>`);
+            } else {
                 tr = $(`<tr class="table-content"><td class="col-1">${element.count}</td><td><a href="/search?query=${element.tag}">${element.tag}</a></td></tr>`);
-                table_obj.append(tr);
-            });
-            p_obj = buildPageSelector(category, page, result.data.page_count);
-            div_obj.append(toolbar_obj);
-            div_obj.append(table_obj);
-            div_obj.append(p_obj);
-        }
-        );
+            }
+            table_obj.append(tr);
+        });
+        p_obj = buildPageSelector(category, page, result.data.page_count);
+        div_obj.append(toolbar_obj);
+        div_obj.append(table_obj);
+        div_obj.append(p_obj);
+    });
 }
 
 function downloadTags(category) {

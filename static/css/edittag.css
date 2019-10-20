@@ -47,9 +47,20 @@ tr:nth-child(even) {
     background-color: #fafafa;
 }
 
+.table-content .tag-operation {
+    position: absolute;
+    left: 25em;
+    visibility: hidden;
+}
+
 .table-content:hover {
     background-color: aliceblue;
 }
+
+.table-content:hover .tag-operation {
+    visibility: visible;
+}
+
 .col-1 {
     width: 100px;
 }

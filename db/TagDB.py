@@ -274,6 +274,8 @@ class TagDB():
         return query_obj, tags
 
     def _tag_type(self, tag, session = None):
+        if not isinstance(tag, str) :
+            return 'tag', tag
         tag_obj = self.db.tags.find_one({'tag': tag}, session = session)
         if tag_obj is None:
             return None, None
