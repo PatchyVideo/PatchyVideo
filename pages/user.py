@@ -1,6 +1,7 @@
 
 
 import time
+import urllib
 
 from flask import render_template, request, jsonify, redirect, session
 
@@ -12,10 +13,12 @@ from services.user import require_session, logout, query_user
 @app.route('/login')
 @loginOptional
 def pages_login(rd, user) :
+    redirect_url = request.referrer or '/'
     if user is not None:
-        return "redirect:/"
+        return "redirect", redirect_url
     else:
         rd.session = require_session("LOGIN")
+        rd.redirect_url = urllib.parse.quote(redirect_url)
         return "login.html"
 
 @app.route('/signup')
