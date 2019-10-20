@@ -24,7 +24,7 @@ def is_authorised(pid_or_obj, user, op = 'edit') :
         obj = pid_or_obj
     creator = str(obj['meta']['created_by'])
     user_id = str(user['_id'])
-    return creator == user_id
+    return creator == user_id or (op + 'Playlist' in user['access_control']['allowed_ops']) or user['access_control']['status'] == 'admin'
 
 def createPlaylist(language, title, desc, cover, user) :
     obj = {"title": {language: title}, "desc": {language: desc}, "views": 0, "videos": 0, "cover": cover, "meta": makeUserMetaObject(user)}
@@ -36,7 +36,7 @@ def removePlaylist(pid, user) :
         if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
             s.mark_failover()
             return "PLAYLIST_NOT_EXIST"
-        if not is_authorised(pid, user) :
+        if not is_authorised(pid, user, 'remove') :
             s.mark_failover()
             return "UNAUTHORISED_OPERATION"
         db.playlist_items.delete_many({"pid": ObjectId(pid)}, session = s())
