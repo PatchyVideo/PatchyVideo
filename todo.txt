@@ -34,13 +34,13 @@ user access control
 #add https to URL when crawling to prevent rediect
 UI beautify level 2
 #navbar tags
-A better tag editting mechanism
+#A better tag editting mechanism
+tag rename
 log error, don't want others to see filenames in error response
 change background image to include more patchouli
 #trim url
-batch tag update in playlist
 searchbar search for video link
-redirect to previous url after login
+#redirect to previous url after login
 common tags amount playlist
 
 *future functions:
