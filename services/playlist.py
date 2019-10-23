@@ -282,6 +282,7 @@ def updateCommonTags(pid, tags, user) :
 		old_tags_set = set(old_tags)
 		new_tags_set = set(tags)
 		tags_added = list((old_tags_set ^ new_tags_set) - old_tags_set)
+		tags_added = tagdb.filter_tags(tags_added)
 		tags_to_remove = list((old_tags_set ^ new_tags_set) - new_tags_set)
 		ret, all_video_ids, _ = listAllPlaylistVideosUnordered(pid)
 		if ret != 'SUCCEED' :

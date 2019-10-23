@@ -534,9 +534,12 @@
                 var tags = [];
                 for(let i = 0; i != $('.m_a ul').length; ++i){
                     let key = $($('.m_a ul')[i]).children('div').text();
-                    let value = $($('.m_a ul')[i]).children('li.item').text();
-                    if (key != ''){
-                        tags.push(value);
+                    let items = $($('.m_a ul')[i]).children('li.item');
+                    for (let j = 0; j != items.length; ++j) {
+                        let value = items[j].innerText;
+                        if (key != ''){
+                            tags.push(value);
+                        }
                     }
                 }
                 postJSON("/list/setcommontags.do",{
