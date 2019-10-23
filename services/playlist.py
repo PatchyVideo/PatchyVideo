@@ -187,31 +187,12 @@ def listPalylistVideos(pid, page_idx, page_size) :
 		ret.append(ret_obj)
 	return "SUCCEED", ret, playlist['videos']
 
-def listAllPalylistVideosUnordered(pid) :
+def listAllPlaylistVideosUnordered(pid) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
 	if playlist is None :
 		return "PLAYLIST_NOT_EXIST", None, 0
-	ans_obj = db.playlist_items.aggregate([
-		{
-			'$match': {
-				"pid": ObjectId(pid)
-			}
-		},
-		{
-			'$lookup': {
-				'from': "items",
-				'localField': "vid",
-				'foreignField': "_id",
-				'as': 'item'
-			}
-		},
-		{
-			'$unwind': {
-				'path': '$item'
-			}
-		}
-	])
-	return "SUCCEED", [item for item in ans_obj], playlist['videos']
+	ans_obj = db.playlist_items.find({"pid": ObjectId(pid)})
+	return "SUCCEED", [item['vid'] for item in ans_obj], playlist['videos']
 
 def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
 	ans_obj = db.playlists.find(query)
@@ -302,13 +283,14 @@ def updateCommonTags(pid, tags, user) :
 		new_tags_set = set(tags)
 		tags_added = list((old_tags_set ^ new_tags_set) - old_tags_set)
 		tags_to_remove = list((old_tags_set ^ new_tags_set) - new_tags_set)
-		ret, videos, _ = listAllPalylistVideosUnordered(pid)
+		ret, all_video_ids, _ = listAllPlaylistVideosUnordered(pid)
 		if ret != 'SUCCEED' :
 			s.mark_failover()
 			return ret
-		all_video_ids = [item['_id'] for item in videos]
-		tagdb.update_many_items_tags_pull(all_video_ids, tags_to_remove, user, session = s())
-		tagdb.update_many_items_tags_merge(all_video_ids, tags_added, user, session = s())
+		if tags_to_remove :
+			tagdb.update_many_items_tags_pull(all_video_ids, tags_to_remove, user, session = s())
+		if tags_added :
+			tagdb.update_many_items_tags_merge(all_video_ids, tags_added, user, session = s())
 		return 'SUCCEED'
 
 

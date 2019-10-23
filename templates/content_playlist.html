@@ -368,7 +368,6 @@
                     data: JSON.stringify({ "tags": Array.from(tagsSet) }),
                     success: function (result) {
                         s = result.data.categorie_map;
-                        console.log(s);
                     },
 
                 });
@@ -385,7 +384,6 @@
                     data: JSON.stringify({ "pid": $("#playlist-id").attr("content") }),
                     success: function (result) {
                         s = result.data;
-                        console.log(s);
                     },
                 });
                 return s;
@@ -395,32 +393,27 @@
             function addCommonTags(tags) {
                 let v = getAjaxValue(tags);
                 for (var i in v) {
-                    if ($(`.${v[i]}`).children('div').length == 0) { //当第一次创建分类区域，
-                        console.log("分支1：");
-                        /*
-                                        $('.m_a').append($('<ul class="Taglist">').addClass(`${v[i]}`).append(`<div>${v[i]}：</div><li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`));
-                        */
+                    if ($(`.${v[i]}`).children('div').length == 0) {
                         $(`.${v[i]}`).append(`<div>${v[i]}：</div><li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`);
                     }
-
-                    else if ($(`.${v[i]}`).find(`.val_${i}`).length == 0 && $(`.${v[i]}`).length != 0) { //当分类区域已创建，tag不存在时
-                        console.log("分支2：");
+                    else if ($(`.${v[i]}`).find(`.val_${i}`).length == 0 && $(`.${v[i]}`).length != 0) {
                         $(`.${v[i]}`).append(`<li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`);
                     }
                     else {
-                        $('.tag_title:eq(1)').stop().animate({ opacity: 1 }, 1000, function () {
-                            $(this).animate({ opacity: 0 }, 3000)
-                        });
-                        console.log("分支3");
-                        invalidTags.delete(i);
                     }
 
                 }
             }
-
-            let tags = getCommonTags();
-            addCommonTags(tags);
             
+            function clearTags() {
+                let uls = $('.Taglist');
+                for (var i = 0; i != uls.length; ++i) {
+                    while (uls[i].hasChildNodes()) {
+                        uls[i].removeChild(uls[i].lastChild);
+                    }
+                }
+            }
+
             function ifval() {
                 let inputSet = new Set(input.val().split(/[\s,]/));
                 let v = getAjaxValue(inputSet);
@@ -442,6 +435,9 @@
                 ifval();
             })
             $('#edit_tags').on('click', function () {
+                clearTags();
+                let tags = getCommonTags();
+                addCommonTags(tags);
                 $('#tag').stop().fadeIn('slow').animate({
                 }, function () {
                     $('.minibox').fadeIn('slow');
@@ -460,7 +456,6 @@
 
                 for (var i in v) {
                     if ($(`.${v[i]}`).children('div').length == 0) { //当第一次创建分类区域，
-                        console.log("分支1：");
                         /*
                                         $('.m_a').append($('<ul class="Taglist">').addClass(`${v[i]}`).append(`<div>${v[i]}：</div><li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`));
                         */
@@ -468,14 +463,12 @@
                     }
 
                     else if ($(`.${v[i]}`).find(`.val_${i}`).length == 0 && $(`.${v[i]}`).length != 0) { //当分类区域已创建，tag不存在时
-                        console.log("分支2：");
                         $(`.${v[i]}`).append(`<li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`);
                     }
                     else {
                         $('.tag_title:eq(1)').stop().animate({ opacity: 1 }, 1000, function () {
                             $(this).animate({ opacity: 0 }, 3000)
                         });
-                        console.log("分支3");
                         invalidTags.delete(i);
                     }
 
@@ -488,12 +481,9 @@
                     $('.tag_title:last').stop().animate({ opacity: 1 }, 1000, function () {
                         $(this).animate({ opacity: 0 }, 3000)
                     });
-
-                    console.log("分支4");
                 }
                 $('.tag_title:first').fadeOut(1000);
 
-                console.log("结束：");
                 event.stopPropagation();
             });
 
@@ -537,8 +527,30 @@
 
                 }, function () {
                     $(this).fadeOut('linear')
-                })
+                });
             });
+
+            $('#save').click(function () {
+                var tags = [];
+                for(let i = 0; i != $('.m_a ul').length; ++i){
+                    let key = $($('.m_a ul')[i]).children('div').text();
+                    let value = $($('.m_a ul')[i]).children('li.item').text();
+                    if (key != ''){
+                        tags.push(value);
+                    }
+                }
+                postJSON("/list/setcommontags.do",{
+                    "pid": $("#playlist-id").attr("content"),
+                    "tags": tags
+                }, function(result){
+                    ;
+                });
+                $('.minibox').hide();
+                $('#tag').animate({}, function () {
+                    $(this).fadeOut('linear')
+                });
+            })
+
 
         })
     </script>

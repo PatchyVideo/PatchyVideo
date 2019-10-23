@@ -22,9 +22,9 @@ def ajax_playlist_getcommontags_do(rd, data, user):
 @loginRequiredJSON
 @jsonRequest
 def ajax_playlist_setcommontags_do(rd, user, data):
-    ret, new_list = updateCommonTags(data.pid, data.tags, user)
+    ret = updateCommonTags(data.pid, data.tags, user)
     if ret == 'SUCCEED' :
-        return "json", makeResponseSuccess(new_list)
+        return "json", makeResponseSuccess('')
     else :
         return "json", makeResponseFailed(ret)
 

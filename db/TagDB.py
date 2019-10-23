@@ -176,12 +176,12 @@ class TagDB():
         return 'SUCCESS'
 
     def update_many_items_tags_merge(self, item_ids, new_tags, user = '', session = None):
-        return self.db.items.update_many({'_id': {'$in': [ObjectId(item) for item in item_ids]}}, {
+        return self.db.items.update_many({'_id': {'$in': item_ids}}, {
             '$addToSet': {'tags': {'$each': new_tags}},
             '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 
     def update_many_items_tags_pull(self, item_ids, tags_to_remove, user = '', session = None):
-        return self.db.items.update_many({'_id': {'$in': [ObjectId(item) for item in item_ids]}}, {
+        return self.db.items.update_many({'_id': {'$in': item_ids}}, {
             '$pullAll': {'tags': tags_to_remove},
             '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 
