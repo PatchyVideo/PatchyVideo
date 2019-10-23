@@ -8,6 +8,25 @@ from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from services.playlist import *
 from utils.html import buildPageSelector
 
+@app.route('/list/getcommontags.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_playlist_getcommontags_do(rd, data, user):
+    ret, tags = listCommonTags(data.pid)
+    if ret == 'SUCCEED' :
+        return "json", makeResponseSuccess(tags)
+    else :
+        return "json", makeResponseFailed(ret)
+
+@app.route('/list/setcommontags.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_playlist_setcommontags_do(rd, user, data):
+    ret, new_list = updateCommonTags(data.pid, data.tags, user)
+    if ret == 'SUCCEED' :
+        return "json", makeResponseSuccess(new_list)
+    else :
+        return "json", makeResponseFailed(ret)
 
 @app.route('/list/setcover.do', methods = ['POST'])
 @loginRequiredJSON

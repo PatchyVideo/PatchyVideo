@@ -175,12 +175,31 @@ class TagDB():
         self.db.items.update_one({'_id': ObjectId(item_id)}, {'$set': {'tags': new_tags, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
         return 'SUCCESS'
 
+    def update_many_items_tags_merge(self, item_ids, new_tags, user = '', session = None):
+        return self.db.items.update_many({'_id': {'$in': [ObjectId(item) for item in item_ids]}}, {
+            '$addToSet': {'tags': {'$each': new_tags}},
+            '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+
+    def update_many_items_tags_pull(self, item_ids, tags_to_remove, user = '', session = None):
+        return self.db.items.update_many({'_id': {'$in': [ObjectId(item) for item in item_ids]}}, {
+            '$pullAll': {'tags': tags_to_remove},
+            '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+
     def update_item_tags_merge(self, item_id, new_tags, user = '', session = None):
-        ret = self.retrive_tags(item_id)
-        if ret == 'ITEM_NOT_EXIST' :
+        item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
+        if item is None :
             return 'ITEM_NOT_EXIST'
-        new_tags = list(set(new_tags + ret))
-        return self.update_item_tags(item_id, new_tags, user, session = session)
+        return self.db.items.update_one({'_id': ObjectId(item_id)},  {
+            '$addToSet': {'tags': {'$each': new_tags}},
+            '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+
+    def update_item_tags_pull(self, item_id, tags_to_remove, user = '', session = None):
+        item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
+        if item is None :
+            return 'ITEM_NOT_EXIST'
+        return self.db.items.update_one({'_id': ObjectId(item_id)},  {
+            '$pullAll': {'tags': tags_to_remove},
+            '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 
     def add_tag_alias(self, src_tag, dst_tag, user = '', session = None):
         tt_dst, tag_obj_dst = self._tag_type(dst_tag, session = session)
