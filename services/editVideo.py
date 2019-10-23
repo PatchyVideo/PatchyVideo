@@ -13,4 +13,6 @@ def editVideoTags(vid, tags, user):
 def verifyTags(tags):
     return tagdb.verify_tags(tags)
 
+def getVideoTags(vid) :
+    return tagdb.retrive_tags(vid)
 

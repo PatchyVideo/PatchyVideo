@@ -284,6 +284,8 @@ def updateCommonTags(pid, tags, user) :
 		tags_added = list((old_tags_set ^ new_tags_set) - old_tags_set)
 		tags_added = tagdb.filter_tags(tags_added)
 		tags_to_remove = list((old_tags_set ^ new_tags_set) - new_tags_set)
+		if len(tags_added) - len(tags_to_remove) > 150 :
+			return 'TOO_MANY_TAGS'
 		ret, all_video_ids, _ = listAllPlaylistVideosUnordered(pid)
 		if ret != 'SUCCEED' :
 			s.mark_failover()

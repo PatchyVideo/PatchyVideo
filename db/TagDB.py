@@ -109,8 +109,8 @@ class TagDB():
     def retrive_tags(self, item_id, session = None):
         item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
         if item is None:
-            return 'ITEM_NOT_EXIST' 
-        return item['tags']
+            return 'ITEM_NOT_EXIST', []
+        return 'SUCCEED', item['tags']
     
     def retrive_item_tags_with_category(self, item_id, session = None):
         item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
