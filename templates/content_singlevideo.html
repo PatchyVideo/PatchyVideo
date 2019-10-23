@@ -7,6 +7,7 @@
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail_Tag_left.css') }}">
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail.css') }}">
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Top-navbar.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/singlevideo.css') }}">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<script src="{{ url_for('static',filename='js/generic.js') }}"></script>
@@ -19,6 +20,205 @@
 	<meta id="video-id" content="{{video_id}}">
 	</meta>
 	<title>{{title}} - PatchyVideo</title>
+	<style type="text/css">
+		body {
+			background:none;
+		}
+		li, .item input{
+		text-decoration: none;
+		outline: none;
+		background: none;
+		border: none;
+		color: #265778;
+		}
+		#addtag{
+		vertical-align: bottom;
+		}
+
+		#btn input{
+
+		height: 50px;
+		background-color: ghostwhite;
+		color: #265778;
+		outline: none;
+		border: 1px solid white;
+		font-size: 20px;
+		position: absolute;
+		left: 40%;
+		top: 50%;
+		}
+		#btn input:hover{
+		background-color: ghostwhite;
+		}
+
+		#tag{
+		width: 1200px;
+		height: 923px;
+		background:url("/static/img/Patchouli.jpg") no-repeat  ;
+
+		background-size: 1200px 923px;
+		box-shadow:  0px 0px 5px crimson;
+		/*  padding: 50px;*/
+		text-align: center;
+
+		display: none;
+		position: absolute;
+		top: -90px;
+		left: -2%;
+		z-index: 100;
+
+
+		}
+		.minibox{
+
+		/*             background-color: rgba(255,255,255,0.5);*/
+		display: none;
+		height: 100%;
+		position: relative;
+		z-index: 0;
+		top:-30px;
+		}
+
+
+		.Taglist{
+		padding-top: 2px;
+		/*        margin-bottom: 20px;*/
+		/*  height: 400px;*/
+		overflow:auto;
+		position: relative;
+		}
+		.Taglist li{
+		background-color: rgba(255,255,255,0.5);
+		display: inline-block;
+		zoom: 1;
+		padding: 12px;
+		margin-left: 10px;
+		text-align: center;
+		vertical-align: middle;  cursor: pointer;
+		list-style: none;
+		border-radius: 50px;
+
+		}
+		.Taglist p, p> input{
+		display: inline-block;
+		font-size:18px;
+		line-height: 20px;
+		margin: 0px 0px 0px 0px!important;
+		}.Taglist i{
+		display: inline-block;
+		}
+		.m_a{
+		color: rgba(255, 255, 255, 0.8);
+		}
+		.m_b{
+		color: rgba(255, 255, 255, 0.8);
+		position: absolute;
+		bottom: 18%;
+		left: 38%;
+		}
+		.m_a div{
+		margin-bottom: 10px;
+		}
+		.tag_title{
+		position: absolute;
+		bottom: 44%;
+		color: white;
+		left: 42%;
+		font-size: 25px;
+		z-index:-1;
+		}
+		/*      .tag_title:nth-child(4){
+		opacity: 0;
+		}*/
+		#save{
+		position: relative;
+		left: 0px;
+		bottom: -800px;
+		color: white;
+		z-index: 999;
+		}
+		#close{
+
+		position: relative;
+		/*     right: -50px;
+		bottom: 40px;*/
+		right: -570px;
+		top: 20px;
+		color: white;
+		z-index: 999;
+		}
+
+		#close:hover,#save:hover{
+
+		color: cornflowerblue;
+		}
+
+		#ipt{
+		height: 250px;
+		width: 300px;
+		font-size: 22px;
+		padding-top: 10px;
+		padding-left: 10px;
+		font-weight: bolder;
+		text-rendering: auto;
+		outline: none;
+		border: none;
+		color:  #265778;
+		letter-spacing: normal;
+		word-spacing: normal;
+		text-transform: none;
+		text-indent: 0px;
+		text-shadow: none;
+		display: inline-block;
+		text-align: start;
+
+		background-color: rgba(255, 255, 255, 0.3);
+		}
+
+		.minibox:before{
+		content: "";
+		position: absolute;
+		width: 100%;
+		height: 41%;
+		top: 57%;
+		left: 0%;
+		background: url("/static/img/Patchouli.jpg") no-repeat;
+		background-size: 1200px 923px;
+		filter: blur(98px);
+		z-index: -2;
+		}
+		.m_bg:before{
+		content: "";
+		position: absolute;
+		width: 100%;
+		height: 40%;
+		top: 0%;
+		left: 0%;
+		background: url("/static/img/Patchouli.jpg") no-repeat;
+		background-size: 1200px 923px;
+		filter: blur(100px);
+		z-index: -2;
+		}
+		.Copyright > li > p {
+			color: #A0A;
+		}
+		.Language > li > p {
+			color: #585455;
+		}
+		.Character > li > p {
+			color: #0A0;
+		}
+		.Author > li > p {
+			color: #A00;
+		}
+		.General > li > p {
+			color: #0073ff;
+		}
+		.Meta > li > p {
+			color: #F80;
+		}
+
+	</style>
 </head>
 
 <body>
@@ -51,7 +251,7 @@
 			<div class="left_list">
 				<h1>Tags</h1>
 				{% if _user is not none %}
-				<button class="edit-tag-button" onclick="javascript:showModal();">Edit</button>
+				<button class="edit-tag-button" id="edit_tags">Edit</button>
 				{% endif %}
 				{% if 'Copyright' in tag_by_category %}
 				<span>Copyright</span>
@@ -171,19 +371,257 @@
 				</li>
 				{% endfor %}
 			</ul>
-		</div>
-	</div>
-	<div class="footer w">
-		<p> © 2019 www.patchyvideo.com Touhou Project </p>
-	</div>
-	<div id="edit-tag-modal" class="modal">
-		<div class="modal-content">
-				<span class="close">&times;</span>
-				<textarea id="edit-tags-area" class="tags-area"></textarea>
-				<button class="ok">Confirm</button>
+			<div id="tag">
+				<i class="fa fa-close fa-2x" id="close"></i>
+				<i class="fa fa-circle-o fa-3x" id="save"></i>
+				<div class="minibox">
+					<div class="m_bg">
+					</div>
+					<div class="m_a">
+						<ul class="Taglist Copyright">
+		
+						</ul>
+						<ul class="Taglist Language">
+		
+						</ul>
+						<ul class="Taglist Character">
+		
+						</ul>
+						<ul class="Taglist Author">
+		
+						</ul>
+						<ul class="Taglist General">
+		
+						</ul>
+						<ul class="Taglist Meta">
+		
+						</ul>
+					</div>
+					<div class="m_b">
+						<div>
+							<textarea id="ipt"></textarea>
+							<!--<input class="fa fa-plus-square" type="button"value="add">-->
+							<span id="addtag"> <i class="fa fa-plus-square fa-2x"></i></span>
+						</div>
+					</div>
+				</div>
+				<span class="tag_title">Edit Tags</span>
+				<span class="tag_title">Tag already exist</span>
+				<span class="tag_title">Tag not exist</span>
+		
+			</div>
 		</div>
 	</div>
 
+	<div class="footer w">
+		<p> © 2019 www.patchyvideo.com Touhou Project </p>
+	</div>
+	<script>
+
+		$(function () {
+			var input = $("<input>");
+			$('.tag_title:last').stop().animate({ opacity: 0 });
+			$('.tag_title:eq(1)').stop().animate({ opacity: 0 });
+
+			function getAjaxValue(tagsSet) {
+				var s = 0;
+				$.ajax({
+					type: "POST",
+					url: "/tags/query_tag_categories.do",
+					async: false,
+					contentType: 'application/json',
+					data: JSON.stringify({ "tags": Array.from(tagsSet) }),
+					success: function (result) {
+						s = result.data.categorie_map;
+					},
+
+				});
+				return s;
+			};
+
+			function getVideoTags() {
+				var s = 0;
+				$.ajax({
+					type: "POST",
+					url: "/videos/gettags.do",
+					async: false,
+					contentType: 'application/json',
+					data: JSON.stringify({ "video_id": $("#video-id").attr("content") }),
+					success: function (result) {
+						s = result.data;
+					},
+				});
+				return s;
+			}
+
+
+			function addVideoTags(tags) {
+				let v = getAjaxValue(tags);
+				for (var i in v) {
+					if ($(`.${v[i]}`).children('div').length == 0) {
+						$(`.${v[i]}`).append(`<div>${v[i]}：</div><li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`);
+					}
+					else if ($(`.${v[i]}`).find(`.val_${i}`).length == 0 && $(`.${v[i]}`).length != 0) {
+						$(`.${v[i]}`).append(`<li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`);
+					}
+					else {
+					}
+
+				}
+			}
+
+			function clearTags() {
+				let uls = $('.Taglist');
+				for (var i = 0; i != uls.length; ++i) {
+					while (uls[i].hasChildNodes()) {
+						uls[i].removeChild(uls[i].lastChild);
+					}
+				}
+			}
+
+			function ifval() {
+				let inputSet = new Set(input.val().split(/[\s,]/));
+				let v = getAjaxValue(inputSet);
+				if (JSON.stringify(v) != '{}') {
+					input.parent().html(input.val());
+				}
+
+				if (input.val() == '') {
+					if ($("input").parents('.item').siblings('.item').length == 0) {
+						input.parent().parent().parent().children().remove();
+					}
+					else {
+						input.parent().parent().remove();
+					}
+				}
+			}
+			$('html').on('dblclick', function () {
+
+				ifval();
+			})
+			$('#edit_tags').on('click', function () {
+				clearTags();
+				let tags = getVideoTags();
+				addVideoTags(tags);
+				$('#tag').stop().fadeIn('slow').animate({
+				}, function () {
+					$('.minibox').fadeIn('slow');
+
+				});
+
+			});
+			$('#ipt').mouseenter(function () {
+				$('.tag_title').stop().animate({ opacity: 0 });
+			})
+			$('.m_b').on('click', '#addtag', function (event) {
+				let tagsSet = new Set($('#ipt').val().split(/[\s,]/));
+				let v = getAjaxValue(tagsSet);
+				let validTags = new Set(Object.keys(v));
+				let invalidTags = new Set([...tagsSet].filter(x => !validTags.has(x)));
+
+				for (var i in v) {
+					if ($(`.${v[i]}`).children('div').length == 0) { //当第一次创建分类区域，
+						/*
+										$('.m_a').append($('<ul class="Taglist">').addClass(`${v[i]}`).append(`<div>${v[i]}：</div><li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`));
+						*/
+						$(`.${v[i]}`).append(`<div>${v[i]}：</div><li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`);
+					}
+
+					else if ($(`.${v[i]}`).find(`.val_${i}`).length == 0 && $(`.${v[i]}`).length != 0) { //当分类区域已创建，tag不存在时
+						$(`.${v[i]}`).append(`<li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`);
+					}
+					else {
+						$('.tag_title:eq(1)').stop().animate({ opacity: 1 }, 1000, function () {
+							$(this).animate({ opacity: 0 }, 3000)
+						});
+						invalidTags.delete(i);
+					}
+
+				}
+
+				$("#ipt").val(Array.from(invalidTags).join('\n'));
+
+				if (Array.from(invalidTags).length != 0) {
+
+					$('.tag_title:last').stop().animate({ opacity: 1 }, 1000, function () {
+						$(this).animate({ opacity: 0 }, 3000)
+					});
+				}
+				$('.tag_title:first').fadeOut(1000);
+
+				event.stopPropagation();
+			});
+
+			$('.minibox').on('click', '.fa', function () {
+				let ulobj = $(this).parents('ul');
+				let itemlength = $(this).parents('.item').siblings('.item').length;
+
+
+				if (itemlength == 0) {
+					ulobj.children().remove();
+				} else {
+					$($(this)[0].parentNode).remove();
+				}
+
+			})
+			/*$('.fa').on('click',function () {
+
+			});*/
+
+			$('.m_a').on('click ', 'p', function () {
+				var li = $(this);
+				var text = $(this).text();
+				li.html("");
+				input.attr("value", text);
+				input.keyup(function (event) {
+					var myEvent = event || window.event;
+					var kcode = myEvent.keyCode;
+					if (kcode == 13) {
+						ifval();
+					}
+				});
+				li.append(input);
+				//让文本框里边的文章被高亮选中将jquery的对象转换成dom对象
+				var inpuliom = input.get(0);
+				inpuliom.select();
+			});
+
+			$('#tag').on('click', '#close', function () {
+				$('.minibox').hide();
+				$('#tag').animate({
+
+				}, function () {
+					$(this).fadeOut('linear')
+				});
+			});
+
+			$('#save').click(function () {
+				var tags = [];
+				for(let i = 0; i != $('.m_a ul').length; ++i){
+					let key = $($('.m_a ul')[i]).children('div').text();
+					let items = $($('.m_a ul')[i]).children('li.item');
+					for (let j = 0; j != items.length; ++j) {
+						let value = items[j].innerText;
+						if (key != ''){
+							tags.push(value);
+						}
+					}
+				}
+				postJSON("/videos/edittags.do",{
+					"video_id": $("#video-id").attr("content"),
+					"tags": tags
+				}, function(result){
+					location.reload();
+				});
+				$('.minibox').hide();
+				$('#tag').animate({}, function () {
+					$(this).fadeOut('linear')
+				});
+			})
+
+
+		})
+	</script>
 </body>
 
 </html>
