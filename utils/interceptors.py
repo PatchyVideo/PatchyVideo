@@ -113,6 +113,8 @@ def jsonRequest(func):
             ret = func(*args, **kwargs)
         except AttributeError:
             return jsonResponse(makeResponseFailed("Incomplete JSON form"))
+        except ValueError:
+            return jsonResponse(makeResponseFailed("Incorrect JSON data type"))
         return ret
     return wrapper
 
