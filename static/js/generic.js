@@ -87,3 +87,13 @@ function clearURL(url) {
     url_parsed = new URL(addHTTP(url));
     return "https://" + url_parsed.host + url_parsed.pathname + url_parsed.search;
 }
+
+function copyToClipboard(obj) {
+    const el = document.createElement('textarea');
+    el.value = obj.text();
+    document.body.appendChild(el);
+    el.select();
+    el.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    document.body.removeChild(el);
+}

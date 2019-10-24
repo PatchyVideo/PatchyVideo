@@ -310,7 +310,7 @@
 				<div class="re_top">
 					<h2>{{title}}</h2>
 				</div>
-				<h4 class="video_link"><a href="{{link}}">{{link}}</a></h4>
+				<h4 class="video_link" id="video_link"><a href="{{link}}">{{link}}</a><button onclick="javascript:copyToClipboard($('#video_link'));">Copy</button></h4>
 				<div class="re_video">
 					<img src="/images/covers/{{cover_image}}" width="320px" alt="{{title}}" title="{{title}}">
 					<p>{{desc}}</p>

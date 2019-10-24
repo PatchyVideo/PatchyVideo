@@ -304,7 +304,7 @@
                         <div>
                             <img src="{{ url_for('static',filename='img/' + vid.item.site + '.ico') }}"
                                 width="16px"></img>
-                            <a href="{{vid.item.url}}">{{vid.item.url}}</a>
+                            <a href="{{vid.item.url}}" id="link_{{vid._id}}">{{vid.item.url}}</a><button onclick="javascript:copyToClipboard($('#link_{{vid._id}}'));">Copy</button>
                         </div>
                     </div>
                 </li>

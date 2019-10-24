@@ -41,8 +41,10 @@ change background image to include more patchouli
 #trim url
 searchbar search for video link
 #redirect to previous url after login
-common tags amount playlist
-add copy video url button
+#common tags amount playlist
+#add copy video url button
+search playlist
+support adding link of patchyvideo
 
 *future functions:
 multi-language support
