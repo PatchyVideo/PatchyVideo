@@ -9,7 +9,6 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/videolist.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/component.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Playlists.css') }}">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="{{ url_for('static',filename='js/generic.js') }}"></script>
@@ -302,10 +301,15 @@
                         </h4>
                         <p>{{vid.item.desc}}</p>
                         <div>
-                            <img src="{{ url_for('static',filename='img/' + vid.item.site + '.ico') }}"
-                                width="16px"></img>
-                            <a href="{{vid.item.url}}" id="link_{{vid._id}}">{{vid.item.url}}</a><button onclick="javascript:copyToClipboard($('#link_{{vid._id}}'));">Copy</button>
+                            <img src="{{ url_for('static',filename='img/' + vid.item.site + '.ico') }}" width="16px"></img>
+                            <a href="{{vid.item.url}}" id="link_{{vid._id}}">{{vid.item.url}}</a>
+                            <i onclick="javascript:copyToClipboard($('#link_{{vid._id}}'));" class="fa fa-copy fa-lg"></i>
                         </div>
+                        <style>
+                            .fa-copy:hover {
+                                color:olive;
+                            }
+                        </style>
                     </div>
                 </li>
                 {% endfor %}
