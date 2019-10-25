@@ -11,6 +11,13 @@ class Patchyvideo( Spider ) :
     SHORT_PATTERN = r''
     LOCAL_SPIDER = True
 
+    def unique_id( self, link ) :
+        vidid = link[link.rfind("=") + 1:]
+        vidobj = getVideoDetail(vidid)
+        if vidobj is None :
+            return ''
+        return vidobj['item']['unique_id']
+
     def get_metadata( self, link ) :
         vidid = link[link.rfind("=") + 1:]
         vidobj = getVideoDetail(vidid)

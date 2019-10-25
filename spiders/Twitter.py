@@ -20,6 +20,12 @@ class Twitter( Spider ) :
 	})
 	LOCAL_THUMBNAIL = True
 
+	def unique_id( self, link ) :
+		if re.match(r'https?://mobile', link): # normalize mobile URL
+			link = 'https://' + match1(link, r'//mobile\.(.+)')
+		item_id = r1(r'twitter\.com/[^/]+/status/(\d+)', link)
+		return "twitter:%s" % item_id
+
 	def run( self, content, xpath, link ) :
 		if re.match(r'https?://mobile', link): # normalize mobile URL
 			link = 'https://' + match1(link, r'//mobile\.(.+)')

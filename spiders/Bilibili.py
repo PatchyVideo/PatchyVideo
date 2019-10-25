@@ -12,6 +12,9 @@ class Bilibili( Spider ) :
     def expand_url( self, short ) :
         return "https://www.bilibili.com/video/" + short
 
+    def unique_id( self, link ) :
+        return 'bilibili:%s' % link[link.rfind("av"):]
+
     def run( self, content, xpath, link ) :
         vidid = link[link.rfind("av"):]
         thumbnailURL = xpath.xpath( '//meta[@itemprop="thumbnailUrl"]/@content' )[0]

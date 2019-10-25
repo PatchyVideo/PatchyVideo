@@ -19,6 +19,9 @@ class Spider :
 				return makeResponseFailed({'status_code': page.status_code})
 		except Exception as ex :
 			return makeResponseFailed({'exception': str(ex)})
+	def get_unique_id( self, link ) :
+		link = clear_url(link)
+		return self.unique_id( self = self, link = link )
 
 _spider_modules = [ 'Patchyvideo', 'Bilibili', 'Youtube', 'Nicovideo', 'Twitter' ]
 
@@ -40,6 +43,14 @@ def dispatch( url ) :
 			match_result_short = re.match( short_exp, url )
 			if match_result_short :
 				return target, target.expand_url( target, match_result_short.group( 0 ) )
+		match_result = re.match( reg, url )
+		if match_result :
+			return target, match_result.group( 0 )
+	return None, None
+
+def dispatch_no_expand( url ) :
+	url = url.strip()
+	for [ reg, _, target ] in _dispatch_map :
 		match_result = re.match( reg, url )
 		if match_result :
 			return target, match_result.group( 0 )

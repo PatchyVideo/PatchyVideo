@@ -15,6 +15,9 @@ class Nicovideo( Spider ) :
     def expand_url( self, short ) :
         return "https://www.nicovideo.jp/watch/" + short
 
+    def unique_id( self, link ) :
+        return "nicovideo:%s" % link[link.rfind("sm"):]
+
     def run( self, content, xpath, link ) :
         vidid = link[link.rfind("sm"):]
         try :
