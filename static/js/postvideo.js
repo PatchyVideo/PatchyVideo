@@ -14,7 +14,7 @@ function onFetchVideo_Click(event) {
         fetchVideo(ret[1]);
     }
     else {
-        setStatus("Invalid URL", "red");
+        setStatus("Invalid URL or not support website", "red");
     }
 }
 
@@ -99,6 +99,17 @@ function buildParsersAdnExpanders() {
             }
         });
     };
+    PARSERS["^(https:\\/\\/)?(www\\.|mobile\\.)?twitter\\.com\\/[\\w]+\\/status\\/[\\d]+"] = function(responseDOM, responseURL) {
+        postJSON('/helper/get_twitter_info.do',
+        {
+            url: responseURL
+        }, function(data){
+            setVideoMetadata(data["data"]["thumbnailURL"], data["data"]["title"], data["data"]["desc"]);
+        }, function(data){
+            setVideoMetadata("", "", "");
+            setStatus(data["data"], "red");
+        });
+    };
 }
 
 function checkURL(url) {
@@ -134,23 +145,22 @@ function submitVideoSingle() {
     $("#status2").css("display", "none");
     setStatus("Posting...");
     postJSON("/postvideo.do",
-        {
-            rank: parseInt($("#rank").attr("content")),
-            pid: $("#pid").attr("content"),
-            copy: $("#copy").attr("content"),
-            url: $("#video-url").val(),
-            tags: $("#tags").val().split(/\r?\n/).filter(function(i){return i})
-        },
-        function(result){
-            $("#status2").css("display", "block");
-            $("#result-link").attr("href", "/postresults/" + result['data']['task_id']);
-            setStatus("Post succeed, please wait while our server is processing your post.");
-        },
-        function(result){
-            alert(result.data);
-            setStatus("Ready");
-        }
-    );
+    {
+        rank: parseInt($("#rank").attr("content")),
+        pid: $("#pid").attr("content"),
+        copy: $("#copy").attr("content"),
+        url: $("#video-url").val(),
+        tags: $("#tags").val().split(/\r?\n/).filter(function(i){return i})
+    },
+    function(result){
+        $("#status2").css("display", "block");
+        $("#result-link").attr("href", "/postresults/" + result['data']['task_id']);
+        setStatus("Post succeed, please wait while our server is processing your post.");
+    },
+    function(result){
+        alert(result.data);
+        setStatus("Ready");
+    });
 }
 
 function submitVideoBatch() {
@@ -190,8 +200,12 @@ function fetchVideo(url) {
 }
 
 function setVideoMetadata(thumbnail, title, desc) {
-    thumbnail_url = proxyResource(thumbnail, "");
-    $("#video-thumbnail").attr("src", thumbnail_url);
+    if (isEmpty(thumbnail)) {
+        $("#video-thumbnail").attr("src", "");
+    } else {
+        thumbnail_url = proxyResource(thumbnail, "");
+        $("#video-thumbnail").attr("src", thumbnail_url);
+    }
     $("#video-title").text(title);
     $("#video-description").text(desc);
     setStatus("Ready");

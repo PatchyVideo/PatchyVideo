@@ -8,6 +8,7 @@ from utils.encodings import makeUTF8
 from bs4 import BeautifulSoup
 
 class Nicovideo( Spider ) :
+    NAME = 'nicovideo'
     PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?nicovideo\.jp\/watch\/sm[\d]+'
     SHORT_PATTERN = r'^sm[\d]+$'
     HEADERS = makeUTF8( { 'Referer' : 'https://www.nicovideo.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )

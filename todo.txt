@@ -16,7 +16,7 @@ spiders:
 #  Nico py version
 #  Nico js version
 #  Twitter py version
-  Twitter js version
+#  Twitter js version
 #spider error page handling(py)
 spider error page handling(js)
 #av/sm number expand

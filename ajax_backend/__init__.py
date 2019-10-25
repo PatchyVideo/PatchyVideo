@@ -16,6 +16,6 @@ from . import ajax_breaklink
 from . import ajax_create_playlist
 from . import ajax_playlist
 from . import ajax_user
+from . import ajax_fetch_video_frontend
 from . import resource_proxy
-
 

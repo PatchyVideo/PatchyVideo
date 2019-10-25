@@ -5,6 +5,7 @@ from utils.encodings import makeUTF8
 from utils.html import getInnerText
 
 class Bilibili( Spider ) :
+    NAME = 'bilibili'
     PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?bilibili\.com\/video\/av[\d]+'
     SHORT_PATTERN = r'^av[\d]+$'
     HEADERS = makeUTF8( { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )

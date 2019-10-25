@@ -7,6 +7,7 @@ from utils.html import getInnerText
 from services.getVideo import getVideoDetail
 
 class Patchyvideo( Spider ) :
+    NAME = 'patchyvideo'
     PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?(patchyvideo\.com|127\.0\.0\.1:5000|localhost:5000)\/video\?id=\w+'
     SHORT_PATTERN = r''
     LOCAL_SPIDER = True
