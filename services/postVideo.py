@@ -41,7 +41,7 @@ def _make_video_data(data, copies, playlists, url) :
                     frames = _gif_thumbnails(frames)
                     om = next(frames) # Handle first frame separately
                     om.info = img.info # Copy sequence info
-                    om.save(_COVER_PATH + filename, save_all=True, append_images=list(frames))
+                    om.save(_COVER_PATH + filename, save_all = True, append_images = list(frames), loop = 0)
                 else :
                     filename = random_bytes_str(24) + ".png"
                     img.thumbnail((320, 200), Image.ANTIALIAS)
