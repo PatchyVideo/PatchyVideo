@@ -20,7 +20,7 @@ class Spider :
 		except Exception as ex :
 			return makeResponseFailed({'exception': str(ex)})
 
-_spider_modules = [ 'Patchyvideo', 'Bilibili', 'Youtube', 'Nicovideo' ]
+_spider_modules = [ 'Patchyvideo', 'Bilibili', 'Youtube', 'Nicovideo', 'Twitter' ]
 
 _dispatch_map = []
 

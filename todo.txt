@@ -15,7 +15,7 @@ spiders:
 #  YTB js version
 #  Nico py version
 #  Nico js version
-  Twitter py version
+#  Twitter py version
   Twitter js version
 #spider error page handling(py)
 spider error page handling(js)
@@ -45,6 +45,7 @@ searchbar search for video link
 #add copy video url button
 search playlist
 #support adding link of patchyvideo
+edit twitter video title
 
 *future functions:
 multi-language support
