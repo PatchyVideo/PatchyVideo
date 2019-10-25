@@ -84,6 +84,7 @@ class PopularityTracker(object) :
         self._sort()
         with MongoTransaction(dbclient) as s :
             self._try_save(s())
+            s.mark_succeed()
         return self.hitmap_sorted
 
 tracker = PopularityTracker(7 * 24 * 6)

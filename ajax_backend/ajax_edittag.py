@@ -58,7 +58,7 @@ def ajax_add_tag(rd, user, data):
     if len(data.tag) > 48 or len(data.category) > 16 :
         return "json", makeResponseFailed("Tag or category length too large(48 characters for tag)")
     ret = addTag(user, data.tag, data.category)
-    if ret == 'SUCCESS':
+    if ret == 'SUCCEED':
         response = makeResponseSuccess("Success")
     if ret == 'INVALID_TAG':
         response = makeResponseFailed("This tag name(%s) is invalid" % (data.tag))
@@ -73,7 +73,7 @@ def ajax_add_tag(rd, user, data):
 @jsonRequest
 def ajax_remove_tag(rd, user, data):
     ret = removeTag(user, data.tag)
-    if ret == 'SUCCESS' :
+    if ret == 'SUCCEED' :
         response = makeResponseSuccess("Success")
     if ret == 'TAG_NOT_EXIST' :
         response = makeResponseFailed("This tag(%s) does not exist" % (data.tag))
@@ -88,7 +88,7 @@ def ajax_remove_tag(rd, user, data):
 @jsonRequest
 def ajax_rename_tag(rd, user, data):
     ret = renameTag(user, data.tag, data.new_tag)
-    if ret == 'SUCCESS' :
+    if ret == 'SUCCEED' :
         response = makeResponseSuccess("Success")
     if ret == 'TAG_NOT_EXIST' :
         response = makeResponseFailed("This tag(%s) does not exist" % (data.tag))

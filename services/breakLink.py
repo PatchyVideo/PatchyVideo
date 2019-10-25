@@ -33,6 +33,7 @@ def removeThisCopy(dst_vid, this_vid):
         dst_copies = dst_video['item']['copies']
         dst_copies = list(set(dst_copies) - set([ObjectId(this_vid)]))
         tagdb.update_item_query(dst_vid, {"$set": {"item.copies": dst_copies}}, s())
+        s.mark_succeed()
 
 def breakLink(vid, user):
     with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
@@ -41,3 +42,4 @@ def breakLink(vid, user):
             for node in nodes :
                 removeThisCopy(node, vid)
             tagdb.update_item_query(vid, {"$set": {"item.copies": []}}, s())
+            s.mark_succeed()

@@ -31,6 +31,7 @@ def addTag(user, tag, category):
         return "INVALID_TAG"
     with redis_lock.Lock(rdb, "modifyingTag"), MongoTransaction(client) as s :
         result = tagdb.add_tag(sanitized_tag, category, makeUserMeta(user), s())
+        s.mark_succeed()
         return result
 
 def queryTagCategories(tags) :
@@ -54,7 +55,9 @@ def removeTag(user, tag) :
             return "UNAUTHORISED_OPERATION"
         if tag_obj["count"] > 0 :
             return "NON_ZERO_VIDEO_REFERENCE"
-        return tagdb.remove_tag(tag_obj, user, session = s())
+        ret = tagdb.remove_tag(tag_obj, user, session = s())
+        s.mark_succeed()
+        return ret
     
 def renameTag(user, tag, new_tag) :
     with redis_lock.Lock(rdb, "modifyingTag"), MongoTransaction(client) as s :
@@ -65,4 +68,6 @@ def renameTag(user, tag, new_tag) :
             return "UNAUTHORISED_OPERATION"
         if tag_obj["count"] > 0 :
             return "NON_ZERO_VIDEO_REFERENCE"
-        return tagdb.rename_tag(tag_obj, new_tag, user, session = s())
+        ret = tagdb.rename_tag(tag_obj, new_tag, user, session = s())
+        s.mark_succeed()
+        return ret

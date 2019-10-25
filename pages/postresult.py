@@ -21,7 +21,7 @@ def pages_postresult(rd, job_key):
         return "data", "No such job"
     if job.is_finished :
         result, obj = job.result
-        if result == 'SUCCESS':
+        if result == 'SUCCEED':
             return "redirect", "/video?id=" + str(obj)
         elif result == 'TOO_MANY_COPIES':
             return "data", "Too many copies exist for this video, no more than 33 copies of the same video is allowed."

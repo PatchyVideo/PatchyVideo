@@ -143,7 +143,7 @@ else :
                 succeed = False
             next_idx = idx if dst_rank >= 0 else 0
             result_msg, result_id = postVideo(cleanURL, data.tags, obj, dst_copy, dst_playlist, dst_rank + next_idx, user)
-            if result_msg != "SUCCESS" :
+            if result_msg != "SUCCEED" :
                 succeed = False
         if succeed :
             ret = makeResponseFailed("operation succeed, last video_id=%s" % str(result_id))

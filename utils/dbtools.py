@@ -17,6 +17,9 @@ def makeUserMetaObject(user):
 class MongoTransactionEnabled(object) :
     def __init__(self, client) :
         self.client = client
+        self.succeed = False
+
+    def mark_succeed(self) :
         self.succeed = True
 
     def mark_failover(self) :
@@ -38,6 +41,9 @@ class MongoTransactionEnabled(object) :
 
 class MongoTransactionDisabled(object) :
     def __init__(self, client) :
+        pass
+
+    def mark_succeed(self) :
         pass
 
     def mark_failover(self) :
