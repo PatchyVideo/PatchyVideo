@@ -44,7 +44,7 @@ searchbar search for video link
 #common tags amount playlist
 #add copy video url button
 search playlist
-support adding link of patchyvideo
+#support adding link of patchyvideo
 
 *future functions:
 multi-language support

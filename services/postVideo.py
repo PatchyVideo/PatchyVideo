@@ -93,9 +93,12 @@ def addThiscopy(dst_vid, this_vid, session):
 def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
     try :
         ret = parsed.get_metadata(parsed, url)
-        url = clear_url(url)
         if ret["status"] == 'failed' :
             return "FETCH_FAILED", ret
+        if hasattr(parsed, 'LOCAL_SPIDER') :
+            url = ret["data"]["url"]
+        else :
+            url = clear_url(url)
         lock_id = "postVideo:" + ret["data"]["unique_id"]
         with redis_lock.Lock(rdb, lock_id) :
             unique, conflicting_item = verifyUniqueness(ret["data"]["unique_id"])
