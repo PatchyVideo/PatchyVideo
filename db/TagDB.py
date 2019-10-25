@@ -202,7 +202,7 @@ class TagDB():
 			'$addToSet': {'tags': {'$each': new_tags}},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		num_items = len(item_ids)
-		new_tag_count_diff = [(tag, num_items - prior_tag_counts[tag]) for tag in new_tags]
+		new_tag_count_diff = [(tag, num_items - prior_tag_counts.get(tag, 0)) for tag in new_tags]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'tag': tag}, {'$inc': {'count': diff}}, session = session) # $inc is atomic, no locking needed
 		return 'SUCCEED'
@@ -212,7 +212,7 @@ class TagDB():
 		self.db.items.update_many({'_id': {'$in': item_ids}}, {
 			'$pullAll': {'tags': tags_to_remove},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
-		new_tag_count_diff = [(tag, -prior_tag_counts[tag]) for tag in tags_to_remove]
+		new_tag_count_diff = [(tag, -prior_tag_counts.get(tag, 0)) for tag in tags_to_remove]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'tag': tag}, {'$inc': {'count': diff}}, session = session)
 		return 'SUCCEED'
@@ -225,7 +225,7 @@ class TagDB():
 		self.db.items.update_one({'_id': ObjectId(item_id)},  {
 			'$addToSet': {'tags': {'$each': new_tags}},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
-		new_tag_count_diff = [(tag, 1 - prior_tag_counts[tag]) for tag in new_tags]
+		new_tag_count_diff = [(tag, 1 - prior_tag_counts.get(tag, 0)) for tag in new_tags]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'tag': tag}, {'$inc': {'count': diff}}, session = session)
 		return 'SUCCEED'
@@ -238,7 +238,7 @@ class TagDB():
 		self.db.items.update_one({'_id': ObjectId(item_id)},  {
 			'$pullAll': {'tags': tags_to_remove},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
-		new_tag_count_diff = [(tag, -prior_tag_counts[tag]) for tag in tags_to_remove]
+		new_tag_count_diff = [(tag, -prior_tag_counts.get(tag, 0)) for tag in tags_to_remove]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'tag': tag}, {'$inc': {'count': diff}}, session = session)
 		return 'SUCCEED'

@@ -39,7 +39,7 @@ def removePlaylist(pid, user) :
 			return "UNAUTHORISED_OPERATION"
 		db.playlist_items.delete_many({"pid": ObjectId(pid)}, session = s())
 		db.playlists.delete_one({"_id": ObjectId(pid)}, session = s())
-        s.mark_succeed()
+		s.mark_succeed()
 		return "SUCCEED"
 
 def updatePlaylistCover(pid, cover, user) :
@@ -57,7 +57,7 @@ def updatePlaylistCover(pid, cover, user) :
 			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
 				'meta.modified_by': '',
 				'meta.modified_at': datetime.now()}}, session = s())
-        s.mark_succeed()
+		s.mark_succeed()
 		return "SUCCEED"
 
 
@@ -81,7 +81,7 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 				'meta.modified_by': '',
 				'meta.modified_at': datetime.now()}}, session = s())
 		_, video_page, video_count = listPalylistVideos(pid, page - 1, page_size)
-        s.mark_succeed()
+		s.mark_succeed()
 		return "SUCCEED", {'videos': video_page, 'video_count': video_count, 'page': page}
 
 def updatePlaylistInfo(pid, language, title, desc, cover, user) :
@@ -104,7 +104,7 @@ def updatePlaylistInfo(pid, language, title, desc, cover, user) :
 				"desc.%s" % language: desc,
 				'meta.modified_by': '',
 				'meta.modified_at': datetime.now()}}, session = s())
-        s.mark_succeed()
+		s.mark_succeed()
 		return "SUCCEED"
 
 def addVideoToPlaylist(pid, vid, user) :
@@ -134,7 +134,7 @@ def addVideoToPlaylist(pid, vid, user) :
 			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
 				'meta.modified_by': '',
 				'meta.modified_at': datetime.now()}}, session = s())
-        s.mark_succeed()
+		s.mark_succeed()
 		return "SUCCEED"
 
 def listPalylistVideos(pid, page_idx, page_size) :
@@ -284,7 +284,7 @@ def updateCommonTags(pid, tags, user) :
 			tagdb.update_many_items_tags_pull(all_video_ids, tags_to_remove, user, session = s())
 		if tags_added :
 			tagdb.update_many_items_tags_merge(all_video_ids, tags_added, user, session = s())
-        s.mark_succeed()
+		s.mark_succeed()
 		return 'SUCCEED'
 
 
@@ -361,9 +361,9 @@ def removeVideoFromPlaylist(pid, vid, page, page_size, user) :
 		if len(video_page) == 0 and page > 1 and video_count > 0 :
 			# in case deleting video results in current page becomes empty, show the previous page
 			_, video_page, video_count = listPalylistVideos(pid, page - 2, page_size)
-        	s.mark_succeed()
+			s.mark_succeed()
 			return "SUCCEED", {'videos': video_page, 'video_count': video_count, 'page': page - 1}
-        s.mark_succeed()
+		s.mark_succeed()
 		return "SUCCEED", {'videos': video_page, 'video_count': video_count, 'page': page}
 
 def editPlaylist_MoveUp(pid, vid, page, page_size, user) :
@@ -392,7 +392,7 @@ def editPlaylist_MoveUp(pid, vid, page, page_size, user) :
 					'meta.modified_by': '',
 					'meta.modified_at': datetime.now()}}, session = s())
 			_, video_page, video_count = listPalylistVideos(pid, page - 1, page_size)
-        	s.mark_succeed()
+			s.mark_succeed()
 			return "SUCCEED", {'videos': video_page, 'video_count': video_count, 'page': page}
 		else :
 			return "EMPTY_PLAYLIST", None
@@ -422,7 +422,7 @@ def editPlaylist_MoveDown(pid, vid, page, page_size, user) :
 					'meta.modified_by': '',
 					'meta.modified_at': datetime.now()}}, session = s())
 			_, video_page, video_count = listPalylistVideos(pid, page - 1, page_size)
-        	s.mark_succeed()
+			s.mark_succeed()
 			return "SUCCEED", {'videos': video_page, 'video_count': video_count, 'page': page}
 		else :
 			return "EMPTY_PLAYLIST", None
@@ -457,5 +457,5 @@ def insertIntoPlaylist(pid, vid, rank, user) :
 			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
 				'meta.modified_by': '',
 				'meta.modified_at': datetime.now()}}, session = s())
-        s.mark_succeed()
+		s.mark_succeed()
 		return "SUCCEED"
