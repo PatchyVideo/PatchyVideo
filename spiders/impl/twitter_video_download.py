@@ -1,7 +1,6 @@
-import logging
+
 import request
 import socket
-import ssl
 import re
 import os
 import sys
@@ -67,21 +66,12 @@ def urlopen_with_retry(*args, **kwargs):
 	retry_time = 3
 	for i in range(retry_time):
 		try:
-			if insecure:
-				# ignore ssl errors
-				ctx = ssl.create_default_context()
-				ctx.check_hostname = False
-				ctx.verify_mode = ssl.CERT_NONE
-				return request.urlopen(*args, context=ctx, **kwargs)
-			else:
-				return request.urlopen(*args, **kwargs)
+			return request.urlopen(*args, **kwargs)
 		except socket.timeout as e:
-			logging.debug('request attempt %s timeout' % str(i + 1))
 			if i + 1 == retry_time:
 				raise e
 		# try to tackle youku CDN fails
 		except error.HTTPError as http_error:
-			logging.debug('HTTP Error with code{}'.format(http_error.code))
 			if i + 1 == retry_time:
 				raise http_error
 
@@ -94,10 +84,6 @@ def post_content(url, headers={}, post_data={}, decoded=True, **kwargs):
 	Returns:
 		The content as a string.
 	"""
-	if kwargs.get('post_data_raw'):
-		logging.debug('post_content: %s\npost_data_raw: %s' % (url, kwargs['post_data_raw']))
-	else:
-		logging.debug('post_content: %s\npost_data: %s' % (url, post_data))
 
 	req = request.Request(url, headers=headers)
 	if cookies:
@@ -138,8 +124,6 @@ def get_content(url, headers={}, decoded=True):
 	Returns:
 		The content as a string.
 	"""
-
-	logging.debug('get_content: %s' % url)
 
 	req = request.Request(url, headers=headers)
 	if cookies:
