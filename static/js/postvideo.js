@@ -81,16 +81,16 @@ function buildParsersAdnExpanders() {
             setStatus("Error fetching video", "red");
             return;
         }
-        thumbnailURL = "https://img.youtube.com/vi/" + vidid + "/hqdefault.jpg";
+        thumbnailURL = "https://img.youtube.com/vi/" + vidid + "/maxresdefault.jpg";
         info_file_link = proxyResource("https://www.youtube.com/get_video_info?video_id=" + vidid);
         $.get(info_file_link, function(data, status) {
             if (status == "success") {
                 //let searchParams = new URLSearchParams(data);
                 //player_response = searchParams.get("player_response");
-                player_response = getQueryVariable(data, "player_response")
+                player_response = getQueryVariable(data, "player_response");
                 videoDetails = JSON.parse(player_response)['videoDetails'];
-                title = videoDetails.title;
-                desc = videoDetails.shortDescription;
+                title = unescape(videoDetails.title).replace(/\+/g, ' ');
+                desc = unescape(videoDetails.shortDescription).replace(/\+/g, ' ');
                 setVideoMetadata(thumbnailURL, title, desc);
             } else {
                 setVideoMetadata("", "", "");

@@ -64,8 +64,10 @@ function deleteVideo(vid) {
     {
         "pid": $("#playlist-id").attr("content"),
         "vid": vid,
+        "page": $("#page").attr("content"),
+        "page_size": $("#page-size").attr("content"),
     }, function(result){
-        location.reload();
+        //location.reload();
     }, function(result){
         alert(result.data);
     });
@@ -76,8 +78,10 @@ function moveUp(vid) {
     {
         "pid": $("#playlist-id").attr("content"),
         "vid": vid,
+        "page": $("#page").attr("content"),
+        "page_size": $("#page-size").attr("content"),
     }, function(result){
-        location.reload();
+        //location.reload();
     }, function(result){
         alert(result.data);
     });
@@ -88,8 +92,28 @@ function moveDown(vid) {
     {
         "pid": $("#playlist-id").attr("content"),
         "vid": vid,
+        "page": $("#page").attr("content"),
+        "page_size": $("#page-size").attr("content"),
     }, function(result){
-        location.reload();
+        //location.reload();
+    }, function(result){
+        alert(result.data);
+    });
+}
+
+function deletePlaylist() {
+    $.get("/list/{{playlist_id}}/del");
+}
+
+function setCover(vid) {
+    postJSON("/list/setcover.do",
+    {
+        "pid": $("#playlist-id").attr("content"),
+        "vid": vid,
+        "page": $("#page").attr("content"),
+        "page_size": $("#page-size").attr("content"),
+    }, function(result){
+        //location.reload();
     }, function(result){
         alert(result.data);
     });

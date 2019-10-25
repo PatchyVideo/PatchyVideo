@@ -68,6 +68,12 @@ class TagDB():
         self.db.cats.update_one({'name': category}, {'$inc': {'count': 1}}, session = session)
         return 'SUCCESS'
 
+    def filter_tags(self, tags, session = None):
+        found = self.db.tags.aggregate([
+            {'$match':{'tag':{'$in':tags}}},
+            {'$project':{'tag':1}}], session = session)
+        return [item['tag'] for item in found]
+
     def remove_tag(self, tag, user = '', session = None):
         tt, tag_obj = self._tag_type(tag, session = session)
         if tt == 'tag':   
@@ -103,8 +109,8 @@ class TagDB():
     def retrive_tags(self, item_id, session = None):
         item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
         if item is None:
-            return 'ITEM_NOT_EXIST' 
-        return item['tags']
+            return 'ITEM_NOT_EXIST', []
+        return 'SUCCEED', item['tags']
     
     def retrive_item_tags_with_category(self, item_id, session = None):
         item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
@@ -121,6 +127,13 @@ class TagDB():
         ans = defaultdict(list)
         for obj in tag_objs:
             ans[obj['category']].append(obj['tag'])
+        return ans
+
+    def get_tag_category_map(self, tags, session = None):
+        tag_objs = self.db.tags.find({'tag': {'$in': tags}}, session = session)
+        ans = {}
+        for obj in tag_objs:
+            ans[obj['tag']] = obj['category']
         return ans
 
     def add_item(self, tags, item, user = '', session = None):
@@ -162,12 +175,31 @@ class TagDB():
         self.db.items.update_one({'_id': ObjectId(item_id)}, {'$set': {'tags': new_tags, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
         return 'SUCCESS'
 
+    def update_many_items_tags_merge(self, item_ids, new_tags, user = '', session = None):
+        return self.db.items.update_many({'_id': {'$in': item_ids}}, {
+            '$addToSet': {'tags': {'$each': new_tags}},
+            '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+
+    def update_many_items_tags_pull(self, item_ids, tags_to_remove, user = '', session = None):
+        return self.db.items.update_many({'_id': {'$in': item_ids}}, {
+            '$pullAll': {'tags': tags_to_remove},
+            '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+
     def update_item_tags_merge(self, item_id, new_tags, user = '', session = None):
-        ret = self.retrive_tags(item_id)
-        if ret == 'ITEM_NOT_EXIST' :
+        item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
+        if item is None :
             return 'ITEM_NOT_EXIST'
-        new_tags = list(set(new_tags + ret))
-        return self.update_item_tags(item_id, new_tags, user, session = session)
+        return self.db.items.update_one({'_id': ObjectId(item_id)},  {
+            '$addToSet': {'tags': {'$each': new_tags}},
+            '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+
+    def update_item_tags_pull(self, item_id, tags_to_remove, user = '', session = None):
+        item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
+        if item is None :
+            return 'ITEM_NOT_EXIST'
+        return self.db.items.update_one({'_id': ObjectId(item_id)},  {
+            '$pullAll': {'tags': tags_to_remove},
+            '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 
     def add_tag_alias(self, src_tag, dst_tag, user = '', session = None):
         tt_dst, tag_obj_dst = self._tag_type(dst_tag, session = session)
@@ -257,10 +289,12 @@ class TagDB():
     def compile_query(self, query, session = None):
         query_obj, tags = Parser.parse(query, self.translate_tags, self.translate_tag_group)
         if query_obj is None:
-            return 'INCORRECT_QUERY'
+            return 'INCORRECT_QUERY', []
         return query_obj, tags
 
     def _tag_type(self, tag, session = None):
+        if not isinstance(tag, str) :
+            return 'tag', tag
         tag_obj = self.db.tags.find_one({'tag': tag}, session = session)
         if tag_obj is None:
             return None, None

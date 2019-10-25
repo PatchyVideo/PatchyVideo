@@ -1,17 +1,48 @@
-{% extends "base.html" %}
-{% block title %}Log in{% endblock %}
-{% block content_outer %}
-<script src="{{ url_for('static',filename='js/login.js') }}"></script>
-<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/login.css') }}">
-<meta id="session" content="{{session}}"></meta>
-<div>
-    <form id="login-info" method="POST">
-        <div class="central-form">
-            <input id="username" name="username" class="central-element width line-text-input" type="text" placeholder="Username"></input>
-            <input id="password" name="password" class="central-element width line-text-input" type="password" placeholder="Password"></input>
-            <p class="central-element width" id="status" style="text-align: center;">Ready</p>
-            <input class="central-element narrow bottom-element line-text-input" onclick="javascript:login();" type="button" value="Login"></input>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login - PatchyVideo</title>
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/new/login_sign up.css') }}">
+    <script src="{{ url_for('static',filename='js/login.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="{{ url_for('static',filename='js/generic.js') }}"></script>
+    <style type="text/css">
+        body {
+            background: url("{{ url_for('static',filename='img/login.jpg') }}") no-repeat top center;
+            /* background-position: 200px 0; */
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        .w {
+            left: 200px;
+        }
+    </style>
+    <meta id="session" content="{{session}}"></meta>
+    <meta id="redirect_url" content="{{redirect_url}}"></meta>
+</head>
+
+<body>
+    <div class="w">
+        <h1><a href="https://www.patchyvideo.com">PatchyVideo</a></h1>
+        <div class="top in">
+            <a href="/login">Login</a>
+            <b>·</b>
+            <a href="/signup">Sign up</a>
         </div>
-    </form>
-</div>
-{% endblock %}
+        <div class="middle in">
+            <form id="login-info" method="POST">
+                <input id="username" name="username" type="text" placeholder="Username"></input>
+                <input id="password" name="password" type="password" placeholder="Password"></input>
+                <p id="status" style="text-align: center;">Ready</p>
+            </form>
+        </div>
+        <div class="bottom in">
+            <div onclick="javascript:login();" class="login in">Login</div>
+        </div>
+    </div>
+</body>
+
+</html>

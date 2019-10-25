@@ -7,3 +7,6 @@ def getVideoDetail(id):
 
 def getTagCategories(tags) :
     return db.get_tag_category(tags)
+
+def getTagCategoryMap(tags) :
+    return db.get_tag_category_map(tags)

@@ -11,7 +11,9 @@ function login() {
         setStatus("Password cannot be empty", "red");
         return;
     }
-    
+
+    redirect_url = $("#redirect_url").attr("content");
+
     setStatus("Logging up...");
     postJSON('/login.do',
     {
@@ -20,7 +22,16 @@ function login() {
         session: $("#session").attr("content"),
     },
     function(result){
-        window.location = "/";
+        all_queries = getUrlVars();
+        if (all_queries.indexOf("redirect_url") >= 0) {
+            var decoded = unescape(all_queries["redirect_url"]);
+            window.location = decoded;
+        } else if (!isEmpty(redirect_url)) {
+            var decoded = unescape(redirect_url);
+            window.location = decoded;
+        } else {
+            window.location = "/";
+        }
     },
     function(result){
         setStatus(result.data, "red");

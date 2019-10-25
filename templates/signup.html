@@ -1,19 +1,48 @@
-{% extends "base.html" %}
-{% block title %}Sign up{% endblock %}
-{% block content_outer %}
-<script src="{{ url_for('static',filename='js/signup.js') }}"></script>
-<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/signup.css') }}">
-<meta id="session" content="{{session}}"></meta>
-<div>
-    <form id="signup-info" method="POST">
-        <div class="central-form">
-            <input id="username" name="username" class="central-element width line-text-input" type="text" placeholder="Username"></input>
-            <input id="password1" name="password1" class="central-element width line-text-input" type="password" placeholder="Password"></input>
-            <input id="password2" name="password2" class="central-element width line-text-input" type="password" placeholder="Repeat Password"></input>
-            <input id="email" name="email" class="central-element width line-text-input" type="email" placeholder="Email(Optional)"></input>
-            <p class="central-element width" id="status" style="text-align: center;">Ready</p>
-            <input class="central-element narrow bottom-element line-text-input" type="button" onclick="javascript:signup();" value="Sign Up"></input>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign up - PatchyVideo</title>
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/new/login_sign up.css') }}">
+    <script src="{{ url_for('static',filename='js/signup.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="{{ url_for('static',filename='js/generic.js') }}"></script>
+    <style type="text/css">
+        body {
+            background: url("{{ url_for('static',filename='img/sign_up.jpg') }}") no-repeat top center;
+            /* background-position: 200px 0; */
+            background-size: cover;
+            background-attachment: fixed;
+        }
+        .w {
+            left: -200px;
+        }
+    </style>
+    <meta id="session" content="{{session}}"></meta>
+</head>
+
+<body>
+    <div class="w">
+        <h1><a href="/">PatchyVideo</a></h1>
+        <div class="top in">
+            <a href="/login">Login</a>
+            <b>·</b>
+            <a href="/signup">Sign up</a>
         </div>
-    </form>
-</div>
-{% endblock %}
+        <div class="middle in">
+            <form id="signup-info" method="POST">
+                <div class="central-form">
+                    <input id="username" name="username" type="text" placeholder="Username"></input>
+                    <input id="password1" name="password1" type="password" placeholder="Password"></input>
+                    <input id="password2" name="password2" type="password" placeholder="Repeat Password"></input>
+                    <input id="email" name="email" type="email" placeholder="Email(Optional)"></input>
+                    <p id="status" style="text-align: center;">Ready</p>
+                </div>
+            </form>
+        </div>
+        <div class="bottom in">
+            <div class="login in" onclick="javascript:signup();">Sign up</div>
+        </div>
+    </div>
+</body>
+</html>

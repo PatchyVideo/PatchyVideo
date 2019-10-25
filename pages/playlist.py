@@ -62,6 +62,7 @@ def pages_playlist(pid, rd, user):
     rd.playlist_creator = str(playlist['meta']['created_by'])
     rd.playlist_editable = False
     rd.playlist_creator_info = query_user_basic_info(rd.playlist_creator)
+    rd.playlist_cover_image = playlist['cover']
     if user is not None :
         if str(user['_id']) == rd.playlist_creator :
             rd.playlist_editable = True

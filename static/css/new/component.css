@@ -1,0 +1,42 @@
+﻿.input__field:focus {
+	outline: none;
+}
+.input__field {
+	vertical-align: baseline;
+	position: relative;
+	display: block;
+	float: left;
+	padding: 0.8em;
+	width: 60%;
+	border: none;
+	border-radius: 0;
+	background: #f0f0f0;
+	color: #aaa;
+	font-weight: bold;
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	-webkit-appearance: none; /* for box shadows to show on iOS */
+}
+
+
+
+
+/* Minoru */
+.input__field--minoru {
+	width: 350px;
+	height: 42px;
+    background-color: #fafafa;
+	box-shadow: 0px 0px 0px 2px transparent;
+	color: black;
+	font-size: 20px;
+    font-weight: normal;
+	-webkit-transition: box-shadow 0.3s;
+	transition: box-shadow 0.3s;
+}
+
+
+.input__field--minoru:focus{
+		box-shadow: 0px 0px 0px 2px #eca29b;
+	pointer-events: none;
+	-webkit-animation: anim-shadow 0.3s forwards;
+	animation: anim-shadow 0.3s forwards;
+}

@@ -113,7 +113,7 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
                 if dst_copy and dst_copy != conflicting_item['_id'] :
                     with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
                         # find all copies of video dst_copy, self included
-                        all_copies = getAllcopies(dst_copy, session = s)
+                        all_copies = getAllcopies(dst_copy, session = s())
                         # find all videos linked to source video
                         all_copies += getAllcopies(conflicting_item['_id'], session = s())
                         # remove duplicated items
@@ -173,4 +173,4 @@ def verifyUniqueness(postingId):
     return val is None, val
 
 def verifyTags(tags):
-    return tagdb.verify_tags(tags)
+    return tagdb.verify_tags([tag.strip() for tag in tags])

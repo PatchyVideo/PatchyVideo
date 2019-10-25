@@ -52,10 +52,5 @@ function buildPageSelector(selected_page, page_count) {
     return p_obj;
 }
 
-function gotoPage(page) {
-    query = $("#query").attr("content");
-    form = $(`<form style="display: none;" action="${window.location.href}" method="POST"><input style="display: none;" name="query" type="text" value="${query}" /><input name="page" type="text" value="${page}" /></form>`);
-    $("#content-outer").append(form);
-    form.submit();
-}
+
 

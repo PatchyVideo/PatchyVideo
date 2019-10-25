@@ -56,7 +56,7 @@
                 "MONGODB_URL": "localhost:27017",
                 "REDISTOGO_URL": "127.0.0.1",
                 "REDISTOGO_URL_WORKER": "redis://127.0.0.1",
-                "IMAGE_PATH": "images",
+                "IMAGE_PATH": "~/images",
                 "ENABLE_TRANSACTION": "false"
             }
         },

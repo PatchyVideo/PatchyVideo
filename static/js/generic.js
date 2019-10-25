@@ -30,6 +30,13 @@ function downloadPage(url, success, error = null, complete = null) {
     })
 }
 
+function gotoPage(page) {
+    query = $("#query").attr("content");
+    form = $(`<form style="display: none;" action="${window.location.href}" method="POST"><input style="display: none;" name="query" type="text" value="${query}" /><input name="page" type="text" value="${page}" /></form>`);
+    $("body").append(form);
+    form.submit();
+}
+
 function proxyResource(url, referrer = "", user_agent = "Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0") {
     url = encodeURI(url);
     if (referrer)
@@ -56,6 +63,19 @@ function getQueryVariable(query, variable) {
     console.log('Query variable %s not found', variable);
 }
 
+function getUrlVars()
+{
+    var vars = [], hash;
+    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    for(var i = 0; i < hashes.length; i++)
+    {
+        hash = hashes[i].split('=');
+        vars.push(hash[0]);
+        vars[hash[0]] = hash[1];
+    }
+    return vars;
+}
+
 function addHTTP(url) {
     if (!/^(?:f|ht)tps?\:\/\//.test(url)) {
         url = "http://" + url;
@@ -66,4 +86,14 @@ function addHTTP(url) {
 function clearURL(url) {
     url_parsed = new URL(addHTTP(url));
     return "https://" + url_parsed.host + url_parsed.pathname + url_parsed.search;
+}
+
+function copyToClipboard(obj) {
+    const el = document.createElement('textarea');
+    el.value = obj.text();
+    document.body.appendChild(el);
+    el.select();
+    el.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    document.body.removeChild(el);
 }

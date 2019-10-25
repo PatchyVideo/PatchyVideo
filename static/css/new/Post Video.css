@@ -1,0 +1,125 @@
+
+
+
+.central-form{
+	    width: 600px;
+    margin: auto;
+    background-color: inherit;
+    position: relative;
+z-index: 999;
+opacity: 1;
+    	display: block;
+
+}
+
+button{
+	cursor: pointer;
+	background-color: inherit;
+border: none;
+outline:none;
+}
+
+
+#post-video-button{
+	width: 400px;
+	height: 50px;
+	position: relative;
+	right: -100px;
+border: 1px solid #6F6F6F;
+margin-bottom: 20px;
+color: black;
+	background-color: #fafafa;
+
+
+}
+#post-video-button:hover{
+
+	color: white;
+	background-color: #5E5E5E;
+
+}
+
+.video-url-bar > input {
+    width: 315px;
+    border: 1px solid #6F6F6F;
+    padding: 2px;
+}
+
+#fetch-video{
+cursor: pointer;
+}
+#fetch-video:hover{
+	color: white;
+	background-color: #6F6F6F;
+}
+.width {
+    margin-left: 100px;
+    margin-right: 100px;
+    width: 400px;
+}
+.active {
+     background-color:  #D5D5D5; 
+ /*   background-color: buttonface;*/
+}
+.tab-button {
+    width: 49.5%;
+    padding: 8px;
+}
+
+textarea::-webkit-input-placeholder{
+    text-align: center;
+}
+
+textarea {
+	    background-color: white;
+    text-rendering: auto;
+    color: initial;
+    letter-spacing: normal;
+    word-spacing: normal;
+    text-align: center;
+    text-transform: none;
+    text-indent: 0px;
+    text-shadow: none;
+    display: inline-block;
+    text-align: start;
+    margin: 0em;
+    font: 400 13.3333px Arial;
+}
+body{
+
+    background:   url("../../img/imoto3.jpg") no-repeat top center;
+
+
+
+}
+
+.central-form{
+    /*margin-top:20px;
+    margin-bottom: 50px;*/
+    
+    padding: 10px;
+
+}
+.video-url-bar{
+    margin:8px auto;
+}
+.control{
+    position: relative;
+    height: 60px;
+}
+.control button{
+    background-color:  #FCCAD5;
+    position: relative;
+    margin-left: 20px;
+    left: 3%;
+}.control button:hover{
+    background-color: #FFC9B4;  
+}
+
+   .no-whitespace{
+        display: flex;
+        height: 30px;
+    }
+    #fetch-video{
+        white-space: nowrap;
+    }

@@ -34,7 +34,7 @@ def ajax_login(rd, data):
 @basePage
 @jsonRequest
 def ajax_signup(rd, data):
-    if len(data.username) > 32 or len(data.username) < 4:
+    if len(data.username) > 14 or len(data.username) < 3:
         return "json", makeResponseFailed("Username length not satisfied")
     if len(data.password) > 64 or len(data.password) < 8:
         return "json", makeResponseFailed("Password length not satisfied")

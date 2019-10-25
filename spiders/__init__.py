@@ -34,6 +34,7 @@ for m in _spider_modules :
 	exec( 'global _dispatch_map; _dispatch_map.append( [ re_exp, re_exp_short, %s ] )' % m )
 
 def dispatch( url ) :
+	url = url.strip()
 	for [ reg, short_exp, target ] in _dispatch_map :
 		if short_exp :
 			match_result_short = re.match( short_exp, url )

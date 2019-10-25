@@ -11,7 +11,7 @@ from utils.jsontools import *
 
 from spiders import dispatch
 
-from services.editVideo import editVideoTags, verifyTags
+from services.editVideo import editVideoTags, verifyTags, getVideoTags
 
 @app.route('/videos/edittags.do', methods = ['POST'])
 @loginRequiredJSON
@@ -29,3 +29,12 @@ def ajax_videos_edittags(rd, user, data):
     if retval == 'ITEM_NOT_EXIST':
         return "json", makeResponseFailed("Video %s does not exist" % data.video_id)
     return "json", makeResponseSuccess("Success")
+
+@app.route('/videos/gettags.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_videos_gettags(rd, user, data):
+    ret, tags = getVideoTags(data.video_id)
+    if ret == 'ITEM_NOT_EXIST' :
+        return "json", makeResponseFailed("Video %s does not exist" % data.video_id)
+    return "json", makeResponseSuccess(tags)

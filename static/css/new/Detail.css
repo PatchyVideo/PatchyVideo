@@ -1,0 +1,65 @@
+
+
+  .recommend,.Copies_blibili,.Playlists{
+
+
+    margin-bottom: 10px;
+
+  }
+
+
+ .re_top h2,.new_top h2{
+    word-wrap: break-word;
+    word-break: normal;
+    display: inline-block;
+    font-size: 24px;
+    font-weight: 1px;
+  
+    width: 100%;
+    text-align: center;
+
+  }
+
+
+  .re_video,.new_video-detail{
+   width:100%;
+
+   position: relative;
+   top: 0px;
+   left:0px;
+
+ }
+ .re_top,.new_top{
+
+  padding-bottom: 10px;
+  border-bottom:3px solid red; 
+}
+.new_top
+{
+
+  border-bottom:3px solid #21C6EF;
+}
+
+.re_video a{
+  width: 100px;
+  text-align: center;
+  line-height:100px;
+}
+
+.re_video  img{
+  display: block;
+  vertical-align:middle;
+  margin: 20px auto;
+}
+.re_video  p,.new_video li p{
+  font-size: 21px;
+  margin-bottom: 10px;
+  margin:0px 10% 10px;
+  word-wrap:break-word;
+  white-space: pre-wrap;
+}
+
+.video_link {
+  text-align: center;
+  margin-top: 6px;
+}

@@ -12,3 +12,5 @@ python-redis-lock
 beautifulsoup4
 flask_sslify
 apscheduler
+flask-swagger-ui
+flask-restplus

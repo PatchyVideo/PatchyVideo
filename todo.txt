@@ -25,16 +25,26 @@ user sees his playlists
 user subscript to playlists
 jsproxy for sites
 UI beautify
-redirect to previous url after login
-tag display with category
+#tag display with category
 thumbnail for playlist
 user photo storing
 log activities
 documents
 user access control
-add https to URL when crawling to prevent rediect
+#add https to URL when crawling to prevent rediect
 UI beautify level 2
-navbar tags
+#navbar tags
+#A better tag editting mechanism
+tag rename
+log error, don't want others to see filenames in error response
+change background image to include more patchouli
+#trim url
+searchbar search for video link
+#redirect to previous url after login
+#common tags amount playlist
+#add copy video url button
+search playlist
+support adding link of patchyvideo
 
 *future functions:
 multi-language support
@@ -43,3 +53,4 @@ danmaku
 comment section
 video downloading
 tag prompt/auto-complete
+elasticsearch for title and description in video/playlist

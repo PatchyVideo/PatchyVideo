@@ -1,0 +1,119 @@
+
+
+  html .top-navbar{
+
+    
+        flex: none;
+        margin: 0 auto;
+        height: 70px;
+        display: flex;
+        -webkit-align-items: center;
+        -ms-flex-align: center;
+        align-items: center;
+        overflow: hidden;
+        position: relative;
+        background-color: #fff;
+        
+        box-shadow: 0 2px 20px #A78C97;
+
+    }
+   .top-navbar li a{
+    	 text-decoration: none;
+         color: #761226;
+    }
+   .top-navbar a:hover{
+    
+      color: #FF88A0;
+    }
+
+    #submit{
+
+    }
+.nav_left {
+    width: 50%;
+}
+
+.nav_right li#s1{
+  width: 426px;
+  height: 70px;
+    line-height: 70px;
+   
+    position: relative;
+    top: 0px;
+    right: 50px;
+
+}
+    .nav_left {
+
+width: 65%;
+    }
+    .nav_right {
+width: 50%;
+    }
+    .nav_left li{
+        height:70px;
+        line-height: 70px;
+    	display: inline-block;
+    	margin-left: 5%; 
+    font-family: YourWebFontName
+    text-align: center;
+    font-size: 19px;
+    
+
+    }
+    .nav_right li{
+      
+      height:70px;
+      line-height: 70px;
+     float: left;
+     margin-left: 2%; 
+     display: inline-block;
+    font-family: YourWebFontName
+    text-align: center;
+  
+    font-size: 19px;
+ 
+    }
+     .nav_right li a{
+
+     }
+
+
+
+     #search-bar-query{
+
+         width: 220px;
+          height: 42px;
+    outline: none;
+    border: none;
+       padding-left: 13px;
+       position: relative;
+       top: 0px;
+         
+}
+#search-bar-query:focus{
+    font-size: 15px;
+    
+    border: 1px solid #d1d1d1;
+}
+
+    
+     #search-bar-submit{  
+
+     
+    background: #c5464a;
+    width: 74.3px;
+    color: white;
+    height: 42px;
+    outline: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+       top: 0px;
+   
+}
+#submit:hover{
+
+      background: #FF88A0;
+}
+

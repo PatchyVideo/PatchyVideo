@@ -6,7 +6,9 @@ from flask import render_template, request, jsonify, redirect, session
 from main import app
 from utils.interceptors import loginOptional
 from utils.html import buildPageSelector
+from utils.tagtools import getTagColor
 from services.listVideo import listVideo, listVideoQuery
+from services.getVideo import getTagCategoryMap
 
 @app.route('/search', methods = ['POST', 'GET'])
 @loginOptional
@@ -23,17 +25,22 @@ def pages_search(rd, user):
         if len(rd.query) > 256:
             rd.reason = 'Query too long(max 256 characters)'
             return 'content_videolist_failed.html'
-        status, videos, related_tags = listVideoQuery(rd.query, rd.page - 1, rd.page_size)
+        status, videos, related_tags, video_count = listVideoQuery(rd.query, rd.page - 1, rd.page_size)
+        rd.videos = videos
     else :
         videos, related_tags = listVideo(rd.page - 1, rd.page_size)
+        video_count = videos.count()
+        rd.videos = [item for item in videos]
         status = "succeed"
+        
     if status == "failed":
         rd.reason = "Syntax error in query"
         return 'content_videolist_failed.html'
-    video_count = len(videos)
-    rd.videos = videos
     rd.count = video_count
-    rd.tags_list = related_tags
+    tag_category_map = getTagCategoryMap(related_tags)
+    tag_color_map = getTagColor(tag_category_map)
+    rd.tags_list = tag_color_map
+    rd.title = 'Search'
     rd.page_count = (video_count - 1) // rd.page_size + 1
     rd.page_selector_text = buildPageSelector(rd.page, rd.page_count, lambda a: 'javascript:gotoPage(%d);'%a)
     return 'content_videolist.html'

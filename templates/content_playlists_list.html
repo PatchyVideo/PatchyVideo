@@ -1,28 +1,92 @@
-{% extends "content_base.html" %}
-{% block content %}
-<link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='css/playlists_list.css') }}">
-<script src="{{ url_for('static',filename='js/playlists_list.js') }}"></script>
-<meta id="page" content="{{page}}"></meta>
-<meta id="query" content="{{query}}"></meta>
-<meta id="page-size" content="{{page_size}}"></meta>
-<meta id="page-count" content="{{page_count}}"></meta>
-<meta id="order" content="{{order}}"></meta>
-<div class="playlists-list">
-    <h4 id="list-prompt"></h4>
-    <p><h3><a href="/lists/new">[Create New Playlist]</a></h3></p>
-    <form>
-        <input type="text" id="playlist_search_term" placeholder="Search Playlists" value="{{search_term}}"></input>
-        <input type="button" value="Search" onclick="javascript:search();"></input>
-    </form>
-    <ul id="primary-list">
-        {% for l in lists %}
-        <li class="list-item">
-            <p><a href="/list/{{l._id}}">{{l.title.english}}</a></p>
-        </li>
-        {% endfor %}
-    </ul>
-    <p class="page-selector">{{page_selector_text|safe}}</p>
-</div>
-{% endblock %}
-{% block title %}Playlists{% endblock %}
+<!-- saved from url=(0056)file:///C:/Users/Administrator/Desktop/Video%20List.html -->
+<html>
 
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/common.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Top-navbar.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/videolist.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/component.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/playlists_list.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/buttons.css') }}">
+
+    <style type="text/css">
+
+    </style>
+    <title>Playlists - PatchyVideo</title>
+</head>
+
+<body>
+    <meta id="page" content="{{page}}">
+    </meta>
+    <meta id="query" content="{{query}}">
+    </meta>
+    <meta id="page-size" content="{{page_size}}">
+    </meta>
+    <meta id="page-count" content="{{page_count}}">
+    </meta>
+    <meta id="order" content="{{order}}">
+    </meta>
+    <div class="top-navbar w " id="top-navbar">
+        <div class="nav_left">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/lists">Playlists</a></li>
+                <li><a href="/postvideo">Post Video</a></li>
+                <li><a href="/edittag">Tags</a></li>
+            </ul>
+        </div>
+        <div class="nav_right">
+            <ul>
+                {% include "searchbar_new.html" %}
+                {% if _user is none %}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/signup">Sign up</a></li>
+                {% else %}
+                <li><a href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
+                <li><a href="/logout">Log out</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    <div class="w">
+        <div class="content">
+            <div class="deemo shadow">
+                <div class="d_t">
+                    <p>Playlists help people organize videos of the same series or have other attributes in common.</br>Videos in a playlist are ordered.</p>
+                    <a href="/lists/new" class="button button-glow button-border button-rounded button-primary">Create New Playlist</a>
+                </div>
+                <!-- re_video栏结束  -->
+            </div>
+            <div class="recommend">
+                {% for l in lists %}
+                <div class="minbox shadow">
+                    <div class="re_top">
+                        <a href="/list/{{l._id}}">
+                            <h2>{{l.title.english}}</h2>
+                        </a>
+                    </div>
+                    <div class="re_video">
+                            <img src="/images/covers/{{l.cover}}" alt=""
+                            width="320px" height="200px" title="{{l.title.english}}">
+                        <p>{{l.desc.english}}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="page-selector">{{page_selector_text|safe}}</p>
+        </div>
+    </div>
+    <div class="footer w">
+        <p> © 2019 www.patchyvideo.com Touhou Project </p>
+    </div>
+
+
+    </div>
+
+
+</body>
+
+</html>

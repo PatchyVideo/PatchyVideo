@@ -115,7 +115,7 @@ def update_desc(redis_user_key, user_id, new_desc) :
             'profile': {
                 'username': obj['profile']['username'],
                 'image': obj['profile']['image'],
-                'desc': obj['profile']['desc']
+                'desc': new_desc
             },
             'access_control': obj['access_control']
         }
