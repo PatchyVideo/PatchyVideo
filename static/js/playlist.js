@@ -67,7 +67,7 @@ function deleteVideo(vid) {
         "page": $("#page").attr("content"),
         "page_size": $("#page-size").attr("content"),
     }, function(result){
-        //location.reload();
+        location.reload();
     }, function(result){
         alert(result.data);
     });
@@ -81,7 +81,7 @@ function moveUp(vid) {
         "page": $("#page").attr("content"),
         "page_size": $("#page-size").attr("content"),
     }, function(result){
-        //location.reload();
+        location.reload();
     }, function(result){
         alert(result.data);
     });
@@ -95,7 +95,7 @@ function moveDown(vid) {
         "page": $("#page").attr("content"),
         "page_size": $("#page-size").attr("content"),
     }, function(result){
-        //location.reload();
+        location.reload();
     }, function(result){
         alert(result.data);
     });
@@ -113,7 +113,7 @@ function setCover(vid) {
         "page": $("#page").attr("content"),
         "page_size": $("#page-size").attr("content"),
     }, function(result){
-        //location.reload();
+        location.reload();
     }, function(result){
         alert(result.data);
     });
