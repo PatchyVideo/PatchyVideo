@@ -46,7 +46,7 @@ search playlist
 #support adding link of patchyvideo
 edit twitter video title
 #advanced search term like site:bilibili
-show uploader profile photo
+depolyment mode using GCI
 
 *future functions:
 thumbnail for playlist
@@ -57,3 +57,4 @@ comment section
 video downloading
 tag prompt/auto-complete
 elasticsearch for title and description in video/playlist
+show uploader profile photo

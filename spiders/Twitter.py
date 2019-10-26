@@ -40,16 +40,18 @@ class Twitter( Spider ) :
 		ga_content = post_content(ga_url, headers={'authorization': authorization})
 		guest_token = json.loads(ga_content)['guest_token']
 
-		api_url = 'https://api.twitter.com/2/timeline/conversation/%s.json?tweet_mode=extended' % item_id
+		api_url = 'https://api.twitter.com/1.1/statuses/show.json?id=%s' % item_id
 		api_content = get_content(api_url, headers={'authorization': authorization, 'x-guest-token': guest_token})
 
 		info = json.loads(api_content)
-		desc = info['globalObjects']['tweets'][item_id]['full_text']
-		cover = info['globalObjects']['tweets'][item_id]['entities']['media'][0]['media_url']
+		desc = info['text']
+		cover = info['extended_entities']['media'][0]['media_url']
+		user_name = info['user']['name']
+		screen_name = info['user']['screen_name']
 
 		return makeResponseSuccess({
 			'thumbnailURL': cover,
-			'title' : 'Twitter:%s %s' % (screen_name, item_id),
+			'title' : '%s @%s' % (user_name, screen_name),
 			'desc' : desc,
 			'site': 'twitter',
 			"unique_id": "twitter:%s" % item_id
