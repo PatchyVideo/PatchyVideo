@@ -46,6 +46,7 @@ search playlist
 #support adding link of patchyvideo
 edit twitter video title
 #advanced search term like site:bilibili
+show uploader profile photo
 
 *future functions:
 thumbnail for playlist
