@@ -34,14 +34,14 @@ function onPostVideoButton_Click(event) {
 $(document).ready(function(){
     $("#fetch-video").click(onFetchVideo_Click);
     $("#post-video-button").click(onPostVideoButton_Click);
-    buildParsersAdnExpanders();
+    buildParsersAndExpanders();
 }
 );
 
 //////////////////////////////////////////////////////
 //    Functions
 //////////////////////////////////////////////////////
-function buildParsersAdnExpanders() {
+function buildParsersAndExpanders() {
     PARSERS["^(https:\/\/|http:\/\/)?(www\.)?bilibili\.com\/video\/av[\\d]+"] = function(responseDOM, responseURL) {
         err = responseDOM.find('div.error-body');
         if (err.length > 0) {
@@ -107,7 +107,7 @@ function buildParsersAdnExpanders() {
             setVideoMetadata(data["data"]["thumbnailURL"], data["data"]["title"], data["data"]["desc"]);
         }, function(data){
             setVideoMetadata("", "", "");
-            setStatus(data["data"], "red");
+            setStatus("Error fetching video", "red");
         });
     };
 }
@@ -201,7 +201,7 @@ function fetchVideo(url) {
 
 function setVideoMetadata(thumbnail, title, desc) {
     if (isEmpty(thumbnail)) {
-        $("#video-thumbnail").attr("src", "");
+        $("#video-thumbnail").removeAttr("src");
     } else {
         thumbnail_url = proxyResource(thumbnail, "");
         $("#video-thumbnail").attr("src", thumbnail_url);
