@@ -18,7 +18,7 @@ spiders:
 #  Twitter py version
 #  Twitter js version
 #spider error page handling(py)
-spider error page handling(js)
+#spider error page handling(js)
 #av/sm number expand
 #batch video post
 user sees his playlists

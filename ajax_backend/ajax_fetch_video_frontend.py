@@ -12,7 +12,7 @@ from utils.jsontools import *
 from spiders import dispatch
 from spiders.Twitter import Twitter
 
-@app.route('/helper/get_twitter_infxo.do', methods = ['POST'])
+@app.route('/helper/get_twitter_info.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_helper_get_twitter_info(rd, user, data):
