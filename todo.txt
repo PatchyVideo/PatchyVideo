@@ -26,15 +26,13 @@ user subscript to playlists
 jsproxy for sites
 #UI beautify
 #tag display with category
-user photo storing
-log activities
+#log activities
 documents
-user access control
+!user access control
 #add https to URL when crawling to prevent rediect
 #UI beautify level 2
 #navbar tags
 #A better tag editting mechanism
-tag rename
 log error, don't want others to see filenames in error response
 change background image to include more patchouli
 #trim url
@@ -42,13 +40,15 @@ change background image to include more patchouli
 #redirect to previous url after login
 #common tags amount playlist
 #add copy video url button
-search playlist
 #support adding link of patchyvideo
 edit twitter video title
 #advanced search term like site:bilibili
 depolyment mode using GCI
 
 *future functions:
+search playlist
+tag rename
+user photo storing
 thumbnail for playlist
 multi-language support
 user subscriptions

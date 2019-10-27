@@ -29,3 +29,10 @@ SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
 app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
 """
 
+import logging
+
+logging.basicConfig(filename = 'webapp.log',
+                    filemode = 'a',
+                    level = 'INFO',
+                    format = '%(asctime)-15s %(message)s')
+logger = logging.getLogger('logger')
