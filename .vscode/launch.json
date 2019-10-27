@@ -57,8 +57,7 @@
                 "REDISTOGO_URL": "127.0.0.1",
                 "REDISTOGO_URL_WORKER": "redis://127.0.0.1",
                 "IMAGE_PATH": "~/images",
-                "ENABLE_TRANSACTION": "false",
-                "FALSK_ENV": "development"
+                "ENABLE_TRANSACTION": "false"
             }
         },
         {
