@@ -28,7 +28,7 @@ SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
 )
 app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
 """
-
+"""
 
 import logging
 if os.getenv("FLASK_ENV", "development") == "production" :
@@ -42,4 +42,4 @@ else :
                         level = 'INFO',
                         format = '%(asctime)-15s %(message)s')
 logger = logging.getLogger('logger')
-
+"""
