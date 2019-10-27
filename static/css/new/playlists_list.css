@@ -60,7 +60,13 @@ border: 2px solid #efefef;
     margin-bottom: 10px;
 
   }
-
+  .recommend{
+    display: flex;
+    flex-wrap: wrap;
+}
+ .recommend .minbox{
+     width: 46%;
+ }
 
  .re_top h2,.new_top h2{
     word-wrap: break-word;
