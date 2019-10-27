@@ -15,6 +15,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', '8154d1a2e1e0dad7071a52f05278
 import redis
 rdb = redis.StrictRedis(host = os.getenv('REDISTOGO_URL', 'redis'))
 
+"""
 from flask_swagger_ui import get_swaggerui_blueprint
 SWAGGER_URL = '/swagger'
 API_URL = '/static/swagger.json'
@@ -26,3 +27,5 @@ SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
     }
 )
 app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
+"""
+
