@@ -5,7 +5,7 @@ from functools import wraps
 from flask import render_template, request, jsonify, current_app, redirect, session, url_for
 from types import SimpleNamespace as Namespace
 from bson.json_util import dumps, loads
-from init import rdb, logger
+from init import rdb#, logger
 
 from . import Namespace
 from .jsontools import makeResponseError, makeResponseFailed, jsonResponse
@@ -65,7 +65,7 @@ def loginRequired(func):
                 return redirect('/login?redirect_url=' + encoded_url)
             rd._user = kwargs['user']
             kwargs['rd'] = rd
-            logger.info('PAGE_U - %s - %s' % (kwargs['rd']._user['profile']['username'], func.__name__))
+            #logger.info('PAGE_U - %s - %s' % (kwargs['rd']._user['profile']['username'], func.__name__))
             ret = func(*args, **kwargs)
             return _handle_return(ret, rd)
         else :
@@ -79,14 +79,14 @@ def loginRequiredJSON(func):
             rd = Namespace()
             kwargs['user'] = _get_user_obj(session['sid'])
             if kwargs['user'] is None :
-                logger.warning('JSON - %s - Access Denied' % func.__name__)
+                #logger.warning('JSON - %s - Access Denied' % func.__name__)
                 return jsonResponse(makeResponseError("You are not authorised for this operation"))
             rd._user = kwargs['user']
             kwargs['rd'] = rd
             ret = func(*args, **kwargs)
             return _handle_return(ret, rd)
         else :
-            logger.warning('JSON - %s - Access Denied' % func.__name__)
+            #logger.warning('JSON - %s - Access Denied' % func.__name__)
             return jsonResponse(makeResponseError("You are not authorised for this operation"))
     return wrapper
 
@@ -111,10 +111,10 @@ def jsonRequest(func):
         if data is None:
             return jsonResponse(makeResponseFailed("Incomplete JSON form"))
         kwargs['data'] = Namespace.create_from_dict(data)
-        if hasattr(kwargs['rd'], '_user') :
+        """if hasattr(kwargs['rd'], '_user') :
             logger.info('JSON_U - %s - %s - %s' % (kwargs['rd']._user['profile']['username'], func.__name__, dumps(data)))
         else :
-            logger.info('JSON_A - %s - %s' % (func.__name__, dumps(kwargs['data'])))
+            logger.info('JSON_A - %s - %s' % (func.__name__, dumps(kwargs['data'])))"""
         try:
             ret = func(*args, **kwargs)
         except AttributeError:
