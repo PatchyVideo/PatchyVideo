@@ -29,10 +29,16 @@ SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
 app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
 """
 
-import logging
 
-logging.basicConfig(filename = 'webapp.log',
-                    filemode = 'a',
-                    level = 'INFO',
-                    format = '%(asctime)-15s %(message)s')
+import logging
+if os.getenv("FLASK_ENV", "development") == "production" :
+    logging.basicConfig(filename = '/logs/webapp.log',
+                        filemode = 'a',
+                        level = 'INFO',
+                        format = '%(asctime)-15s %(message)s')
+else :
+    logging.basicConfig(filename = 'webapp.log',
+                        filemode = 'a',
+                        level = 'INFO',
+                        format = '%(asctime)-15s %(message)s')
 logger = logging.getLogger('logger')
