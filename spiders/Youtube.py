@@ -43,7 +43,7 @@ class Youtube( Spider ) :
 		elif 'youtu.be' in link:
 			vidid = link[link.rfind('/') + 1:]
 		
-		thumbnailURL = "https://img.youtube.com/vi/%s/maxresdefault.jpg" % vidid
+		thumbnailURL = "https://img.youtube.com/vi/%s/hqdefault.jpg" % vidid
 
 		info_file_link = "https://www.youtube.com/get_video_info?video_id=" + vidid
 		info_file = requests.get(info_file_link, headers = self.HEADERS).text
