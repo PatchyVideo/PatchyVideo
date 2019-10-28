@@ -40,6 +40,7 @@ spiders:
 ======================
 phase 2
 ======================
+tag alias(as multi-language phase1)
 recover password
 documents
 !user access control
@@ -58,7 +59,7 @@ phase 3
 tag rename
 user photo storing
 thumbnail for playlist
-multi-language support
+full multi-language support
 user subscriptions
 danmaku
 comment section
