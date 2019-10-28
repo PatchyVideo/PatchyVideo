@@ -1,7 +1,8 @@
-*current functions:
+======================
+phase 1
+======================
 #user functions:
 #  user page
-  recover password
 #  change password
 #video uniqueness check for user
 #tag santize/add xx_(yy) support to tag lexer
@@ -21,32 +22,39 @@ spiders:
 #spider error page handling(js)
 #av/sm number expand
 #batch video post
-user sees his playlists
-user subscript to playlists
-jsproxy for sites
 #UI beautify
 #tag display with category
 #log activities
-documents
-!user access control
 #add https to URL when crawling to prevent rediect
 #UI beautify level 2
 #navbar tags
 #A better tag editting mechanism
-log error, don't want others to see filenames in error response
-change background image to include more patchouli
 #trim url
 #searchbar search for video link
 #redirect to previous url after login
 #common tags amount playlist
 #add copy video url button
 #support adding link of patchyvideo
-edit twitter video title
 #advanced search term like site:bilibili
-depolyment mode using GCI
 
-*future functions:
+======================
+phase 2
+======================
+recover password
+documents
+!user access control
+depolyment mode using GCI
+log error, don't want others to see filenames in error response
+change background image to include more patchouli
+user sees his playlists
+create playlist from a single video
+create playlist from current playlist but with videos from other site in "copies" field
 search playlist
+user subscript to playlists
+
+======================
+phase 3
+======================
 tag rename
 user photo storing
 thumbnail for playlist
@@ -58,3 +66,4 @@ video downloading
 tag prompt/auto-complete
 elasticsearch for title and description in video/playlist
 show uploader profile photo
+jsproxy for sites
