@@ -152,7 +152,12 @@
 
 		color: cornflowerblue;
 		}
-
+		.item input{
+            text-decoration: none;
+            outline: none;
+            background: none;
+            border: none;
+        }
 		#ipt{
 		height: 250px;
 		width: 300px;
@@ -358,10 +363,12 @@
 				<div class="new_top">
 					<h2>Playlists</h2>
 					{% if playlists|length == 0 %}
-					<p>This video is not included in any playlists.</p>
+					<p style="display: inline;">This video is not included in any playlists.</p>
 					{% else %}
-					<p>This video is incldued in {{playlists|length}} playlists.</p>
-
+					<p style="display: inline;">This video is incldued in {{playlists|length}} playlists.</p>
+					{% endif %}
+					{% if _user is not none %}
+					<a href="javascript:createPlaylist();">[Create Playlist]</a>
 					{% endif %}
 				</div>
 			</div>
