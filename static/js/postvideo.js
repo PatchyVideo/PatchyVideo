@@ -42,7 +42,7 @@ $(document).ready(function(){
 //    Functions
 //////////////////////////////////////////////////////
 function buildParsersAndExpanders() {
-    PARSERS["^(https:\/\/|http:\/\/)?(www\.)?bilibili\.com\/video\/av[\\d]+"] = function(responseDOM, responseURL) {
+    PARSERS["^(https:\\/\\/|http:\\/\\/)?(www\\.)?bilibili\\.com\\/video\\/av[\\d]+"] = function(responseDOM, responseURL) {
         err = responseDOM.find('div.error-body');
         if (err.length > 0) {
             setVideoMetadata("", "", "");
@@ -57,7 +57,7 @@ function buildParsersAndExpanders() {
     EXPANDERS["^av[\\d]+"] = function(short_link) {
         return "https://www.bilibili.com/video/" + short_link;
     };
-    PARSERS["^^(https:\\/\\/|http:\\/\\/)?(www\.)?nicovideo\\.jp\\/watch\\/sm[\\d]+"] = function(responseDOM, responseURL) {
+    PARSERS["^(https:\\/\\/|http:\\/\\/)?(www\\.)?nicovideo\\.jp\\/watch\\/sm[\\d]+"] = function(responseDOM, responseURL) {
         // TODO: handle error
         thumbnailURL = responseDOM.filter('meta[itemprop="thumbnailUrl"]').attr("content");
         title = responseDOM.filter('meta[itemprop="name"]').attr("content");
