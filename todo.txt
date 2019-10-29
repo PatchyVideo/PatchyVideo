@@ -40,9 +40,12 @@ spiders:
 ======================
 phase 2
 ======================
+get video upload date
+sort by video upload date
+batch post as copies
 tag alias(as multi-language phase1)
 recover password
-documents
+documents/tagging guide
 !user access control
 depolyment mode using GCI
 log error, don't want others to see filenames in error response

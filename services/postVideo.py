@@ -91,6 +91,7 @@ def addThiscopy(dst_vid, this_vid, session):
 	tagdb.update_item_query(dst_vid, {"$set": {"item.copies": dst_copies}}, session = session)
 
 def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
+	print('Adding %s with copies %s to playlist %s' % (url, dst_copy or '<None>', dst_playlist or '<None>'))
 	try :
 		ret = parsed.get_metadata(parsed, url)
 		if ret["status"] == 'failed' :
@@ -111,10 +112,13 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 				if db.playlists.find_one({'_id': ObjectId(dst_playlist)}) is not None :
 					playlists = [ ObjectId(dst_playlist) ]
 			if not unique:
+				print('Video already exist as %s' % ret["data"]["unique_id"])
 				# this video already exist in the database
 				# if the operation is to add a link to other copies and not adding self
 				if dst_copy and dst_copy != conflicting_item['_id'] :
+					print('Adding to to copies')
 					with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
+						print('Adding to to copies, lock acquired')
 						# find all copies of video dst_copy, self included
 						all_copies = getAllcopies(dst_copy, session = s())
 						# find all videos linked to source video
@@ -125,19 +129,23 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 						if len(all_copies) <= 20 :
 							for dst_vid in all_copies :
 								addThiscopy(dst_vid, all_copies, session = s())
-								s.mark_succeed()
+							print('Successfully added to copies')
+							s.mark_succeed()
 						else :
 							#if playlist_lock :
 							#    playlist_lock.release()
+							print('TOO_MANY_COPIES')
 							return "TOO_MANY_COPIES", {}
 				# if the operation is adding this video to playlist
 				if dst_playlist :
+					print('Adding to playlist at position %d' % dst_rank)
 					if dst_rank == -1 :
 						addVideoToPlaylist(dst_playlist, conflicting_item['_id'], user)
 					else :
 						insertIntoPlaylist(dst_playlist, conflicting_item['_id'], dst_rank, user)
 				# merge tags
 				with MongoTransaction(client) as s :
+					print('Merging tags')
 					tagdb.update_item_tags_merge(conflicting_item['_id'], tags, makeUserMeta(user), session = s())
 					s.mark_succeed()
 				#if playlist_lock :
@@ -147,32 +155,46 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 			else :
 				# expand dst_copy to all copies linked to dst_copy
 				if dst_copy :
+					print('Adding to to copies')
 					with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
+						print('Adding to to copies, lock acquired')
 						all_copies = getAllcopies(dst_copy, session = s())
 						new_item_id = tagdb.add_item(tags, _make_video_data(ret["data"], all_copies, playlists, url), makeUserMeta(user), session = s())
 						all_copies.append(ObjectId(new_item_id))
 						if len(all_copies) <= 20 :
 							for dst_vid in all_copies :
 								addThiscopy(dst_vid, all_copies, session = s())
-								s.mark_succeed()
+							print('Successfully added to copies')
+							s.mark_succeed()
 						else :
 							#if playlist_lock :
 							#    playlist_lock.release()
+							print('TOO_MANY_COPIES')
 							return "TOO_MANY_COPIES", {}
 				else :
 					with MongoTransaction(client) as s :
 						new_item_id = tagdb.add_item(tags, _make_video_data(ret["data"], [], playlists, url), makeUserMeta(user), session = s())
+						print('New video added to database')
 						s.mark_succeed()
 				# if the operation is adding this video to playlist
 				if dst_playlist :
+					print('Adding to playlist at position %d' % dst_rank)
 					if dst_rank == -1 :
 						addVideoToPlaylist(dst_playlist, new_item_id, user)
 					else :
 						insertIntoPlaylist(dst_playlist, new_item_id, dst_rank, user)
 				#if playlist_lock :
 				#    playlist_lock.release()
+				print('SUCCEED')
 				return 'SUCCEED', new_item_id
 	except :
+		print('****Exception!')
+		print(traceback.format_exc())
+		try :
+			problematic_lock = redis_lock.Lock(rdb, 'editLink')
+			problematic_lock.reset()
+		except:
+			pass
 		return "UNKNOWN", traceback.format_exc()
 
 def verifyUniqueness(postingId):
