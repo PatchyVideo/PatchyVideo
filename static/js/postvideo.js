@@ -67,7 +67,7 @@ function buildParsersAndExpanders() {
     EXPANDERS["^sm[\\d]+"] = function(short_link) {
         return "https://www.nicovideo.jp/watch/" + short_link;
     };
-    PARSERS["^(https:\\/\\/(www\\.|m\\.)?youtube\.com\\/watch\\?v=[-\\w]+|https:\\/\\/youtu\\.be\\/[-\\w]+|(https:\\/\\/)?youtu\\.be\\/watch\\?v=[-\\w]+)"] = function(responseDOM, responseURL) {
+    PARSERS["^(https:\\/\\/(www\\.|m\\.)?youtube\\.com\\/watch\\?v=[-\\w]+|https:\\/\\/youtu\\.be\\/(watch\\?v=[-\\w]+|[-\\w]+))"] = function(responseDOM, responseURL) {
         var vidid = "";
         if (responseURL.indexOf("youtube.com") >= 0) {
             var idx = responseURL.lastIndexOf('=');

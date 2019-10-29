@@ -45,7 +45,8 @@ def dispatch( url ) :
 				return target, target.expand_url( target, match_result_short.group( 0 ) )
 		match_result = re.match( reg, url )
 		if match_result :
-			return target, match_result.group( 0 )
+			g0 = match_result.group( 0 )
+			return target, g0
 	return None, None
 
 def dispatch_no_expand( url ) :
