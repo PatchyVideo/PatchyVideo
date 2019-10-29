@@ -23,7 +23,7 @@ def _str(s):
 
 class Youtube( Spider ) :
 	NAME = 'youtube'
-	PATTERN = r'^((https:\/\/)?(www\.|m\.)?youtube\.com\/watch\?v=[-\w]+|(https:\/\/)?youtu\.be\/[-\w]+)|(https:\/\/)?youtu\.be\/watch\?v=[-\w]+)'
+	PATTERN = r'^((https:\/\/)?(www\.|m\.)?youtube\.com\/watch\?v=[-\w]+|(https:\/\/)?youtu\.be\/[-\w]+|(https:\/\/)?youtu\.be\/watch\?v=[-\w]+)'
 	SHORT_PATTERN = r''
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.youtube.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 
