@@ -23,7 +23,7 @@ def _str(s):
 
 class Youtube( Spider ) :
 	NAME = 'youtube'
-	PATTERN = r'^((https:\/\/)?(www\.|m\.)?youtube\.com\/watch\?v=[-\w]+|(https:\/\/)?youtu\.be\/[-\w]+)'
+	PATTERN = r'^((https:\/\/)?(www\.|m\.)?youtube\.com\/watch\?v=[-\w]+|(https:\/\/)?youtu\.be\/[-\w]+)|(https:\/\/)?youtu\.be\/watch\?v=[-\w]+)'
 	SHORT_PATTERN = r''
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.youtube.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 
@@ -34,14 +34,20 @@ class Youtube( Spider ) :
 		if 'youtube.com' in link:
 			vidid = link[link.rfind('=') + 1:]
 		elif 'youtu.be' in link:
-			vidid = link[link.rfind('/') + 1:]
+			if 'watch?v=' in link:
+				vidid = link[link.rfind('=') + 1:]
+			else:
+				vidid = link[link.rfind('/') + 1:]
 		return "youtube:%s" % vidid
 
 	def run( self, content, xpath, link ) :
 		if 'youtube.com' in link:
 			vidid = link[link.rfind('=') + 1:]
 		elif 'youtu.be' in link:
-			vidid = link[link.rfind('/') + 1:]
+			if 'watch?v=' in link:
+				vidid = link[link.rfind('=') + 1:]
+			else:
+				vidid = link[link.rfind('/') + 1:]
 		
 		thumbnailURL = "https://img.youtube.com/vi/%s/hqdefault.jpg" % vidid
 
