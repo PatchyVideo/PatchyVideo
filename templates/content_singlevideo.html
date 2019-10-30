@@ -358,8 +358,7 @@
 					This video has no other copies.
 					{% endif %}
 					{% if _user is not none %}
-					<a href="/postvideo?copy={{video_id}}">[Add Copy]</a>{% if copies|length > 0 %} <a
-						href="javascript:breaklink();">[Remove This Copy]</a>{% endif %}
+					<a href="/postvideo?copy={{video_id}}">[Add Copy]</a>{% if copies|length > 0 %} <a href="javascript:breaklink();">[Remove This Copy]</a>{% endif %}
 					{% endif %}
 				</div>
 				<ul>
@@ -367,7 +366,9 @@
 					<li class="copies-list-item">
 						<img src="{{ url_for('static',filename='img/' + copy.item.site + '.ico') }}" width="16px"></img>
 						<a style="display: inline;" href="/video?id={{copy._id}}">{{copy.item.title}}</a>
+						{% if _user is not none %}
 						<a class="sync-tags-button" href="javascript:syncTags('{{video_id}}', '{{copy._id}}')">[Sync Tags From This Video]</a>
+						{% endif %}
 					</li>
 					{% endfor %}
 				</ul>
@@ -383,7 +384,7 @@
 					{% if playlists|length == 0 %}
 					<p style="display: inline;">This video is not included in any playlists.</p>
 					{% else %}
-					<p style="display: inline;">This video is incldued in {{playlists|length}} playlists.</p>
+					<p style="display: inline;">This video is included in {{playlists|length}} playlists.</p>
 					{% endif %}
 					{% if _user is not none %}
 					<a href="/lists/newfromsinglevideo.do?vid={{video_id}}">[Create Playlist From This Video]</a>
