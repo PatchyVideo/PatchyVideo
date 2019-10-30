@@ -40,6 +40,8 @@ spiders:
 ======================
 phase 2
 ======================
+remove footer touhou copyright
+sync merge tags from copies
 get video upload date
 sort by video upload date
 batch post as copies
