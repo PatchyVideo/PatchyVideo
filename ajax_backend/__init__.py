@@ -13,7 +13,6 @@ from . import ajax_listvideo
 from . import ajax_edittag
 from . import ajax_editvideo
 from . import ajax_copies
-from . import ajax_create_playlist
 from . import ajax_playlist
 from . import ajax_user
 from . import ajax_fetch_video_frontend

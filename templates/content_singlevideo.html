@@ -386,7 +386,7 @@
 					<p style="display: inline;">This video is incldued in {{playlists|length}} playlists.</p>
 					{% endif %}
 					{% if _user is not none %}
-					<a href="javascript:createPlaylist();">[Create Playlist]</a>
+					<a href="/lists/newfromsinglevideo.do?vid={{video_id}}">[Create Playlist From This Video]</a>
 					{% endif %}
 				</div>
 			</div>

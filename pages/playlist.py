@@ -27,6 +27,21 @@ def pages_create_playlist(rd, user):
     """
     return "create_playlist.html"
 
+@app.route('/lists/newfromsinglevideo.do')
+@loginRequired
+def pages_create_playlist_from_single_video(rd, user):
+    if 'vid' in request.values:
+        vid = request.values['vid']
+        try:
+            ret, new_pid = createPlaylistFromSingleVideo("english", vid, user)
+            if ret != 'SUCCEED':
+                abort(500)
+            return 'redirect', '/list/%s/' % new_pid
+        except:
+            abort(500)
+    else:
+        abort(400)
+
 @app.route('/list/<pid>/edit')
 @loginRequired
 def pages_edit_playlist(pid, rd, user):

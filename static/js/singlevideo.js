@@ -27,3 +27,7 @@ function syncTags(dst, src) {
         location.reload();
     });
 }
+
+function createPlaylistFromSingleVideo(vid) {
+    console.log(vid);
+}

@@ -40,6 +40,7 @@ spiders:
 ======================
 phase 2
 ======================
+unify config
 remove footer touhou copyright
 #sync merge tags from copies
 get video upload date
@@ -53,10 +54,11 @@ depolyment mode using GCI
 log error, don't want others to see filenames in error response
 change background image to include more patchouli
 user sees his playlists
-create playlist from a single video
+#create playlist from a single video
 create playlist from current playlist but with videos from other site in "copies" field
 search playlist
 user subscript to playlists
+beautiful http error page
 
 ======================
 phase 3

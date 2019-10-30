@@ -103,8 +103,11 @@ class TagDB():
 	def retrive_items(self, tag_query, session = None):
 		return self.db.items.find(tag_query, session = session)
 
-	def retrive_item(self, tag_query, session = None):
-		return self.db.items.find_one(tag_query, session = session)
+	def retrive_item(self, tag_query_or_item_id, session = None):
+		if isinstance(tag_query_or_item_id, str) or isinstance(tag_query_or_item_id, ObjectId):
+			return self.db.items.find_one({'_id': ObjectId(tag_query_or_item_id)}, session = session)
+		else:
+			return self.db.items.find_one(tag_query_or_item_id, session = session)
 
 	def retrive_tags(self, item_id, session = None):
 		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)

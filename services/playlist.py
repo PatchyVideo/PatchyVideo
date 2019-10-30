@@ -9,10 +9,9 @@ from db import tagdb, db, client
 
 from datetime import datetime
 from bson import ObjectId
+from config import PlaylistConfig
 
 import redis_lock
-
-MAX_VIDEO_PER_PLAYLIST = 10000
 
 def getPlaylist(pid) :
 	return db.playlists.find_one({'_id': ObjectId(pid)})
@@ -30,6 +29,14 @@ def createPlaylist(language, title, desc, cover, user) :
 	obj = {"title": {language: title}, "desc": {language: desc}, "views": 0, "videos": 0, "cover": cover, "meta": makeUserMetaObject(user)}
 	pid = db.playlists.insert_one(obj)
 	return str(pid.inserted_id)
+
+def createPlaylistFromSingleVideo(language, vid, user) :
+	video_obj = tagdb.retrive_item(vid)
+	if video_obj is None :
+		return "VIDEO_NOT_EXIST"
+	new_playlist_id = createPlaylist(language, video_obj['item']['title'], video_obj['item']['desc'], video_obj['item']['cover_image'], user)
+	ret = addVideoToPlaylist(new_playlist_id, vid, user)
+	return ret, new_playlist_id
 
 def removePlaylist(pid, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
@@ -116,7 +123,7 @@ def addVideoToPlaylist(pid, vid, user) :
 			return "UNAUTHORISED_OPERATION"
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
 			return "VIDEO_NOT_EXIST"
-		if playlist["videos"] > 2000 :
+		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
 			return "VIDEO_LIMIT_EXCEEDED"
 		if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = s()) is not None :
 			return "VIDEO_ALREADY_EXIST"
@@ -275,7 +282,7 @@ def updateCommonTags(pid, tags, user) :
 		tags_added = list((old_tags_set ^ new_tags_set) - old_tags_set)
 		tags_added = tagdb.filter_tags(tags_added)
 		tags_to_remove = list((old_tags_set ^ new_tags_set) - new_tags_set)
-		if len(tags_added) - len(tags_to_remove) > 150 :
+		if len(tags_added) - len(tags_to_remove) > PlaylistConfig.MAX_COMMON_TAGS :
 			return 'TOO_MANY_TAGS'
 		ret, all_video_ids, _ = listAllPlaylistVideosUnordered(pid)
 		if ret != 'SUCCEED' :
@@ -436,7 +443,7 @@ def insertIntoPlaylist(pid, vid, rank, user) :
 			return "UNAUTHORISED_OPERATION"
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
 			return "VIDEO_NOT_EXIST"
-		if playlist["videos"] > 2000 :
+		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
 			return "VIDEO_LIMIT_EXCEEDED"
 		if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = s()) is not None :
 			return "VIDEO_ALREADY_EXIST"
