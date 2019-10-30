@@ -41,10 +41,10 @@ spiders:
 phase 2
 ======================
 remove footer touhou copyright
-sync merge tags from copies
+#sync merge tags from copies
 get video upload date
 sort by video upload date
-batch post as copies
+#batch post as copies
 tag alias(as multi-language phase1)
 recover password
 documents/tagging guide

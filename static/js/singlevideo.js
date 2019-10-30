@@ -16,3 +16,14 @@ function breaklink() {
         location.reload();
     });
 }
+
+function syncTags(dst, src) {
+    postJSON("/videos/synctags.do",
+    {
+        "src": src,
+        "dst": dst
+    }, function(result)
+    {
+        location.reload();
+    });
+}

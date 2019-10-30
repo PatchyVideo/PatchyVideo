@@ -12,7 +12,7 @@ from utils.jsontools import *
 
 from spiders import dispatch
 
-from services.breakLink import breakLink
+from services.copies import breakLink, syncTags
 
 @app.route('/videos/breaklink.do', methods = ['POST'])
 @loginRequiredJSON
@@ -22,4 +22,14 @@ def ajax_breaklink(rd, user, data):
     breakLink(vid, user)
     ret = makeResponseSuccess({})
     return "json", ret
+
+@app.route('/videos/synctags.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_synctags(rd, user, data):
+    ret = syncTags(data.dst, data.src, user)
+    if ret == 'SUCCEED':
+        return "json", makeResponseSuccess({})
+    else:
+        return "json", makeResponseFailed(ret)
 

@@ -11,8 +11,8 @@ Description:
 from . import ajax_postvideo
 from . import ajax_listvideo
 from . import ajax_edittag
-from . import ajax_eidtvideo
-from . import ajax_breaklink
+from . import ajax_editvideo
+from . import ajax_copies
 from . import ajax_create_playlist
 from . import ajax_playlist
 from . import ajax_user

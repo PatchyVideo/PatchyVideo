@@ -159,20 +159,26 @@ class TagDB():
 		self.db.items.update_one({'_id': ObjectId(item_id)}, {'$set': {'item': item, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		return 'SUCCEED'
 
-	def update_item_query(self, item_id, query, session = None):
-		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
-		if item is None:
-			return 'ITEM_NOT_EXIST'
-		self.db.items.update_one({'_id': ObjectId(item_id)}, query, session = session)
+	def update_item_query(self, item_id_or_item_object, query, session = None):
+		if isinstance(item_id_or_item_object, str) or isinstance(item_id_or_item_object, ObjectId):
+			item = self.db.items.find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
+			if item is None:
+				return 'ITEM_NOT_EXIST'
+		else:
+			item = item_id_or_item_object
+		self.db.items.update_one({'_id': ObjectId(item['_id'])}, query, session = session)
 		return 'SUCCEED'
 
-	def update_item_tags(self, item_id, new_tags, user = '', session = None):
-		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
-		if item is None:
-			return 'ITEM_NOT_EXIST'
+	def update_item_tags(self, item_id_or_item_object, new_tags, user = '', session = None):
+		if isinstance(item_id_or_item_object, str) or isinstance(item_id_or_item_object, ObjectId):
+			item = self.db.items.find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
+			if item is None:
+				return 'ITEM_NOT_EXIST'
+		else:
+			item = item_id_or_item_object
 		self.db.tags.update_many({'tag': {'$in': item['tags']}}, {'$inc': {'count': -1}}, session = session)
 		self.db.tags.update_many({'tag': {'$in': new_tags}}, {'$inc': {'count': 1}}, session = session)
-		self.db.items.update_one({'_id': ObjectId(item_id)}, {'$set': {'tags': new_tags, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': new_tags, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		return 'SUCCEED'
 
 	def get_many_tag_counts(self, item_ids = None, tags = None, user = '', session = None):
@@ -222,7 +228,7 @@ class TagDB():
 		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
 		if item is None :
 			return 'ITEM_NOT_EXIST'
-		self.db.items.update_one({'_id': ObjectId(item_id)},  {
+		self.db.items.update_one({'_id': ObjectId(item_id)}, {
 			'$addToSet': {'tags': {'$each': new_tags}},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		new_tag_count_diff = [(tag, 1 - prior_tag_counts.get(tag, 0)) for tag in new_tags]

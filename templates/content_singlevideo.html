@@ -223,6 +223,23 @@
 			color: #F80;
 		}
 
+		.sync-tags-button {
+			float: right;
+			visibility: hidden;
+		}
+
+		.copies-list-item:hover {
+			background-color: #EEEEEE;
+		}
+
+		.copies-list-item:hover .sync-tags-button {
+			visibility: visible;
+		}
+
+		.playlist-list-item:hover {
+			background-color: #EEEEEE;
+		}
+
 	</style>
 </head>
 
@@ -336,7 +353,7 @@
 				<div class="new_top">
 					<h2>Copies</h2>
 					{% if copies|length > 0 %}
-					This video has {{copies|length}} copies.
+					This video has {{copies|length}} other copies.
 					{% else %}
 					This video has no other copies.
 					{% endif %}
@@ -347,9 +364,10 @@
 				</div>
 				<ul>
 					{% for copy in copies %}
-					<li>
+					<li class="copies-list-item">
 						<img src="{{ url_for('static',filename='img/' + copy.item.site + '.ico') }}" width="16px"></img>
-						<a href="/video?id={{copy._id}}">{{copy.item.title}}</a>
+						<a style="display: inline;" href="/video?id={{copy._id}}">{{copy.item.title}}</a>
+						<a class="sync-tags-button" href="javascript:syncTags('{{video_id}}', '{{copy._id}}')">[Sync Tags From This Video]</a>
 					</li>
 					{% endfor %}
 				</ul>
@@ -374,7 +392,7 @@
 			</div>
 			<ul>
 				{% for playlist in playlists %}
-				<li>
+				<li class="playlist-list-item">
 					{% if playlist.prev|length > 0 %}
 					<a href="/video?id={{playlist.prev}}" style="float: left;">[Prev]</a>
 					{% endif %}
@@ -509,10 +527,10 @@
 					}
 				}
 			}
-			$('html').on('dblclick', function () {
+			/*$('html').on('dblclick', function () {
 
 				ifval();
-			})
+			})*/
 			$('#edit_tags').on('click', function () {
 				clearTags();
 				let tags = getVideoTags();

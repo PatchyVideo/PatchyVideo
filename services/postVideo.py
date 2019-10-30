@@ -100,7 +100,7 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 			url = ret["data"]["url"]
 		else :
 			url = clear_url(url)
-		lock_id = "postVideo:" + ret["data"]["unique_id"]
+		lock_id = "videoEdit:" + ret["data"]["unique_id"]
 		with redis_lock.Lock(rdb, lock_id) :
 			unique, conflicting_item = verifyUniqueness(ret["data"]["unique_id"])
 			playlists = []
