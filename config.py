@@ -11,3 +11,44 @@ class PlaylistConfig:
     MAX_COVER_URL_LENGTH = 512
     MAX_VIDEO_PER_PLAYLIST = 10000
     MAX_COMMON_TAGS = 150
+
+"""
+Tags
+"""
+class TagsConfig:
+    MAX_TAG_LENGTH = 48
+    MAX_CATEGORY_LENGTH = 16
+
+"""
+Videos
+"""
+class VideoConfig:
+    MAX_TAGS_PER_VIDEO = 200
+    MAX_URL_LENGTH = 1000
+    MAX_BATCH_POST_COUNT = 1000
+    MAX_COPIES = 20
+
+"""
+Querys
+"""
+class QueryConfig:
+    MAX_QUERY_LENGTH = 1000
+
+"""
+User
+"""
+class UserConfig:
+    MAX_USERNAME_LENGTH = 32
+    MIN_USERNAME_LENGTH = 4
+    MAX_PASSWORD_LENGTH = 64
+    MIN_PASSWORD_LENGTH = 6
+    MAX_DESC_LENGTH = 10000
+    MAX_EMAIL_LENGTH = 150
+    SESSION_EXPIRE_TIME = 30 * 60
+    LOGIN_EXPIRE_TIME = 24 * 60 * 60
+
+"""
+Display
+"""
+class DisplayConfig:
+    MAX_ITEM_PER_PAGE = 500

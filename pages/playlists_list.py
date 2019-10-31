@@ -7,6 +7,7 @@ from main import app
 from utils.interceptors import loginOptional, loginRequired
 from utils.html import buildPageSelector
 from services.playlist import *
+from config import DisplayConfig
 
 @app.route('/lists', methods = ['POST', 'GET'])
 @loginOptional
@@ -14,6 +15,8 @@ def pages_playlists_list(rd, user):
     rd.page = int(request.values['page'] if 'page' in request.values else 1)
     rd.search_term = request.values['q'] if 'q' in request.values else ''
     rd.page_size = int(request.values['page_size'] if 'page_size' in request.values else 20)
+    if rd.page_size > DisplayConfig.MAX_ITEM_PER_PAGE :
+        return "data", 'Page size too large(max %d videos per page)' % DisplayConfig.MAX_ITEM_PER_PAGE
     rd.order = "latest"
     query_obj = {}
     if rd.search_term :

@@ -12,7 +12,7 @@ phase 1
 #playlist search
 #edit playlist
 #check for page title correctness
-spiders:
+#spiders:
 #  YTB js version
 #  Nico py version
 #  Nico js version
@@ -40,8 +40,9 @@ spiders:
 ======================
 phase 2
 ======================
-unify config
+#unify config
 remove footer touhou copyright
+post video using same tags
 #sync merge tags from copies
 get video upload date
 sort by video upload date
@@ -49,8 +50,8 @@ sort by video upload date
 tag alias(as multi-language phase1)
 recover password
 documents/tagging guide
-!user access control
-depolyment mode using GCI
+!user access control for backend
+user access control for frontend HTMLs
 log error, don't want others to see filenames in error response
 change background image to include more patchouli
 user sees his playlists
@@ -59,6 +60,11 @@ create playlist from current playlist but with videos from other site in "copies
 search playlist
 user subscript to playlists
 beautiful http error page
+add interactive admin shell
+unify naming convention for status code
+unify JSON return as status code, not error message
+added multi-language framework
+deployment mode using GCI
 
 ======================
 phase 3

@@ -9,21 +9,22 @@ from utils.html import buildPageSelector
 from utils.tagtools import getTagColor
 from services.listVideo import listVideo, listVideoQuery
 from services.getVideo import getTagCategoryMap
+from config import DisplayConfig, QueryConfig
 
 @app.route('/search', methods = ['POST', 'GET'])
 @loginOptional
 def pages_search(rd, user):
 	rd.page = int(request.values['page'] if 'page' in request.values else 1)
 	rd.page_size = int(request.values['page_size'] if 'page_size' in request.values else 20)
-	if rd.page_size > 500 :
-		rd.reason = 'Page size too large(max 500 videos per page)'
+	if rd.page_size > DisplayConfig.MAX_ITEM_PER_PAGE :
+		rd.reason = 'Page size too large(max %d videos per page)' % DisplayConfig.MAX_ITEM_PER_PAGE
 		return 'content_videolist_failed.html'
 	rd.query = request.values['query'] if 'query' in request.values else ""
 	rd.order = "latest"
 	#return 'content_videolist.html'
 	if rd.query :
-		if len(rd.query) > 256:
-			rd.reason = 'Query too long(max 256 characters)'
+		if len(rd.query) > QueryConfig.MAX_QUERY_LENGTH:
+			rd.reason = 'Query too long(max %d characters)' % QueryConfig.MAX_QUERY_LENGTH
 			return 'content_videolist_failed.html'
 		status, videos, related_tags, video_count = listVideoQuery(rd.query, rd.page - 1, rd.page_size)
 		rd.videos = videos

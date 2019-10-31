@@ -10,6 +10,8 @@ from init import rdb
 import redis_lock
 import time
 
+from config import TagsConfig
+
 def queryTags(category, page_idx, page_size, order = 'none'):
     result = tagdb.list_category_tags(category)
     if isinstance(result, str):
@@ -29,6 +31,8 @@ def addTag(user, tag, category):
     ret, sanitized_tag = verifyAndSanitizeTag(tag)
     if not ret :
         return "INVALID_TAG"
+    if len(sanitized_tag) > TagsConfig.MAX_TAG_LENGTH :
+        return "TAG_LENGTH_EXCEED"
     with redis_lock.Lock(rdb, "modifyingTag"), MongoTransaction(client) as s :
         result = tagdb.add_tag(sanitized_tag, category, makeUserMeta(user), s())
         s.mark_succeed()
@@ -60,6 +64,11 @@ def removeTag(user, tag) :
         return ret
     
 def renameTag(user, tag, new_tag) :
+    ret, sanitized_tag = verifyAndSanitizeTag(new_tag)
+    if not ret :
+        return "INVALID_TAG"
+    if len(sanitized_tag) > TagsConfig.MAX_TAG_LENGTH :
+        return "TAG_LENGTH_EXCEED"
     with redis_lock.Lock(rdb, "modifyingTag"), MongoTransaction(client) as s :
         tag_obj = tagdb.db.tags.find_one({'tag': tag}, session = s())
         if tag_obj is None :
@@ -68,6 +77,6 @@ def renameTag(user, tag, new_tag) :
             return "UNAUTHORISED_OPERATION"
         if tag_obj["count"] > 0 :
             return "NON_ZERO_VIDEO_REFERENCE"
-        ret = tagdb.rename_tag(tag_obj, new_tag, user, session = s())
+        ret = tagdb.rename_tag(tag_obj, sanitized_tag, user, session = s())
         s.mark_succeed()
         return ret

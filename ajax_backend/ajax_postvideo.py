@@ -12,6 +12,7 @@ from utils.jsontools import *
 
 from spiders import dispatch
 from services.postVideo import postVideo, verifyTags
+from config import VideoConfig, TagsConfig
 
 if os.getenv("USE_RQ", "true") == "true" :
     USE_RQ = True
@@ -25,13 +26,13 @@ if USE_RQ :
     @loginRequiredJSON
     @jsonRequest
     def ajax_postvideo_do(rd, user, data):
-        if len(data.url) > 500 :
-            return "json", makeResponseFailed("URL too long")
-        if len(data.tags) > 200 :
-            return "json", makeResponseFailed("Too many tags, max 200 tags per video")
+        if len(data.url) > VideoConfig.MAX_URL_LENGTH :
+            return "json", makeResponseFailed("URL too long (max length %d)" % VideoConfig.MAX_URL_LENGTH)
+        if len(data.tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
+            return "json", makeResponseFailed("Too many tags, max %d tags per video" % VideoConfig.MAX_TAGS_PER_VIDEO)
         for tag in data.tags :
-            if len(tag) > 48 :
-                return "json", makeResponseFailed("Tag length too large(48 characters max)")
+            if len(tag) > TagsConfig.MAX_TAG_LENGTH :
+                return "json", makeResponseFailed("Tag length too large(%d characters max)" % TagsConfig.MAX_TAG_LENGTH)
         obj, cleanURL = dispatch(data.url)
         if obj is None:
             return "json", makeResponseFailed("Unsupported website")
@@ -54,13 +55,13 @@ if USE_RQ :
     def ajax_postvideo_batch_do(rd, user, data):
         if len(data.videos) < 1 :
             return "json", makeResponseFailed("Please post at least 1 video")
-        if len(data.videos) > 100 :
-            return "json", makeResponseFailed("Too many videos, max 100 per post")
-        if len(data.tags) > 200 :
-            return "json", makeResponseFailed("Too many tags, max 200 tags per video")
+        if len(data.videos) > VideoConfig.MAX_BATCH_POST_COUNT :
+            return "json", makeResponseFailed("Too many videos, max %d per post" % VideoConfig.MAX_BATCH_POST_COUNT)
+        if len(data.tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
+            return "json", makeResponseFailed("Too many tags, max %d tags per video" % VideoConfig.MAX_TAGS_PER_VIDEO)
         for tag in data.tags :
-            if len(tag) > 48 :
-                return "json", makeResponseFailed("Tag length too large(48 characters max)")
+            if len(tag) > TagsConfig.MAX_TAG_LENGTH :
+                return "json", makeResponseFailed("Tag length too large(%d characters max)" % TagsConfig.MAX_TAG_LENGTH)
         tags_ret, unrecognized_tag = verifyTags(data.tags)
         dst_copy = data.copy if 'copy' in data.__dict__ and data.copy is not None else ''
         dst_playlist = data.pid if 'pid' in data.__dict__ and data.pid is not None else ''
@@ -89,13 +90,13 @@ else :
     @jsonRequest
     def ajax_postvideo_do(rd, user, data):
         print('post video')
-        if len(data.url) > 500 :
-            return "json", makeResponseFailed("URL too long")
-        if len(data.tags) > 200 :
-            return "json", makeResponseFailed("Too many tags, max 200 tags per video")
+        if len(data.url) > VideoConfig.MAX_URL_LENGTH :
+            return "json", makeResponseFailed("URL too long (max length %d)" % VideoConfig.MAX_URL_LENGTH)
+        if len(data.tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
+            return "json", makeResponseFailed("Too many tags, max %d tags per video" % VideoConfig.MAX_TAGS_PER_VIDEO)
         for tag in data.tags :
-            if len(tag) > 48 :
-                return "json", makeResponseFailed("Tag length too large(48 characters max)")
+            if len(tag) > TagsConfig.MAX_TAG_LENGTH :
+                return "json", makeResponseFailed("Tag length too large(%d characters max)" % TagsConfig.MAX_TAG_LENGTH)
         obj, cleanURL = dispatch(data.url)
         if obj is None:
             return "json", makeResponseFailed("Unsupported website")
@@ -123,13 +124,13 @@ else :
     def ajax_postvideo_batch_do(rd, user, data):
         if len(data.videos) < 1 :
             return "json", makeResponseFailed("Please post at least 1 video")
-        if len(data.videos) > 100 :
-            return "json", makeResponseFailed("Too many videos, max 100 per post")
-        if len(data.tags) > 200 :
-            return "json", makeResponseFailed("Too many tags, max 200 tags per video")
+        if len(data.videos) > VideoConfig.MAX_BATCH_POST_COUNT :
+            return "json", makeResponseFailed("Too many videos, max %d per post" % VideoConfig.MAX_BATCH_POST_COUNT)
+        if len(data.tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
+            return "json", makeResponseFailed("Too many tags, max %d tags per video" % VideoConfig.MAX_TAGS_PER_VIDEO)
         for tag in data.tags :
-            if len(tag) > 48 :
-                return "json", makeResponseFailed("Tag length too large(48 characters max)")
+            if len(tag) > TagsConfig.MAX_TAG_LENGTH :
+                return "json", makeResponseFailed("Tag length too large(%d characters max)" % TagsConfig.MAX_TAG_LENGTH)
         tags_ret, unrecognized_tag = verifyTags(data.tags)
         dst_copy = data.copy if 'copy' in data.__dict__ and data.copy is not None else ''
         dst_playlist = data.pid if 'pid' in data.__dict__ and data.pid is not None else ''

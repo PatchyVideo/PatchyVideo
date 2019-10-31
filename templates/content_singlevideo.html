@@ -274,6 +274,7 @@
 				<h1>Tags</h1>
 				{% if _user is not none %}
 				<button class="edit-tag-button" id="edit_tags">Edit</button>
+				<a href="/postvideo?use_tags={{video_id}}">[Post Video]</a>
 				{% endif %}
 				{% if 'Copyright' in tag_by_category %}
 				<span>Copyright</span>

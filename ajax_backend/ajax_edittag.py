@@ -13,7 +13,7 @@ from utils.jsontools import *
 from spiders import dispatch
 
 from services.editTag import addTag, queryTags, queryCategories, queryTagCategories, removeTag, renameTag
-
+from config import TagsConfig
 
 @app.route('/tags/query_categories.do', methods = ['POST'])
 @loginOptional
@@ -55,8 +55,8 @@ def ajax_query_tags(rd, user, data):
 def ajax_add_tag(rd, user, data):
     #print('Adding tag %s to %s' % (data.tag, data.category))
     data.tag = data.tag.strip()
-    if len(data.tag) > 48 or len(data.category) > 16 :
-        return "json", makeResponseFailed("Tag or category length too large(48 characters for tag)")
+    if len(data.tag) > TagsConfig.MAX_TAG_LENGTH or len(data.category) > TagsConfig.MAX_CATEGORY_LENGTH :
+        return "json", makeResponseFailed("Tag or category length too large(%d characters for tag)" % TagsConfig.MAX_TAG_LENGTH)
     ret = addTag(user, data.tag, data.category)
     if ret == 'SUCCEED':
         response = makeResponseSuccess("Success")

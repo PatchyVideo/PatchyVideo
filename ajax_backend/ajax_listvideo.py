@@ -12,7 +12,7 @@ from utils.jsontools import *
 
 from spiders import dispatch
 from services.listVideo import listVideo, listVideoQuery
-
+from config import QueryConfig
 
 @app.route('/listvideo.do', methods = ['POST'])
 @loginOptional
@@ -31,8 +31,8 @@ def ajax_listvideo_do(rd, data, user):
 @loginOptional
 @jsonRequest
 def ajax_queryvideo_do(rd, data, user):
-    if len(data.query) > 1000 :
-        return "json", makeResponseError("Query too long(max 1000 characters)")
+    if len(data.query) > QueryConfig.MAX_QUERY_LENGTH :
+        return "json", makeResponseError("Query too long(max %d characters)" % QueryConfig.MAX_QUERY_LENGTH)
     status, videos = listVideoQuery(data.query, data.page - 1, data.page_size)
     if status == "failed":
         return "json", makeResponseError("Syntax error in query")

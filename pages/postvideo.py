@@ -24,6 +24,14 @@ def pages_postvideo(rd, user):
         if obj is not None:
             rd.default_tags = '\n'.join(obj['tags'])
             rd.copy = vid
+    if 'use_tags' in request.values:
+        vid = request.values['use_tags']
+        try:
+            obj = getVideoDetail(vid)
+        except:
+            obj = None
+        if obj is not None:
+            rd.default_tags = '\n'.join(obj['tags'])
     return "postvideo.html"
 
 

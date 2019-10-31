@@ -19,6 +19,7 @@ import requests
 import io
 
 import redis_lock
+from config import VideoConfig
 
 _COVER_PATH = os.getenv('IMAGE_PATH', "/images") + "/covers/"
 
@@ -126,7 +127,7 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 						# remove duplicated items
 						all_copies = list(set(all_copies))
 						# add this video to all other copies found
-						if len(all_copies) <= 20 :
+						if len(all_copies) <= VideoConfig.MAX_COPIES :
 							for dst_vid in all_copies :
 								addThiscopy(dst_vid, all_copies, session = s())
 							print('Successfully added to copies')
@@ -161,7 +162,7 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 						all_copies = getAllcopies(dst_copy, session = s())
 						new_item_id = tagdb.add_item(tags, _make_video_data(ret["data"], all_copies, playlists, url), makeUserMeta(user), session = s())
 						all_copies.append(ObjectId(new_item_id))
-						if len(all_copies) <= 20 :
+						if len(all_copies) <= VideoConfig.MAX_COPIES :
 							for dst_vid in all_copies :
 								addThiscopy(dst_vid, all_copies, session = s())
 							print('Successfully added to copies')

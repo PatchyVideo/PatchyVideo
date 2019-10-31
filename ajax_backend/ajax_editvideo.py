@@ -12,16 +12,17 @@ from utils.jsontools import *
 from spiders import dispatch
 
 from services.editVideo import editVideoTags, verifyTags, getVideoTags
+from config import TagsConfig, VideoConfig
 
 @app.route('/videos/edittags.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_videos_edittags(rd, user, data):
-    if len(data.tags) > 200 :
-        return "json", makeResponseFailed("Too many tags, max 200 tags per video")
+    if len(data.tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
+        return "json", makeResponseFailed("Too many tags, max %d tags per video" % VideoConfig.MAX_TAGS_PER_VIDEO)
     for tag in data.tags :
-        if len(tag) > 48 :
-            return "json", makeResponseFailed("Tag length too large(48 characters max)")
+        if len(tag) > TagsConfig.MAX_TAG_LENGTH :
+            return "json", makeResponseFailed("Tag length too large(%d characters max)" % TagsConfig.MAX_TAG_LENGTH)
     tags_ret, unrecognized_tag = verifyTags(data.tags)
     if tags_ret == 'TAG_NOT_EXIST':
         return "json", makeResponseFailed("Tag %s not recognized" % unrecognized_tag)

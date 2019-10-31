@@ -13,15 +13,16 @@ from utils.jsontools import *
 from spiders import dispatch
 
 from services.user import *
+from config import UserConfig
 
 @app.route('/login.do', methods = ['POST'])
 @basePage
 @jsonRequest
 def ajax_login(rd, data):
-    if len(data.username) > 32 or len(data.username) < 4:
-        return "json", makeResponseFailed("Username length not satisfied")
-    if len(data.password) > 64 or len(data.password) < 8:
-        return "json", makeResponseFailed("Password length not satisfied")
+    if len(data.username) > UserConfig.MAX_USERNAME_LENGTH or len(data.username) < UserConfig.MIN_USERNAME_LENGTH:
+        return "json", makeResponseFailed("Username length not satisfied(max length %d, min length %d)" % (UserConfig.MAX_USERNAME_LENGTH, UserConfig.MIN_USERNAME_LENGTH))
+    if len(data.password) > UserConfig.MAX_PASSWORD_LENGTH or len(data.password) < UserConfig.MIN_PASSWORD_LENGTH:
+        return "json", makeResponseFailed("Password length not satisfied(max length %d, min length %d)" % (UserConfig.MAX_PASSWORD_LENGTH, UserConfig.MIN_PASSWORD_LENGTH))
     result, sid = login(data.username, data.password, '', data.session)
     if result == 'SUCCEED' :
         ret = makeResponseSuccess({})
@@ -34,10 +35,10 @@ def ajax_login(rd, data):
 @basePage
 @jsonRequest
 def ajax_signup(rd, data):
-    if len(data.username) > 14 or len(data.username) < 3:
-        return "json", makeResponseFailed("Username length not satisfied")
-    if len(data.password) > 64 or len(data.password) < 8:
-        return "json", makeResponseFailed("Password length not satisfied")
+    if len(data.username) > UserConfig.MAX_USERNAME_LENGTH or len(data.username) < UserConfig.MIN_USERNAME_LENGTH:
+        return "json", makeResponseFailed("Username length not satisfied(max length %d, min length %d)" % (UserConfig.MAX_USERNAME_LENGTH, UserConfig.MIN_USERNAME_LENGTH))
+    if len(data.password) > UserConfig.MAX_PASSWORD_LENGTH or len(data.password) < UserConfig.MIN_PASSWORD_LENGTH:
+        return "json", makeResponseFailed("Password length not satisfied(max length %d, min length %d)" % (UserConfig.MAX_PASSWORD_LENGTH, UserConfig.MIN_PASSWORD_LENGTH))
     result, uid = signup(data.username, data.password, data.email, '', data.session)
     if result == 'SUCCEED' :
         ret = makeResponseSuccess({'uid': str(uid)})
@@ -53,7 +54,7 @@ def ajax_user_changedesc(rd, user, data):
     if result == 'SUCCEED' :
         ret = makeResponseSuccess({})
     elif result == 'DESC_LENGTH' :
-        ret = makeResponseFailed('Description too long(max 2000 characters)')
+        ret = makeResponseFailed('Description too long(max %d characters)' % UserConfig.MAX_DESC_LENGTH)
     else :
         ret = makeResponseFailed(result)
     return "json", ret
@@ -68,7 +69,7 @@ def ajax_user_changepass(rd, user, data):
     elif result == 'INCORRECT_PASSWORD' :
         ret = makeResponseFailed('Incorrect password')
     elif result == 'PASSWORD_LENGTH' :
-        ret = makeResponseFailed('Password length must be between 8 and 64 characters long')
+        ret = makeResponseFailed('Password length must be between %d and %d characters long' % (UserConfig.MIN_PASSWORD_LENGTH, UserConfig.MAX_PASSWORD_LENGTH))
     else :
         ret = makeResponseFailed(result)
     return "json", ret

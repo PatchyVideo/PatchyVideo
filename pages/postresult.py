@@ -11,6 +11,7 @@ from utils.html import buildPageSelector
 from rq import Queue
 from rq.job import Job
 from worker import conn
+from config import VideoConfig
 
 @app.route("/postresults/<job_key>", methods=['GET'])
 @basePage
@@ -24,7 +25,7 @@ def pages_postresult(rd, job_key):
         if result == 'SUCCEED':
             return "redirect", "/video?id=" + str(obj)
         elif result == 'TOO_MANY_COPIES':
-            return "data", "Too many copies exist for this video, no more than 33 copies of the same video is allowed."
+            return "data", "Too many copies exist for this video, no more than %d copies of the same video is allowed." % VideoConfig.MAX_COPIES
         elif result == 'VIDEO_ALREADY_EXIST':
             return "data", 'Video already exist, <a href="/video?id=%s">click me</a> to see.' % str(obj)
         elif result == 'FETCH_FAILED' :

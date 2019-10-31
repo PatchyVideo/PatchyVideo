@@ -16,9 +16,7 @@ from utils.crypto import *
 
 from bson import ObjectId
 import redis_lock
-
-EXPIRE_TIME = 30 * 60
-LOGIN_EXPIRE_TIME = 24 * 60 * 60
+from config import UserConfig
 
 def query_user_basic_info(uid) :
     obj = db.users.find_one({"_id": ObjectId(uid)})
@@ -33,7 +31,7 @@ def verify_session(sid, stype) :
 def require_session(session_type) :
     # TODO: add challenge code to redis
     sid = binascii.hexlify(bytearray(random_bytes(16))).decode()
-    rdb.set(sid, session_type, ex = int(time.time() + EXPIRE_TIME))
+    rdb.set(sid, session_type, ex = int(time.time() + UserConfig.SESSION_EXPIRE_TIME))
     return sid
 
 def logout(sid) :
@@ -58,7 +56,7 @@ def login(username, password, challenge, login_session_id) :
         }
         redis_user_value = dumps(common_user_obj)
         redis_user_key = binascii.hexlify(bytearray(random_bytes(128))).decode()
-        rdb.set(redis_user_key, redis_user_value, ex = int(time.time() + LOGIN_EXPIRE_TIME))
+        rdb.set(redis_user_key, redis_user_value, ex = int(time.time() + UserConfig.LOGIN_EXPIRE_TIME))
         return "SUCCEED", redis_user_key
     return "INCORRECT_SESSION", None
 
@@ -68,7 +66,7 @@ def query_user(uid) :
 def signup(username, password, email, challenge, signup_session_id) :
     if verify_session(signup_session_id, 'SIGNUP') :
         if email :
-            if len(email) > 128 or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+            if len(email) > UserConfig.MAX_EMAIL_LENGTH or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
                 return "INCORRECT_EMAIL", None
         crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = generate_user_crypto_PBKDF2(password)
         with redis_lock.Lock(rdb, 'signup:' + username) :
@@ -104,7 +102,7 @@ def signup(username, password, email, challenge, signup_session_id) :
     return "INCORRECT_SESSION", None
 
 def update_desc(redis_user_key, user_id, new_desc) :
-    if len(new_desc) > 2048 :
+    if len(new_desc) > UserConfig.MAX_DESC_LENGTH :
         return "DESC_LENGTH"
     obj = db.users.find_one({'_id': ObjectId(user_id)})
     if obj is None :
@@ -120,13 +118,13 @@ def update_desc(redis_user_key, user_id, new_desc) :
             'access_control': obj['access_control']
         }
     redis_user_value = dumps(common_user_obj)
-    rdb.set(redis_user_key, redis_user_value, ex = int(time.time() + LOGIN_EXPIRE_TIME))
+    rdb.set(redis_user_key, redis_user_value, ex = int(time.time() + UserConfig.LOGIN_EXPIRE_TIME))
     return 'SUCCEED'
 
 def update_password(user_id, old_pass, new_pass) :
-    if len(old_pass) > 64 or len(old_pass) < 8:
+    if len(old_pass) > UserConfig.MAX_PASSWORD_LENGTH or len(old_pass) < UserConfig.MIN_PASSWORD_LENGTH:
         return "PASSWORD_LENGTH"
-    if len(new_pass) > 64 or len(new_pass) < 8:
+    if len(new_pass) > UserConfig.MAX_PASSWORD_LENGTH or len(new_pass) < UserConfig.MIN_PASSWORD_LENGTH:
         return "PASSWORD_LENGTH"
     obj = db.users.find_one({'_id': ObjectId(user_id)})
     if obj is None :

@@ -9,7 +9,7 @@ from utils.tagtools import getTagColor
 from services.listVideo import listVideo, listVideoQuery
 from services.getVideo import getTagCategoryMap
 from utils.html import buildPageSelector
-
+from config import DisplayConfig
 
 @app.route('/', methods = ['POST', 'GET'])
 @loginOptional
@@ -22,6 +22,8 @@ def pages_index(rd, user):
 def _renderAnonymousIndex(rd):
     rd.page = int(request.values['page'] if 'page' in request.values else 1)
     rd.page_size = int(request.values['page_size'] if 'page_size' in request.values else 20)
+    if rd.page_size > DisplayConfig.MAX_ITEM_PER_PAGE:
+        return "data", 'Page size too large(max %d videos per page)' % DisplayConfig.MAX_ITEM_PER_PAGE
     rd.query = request.values['query'] if 'query' in request.values else ""
     rd.order = "latest"
     rd.title = 'PatchyVideo'
@@ -39,6 +41,8 @@ def _renderAnonymousIndex(rd):
 def _renderRegisteredIndex(rd, user):
     rd.page = int(request.values['page'] if 'page' in request.values else 1)
     rd.page_size = int(request.values['page_size'] if 'page_size' in request.values else 20)
+    if rd.page_size > DisplayConfig.MAX_ITEM_PER_PAGE:
+        return "data", 'Page size too large(max %d videos per page)' % DisplayConfig.MAX_ITEM_PER_PAGE
     rd.query = request.values['query'] if 'query' in request.values else ""
     rd.order = "latest"
     rd.title = 'PatchyVideo'
