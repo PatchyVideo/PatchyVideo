@@ -119,7 +119,7 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 				Update existing video
 				"""
 				# new field: uploadDate
-				if 'upload_time' not in conflicting_item['item'] or conflicting_item['item']['upload_time'] == '':
+				if 'upload_time' not in conflicting_item['item'] or conflicting_item['item']['upload_time'] == '' or conflicting_item['item']['site'] == 'youtube':
 					upload_time = ret['data']['uploadDate']
 					with MongoTransaction(client) as s :
 						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item.upload_time': upload_time}}, session = s())

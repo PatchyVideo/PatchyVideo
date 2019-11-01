@@ -25,7 +25,6 @@ class Nicovideo( Spider ) :
     def run( self, content, xpath, link ) :
         vidid = link[link.rfind("sm"):]
         try:
-            import pdb;pdb.set_trace()
             thumbnailURL = try_get_xpath(xpath, ['//meta[@itemprop="thumbnailUrl"]/@content', '//meta[@name="thumbnail"]/@content'])[0]
             title = try_get_xpath(xpath, ['//meta[@itemprop="name"]/@content', '//meta[@property="og:title"]/@content'])[0]
             desc = try_get_xpath(xpath, ['//meta[@itemprop="description"]/@content', '//meta[@name="description"]/@content'])[0]

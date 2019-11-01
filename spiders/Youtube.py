@@ -59,7 +59,8 @@ class Youtube( Spider ) :
 		player_response = json.loads(player_response)
 		videoDetails = player_response['videoDetails']
 		# everything will end on January 19th 2038
-		min_timestamp = int(time.time())
+		# TODO: this method is incorrect for old videos
+		min_timestamp = int(time.time() * 1e6)
 		streamingData = player_response['streamingData']
 		if 'adaptiveFormats' in streamingData:
 			for item in streamingData['adaptiveFormats']:
@@ -73,6 +74,7 @@ class Youtube( Spider ) :
 					min_timestamp = min(min_timestamp, int(item['lastModified']))
 				except:
 					pass
+		min_timestamp *= 1e-6
 
 		uploadDate = datetime.fromtimestamp(min_timestamp)
 
