@@ -42,9 +42,9 @@ phase 2
 ======================
 #unify config
 remove footer touhou copyright
-post video using same tags
+#post video using same tags
 #sync merge tags from copies
-get video upload date
+#get video upload date
 sort by video upload date
 #batch post as copies
 tag alias(as multi-language phase1)

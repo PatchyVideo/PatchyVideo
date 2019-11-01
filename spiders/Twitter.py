@@ -4,6 +4,8 @@ from utils.jsontools import *
 from utils.encodings import makeUTF8
 from utils.html import getInnerText
 from .impl.twitter_video_download import match1, r1, get_content, post_content
+from dateutil.parser import parse
+from datetime import timezone
 
 import re
 import json
@@ -48,12 +50,14 @@ class Twitter( Spider ) :
 		cover = info['extended_entities']['media'][0]['media_url']
 		user_name = info['user']['name']
 		screen_name = info['user']['screen_name']
+		uploadDate = parse(info['created_at']).astimezone(timezone.utc)
 
 		return makeResponseSuccess({
 			'thumbnailURL': cover,
 			'title' : '%s @%s' % (user_name, screen_name),
 			'desc' : desc,
 			'site': 'twitter',
+            'uploadDate' : uploadDate,
 			"unique_id": "twitter:%s" % item_id
 		})
 		

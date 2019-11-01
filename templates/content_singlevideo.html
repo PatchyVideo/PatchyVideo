@@ -341,6 +341,9 @@
 						color:olive;
 					}
 				</style>
+				{% if upload_date %}
+				<h5 style="text-align: center;">{{upload_date}} UTC</h5>
+				{% endif %}
 				<div class="re_video">
 					<img src="/images/covers/{{cover_image}}" width="320px" alt="{{title}}" title="{{title}}">
 					<p>{{desc}}</p>

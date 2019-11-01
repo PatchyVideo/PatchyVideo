@@ -10,9 +10,9 @@ def makeUserMeta(user):
 
 def makeUserMetaObject(user):
     if user is None :
-        return {'created_by': '', 'created_at': datetime.now()}
+        return {'created_by': '', 'created_at': datetime.utcnow()}
     else :
-        return {'created_by': ObjectId(user['_id']), 'created_at': datetime.now()}
+        return {'created_by': ObjectId(user['_id']), 'created_at': datetime.utcnow()}
 
 class MongoTransactionEnabled(object) :
     def __init__(self, client) :

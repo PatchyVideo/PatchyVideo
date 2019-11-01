@@ -3,6 +3,8 @@ from . import Spider
 from utils.jsontools import *
 from utils.encodings import makeUTF8
 from utils.html import getInnerText
+from dateutil.parser import parse
+from datetime import timedelta
 
 class Bilibili( Spider ) :
     NAME = 'bilibili'
@@ -21,11 +23,13 @@ class Bilibili( Spider ) :
         thumbnailURL = xpath.xpath( '//meta[@itemprop="thumbnailUrl"]/@content' )[0]
         title = xpath.xpath( '//h1[@class="video-title"]/@title' )[0]
         desc = getInnerText(xpath.xpath( '//div[@class="info open"]/node()' ))
+        uploadDate = parse(xpath.xpath( '//meta[@itemprop="uploadDate"]/@content' )[0]) - timedelta(hours = 8) # convert from Beijing time to UTC
         return makeResponseSuccess({
             'thumbnailURL': thumbnailURL,
             'title' : title,
             'desc' : desc,
             'site': 'bilibili',
+            'uploadDate' : uploadDate,
             "unique_id": "bilibili:%s" % vidid
         })
         

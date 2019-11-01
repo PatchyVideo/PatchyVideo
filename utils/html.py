@@ -42,3 +42,10 @@ def buildPageSelector(selected_page, page_count, page_url_callback) :
         ans += '<a href="%s">›</a>' % page_url_callback(selected_page + 1)
     return ans
     
+def try_get_xpath(xpath_obj, paths):
+    for path in paths:
+        try:
+            return xpath_obj.xpath(path)
+        except:
+            continue
+    return None

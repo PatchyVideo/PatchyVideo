@@ -5,6 +5,8 @@ from utils.jsontools import *
 from utils.encodings import makeUTF8
 import requests
 from urllib.parse import parse_qs
+import time
+from datetime import datetime
 
 def _str(s):
 	status = 'normal'
@@ -54,7 +56,25 @@ class Youtube( Spider ) :
 		info_file_link = "https://www.youtube.com/get_video_info?video_id=" + vidid
 		info_file = requests.get(info_file_link, headers = self.HEADERS).text
 		player_response = parse_qs(info_file)['player_response'][0]
-		videoDetails = json.loads(player_response)['videoDetails']
+		player_response = json.loads(player_response)
+		videoDetails = player_response['videoDetails']
+		# everything will end on January 19th 2038
+		min_timestamp = int(time.time())
+		streamingData = player_response['streamingData']
+		if 'adaptiveFormats' in streamingData:
+			for item in streamingData['adaptiveFormats']:
+				try:
+					min_timestamp = min(min_timestamp, int(item['lastModified']))
+				except:
+					pass
+		if 'formats' in streamingData:
+			for item in streamingData['formats']:
+				try:
+					min_timestamp = min(min_timestamp, int(item['lastModified']))
+				except:
+					pass
+
+		uploadDate = datetime.fromtimestamp(min_timestamp)
 
 		title = videoDetails['title']
 		desc = videoDetails['shortDescription']
@@ -64,6 +84,7 @@ class Youtube( Spider ) :
 			'title' : title,
 			'desc' : desc,
 			'site': 'youtube',
+            'uploadDate' : uploadDate,
 			"unique_id": "youtube:%s" % vidid
 		})
 		

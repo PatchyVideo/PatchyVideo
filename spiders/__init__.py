@@ -58,7 +58,7 @@ def dispatch_no_expand( url ) :
 	return None, None
 
 def test():
-	url='https://www.nicovideo.jp/watch/sm114513'
+	url='https://youtu.be/5Cj3F-L4tVY'
 	spider, cleanURL=dispatch(url)
 	print(spider.get_metadata(spider,cleanURL))
 

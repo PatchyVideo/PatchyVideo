@@ -60,7 +60,7 @@ def _make_video_data(data, copies, playlists, url) :
 		"unique_id": data['unique_id'],
 		'series': playlists,
 		'copies': copies,
-		'upload_time': '',
+		'upload_time': data['uploadDate'],
 		'views': -1,
 		'rating': -1.0
 	}
@@ -114,6 +114,17 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 					playlists = [ ObjectId(dst_playlist) ]
 			if not unique:
 				print('Video already exist as %s' % ret["data"]["unique_id"])
+
+				"""
+				Update existing video
+				"""
+				# new field: uploadDate
+				if 'upload_time' not in conflicting_item['item'] or conflicting_item['item']['upload_time'] == '':
+					upload_time = ret['data']['uploadDate']
+					with MongoTransaction(client) as s :
+						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item.upload_time': upload_time}}, session = s())
+						s.mark_succeed()
+
 				# this video already exist in the database
 				# if the operation is to add a link to other copies and not adding self
 				if dst_copy and dst_copy != conflicting_item['_id'] :

@@ -4,6 +4,9 @@ import re
 from . import Spider
 from utils.jsontools import *
 from utils.encodings import makeUTF8
+from utils.html import try_get_xpath
+from dateutil.parser import parse
+from datetime import timezone
 
 from bs4 import BeautifulSoup
 
@@ -21,25 +24,24 @@ class Nicovideo( Spider ) :
 
     def run( self, content, xpath, link ) :
         vidid = link[link.rfind("sm"):]
-        try :
-            thumbnailURL = xpath.xpath( '//meta[@itemprop="thumbnailUrl"]/@content' )[0]
-            title = xpath.xpath( '//meta[@itemprop="name"]/@content' )[0]
-            desc = xpath.xpath( '//meta[@itemprop="description"]/@content' )[0]
-        except :
-            try :
-                thumbnailURL = xpath.xpath( '//meta[@name="thumbnail"]/@content' )[0]
-                title = xpath.xpath( '//meta[@property="og:title"]/@content' )[0]
-                desc = xpath.xpath( '//meta[@name="description"]/@content' )[0]
-            except :
-                return makeResponseFailed({})
+        try:
+            import pdb;pdb.set_trace()
+            thumbnailURL = try_get_xpath(xpath, ['//meta[@itemprop="thumbnailUrl"]/@content', '//meta[@name="thumbnail"]/@content'])[0]
+            title = try_get_xpath(xpath, ['//meta[@itemprop="name"]/@content', '//meta[@property="og:title"]/@content'])[0]
+            desc = try_get_xpath(xpath, ['//meta[@itemprop="description"]/@content', '//meta[@name="description"]/@content'])[0]
+            uploadDate = try_get_xpath(xpath, ['//meta[@property="video:release_date"]/@content', '//meta[@name="video:release_date"]/@content'])[0]
+        except:
+            return makeResponseFailed({})
         desc = re.sub(r'<br\s*?>', '\n', desc)
         soup = BeautifulSoup(desc, features = "lxml")
         desc_textonly = ''.join(soup.findAll(text = True))
+        uploadDate = parse(uploadDate).astimezone(timezone.utc)
         return makeResponseSuccess({
             'thumbnailURL': thumbnailURL,
             'title' : title,
             'desc' : desc_textonly,
             'site': 'nicovideo',
+            'uploadDate' : uploadDate,
             "unique_id": "nicovideo:%s" % vidid
         })
         

@@ -24,6 +24,9 @@ def pages_videodetail(rd, user):
     rd.title = obj['item']['title']
     rd.desc = obj['item']['desc']
     rd.link = obj['item']['url']
+    rd.upload_date = obj['item']['upload_time'] if 'upload_time' in obj['item'] else ''
+    if not rd.upload_date:
+        rd.upload_date = ''
     rd.tags = ' '.join(obj['tags'])
     rd.tags_list = obj['tags']
     rd.tag_by_category = getTagCategories(rd.tags_list)
