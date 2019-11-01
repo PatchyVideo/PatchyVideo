@@ -21,7 +21,7 @@ def verifyAndSanitizeTag(tag):
         if ts[0] == 'TAG':
             if any(ban in tag for ban in [':', '>', '<', '=', '-', '~', '+', '*', '/', '.', ',', ';', ':']) : # special symbols
                 return False, ''
-            if tag == 'site' or tag == 'date' : # keywords
+            if tag in ['site', 'date', 'and', 'or', 'not', 'any', 'all'] : # keywords
                 return False, ''
             return True, tag
     return False, ''

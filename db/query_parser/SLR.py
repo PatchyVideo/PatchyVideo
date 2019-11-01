@@ -35,7 +35,7 @@ class Parser :
 		if not isinstance( body, list ) :
 			body = [ body ]
 		assert symbol in self.nt_symbols
-		
+
 		if symbol in self.productions :
 			self.productions[symbol].append( body )
 		else :
@@ -47,14 +47,14 @@ class Parser :
 		#	self.first[terminal] = set( [ terminal ] )
 		for nt in self.nt_symbols :
 			self.first[nt] = set( filter( lambda first_symbol : first_symbol in self.t_symbols or first_symbol == '__EPSILON__', [ x[0] for x in self.productions[nt] ] ) )
-	
+
 		for _ in range( len( self.nt_symbols ) * 2 ) :
 			for nt in self.nt_symbols :
 				for p in self.productions[nt] : # for all productions p
 					if p[0] in self.nt_symbols :
 						self.first[nt] |= self.first[p[0]]
-			
-		
+
+
 			for nt in self.nt_symbols :
 				for p in self.productions[nt] : # for all productions p
 					# production nt->p
@@ -108,10 +108,10 @@ class Parser :
 		if isinstance( s_or_p, list ) : # s_or_p is a production
 			s_or_p = s_or_p[0]
 		if s_or_p == '__EPSILON__' :
-			return [ '__EPSILON__' ]			
+			return [ '__EPSILON__' ]
 		if s_or_p in self.t_symbols :
 			return [ s_or_p ]
-		return self.first[s_or_p]	
+		return self.first[s_or_p]
 
 	def _packItem( self, item ) :
 		nt, body, dot = item
@@ -165,7 +165,7 @@ class Parser :
 
 	def PrepareParser( self ) :
 		assert self.start_symbol
-		
+
 		# add a dummy production
 		self.nt_symbols.append( '__BEGIN__' )
 		self.productions['__BEGIN__'] = [ [ self.start_symbol ] ]
@@ -184,7 +184,7 @@ class Parser :
 		s = []
 		sT = []
 		n = self.viable_prefix_NFA
-	
+
 		last_reduction = None
 
 		succeed = False
@@ -241,7 +241,7 @@ class Parser :
 			return sT[0].children[0]
 		else :
 			return None
-	
+
 	def _separateTerminal( self, v ) :
 		return v.split( '|' )[0]
 
