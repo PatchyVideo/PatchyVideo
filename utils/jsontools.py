@@ -5,19 +5,19 @@ from bson.json_util import dumps, loads
 
 def makeResponseSuccess(data):
     return {
-        "status": "success",
+        "status": "SUCCEED",
         "data": data
     }
 
 def makeResponseFailed(data):
     return {
-        "status": "failed",
+        "status": "FAILED",
         "data": data
     }
 
 def makeResponseError(data):
     return {
-        "status": "error",
+        "status": "ERROR",
         "data": data
     }
 

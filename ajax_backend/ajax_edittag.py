@@ -59,7 +59,7 @@ def ajax_add_tag(rd, user, data):
         return "json", makeResponseFailed("Tag or category length too large(%d characters for tag)" % TagsConfig.MAX_TAG_LENGTH)
     ret = addTag(user, data.tag, data.category)
     if ret == 'SUCCEED':
-        response = makeResponseSuccess("Success")
+        response = makeResponseSuccess("SUCCEED")
     if ret == 'INVALID_TAG':
         response = makeResponseFailed("This tag name(%s) is invalid" % (data.tag))
     if ret == 'TAG_EXIST':
@@ -74,7 +74,7 @@ def ajax_add_tag(rd, user, data):
 def ajax_remove_tag(rd, user, data):
     ret = removeTag(user, data.tag)
     if ret == 'SUCCEED' :
-        response = makeResponseSuccess("Success")
+        response = makeResponseSuccess("SUCCEED")
     if ret == 'TAG_NOT_EXIST' :
         response = makeResponseFailed("This tag(%s) does not exist" % (data.tag))
     if ret == 'UNAUTHORISED_OPERATION' :
@@ -89,7 +89,7 @@ def ajax_remove_tag(rd, user, data):
 def ajax_rename_tag(rd, user, data):
     ret = renameTag(user, data.tag, data.new_tag)
     if ret == 'SUCCEED' :
-        response = makeResponseSuccess("Success")
+        response = makeResponseSuccess("SUCCEED")
     if ret == 'TAG_NOT_EXIST' :
         response = makeResponseFailed("This tag(%s) does not exist" % (data.tag))
     if ret == 'TAG_EXIST' :

@@ -34,7 +34,7 @@ def ajax_queryvideo_do(rd, data, user):
     if len(data.query) > QueryConfig.MAX_QUERY_LENGTH :
         return "json", makeResponseError("Query too long(max %d characters)" % QueryConfig.MAX_QUERY_LENGTH)
     status, videos = listVideoQuery(data.query, data.page - 1, data.page_size)
-    if status == "failed":
+    if status == "FAILED":
         return "json", makeResponseError("Syntax error in query")
     video_count = videos.count()
     ret = makeResponseSuccess({

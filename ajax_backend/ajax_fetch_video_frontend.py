@@ -20,6 +20,6 @@ def ajax_helper_get_twitter_info(rd, user, data):
     if obj.NAME != 'twitter' :
         return makeResponseFailed('Not twitter')
     info = obj.get_metadata(obj, cleanURL)
-    if info["status"] != 'success' :
+    if info["status"] != 'SUCCEED' :
         return makeResponseFailed('Failed to fetch twitter info')
     return info

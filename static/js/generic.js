@@ -10,7 +10,7 @@ function postJSON(url, data, success, error = null, complete = null) {
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function (result) {
-            if (result.status == 'success')
+            if (result.status == 'SUCCEED')
                 success(result);
             else
                 error(result);

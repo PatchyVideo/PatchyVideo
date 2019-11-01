@@ -29,7 +29,7 @@ def ajax_videos_edittags(rd, user, data):
     retval = editVideoTags(data.video_id, data.tags, user)
     if retval == 'ITEM_NOT_EXIST':
         return "json", makeResponseFailed("Video %s does not exist" % data.video_id)
-    return "json", makeResponseSuccess("Success")
+    return "json", makeResponseSuccess("SUCCEED")
 
 @app.route('/videos/gettags.do', methods = ['POST'])
 @loginOptional
