@@ -66,7 +66,11 @@ def pages_playlist(pid, rd, user):
     if rd.page_size > DisplayConfig.MAX_ITEM_PER_PAGE :
         return "data", 'Page size too large(max %d videos per page)' % DisplayConfig.MAX_ITEM_PER_PAGE
     rd.order = "latest"
-    status, videos, video_count = listPalylistVideos(pid, rd.page - 1, rd.page_size)
+    rd.playlist_editable = False
+    if user:
+        status, videos, video_count, rd.playlist_editable = listPlaylistVideosWithAuthorizationInfo(pid, rd.page - 1, rd.page_size, user)
+    else:
+        status, videos, video_count = listPlaylistVideos(pid, rd.page - 1, rd.page_size)
     if status != "SUCCEED" :
         abort(404)
     playlist = getPlaylist(pid)
@@ -76,12 +80,8 @@ def pages_playlist(pid, rd, user):
     rd.playlist_desc = playlist['desc']['english']
     rd.playlist_id = playlist['_id']
     rd.playlist_creator = str(playlist['meta']['created_by'])
-    rd.playlist_editable = False
     rd.playlist_creator_info = query_user_basic_info(rd.playlist_creator)
     rd.playlist_cover_image = playlist['cover']
-    if user is not None :
-        if str(user['_id']) == rd.playlist_creator :
-            rd.playlist_editable = True
     rd.videos = videos
     rd.count = video_count
     rd.page_count = (video_count - 1) // rd.page_size + 1

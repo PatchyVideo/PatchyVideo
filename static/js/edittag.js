@@ -25,11 +25,11 @@ function removeTag(tag, category) {
         status_obj = $(`p[meta-category="${category}"]`);
         status_obj.css("display", "block");
         status_obj.css("color", "green");
-        status_obj.html(result.data.message);
+        status_obj.text(result.data.message);
     }, function (result){
         status_obj.css("display", "block");
         status_obj.css("color", "red");
-        status_obj.html(result.data);
+        status_obj.text(result.data);
     });
 }
 
@@ -45,16 +45,16 @@ function addTag(category, tag) {
             status_obj = $(`p[meta-category="${category}"]`);
             status_obj.css("display", "block");
             status_obj.css("color", "green");
-            status_obj.html(result.data.message);
+            status_obj.text(result.data.message);
         }, function (result){
             status_obj.css("display", "block");
             status_obj.css("color", "red");
-            status_obj.html(result.data);
+            status_obj.text(result.data);
         });
     } else {
         status_obj.css("display", "block");
         status_obj.css("color", "red");
-        status_obj.html("Tag can not be empty");
+        status_obj.text("Tag can not be empty");
     }
 }
 

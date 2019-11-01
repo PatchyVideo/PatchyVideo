@@ -20,7 +20,7 @@ from anytree import Node, RenderTree
 <tag-list> ::= <tag>
 	    	 | ANY : <tag>
 	    	 | ALL : <tag>
-	    	 | <tag> : <tag> // first <TAG> is not actually tag
+	    	 | <tag> : <tag> // special query term
 
 """
 
@@ -140,6 +140,9 @@ _p = _build_parser()
 
 #TODO need optimization
 
+from dateutil.parser import parse as parse_date
+from datetime import timedelta
+
 def _prepare_attributes(name, value):
 	value = value.lower()
 	name = name.lower()
@@ -154,6 +157,24 @@ def _prepare_attributes(name, value):
 		elif value in ['twitter']:
 			query = 'twitter'
 		return { 'item.site': query }
+	if name == 'date':
+		if value[:2] == '<=' :
+			date = parse_date(value[2:])
+			return { 'item.upload_time' : { '$lte' : date + timedelta(days = 1) } }
+		if value[:2] == '>=' :
+			date = parse_date(value[2:])
+			return { 'item.upload_time' : { '$gte' : date } }
+		if value[:1] == '<' :
+			date = parse_date(value[1:])
+			return { 'item.upload_time' : { '$lt' : date } }
+		if value[:1] == '>' :
+			date = parse_date(value[1:])
+			return { 'item.upload_time' : { '$gt' : date } }
+		if value[:1] == '=' :
+			date = parse_date(value[1:])
+			return { 'item.upload_time' : { '$gte' : date, '$lte' : date + timedelta(days = 1) } }
+		date = parse_date(value)
+		return { 'item.upload_time' : { '$gte' : date, '$lte' : date + timedelta(days = 1) } }
 	return {}
 
 def _getk(node, idx):
@@ -169,7 +190,10 @@ def _prepare_tag_list(node, groups):
 		elif _getk(node, 0) == 'ANY':
 			return 'any-tags', { 'tags' : { '$in' : groups[_getv(node, 2)] } }
 		else :
-			return 'complex-query', _prepare_attributes(_getv(node, 0), _getv(node, 2))
+			try:
+				return 'complex-query', _prepare_attributes(_getv(node, 0), _getv(node, 2))
+			except:
+				return 'complex-query', {}
 	else:
 		return 'single-tag', { 'tags' : _getv(node, 0) }
 
@@ -209,7 +233,7 @@ def _parse_tree(node, groups, any_node = False):
 			elif struct == 'any-tags' :
 				return 'not-any-tags', { 'tags' : { '$nin' : tree['tags']['$in'] } }
 			elif struct == 'not-any-tags':
-				return 'any-tags', { 'tags' : { 'nin' : tree['tags']['$nin'] } }
+				return 'any-tags', { 'tags' : { '$nin' : tree['tags']['$nin'] } }
 			else:
 				return 'not-complex-query', { '$not' : tree }
 	if node.name == '<and-query>':

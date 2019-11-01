@@ -12,9 +12,18 @@ _color_map = {
     'Meta': '#F80'}
 
 def verifyAndSanitizeTag(tag):
-    ts, ss = _lex(tag)
+    try:
+        ts, ss = _lex(tag)
+    except:
+        return False, ''
     if len(ts) == 1 :
-        return ts[0] == 'TAG', ss[0]
+        tag = ss[0].lower()
+        if ts[0] == 'TAG':
+            if any(ban in tag for ban in [':', '>', '<', '=', '-', '~', '+', '*', '/', '.', ',', ';', ':']) : # special symbols
+                return False, ''
+            if tag == 'site' or tag == 'date' : # keywords
+                return False, ''
+            return True, tag
     return False, ''
 
 def getTagColor(tag_category_map):

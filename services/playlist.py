@@ -87,7 +87,7 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
 				'meta.modified_by': '',
 				'meta.modified_at': datetime.now()}}, session = s())
-		_, video_page, video_count = listPalylistVideos(pid, page - 1, page_size)
+		_, video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
 		s.mark_succeed()
 		return "SUCCEED", {'videos': video_page, 'video_count': video_count, 'page': page}
 
@@ -144,7 +144,49 @@ def addVideoToPlaylist(pid, vid, user) :
 		s.mark_succeed()
 		return "SUCCEED"
 
-def listPalylistVideos(pid, page_idx, page_size) :
+def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
+	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
+	if playlist is None :
+		return "PLAYLIST_NOT_EXIST", None, 0
+	ans_obj = db.playlist_items.aggregate([
+		{
+			'$match': {
+				"pid": ObjectId(pid)
+			}
+		},
+		{
+			'$lookup': {
+				'from': "items",
+				'localField': "vid",
+				'foreignField': "_id",
+				'as': 'item'
+			}
+		},
+		{
+			'$unwind': {
+				'path': '$item'
+			}
+		},
+		{
+			'$sort' : {
+				'rank' : 1
+			}
+		},
+		{
+			'$skip' : page_idx * page_size,
+		},
+		{
+			'$limit' : page_size
+		}
+	])
+	ret = []
+	for obj in ans_obj:
+		ret_obj = obj['item']
+		ret_obj['rank'] = obj['rank']
+		ret.append(ret_obj)
+	return "SUCCEED", ret, playlist['videos'], is_authorised(playlist, user)
+
+def listPlaylistVideos(pid, page_idx, page_size) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
 	if playlist is None :
 		return "PLAYLIST_NOT_EXIST", None, 0
@@ -364,10 +406,10 @@ def removeVideoFromPlaylist(pid, vid, page, page_size, user) :
 					'meta.modified_at': datetime.now()}}, session = s())
 		else :
 			return "EMPTY_PLAYLIST"
-		_, video_page, video_count = listPalylistVideos(pid, page - 1, page_size)
+		_, video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
 		if len(video_page) == 0 and page > 1 and video_count > 0 :
 			# in case deleting video results in current page becomes empty, show the previous page
-			_, video_page, video_count = listPalylistVideos(pid, page - 2, page_size)
+			_, video_page, video_count = listPlaylistVideos(pid, page - 2, page_size)
 			s.mark_succeed()
 			return "SUCCEED", {'videos': video_page, 'video_count': video_count, 'page': page - 1}
 		s.mark_succeed()
@@ -398,7 +440,7 @@ def editPlaylist_MoveUp(pid, vid, page, page_size, user) :
 				db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
 					'meta.modified_by': '',
 					'meta.modified_at': datetime.now()}}, session = s())
-			_, video_page, video_count = listPalylistVideos(pid, page - 1, page_size)
+			_, video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
 			s.mark_succeed()
 			return "SUCCEED", {'videos': video_page, 'video_count': video_count, 'page': page}
 		else :
@@ -428,7 +470,7 @@ def editPlaylist_MoveDown(pid, vid, page, page_size, user) :
 				db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
 					'meta.modified_by': '',
 					'meta.modified_at': datetime.now()}}, session = s())
-			_, video_page, video_count = listPalylistVideos(pid, page - 1, page_size)
+			_, video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
 			s.mark_succeed()
 			return "SUCCEED", {'videos': video_page, 'video_count': video_count, 'page': page}
 		else :
