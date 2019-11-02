@@ -46,7 +46,7 @@ remove footer touhou copyright
 #sync merge tags from copies
 #get video upload date
 #search term like date:XXX
-all query using GET
+#all query using GET
 sort by video upload date
 #batch post as copies
 tag alias(as multi-language phase1)
