@@ -2,7 +2,7 @@
 import re
 from db.query_parser.Parser import _lex
 
-_pattern = "^[\\w]+$"
+_match_object = re.compile(r"^[a-z][\w_]*(_\([\w]+\))*$")
 _color_map = {
     'Copyright': '#A0A',
     'Language': '#585455',
@@ -11,6 +11,7 @@ _color_map = {
     'General': '#0073ff',
     'Meta': '#F80'}
 
+"""
 def verifyAndSanitizeTag(tag):
     try:
         ts, ss = _lex(tag)
@@ -24,6 +25,13 @@ def verifyAndSanitizeTag(tag):
             if tag in ['site', 'date', 'and', 'or', 'not', 'any', 'all'] : # keywords
                 return False, ''
             return True, tag
+    return False, ''
+"""
+
+def verifyAndSanitizeTag(tag):
+    ret = _match_object.match(tag)
+    if ret:
+        return True, ret.group(0)
     return False, ''
 
 def getTagColor(tag_category_map):
