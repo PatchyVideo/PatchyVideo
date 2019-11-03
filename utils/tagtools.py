@@ -29,9 +29,12 @@ def verifyAndSanitizeTag(tag):
 """
 
 def verifyAndSanitizeTag(tag):
-    ret = _match_object.match(tag)
+    ret = _match_object.match(tag.strip())
     if ret:
-        return True, ret.group(0)
+        tag_sanitized = ret.group(0)
+        if tag_sanitized in ['site', 'date', 'and', 'or', 'not', 'any', 'all'] : # keywords
+            return False, ''
+        return True, tag_sanitized
     return False, ''
 
 def getTagColor(tag_category_map):
