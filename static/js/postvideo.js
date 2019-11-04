@@ -87,10 +87,10 @@ function buildParsersAndExpanders() {
             setStatus("Error fetching video", "red");
             return;
         }
-        thumbnailURL = "https://img.youtube.com/vi/" + vidid + "/maxresdefault.jpg";
+        thumbnailURL = "https://img.youtube.com/vi/" + vidid + "/hqdefault.jpg";
         info_file_link = proxyResource("https://www.youtube.com/get_video_info?video_id=" + vidid);
         $.get(info_file_link, function(data, status) {
-            if (status == "SUCCEED") {
+            if (status == "success") {
                 //let searchParams = new URLSearchParams(data);
                 //player_response = searchParams.get("player_response");
                 player_response = getQueryVariable(data, "player_response");
