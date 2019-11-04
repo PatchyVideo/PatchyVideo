@@ -1,6 +1,7 @@
 
 import time
 import os
+import sys
 import redis
 from rq import Queue, Connection
 
@@ -71,6 +72,7 @@ if USE_RQ :
         succeed = True
         q = Queue(connection = conn)
         for idx, url in enumerate(data.videos) :
+            print('Posting %s' % url, file = sys.stderr)
             obj, cleanURL = dispatch(url)
             if obj is None:
                 succeed = False

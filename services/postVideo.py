@@ -1,5 +1,6 @@
 
 import os
+import sys
 import time
 from init import app, rdb
 from utils.jsontools import *
@@ -113,34 +114,38 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 				if db.playlists.find_one({'_id': ObjectId(dst_playlist)}) is not None :
 					playlists = [ ObjectId(dst_playlist) ]
 			if not unique:
-				print('Video already exist as %s' % ret["data"]["unique_id"])
+				print('Video already exist as %s' % ret["data"]["unique_id"], file = sys.stderr)
 
 				"""
 				Update existing video
 				"""
 				# new field: uploadDate
 				if 'upload_time' not in conflicting_item['item'] or conflicting_item['item']['upload_time'] == '' or conflicting_item['item']['site'] == 'youtube':
+					print('Updating time', file = sys.stderr)
 					upload_time = ret['data']['uploadDate']
 					with MongoTransaction(client) as s :
 						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item.upload_time': upload_time}}, session = s())
 						s.mark_succeed()
 					if not tags :
+						print('SUCCEED', file = sys.stderr)
 						return 'SUCCEED', conflicting_item['_id']
 
 				if conflicting_item['item']['site'] == 'nicovideo':
+					print('Updating desc', file = sys.stderr)
 					desc = ret['data']['desc']
 					with MongoTransaction(client) as s :
 						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item.desc': desc}}, session = s())
 						s.mark_succeed()
 					if not tags :
+						print('SUCCEED', file = sys.stderr)
 						return 'SUCCEED', conflicting_item['_id']
 
 				# this video already exist in the database
 				# if the operation is to add a link to other copies and not adding self
 				if dst_copy and dst_copy != conflicting_item['_id'] :
-					print('Adding to to copies')
+					print('Adding to to copies', file = sys.stderr)
 					with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
-						print('Adding to to copies, lock acquired')
+						print('Adding to to copies, lock acquired', file = sys.stderr)
 						# find all copies of video dst_copy, self included
 						all_copies = getAllcopies(dst_copy, session = s())
 						# find all videos linked to source video
@@ -151,23 +156,23 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 						if len(all_copies) <= VideoConfig.MAX_COPIES :
 							for dst_vid in all_copies :
 								addThiscopy(dst_vid, all_copies, session = s())
-							print('Successfully added to copies')
+							print('Successfully added to copies', file = sys.stderr)
 							s.mark_succeed()
 						else :
 							#if playlist_lock :
 							#    playlist_lock.release()
-							print('TOO_MANY_COPIES')
+							print('TOO_MANY_COPIES', file = sys.stderr)
 							return "TOO_MANY_COPIES", {}
 				# if the operation is adding this video to playlist
 				if dst_playlist :
-					print('Adding to playlist at position %d' % dst_rank)
+					print('Adding to playlist at position %d' % dst_rank, file = sys.stderr)
 					if dst_rank == -1 :
 						addVideoToPlaylist(dst_playlist, conflicting_item['_id'], user)
 					else :
 						insertIntoPlaylist(dst_playlist, conflicting_item['_id'], dst_rank, user)
 				# merge tags
 				with MongoTransaction(client) as s :
-					print('Merging tags')
+					print('Merging tags', file = sys.stderr)
 					tagdb.update_item_tags_merge(conflicting_item['_id'], tags, makeUserMeta(user), session = s())
 					s.mark_succeed()
 				#if playlist_lock :
@@ -177,41 +182,41 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 			else :
 				# expand dst_copy to all copies linked to dst_copy
 				if dst_copy :
-					print('Adding to to copies')
+					print('Adding to to copies', file = sys.stderr)
 					with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
-						print('Adding to to copies, lock acquired')
+						print('Adding to to copies, lock acquired', file = sys.stderr)
 						all_copies = getAllcopies(dst_copy, session = s())
 						new_item_id = tagdb.add_item(tags, _make_video_data(ret["data"], all_copies, playlists, url), makeUserMeta(user), session = s())
 						all_copies.append(ObjectId(new_item_id))
 						if len(all_copies) <= VideoConfig.MAX_COPIES :
 							for dst_vid in all_copies :
 								addThiscopy(dst_vid, all_copies, session = s())
-							print('Successfully added to copies')
+							print('Successfully added to copies', file = sys.stderr)
 							s.mark_succeed()
 						else :
 							#if playlist_lock :
 							#    playlist_lock.release()
-							print('TOO_MANY_COPIES')
+							print('TOO_MANY_COPIES', file = sys.stderr)
 							return "TOO_MANY_COPIES", {}
 				else :
 					with MongoTransaction(client) as s :
 						new_item_id = tagdb.add_item(tags, _make_video_data(ret["data"], [], playlists, url), makeUserMeta(user), session = s())
-						print('New video added to database')
+						print('New video added to database', file = sys.stderr)
 						s.mark_succeed()
 				# if the operation is adding this video to playlist
 				if dst_playlist :
-					print('Adding to playlist at position %d' % dst_rank)
+					print('Adding to playlist at position %d' % dst_rank, file = sys.stderr)
 					if dst_rank == -1 :
 						addVideoToPlaylist(dst_playlist, new_item_id, user)
 					else :
 						insertIntoPlaylist(dst_playlist, new_item_id, dst_rank, user)
 				#if playlist_lock :
 				#    playlist_lock.release()
-				print('SUCCEED')
+				print('SUCCEED', file = sys.stderr)
 				return 'SUCCEED', new_item_id
 	except :
-		print('****Exception!')
-		print(traceback.format_exc())
+		print('****Exception!', file = sys.stderr)
+		print(traceback.format_exc(), file = sys.stderr)
 		try :
 			problematic_lock = redis_lock.Lock(rdb, 'editLink')
 			problematic_lock.reset()
