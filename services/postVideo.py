@@ -96,7 +96,9 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 	print('Adding %s with copies %s to playlist %s' % (url, dst_copy or '<None>', dst_playlist or '<None>'))
 	try :
 		ret = parsed.get_metadata(parsed, url)
-		if ret["status"] == 'failed' :
+		if ret["status"] == 'FAILED' :
+			print('Fetch failed!!', file = sys.stderr)
+			print(ret, file = sys.stderr)
 			return "FETCH_FAILED", ret
 		if hasattr(parsed, 'LOCAL_SPIDER') :
 			url = ret["data"]["url"]
@@ -217,6 +219,7 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 	except :
 		print('****Exception!', file = sys.stderr)
 		print(traceback.format_exc(), file = sys.stderr)
+		print(ret, file = sys.stderr)
 		try :
 			problematic_lock = redis_lock.Lock(rdb, 'editLink')
 			problematic_lock.reset()

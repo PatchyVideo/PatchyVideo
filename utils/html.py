@@ -45,7 +45,13 @@ def buildPageSelector(selected_page, page_count, page_url_callback) :
 def try_get_xpath(xpath_obj, paths):
     for path in paths:
         try:
-            return xpath_obj.xpath(path)
+            func = lambda a:a
+            if isinstance(path, tuple) :
+                path, func = path
+            ret = xpath_obj.xpath(path)
+            if ret:
+                return func(ret)
+            continue
         except:
             continue
     return None
