@@ -1,7 +1,7 @@
 
 import time
 
-from flask import render_template, request, jsonify, redirect, session
+from flask import render_template, request, jsonify, redirect, session, abort
 
 from init import app
 from utils.interceptors import loginOptional
@@ -18,7 +18,7 @@ def pages_videodetail(rd, user):
     except:
         obj = None
     if not obj:
-        return "data", "No such video id=%s" % vidid
+        abort("No such video id=%s" % vidid, 404)
     rd.thumbnail_url = obj['item']['thumbnail_url']
     rd.cover_image = obj['item']['cover_image']
     rd.title = obj['item']['title']

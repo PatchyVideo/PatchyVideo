@@ -40,6 +40,7 @@ phase 1
 ======================
 phase 2
 ======================
+replace redis queue which is slow and does not support multiple workers/coroutines
 #unify config
 remove footer touhou copyright
 #post video using same tags
