@@ -31,7 +31,7 @@ class Nicovideo( Spider ) :
             uploadDate = try_get_xpath(xpath, ['//meta[@property="video:release_date"]/@content', '//meta[@name="video:release_date"]/@content'])[0]
         except:
             return makeResponseFailed({})
-        desc = re.sub(r'<br\s*?>', '\n', desc)
+        desc = re.sub(r'<br\s*?\/?>', '\n', desc)
         soup = BeautifulSoup(desc, features = "lxml")
         desc_textonly = ''.join(soup.findAll(text = True))
         uploadDate = parse(uploadDate).astimezone(timezone.utc)

@@ -63,7 +63,7 @@ search playlist
 user subscript to playlists
 beautiful http error page
 add interactive admin shell
-unify naming convention for status code
+unify naming convention for status code AND use exception to replace status code
 unify JSON return as status code, not error message
 added multi-language framework
 deployment mode using GCI

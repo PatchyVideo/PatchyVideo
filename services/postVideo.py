@@ -127,6 +127,14 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 					if not tags :
 						return 'SUCCEED', conflicting_item['_id']
 
+				if conflicting_item['item']['site'] == 'nicovideo':
+					desc = ret['data']['desc']
+					with MongoTransaction(client) as s :
+						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item.desc': desc}}, session = s())
+						s.mark_succeed()
+					if not tags :
+						return 'SUCCEED', conflicting_item['_id']
+
 				# this video already exist in the database
 				# if the operation is to add a link to other copies and not adding self
 				if dst_copy and dst_copy != conflicting_item['_id'] :
