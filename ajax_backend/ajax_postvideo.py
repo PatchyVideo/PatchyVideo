@@ -67,6 +67,7 @@ if USE_RQ :
         dst_copy = data.copy if 'copy' in data.__dict__ and data.copy is not None else ''
         dst_playlist = data.pid if 'pid' in data.__dict__ and data.pid is not None else ''
         dst_rank = int(data.rank if 'rank' in data.__dict__ and data.rank is not None else -1)
+        as_copies = data.as_copies if 'as_copies' in data.__dict__ and data.as_copies is not None else False
         if tags_ret == 'TAG_NOT_EXIST':
             return "json", makeResponseFailed("Tag %s not recognized" % unrecognized_tag)
         succeed = True

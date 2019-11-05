@@ -178,7 +178,8 @@ function submitVideoBatch() {
             pid: $("#pid").attr("content"),
             copy: $("#copy").attr("content"),
             videos: $("#video-list").val().split(/\r?\n/).filter(function(i){return i}),
-            tags: $("#tags").val().split(/\r?\n/).filter(function(i){return i})
+            tags: $("#tags").val().split(/\r?\n/).filter(function(i){return i}),
+            as_copies: $("#post-as-copies").is(":checked")
         },
         function(result){
             $("#status2").css("display", "none");

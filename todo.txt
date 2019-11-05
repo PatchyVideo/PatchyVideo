@@ -55,7 +55,7 @@ recover password
 documents/tagging guide
 !user access control for backend
 !user access control for frontend HTMLs
-log error, don't want others to see filenames in error response
+#log error, don't want others to see filenames in error response
 change background image to include more patchouli
 user sees his playlists
 #create playlist from a single video

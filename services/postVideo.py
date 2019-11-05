@@ -121,7 +121,8 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 				"""
 				Update existing video
 				"""
-				# new field: uploadDate
+				
+				"""
 				if 'upload_time' not in conflicting_item['item'] or conflicting_item['item']['upload_time'] == '' or conflicting_item['item']['site'] == 'youtube':
 					print('Updating time', file = sys.stderr)
 					upload_time = ret['data']['uploadDate']
@@ -141,6 +142,7 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 					if not tags :
 						print('SUCCEED', file = sys.stderr)
 						return 'SUCCEED', conflicting_item['_id']
+				"""
 
 				# this video already exist in the database
 				# if the operation is to add a link to other copies and not adding self

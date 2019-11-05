@@ -15,14 +15,21 @@ from config import DisplayConfig, QueryConfig
 @loginOptional
 def pages_search(rd, user):
 	rd.page = int(request.values['page'] if 'page' in request.values else 1)
+	if rd.page < 1:
+		rd.reason = 'page must be greater than or equals to 1'
+		return 'content_videolist_failed.html'
 	rd.page_size = int(request.values['page_size'] if 'page_size' in request.values else 20)
+	if rd.page_size > DisplayConfig.MAX_ITEM_PER_PAGE :
+		rd.reason = 'Page size too large(max %d videos per page)' % DisplayConfig.MAX_ITEM_PER_PAGE
+		return 'content_videolist_failed.html'
+	if rd.page_size < 1:
+		rd.reason = 'Page size must be greater than or equals to 1'
+		return 'content_videolist_failed.html'
 	rd.order = (request.values['order'] if 'order' in request.values else 'latest')
 	if not rd.order in ['latest', 'oldest', 'video_latest', 'video_oldest']:
 		rd.reason = 'order must be one of latest,oldest,video_latest,video_oldest'
 		return 'content_videolist_failed.html'
-	if rd.page_size > DisplayConfig.MAX_ITEM_PER_PAGE :
-		rd.reason = 'Page size too large(max %d videos per page)' % DisplayConfig.MAX_ITEM_PER_PAGE
-		return 'content_videolist_failed.html'
+	
 	rd.query = request.values['query'] if 'query' in request.values else ""
 	#return 'content_videolist.html'
 	if rd.query :

@@ -21,12 +21,16 @@ def pages_index(rd, user):
 
 def _renderAnonymousIndex(rd):
 	rd.page = int(request.values['page'] if 'page' in request.values else 1)
+	if rd.page < 1:
+		abort(400, 'page must be greater than or equals to 1')
 	rd.page_size = int(request.values['page_size'] if 'page_size' in request.values else 20)
+	if rd.page_size > DisplayConfig.MAX_ITEM_PER_PAGE :
+		abort(400, 'Page size too large(max %d videos per page)' % DisplayConfig.MAX_ITEM_PER_PAGE)
+	if rd.page_size < 1:
+		abort(400, 'Page size must be greater than or equals to 1')
 	rd.order = request.values['order'] if 'order' in request.values else 'latest'
 	if not rd.order in ['latest', 'oldest', 'video_latest', 'video_oldest']:
-		abort(400)
-	if rd.page_size > DisplayConfig.MAX_ITEM_PER_PAGE:
-		return "data", 'Page size too large(max %d videos per page)' % DisplayConfig.MAX_ITEM_PER_PAGE
+		abort(400, 'order must be one of latest,oldest,video_latest,video_oldest')
 	rd.query = request.values['query'] if 'query' in request.values else ""
 	rd.title = 'PatchyVideo'
 	videos, tags = listVideo(rd.page - 1, rd.page_size, rd.order)
@@ -42,12 +46,16 @@ def _renderAnonymousIndex(rd):
 
 def _renderRegisteredIndex(rd, user):
 	rd.page = int(request.values['page'] if 'page' in request.values else 1)
+	if rd.page < 1:
+		abort(400, 'page must be greater than or equals to 1')
 	rd.page_size = int(request.values['page_size'] if 'page_size' in request.values else 20)
+	if rd.page_size > DisplayConfig.MAX_ITEM_PER_PAGE :
+		abort(400, 'Page size too large(max %d videos per page)' % DisplayConfig.MAX_ITEM_PER_PAGE)
+	if rd.page_size < 1:
+		abort(400, 'Page size must be greater than or equals to 1')
 	rd.order = request.values['order'] if 'order' in request.values else 'latest'
 	if not rd.order in ['latest', 'oldest', 'video_latest', 'video_oldest']:
-		abort(400)
-	if rd.page_size > DisplayConfig.MAX_ITEM_PER_PAGE:
-		return "data", 'Page size too large(max %d videos per page)' % DisplayConfig.MAX_ITEM_PER_PAGE
+		abort(400, 'order must be one of latest,oldest,video_latest,video_oldest')
 	rd.query = request.values['query'] if 'query' in request.values else ""
 	rd.title = 'PatchyVideo'
 	videos, tags = listVideo(rd.page - 1, rd.page_size, rd.order)

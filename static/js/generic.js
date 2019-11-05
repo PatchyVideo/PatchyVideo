@@ -32,7 +32,8 @@ function downloadPage(url, success, error = null, complete = null) {
 
 function gotoPage(page) {
     query = $("#query").attr("content");
-    form = $(`<form style="display: none;" action="${window.location.href}" method="GET"><input style="display: none;" name="query" type="text" value="${query}" /><input name="page" type="text" value="${page}" /></form>`);
+    order = $("#order").attr("content");
+    form = $(`<form style="display: none;" action="${window.location.href}" method="GET"><input style="display: none;" name="query" type="text" value="${query}" /><input style="display: none;" name="order" type="text" value="${order}" /><input name="page" type="text" value="${page}" /></form>`);
     $("body").append(form);
     form.submit();
 }

@@ -23,24 +23,22 @@ def getAllCopies(vid) :
 	# use set to remove duplicated items
 	return list(set(copies))
 
-def removeThisCopy(dst_vid, this_vid):
-	with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
-		if this_vid is None :
-			return
-		dst_video = tagdb.retrive_item({"_id": ObjectId(dst_vid)}, s())
-		if dst_video is None :
-			return
-		dst_copies = dst_video['item']['copies']
-		dst_copies = list(set(dst_copies) - set([ObjectId(this_vid)]))
-		tagdb.update_item_query(dst_vid, {"$set": {"item.copies": dst_copies}}, s())
-		s.mark_succeed()
+def removeThisCopy(dst_vid, this_vid, session):
+	if this_vid is None :
+		return
+	dst_video = tagdb.retrive_item({"_id": ObjectId(dst_vid)}, session)
+	if dst_video is None :
+		return
+	dst_copies = dst_video['item']['copies']
+	dst_copies = list(set(dst_copies) - set([ObjectId(this_vid)]))
+	tagdb.update_item_query(dst_vid, {"$set": {"item.copies": dst_copies}}, session)
 
 def breakLink(vid, user):
 	with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
 		nodes = getAllCopies(vid)
 		if nodes :
 			for node in nodes :
-				removeThisCopy(node, vid)
+				removeThisCopy(node, vid, s())
 			tagdb.update_item_query(vid, {"$set": {"item.copies": []}}, s())
 			s.mark_succeed()
 

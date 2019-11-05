@@ -62,6 +62,32 @@
             </div>
         </div>
         <div class="content">
+            
+            <style>
+                .sort {
+                    text-align: center;
+                    height: 50px;
+                }
+            
+                .sort textarea,
+                .sort input,
+                .sort select {
+                    height: 25px;
+                    font: 12px Arial;
+                    padding: 1px 3px 0 3px;
+                    vertical-align: middle;
+                    margin-bottom: 1px;
+                }
+            </style>
+            <div class="sort">
+                <select>
+                    <option value="latest" selected="">Latest Post</option>
+                    <option value="oldest">Oldest Post</option>
+                    <option value="video_latest">Latest Upload</option>
+                    <option value="video_oldest">Oldest Upload</option>
+                </select> 
+            </div>
+        
             <ul>
             {% for vid in videos %}
             <li class="list-item">
