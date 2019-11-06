@@ -57,14 +57,14 @@ function buildParsersAndExpanders() {
     EXPANDERS["^av[\\d]+"] = function(short_link) {
         return "https://www.bilibili.com/video/" + short_link;
     };
-    PARSERS["^(https:\\/\\/|http:\\/\\/)?(www\\.)?nicovideo\\.jp\\/watch\\/sm[\\d]+"] = function(responseDOM, responseURL) {
+    PARSERS["^(https:\\/\\/|http:\\/\\/)?(www\\.)?nicovideo\\.jp\\/watch\\/(s|n)m[\\d]+"] = function(responseDOM, responseURL) {
         // TODO: handle error
         thumbnailURL = responseDOM.filter('meta[itemprop="thumbnailUrl"]').attr("content");
         title = responseDOM.filter('meta[itemprop="name"]').attr("content");
         desc = responseDOM.filter('meta[itemprop="description"]').attr("content");
         setVideoMetadata(thumbnailURL, title, desc);
     };
-    EXPANDERS["^sm[\\d]+"] = function(short_link) {
+    EXPANDERS["^(s|n)m[\\d]+"] = function(short_link) {
         return "https://www.nicovideo.jp/watch/" + short_link;
     };
     PARSERS["^(https:\\/\\/(www\\.|m\\.)?youtube\\.com\\/watch\\?v=[-\\w]+|https:\\/\\/youtu\\.be\\/(watch\\?v=[-\\w]+|[-\\w]+))"] = function(responseDOM, responseURL) {

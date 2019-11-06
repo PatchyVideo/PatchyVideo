@@ -62,24 +62,23 @@
             </div>
         </div>
         <div class="content">
-            
+           
             <style>
-                .sort {
-                    text-align: center;
-                    height: 50px;
+                .video-list-header p {
+                    display: inline;
                 }
-            
-                .sort textarea,
-                .sort input,
-                .sort select {
+                .video-list-header select {
                     height: 25px;
                     font: 12px Arial;
                     padding: 1px 3px 0 3px;
                     vertical-align: middle;
                     margin-bottom: 1px;
+                    float: right;
                 }
             </style>
-            <div class="sort">
+            
+            <div class="video-list-header">
+                <p>Showing {{videos|length}} out of {{count}} videos</p>
                 <select>
                     <option value="latest" selected="">Latest Post</option>
                     <option value="oldest">Oldest Post</option>
