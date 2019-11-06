@@ -37,5 +37,9 @@ def verifyAndSanitizeTag(tag):
         return True, tag_sanitized
     return False, ''
 
-def getTagColor(tag_category_map):
-    return {tag: _color_map[tag_category_map[tag]] for tag in tag_category_map.keys()}
+def getTagColor(tags, tag_category_map):
+    ans = {}
+    for tag in tags:
+        if tag in tag_category_map:
+            ans[tag] = _color_map[tag_category_map[tag]]
+    return ans

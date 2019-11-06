@@ -38,7 +38,7 @@ def _renderAnonymousIndex(rd):
 	rd.videos = [item for item in videos]
 	rd.count = video_count
 	tag_category_map = getTagCategoryMap(tags)
-	tag_color_map = getTagColor(tag_category_map)
+	tag_color_map = getTagColor(tags, tag_category_map)
 	rd.tags_list = tag_color_map
 	rd.page_count = (video_count - 1) // rd.page_size + 1
 	rd.page_selector_text = buildPageSelector(rd.page, rd.page_count, lambda a: 'javascript:gotoPage(%d);'%a)
@@ -63,7 +63,7 @@ def _renderRegisteredIndex(rd, user):
 	rd.videos = [item for item in videos]
 	rd.count = video_count
 	tag_category_map = getTagCategoryMap(tags)
-	tag_color_map = getTagColor(tag_category_map)
+	tag_color_map = getTagColor(tags, tag_category_map)
 	rd.tags_list = tag_color_map
 	rd.page_count = (video_count - 1) // rd.page_size + 1
 	rd.page_selector_text = buildPageSelector(rd.page, rd.page_count, lambda a: 'javascript:gotoPage(%d);'%a)

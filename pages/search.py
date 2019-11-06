@@ -49,7 +49,7 @@ def pages_search(rd, user):
 		return 'content_videolist_failed.html'
 	rd.count = video_count
 	tag_category_map = getTagCategoryMap(related_tags)
-	tag_color_map = getTagColor(tag_category_map)
+	tag_color_map = getTagColor(related_tags, tag_category_map)
 	rd.tags_list = tag_color_map
 	rd.title = 'Search'
 	rd.page_count = (video_count - 1) // rd.page_size + 1
