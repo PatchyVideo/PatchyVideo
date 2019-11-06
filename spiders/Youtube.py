@@ -65,19 +65,20 @@ class Youtube( Spider ) :
 		
 		# TODO: this method is incorrect for old videos
 		min_timestamp = int(time.time() * 1e6)
-		streamingData = player_response['streamingData']
-		if 'adaptiveFormats' in streamingData:
-			for item in streamingData['adaptiveFormats']:
-				try:
-					min_timestamp = min(min_timestamp, int(item['lastModified']))
-				except:
-					pass
-		if 'formats' in streamingData:
-			for item in streamingData['formats']:
-				try:
-					min_timestamp = min(min_timestamp, int(item['lastModified']))
-				except:
-					pass
+		if 'streamingData' in player_response:
+			streamingData = player_response['streamingData']
+			if 'adaptiveFormats' in streamingData:
+				for item in streamingData['adaptiveFormats']:
+					try:
+						min_timestamp = min(min_timestamp, int(item['lastModified']))
+					except:
+						pass
+			if 'formats' in streamingData:
+				for item in streamingData['formats']:
+					try:
+						min_timestamp = min(min_timestamp, int(item['lastModified']))
+					except:
+						pass
 		min_timestamp *= 1e-6
 
 		uploadDate1 = datetime.fromtimestamp(min_timestamp)
