@@ -24,6 +24,7 @@ def pages_playlists_list(rd, user):
 	if not rd.order in ['latest', 'oldest']:
 		abort(400, 'order must be one of latest,oldest')
 	query_obj = {}
+	rd.search_term = ''
 	if rd.search_term :
 		query_obj = {'$or':[{'title.english': {'$regex': rd.search_term}}, {'desc.english': {'$regex': rd.search_term}}]}
 	_, playlists = listPlaylists(rd.page - 1, rd.page_size, query_obj, rd.order)

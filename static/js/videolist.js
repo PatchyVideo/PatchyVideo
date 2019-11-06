@@ -12,6 +12,15 @@ function getMeta(id) {
     return $(`#${id}`).attr("content");
 }
 
+function onOrderChanged() {
+    query = $("#query").attr("content");
+    page = 1;
+    order = $("#select-order").val();
+    form = $(`<form style="display: none;" action="${window.location.href}" method="GET"><input style="display: none;" name="query" type="text" value="${query}" /><input style="display: none;" name="order" type="text" value="${order}" /><input name="page" type="text" value="${page}" /></form>`);
+    $("body").append(form);
+    form.submit();
+}
+
 function buildPageSelector(selected_page, page_count) {
     if (selected_page > page_count || page_count < 1)
         return null;

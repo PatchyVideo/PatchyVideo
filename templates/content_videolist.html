@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="{{ url_for('static',filename='js/generic.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/videolist.js') }}"></script>
     <style type="text/css"></style>
     <meta id="thumbnail-url" content="{{thumbnail_url}}">
     </meta>
@@ -79,11 +80,11 @@
             
             <div class="video-list-header">
                 <p>Showing {{videos|length}} out of {{count}} videos</p>
-                <select id="select-order">
-                    <option value="latest" selected="">Latest Post</option>
-                    <option value="oldest">Oldest Post</option>
-                    <option value="video_latest">Latest Upload</option>
-                    <option value="video_oldest">Oldest Upload</option>
+                <select id="select-order" onchange="javascript:onOrderChanged();">
+                    <option value="latest" {% if order == 'latest' %}selected=""{% endif %}>Latest Post</option>
+                    <option value="oldest" {% if order == 'oldest' %}selected=""{% endif %}>Oldest Post</option>
+                    <option value="video_latest" {% if order == 'video_latest' %}selected=""{% endif %}>Latest Upload</option>
+                    <option value="video_oldest" {% if order == 'video_oldest' %}selected=""{% endif %}>Oldest Upload</option>
                 </select> 
             </div>
         
