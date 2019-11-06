@@ -66,15 +66,18 @@ def _make_video_data(data, copies, playlists, url) :
 		'rating': -1.0
 	}
 
-def getAllcopies(vid, session) :
+def getAllcopies(vid, session, use_unique_id = False) :
 	if not vid :
 		return []
-	this_video = tagdb.retrive_item({"_id": ObjectId(vid)}, session = session)
+	if use_unique_id :
+		this_video = tagdb.retrive_item({"item.unique_id": vid}, session = session)
+	else :
+		this_video = tagdb.retrive_item({"_id": ObjectId(vid)}, session = session)
 	if this_video is None :
 		return []
 	copies = this_video['item']['copies']
 	# add self
-	copies.append(ObjectId(vid))
+	copies.append(ObjectId(this_video['_id']))
 	# use set to remove duplicated items
 	return list(set(copies))
 
@@ -92,8 +95,11 @@ def addThiscopy(dst_vid, this_vid, session):
 	dst_copies = list(set(dst_copies) - set([ObjectId(dst_vid)]))
 	tagdb.update_item_query(dst_vid, {"$set": {"item.copies": dst_copies}}, session = session)
 
-def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
-	print('Adding %s with copies %s to playlist %s' % (url, dst_copy or '<None>', dst_playlist or '<None>'))
+def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, other_copies, user):
+	if parsed is None :
+		print('Parse failed for %s' % url, file = sys.stderr)
+		return "PARSE_FAILED", {}
+	print('Adding %s with copies %s and %s to playlist %s' % (url, dst_copy or '<None>', other_copies or '<None>', dst_playlist or '<None>'), file = sys.stderr)
 	try :
 		ret = parsed.get_metadata(parsed, url)
 		if ret["status"] == 'FAILED' :
@@ -146,7 +152,7 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 
 				# this video already exist in the database
 				# if the operation is to add a link to other copies and not adding self
-				if dst_copy and dst_copy != conflicting_item['_id'] :
+				if (dst_copy and dst_copy != conflicting_item['_id']) or other_copies :
 					print('Adding to to copies', file = sys.stderr)
 					with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
 						print('Adding to to copies, lock acquired', file = sys.stderr)
@@ -154,6 +160,9 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 						all_copies = getAllcopies(dst_copy, session = s())
 						# find all videos linked to source video
 						all_copies += getAllcopies(conflicting_item['_id'], session = s())
+						# add videos from other copies
+						for uid in other_copies :
+							all_copies += getAllcopies(uid, session = s(), use_unique_id = True)
 						# remove duplicated items
 						all_copies = list(set(all_copies))
 						# add this video to all other copies found
@@ -185,13 +194,18 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, user):
 				return "SUCCEED", conflicting_item['_id']
 			else :
 				# expand dst_copy to all copies linked to dst_copy
-				if dst_copy :
+				if dst_copy or other_copies :
 					print('Adding to to copies', file = sys.stderr)
 					with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
 						print('Adding to to copies, lock acquired', file = sys.stderr)
 						all_copies = getAllcopies(dst_copy, session = s())
+						# add videos from other copies
+						for uid in other_copies :
+							all_copies += getAllcopies(uid, session = s(), use_unique_id = True)
 						new_item_id = tagdb.add_item(tags, _make_video_data(ret["data"], all_copies, playlists, url), makeUserMeta(user), session = s())
 						all_copies.append(ObjectId(new_item_id))
+						# remove duplicated items
+						all_copies = list(set(all_copies))
 						if len(all_copies) <= VideoConfig.MAX_COPIES :
 							for dst_vid in all_copies :
 								addThiscopy(dst_vid, all_copies, session = s())

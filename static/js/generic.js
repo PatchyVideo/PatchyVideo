@@ -38,6 +38,14 @@ function gotoPage(page) {
     form.submit();
 }
 
+function onOrderChanged() {
+    query = $("#query").attr("content");
+    order = $("#order").attr("content");
+    form = $(`<form style="display: none;" action="${window.location.href}" method="GET"><input style="display: none;" name="query" type="text" value="${query}" /><input style="display: none;" name="order" type="text" value="${order}" /><input name="page" type="text" value="${page}" /></form>`);
+    $("body").append(form);
+    form.submit();
+}
+
 function proxyResource(url, referrer = "", user_agent = "Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0") {
     url = encodeURI(url);
     if (referrer)
