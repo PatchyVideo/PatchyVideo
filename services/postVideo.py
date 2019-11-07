@@ -128,7 +128,7 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, other_copies,
 				Update existing video
 				"""
 				
-				
+				"""
 				if 'upload_time' not in conflicting_item['item'] or conflicting_item['item']['upload_time'] == '' or conflicting_item['item']['site'] == 'youtube':
 					print('Updating time', file = sys.stderr)
 					upload_time = ret['data']['uploadDate']
@@ -139,7 +139,6 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, other_copies,
 						print('SUCCEED', file = sys.stderr)
 						return 'SUCCEED', conflicting_item['_id']
 
-				"""
 				if conflicting_item['item']['site'] == 'nicovideo':
 					print('Updating desc', file = sys.stderr)
 					desc = ret['data']['desc']
