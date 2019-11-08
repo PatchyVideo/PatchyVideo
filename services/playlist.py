@@ -31,7 +31,7 @@ def createPlaylist(language, title, desc, cover, user) :
 	return str(pid.inserted_id)
 
 def createPlaylistFromSingleVideo(language, vid, user) :
-	video_obj = tagdb.retrive_item(vid)
+	video_obj = tagdb.retrive_item(ObjectId(vid))
 	if video_obj is None :
 		return "VIDEO_NOT_EXIST"
 	new_playlist_id = createPlaylist(language, video_obj['item']['title'], video_obj['item']['desc'], video_obj['item']['cover_image'], user)
@@ -130,7 +130,7 @@ def addVideoToPlaylist(pid, vid, user) :
 		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
 		playlists.append(ObjectId(pid))
 		playlists = list(set(playlists))
-		tagdb.update_item_query(vid, {'$set': {'item.series': playlists}}, session = s())
+		tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, session = s())
 		db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": playlist["videos"], "meta": makeUserMeta(user)}, session = s())
 		db.playlists.update_one({"_id": ObjectId(pid)}, {"$inc": {"videos": 1}}, session = s())
 		if user is not None :
@@ -233,7 +233,7 @@ def listAllPlaylistVideosUnordered(pid) :
 	if playlist is None :
 		return "PLAYLIST_NOT_EXIST", None, 0
 	ans_obj = db.playlist_items.find({"pid": ObjectId(pid)})
-	return "SUCCEED", [item['vid'] for item in ans_obj], playlist['videos']
+	return "SUCCEED", [ObjectId(item['vid']) for item in ans_obj], playlist['videos']
 
 def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
 	ans_obj = db.playlists.find(query)
@@ -494,7 +494,7 @@ def insertIntoPlaylist(pid, vid, rank, user) :
 		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
 		playlists.append(ObjectId(pid))
 		playlists = list(set(playlists))
-		tagdb.update_item_query(vid, {'$set': {'item.series': playlists}}, session = s())
+		tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, session = s())
 		db.playlists.update_one({"_id": ObjectId(pid)}, {"$inc": {"videos": 1}}, session = s())
 		db.playlist_items.update_many({'$and': [{'pid': ObjectId(pid)}, {'rank': {'$gte': rank}}]}, {'$inc': {'rank': 1}}, session = s())
 		db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": rank, "meta": makeUserMeta(user)}, session = s())

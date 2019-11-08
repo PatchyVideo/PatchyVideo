@@ -93,7 +93,7 @@ def addThiscopy(dst_vid, this_vid, session):
 	else :
 		dst_copies.append(ObjectId(this_vid))
 	dst_copies = list(set(dst_copies) - set([ObjectId(dst_vid)]))
-	tagdb.update_item_query(dst_vid, {"$set": {"item.copies": dst_copies}}, session = session)
+	tagdb.update_item_query(ObjectId(dst_vid), {"$set": {"item.copies": dst_copies}}, session = session)
 
 def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, other_copies, user):
 	if parsed is None :

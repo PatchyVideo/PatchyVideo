@@ -104,7 +104,7 @@ class TagDB():
 		return self.db.items.find(tag_query, session = session)
 
 	def retrive_item(self, tag_query_or_item_id, session = None):
-		if isinstance(tag_query_or_item_id, str) or isinstance(tag_query_or_item_id, ObjectId):
+		if isinstance(tag_query_or_item_id, ObjectId):
 			return self.db.items.find_one({'_id': ObjectId(tag_query_or_item_id)}, session = session)
 		else:
 			return self.db.items.find_one(tag_query_or_item_id, session = session)
@@ -163,7 +163,7 @@ class TagDB():
 		return 'SUCCEED'
 
 	def update_item_query(self, item_id_or_item_object, query, session = None):
-		if isinstance(item_id_or_item_object, str) or isinstance(item_id_or_item_object, ObjectId):
+		if isinstance(item_id_or_item_object, ObjectId):
 			item = self.db.items.find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
 			if item is None:
 				return 'ITEM_NOT_EXIST'
@@ -173,7 +173,7 @@ class TagDB():
 		return 'SUCCEED'
 
 	def update_item_tags(self, item_id_or_item_object, new_tags, user = '', session = None):
-		if isinstance(item_id_or_item_object, str) or isinstance(item_id_or_item_object, ObjectId):
+		if isinstance(item_id_or_item_object, ObjectId):
 			item = self.db.items.find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
 			if item is None:
 				return 'ITEM_NOT_EXIST'

@@ -31,7 +31,7 @@ def removeThisCopy(dst_vid, this_vid, session):
 		return
 	dst_copies = dst_video['item']['copies']
 	dst_copies = list(set(dst_copies) - set([ObjectId(this_vid)]))
-	tagdb.update_item_query(dst_vid, {"$set": {"item.copies": dst_copies}}, session)
+	tagdb.update_item_query(ObjectId(dst_vid), {"$set": {"item.copies": dst_copies}}, session)
 
 def breakLink(vid, user):
 	with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
@@ -39,7 +39,7 @@ def breakLink(vid, user):
 		if nodes :
 			for node in nodes :
 				removeThisCopy(node, vid, s())
-			tagdb.update_item_query(vid, {"$set": {"item.copies": []}}, s())
+			tagdb.update_item_query(ObjectId(vid), {"$set": {"item.copies": []}}, s())
 			s.mark_succeed()
 
 def syncTags(dst, src, user):
@@ -48,7 +48,7 @@ def syncTags(dst, src, user):
 		return "ITEM_NOT_EXIST"
 	src_tags = src_item['tags']
 	with redis_lock.Lock(rdb, "videoEdit:" + src_item["item"]["unique_id"]), MongoTransaction(client) as s:
-		ret = tagdb.update_item_tags_merge(dst, src_tags, user, s())
+		ret = tagdb.update_item_tags_merge(ObjectId(dst), src_tags, user, s())
 		if ret == 'SUCCEED':
 			s.mark_succeed()
 		return ret
