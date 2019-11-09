@@ -49,7 +49,7 @@ remove footer touhou copyright
 #get video upload date
 #search term like date:XXX
 #all query using GET
-!sort by video upload date
+#sort by video upload date
 #batch post as copies
 <!!HIGH PRIORITY!!> tag alias(as multi-language phase1)
 recover password
@@ -62,7 +62,6 @@ user sees his playlists
 #create playlist from a single video
 create playlist from current playlist but with videos from other site in "copies" field
 search playlist
-user subscript to playlists
 beautiful http error page
 add interactive admin shell
 unify naming convention for status code AND use exception to replace status code
@@ -74,6 +73,7 @@ deployment mode using GCI
 phase 3
 ======================
 tag rename
+user subscript to playlists
 user photo storing
 thumbnail for playlist
 full multi-language support

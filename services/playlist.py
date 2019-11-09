@@ -236,14 +236,41 @@ def listAllPlaylistVideosUnordered(pid) :
 	return "SUCCEED", [ObjectId(item['vid']) for item in ans_obj], playlist['videos']
 
 def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
-	ans_obj = db.playlists.find(query)
+	sort_obj = { "meta.created_at" : 1 }
 	if order == 'latest':
-		ans_obj = ans_obj.sort([("meta.created_at", 1)])
+		sort_obj = { "meta.created_at" : 1 }
 	if order == 'oldest':
-		ans_obj = ans_obj.sort([("meta.created_at", -1)])
+		sort_obj = { "meta.created_at" : -1 }
 	if order == 'views':
-		ans_obj = ans_obj.sort([("views", 1)])
-	return "SUCCEED", ans_obj.skip(page_idx * page_size).limit(page_size)
+		sort_obj = { "views" : 1 }
+	ans_obj = db.playlists.aggregate([
+	{
+		"$match" : query
+	},
+	{
+		"$lookup" : {
+			"from" : "users",
+			"localField" : "meta.created_by",
+			"foreignField" : "_id",
+			"as" : "user_detail"
+		}
+	},
+	{
+		"$unwind" : {
+			"path" : "$user_detail"
+		}
+	},
+	{
+		"$sort" : sort_obj
+	},
+	{
+		'$skip' : page_idx * page_size,
+	},
+	{
+		'$limit' : page_size
+	}])
+	
+	return "SUCCEED", ans_obj, db.playlists.find(query).count()
 
 def listCommonTags(pid) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})

@@ -222,7 +222,29 @@
         .Meta > li > p {
             color: #F80;
         }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
 
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 180px;
+            background-color: black;
+            color: #fff;
+            text-align: center;
+            border-radius: 2px;
+            padding: 5px 0;
+
+            /* Position the tooltip */
+            position: absolute;
+            z-index: 1;
+            top: 1em;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
     </style>
     <title>{{playlist_title}} - PatchyVideo</title>
 </head>
@@ -287,11 +309,36 @@
                             <h3 style="display: inline">{{vid.rank + 1}}</h3>
                         </span>
                         {% if playlist_editable %}
-                        <span><a class="operation" href="javascript:moveUp('{{vid._id}}');">[Move Up]</a></span>
-                        <span><a class="operation" href="javascript:moveDown('{{vid._id}}');">[Move Down]</a></span>
-                        <span><a class="operation" href="/list/{{playlist_id}}/insert?rank={{vid.rank}}">[Insert Video here]</a></span>
-                        <span><a class="operation" href="javascript:deleteVideo('{{vid._id}}');">[Delete]</a></span>
-                        <span><a class="operation" href="javascript:setCover('{{vid._id}}');">[Set Video Cover as Playlist Cover]</a></span>
+                        <span class="tooltip">
+                            <a class="operation" href="javascript:moveUp('{{vid._id}}');">
+                                <i class="fa fa-chevron-up" aria-hidden="true"></i>
+                            </a>
+                            <span class="tooltiptext">Move Video Up</span>
+                        </span>
+                        <span class="tooltip">
+                            <a class="operation" href="javascript:moveDown('{{vid._id}}');">
+                                <i class="fa fa-chevron-down" aria-hidden="true"></i>
+                            </a>
+                            <span class="tooltiptext">Move Video Down</span>
+                        </span>
+                        <span class="tooltip">
+                            <a class="operation" href="/list/{{playlist_id}}/insert?rank={{vid.rank}}">
+                                <i class="fa fa-plus" aria-hidden="true"></i>
+                            </a>
+                            <span class="tooltiptext">Insert Video Here</span>
+                        </span>
+                        <span class="tooltip">
+                            <a class="operation" href="javascript:deleteVideo('{{vid._id}}');">
+                                <i class="fa fa-times" aria-hidden="true"></i>
+                            </a>
+                            <span class="tooltiptext">Delete This Video</span>
+                        </span>
+                        <span class="tooltip">
+                            <a class="operation" href="javascript:setCover('{{vid._id}}');">
+                                <i class="fa fa-picture-o" aria-hidden="true"></i>
+                            </a>
+                            <span class="tooltiptext">Set Video Cover as Playlist Cover</span>
+                        </span>
                         {% endif %}
                     </div>
                     <div class="video-thumbnail">
@@ -303,8 +350,7 @@
                         {% endif %}
                     </div>
                     <div class="video-detail">
-                        <h4>{{vid.item.title}} <a href="/video?id={{vid._id}}">[Detail]</a>
-                        </h4>
+                        <h4><a href="/video?id={{vid._id}}">{{vid.item.title}}</a></h4>
                         <p>{{vid.item.desc}}</p>
                         <div>
                             <img src="{{ url_for('static',filename='img/' + vid.item.site + '.ico') }}" width="16px"></img>

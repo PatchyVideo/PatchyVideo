@@ -99,8 +99,7 @@
                     {% endif %}
                 </div>
                 <div class="video-detail">
-                    <h4>{{vid.item.title}} <a href="/video?id={{vid._id}}">[Detail]</a>
-                    </h4>
+                    <h4><a href="/video?id={{vid._id}}">{{vid.item.title}}</a></h4>
                     <p>{{vid.item.desc}}</p>
                     <div>
                         <img src="{{ url_for('static',filename='img/' + vid.item.site + '.ico') }}" width="16px"></img>

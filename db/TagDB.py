@@ -261,7 +261,7 @@ class TagDB():
 				if alias_obj is not None:
 					return 'ALIAS_EXIST'
 				self.db.alias.insert_one({'src': src_tag, 'dst': dst_tag, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session)
-				self.db.alias.update_many({'dst': src_tag}, {'dst': dst_tag, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session)
+				self.db.alias.update_many({'dst': src_tag}, {'$set': {'dst': dst_tag, 'meta': {'created_by': user, 'created_at': datetime.now()}}}, session = session)
 				self.db.items.update_many({'tags': {'$elemMatch': {'$eq': src_tag}}}, {'$set': {'tags.$': dst_tag, 'meta': {'created_by': user, 'created_at': datetime.now()}}}, session = session)
 				src_post_count = tag_obj_src['count']
 				self.db.tags.update_one({'_id': ObjectId(tag_obj_src)}, {'$set': {'count': 0}}, session = session)
