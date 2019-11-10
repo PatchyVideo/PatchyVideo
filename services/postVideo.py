@@ -96,6 +96,7 @@ def addThiscopy(dst_vid, this_vid, session):
 	tagdb.update_item_query(ObjectId(dst_vid), {"$set": {"item.copies": dst_copies}}, session = session)
 
 def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, other_copies, user):
+	tags = [tag.strip() for tag in tags]
 	if parsed is None :
 		print('Parse failed for %s' % url, file = sys.stderr)
 		return "PARSE_FAILED", {}
