@@ -23,6 +23,49 @@
         body {
             background:none;
         }
+        .m_a >ul >div{
+            font-size:1.5em;
+            color:white;
+            animation: neon2 1.5s ease-in-out infinite alternate;
+            /*  font-family:Iceland;*/
+        }
+        .m_a >ul >div:hover{
+            animation: neon2 1.5s ease-in-out infinite alternate;
+        }
+
+        .m_a >ul >div:hover{
+            color:#ffffff;
+        }
+        a{
+            text-decoration:none;
+            transition: all 0.5s;
+        }
+
+        @keyframes neon2 {
+            from {
+                text-shadow: 0 0 10px #fff,
+                0 0 20px  #fff,
+                0 0 30px  #fff,
+                0 0 40px  #228DFF,
+                0 0 70px  #228DFF,
+                0 0 80px  #228DFF,
+                0 0 100px #228DFF,
+                0 0 150px #228DFF;
+            }
+            to {
+                text-shadow: 0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 15px #fff,
+                0 0 20px #228DFF,
+                0 0 35px #228DFF,
+                0 0 40px #228DFF,
+                0 0 50px #228DFF,
+                0 0 75px #228DFF;
+            }
+        }
+
+
+
         .fa-close{
         text-decoration: none;
         outline: none;
@@ -53,9 +96,9 @@
         #tag{
         width: 1200px;
         height: 923px;
-        background:url("/static/img/Patchouli.jpg") no-repeat  ;
-
-        background-size: 1200px 923px;
+            background:url("/static/img/Patchouli.jpg") no-repeat  ;
+            background-size: 117% 100%;
+    /*    background-size: 1200px 923px;*/
         box-shadow:  0px 0px 5px crimson;
         /*  padding: 50px;*/
         text-align: center;
@@ -182,24 +225,24 @@
 
         .minibox:before{
         content: "";
-        position: absolute;
-        width: 100%;
-        height: 41%;
-        top: 57%;
-        left: 0%;
-        background: url("/static/img/Patchouli.jpg") no-repeat;
-        background-size: 1200px 923px;
-        filter: blur(98px);
+            position: absolute;
+            width: 100%;
+            height: 20%;
+            top: 68%;
+            left: -23%;
+            background: url(/static/img/Patchouli.jpg) no-repeat;
+            background-size: 1200px 923px;
+            filter: blur(86px);
         z-index: -2;
         }
         .m_bg:before{
         content: "";
         position: absolute;
-        width: 100%;
-        height: 40%;
-        top: 0%;
-        left: 0%;
-        background: url("/static/img/Patchouli.jpg") no-repeat;
+            width: 100%;
+            height: 28%;
+            top: -11%;
+            left: 25%;
+       background: url("/static/img/Patchouli.jpg") no-repeat;
         background-size: 1200px 923px;
         filter: blur(100px);
         z-index: -2;
@@ -241,9 +284,146 @@
             z-index: 1;
             top: 1em;
         }
+        .list-item{
+
+            padding: 20px;
+            display: flex;
+            margin:10px 0px;
+        }
+        .list-item:hover{
+            background-color: white;
+            opacity: 0.8;
+        }
+        .edit{
+            width: 15%;
+            height: 100px;
+            display: block;
+
+        }
+        .item_content{
+            width: 75%;
+        }
+        .item_end {
+            width: 10%;
+
+            font-size: 30px;
+
+        }
+        .edit, .item_content{
+
+            position: relative;
+
+        }
+        #edit_first{
+
+            position: relative;
+            top: 30%;
+            padding-right: 30px;
+            display: inline;
+        }
+        #edit_second,.item_end{
+            position: relative;
+        }
+
+        .item_end{
+            top: -15px;
+            right: -15px;
+        }
+        .item_end i{
+            transition: all .6s ease;
+        }
+        #edit_second i:nth-child(1){
+            font-size: 40px;
+            color:#808080;
+            transition: all .6s ease;
+            position: absolute;
+            top:-20px
+        }
+        .video-detail a{
+            transition: all .4s ease;
+        }
+
+        #edit_second i:nth-child(2){
+            display: inline-block;
+            padding-top: 20px;
+            font-size: 40px;
+            color:#808080;
+
+            transition: all .6s ease;
+            position: absolute;
+            top:50px
+        }
+        #edit_second i:nth-child(2)::before{
+
+            background-color: greenyellow;
+            line-height: 0px;
+            display: block;
+
+        }
+
+        #edit_second i:nth-child(1):hover, #edit_second i:nth-child(2):hover,.item_end i:hover{
+            color: white;
+            text-shadow: 0 0 5px #fff,
+            0 0 10px #fff,
+            0 0 20px #228DFF,
+            0 0 40px #228DFF;
+        }
+
 
         .tooltip:hover .tooltiptext {
             visibility: visible;
+        }
+
+
+        .content_ul{
+            display: flex;
+           flex-wrap: wrap;
+        }
+       .video-detail>h4{
+           height: 24%;
+           overflow: hidden;
+           margin-bottom: 2%;
+       }
+
+        .video-detail > p{
+            height: 34%;
+            margin: 2px;
+        }
+        .content_ul li{
+            width: 46.8%;
+
+        }
+#insert{
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    color: white;
+    border:3px solid #006D88;
+    text-shadow: 0 0 5px #fff,
+    0 0 10px #fff,
+    0 0 20px #228DFF,
+    0 0 40px #228DFF;
+    text-align: center;
+    background-color: black;
+    position: absolute;
+    left: 46%;
+    top: -33%;
+    z-index: 1;
+    font-size: 25px;
+    transition: all .3s ease;
+}
+.edit h1{
+    color: cornflowerblue;
+    font-weight: normal;
+}
+        #insert:hover{
+
+            border:4px solid #006D88;
+            text-align: center;
+
+        }
+        .content_ul li:nth-child(odd){
+            margin-right: 1.2%;
         }
     </style>
     <title>{{playlist_title}} - PatchyVideo</title>
@@ -286,6 +466,7 @@
     </div>
     <div class="w">
         <div class="content">
+
             <div class="deemo shadow">
                 <div class="d_t">
                     <h2>{{playlist_title}}</h2>
@@ -301,14 +482,21 @@
                     <p style="white-space: pre-wrap;">{{playlist_desc}}</p>
                 </div>
             </div>
-            <ul>
+            <ul class="content_ul">
                 {% for vid in videos %}
-                <li class="list-item">
-                    <div>
-                        <span>
-                            <h3 style="display: inline">{{vid.rank + 1}}</h3>
+                <li class="list-item shadow">
+
+                    <div class="edit">
+                        <h1 id="edit_first">{{vid.rank + 1}}</h1>
+                        <span id="edit_second">
+                            <i class="fa fa-arrow-up" aria-hidden="true"></i>
+                            <i class="fa fa-arrow-down" aria-hidden="true"></i>
+
                         </span>
-                        {% if playlist_editable %}
+                        <!--      <span>
+                        <h3 style="display: inline">{{vid.rank + 1}}</h3>
+                        </span>-->
+              <!--          {% if playlist_editable %}
                         <span class="tooltip">
                             <a class="operation" href="javascript:moveUp('{{vid._id}}');">
                                 <i class="fa fa-chevron-up" aria-hidden="true"></i>
@@ -339,29 +527,41 @@
                             </a>
                             <span class="tooltiptext">Set Video Cover as Playlist Cover</span>
                         </span>
-                        {% endif %}
+                        {% endif %}-->
                     </div>
-                    <div class="video-thumbnail">
-                        {% if vid.item.cover_image|length == 0 %}
-                        <img src="/proxy?url={{vid.item.thumbnail_url}}&amp;header=%7B%22User-Agent%22:%22Mozilla/5.0%20(X11;%20Ubuntu;%20Linu%E2%80%A6)%20Gecko/20100101%20Firefox/65.0%22%7D"
-                            width="160px" height="100px">
-                        {% else %}
-                        <img src="/images/covers/{{vid.item.cover_image}}" width="160px" height="100px">
-                        {% endif %}
-                    </div>
-                    <div class="video-detail">
-                        <h4><a href="/video?id={{vid._id}}">{{vid.item.title}}</a></h4>
-                        <p>{{vid.item.desc}}</p>
-                        <div>
-                            <img src="{{ url_for('static',filename='img/' + vid.item.site + '.ico') }}" width="16px"></img>
-                            <a href="{{vid.item.url}}" id="link_{{vid._id}}">{{vid.item.url}}</a>
-                            <i onclick="javascript:copyToClipboard($('#link_{{vid._id}}'));" class="fa fa-copy fa-lg"></i>
+                    <div class="item_content">
+
+                        <div id="insert">
+                            <i class="fa fa fa-plus" aria-hidden="true"></i>
                         </div>
-                        <style>
-                            .fa-copy:hover {
-                                color:olive;
-                            }
-                        </style>
+                  <div class="video-thumbnail">
+                      {% if vid.item.cover_image|length == 0 %}
+                      <img src="/proxy?url={{vid.item.thumbnail_url}}&amp;header=%7B%22User-Agent%22:%22Mozilla/5.0%20(X11;%20Ubuntu;%20Linu%E2%80%A6)%20Gecko/20100101%20Firefox/65.0%22%7D"
+                           width="160px" height="100px">
+                      {% else %}
+                      <img src="/images/covers/{{vid.item.cover_image}}" width="160px" height="100px">
+                      {% endif %}
+                  </div>
+                  <div class="video-detail">
+                      <h4><a href="/video?id={{vid._id}}">{{vid.item.title}}</a></h4>
+                      <p>{{vid.item.desc}}</p>
+                      <div>
+                          <img src="{{ url_for('static',filename='img/' + vid.item.site + '.ico') }}" width="16px"></img>
+                          <a href="{{vid.item.url}}" id="link_{{vid._id}}">{{vid.item.url}}</a>
+                          <i onclick="javascript:copyToClipboard($('#link_{{vid._id}}'));" class="fa fa-copy fa-lg"></i>
+                      </div>
+                      <style>
+                          .fa-copy:hover {
+                              color:olive;
+                          }
+                      </style>
+                  </div>
+              </div>
+
+                    <div class="item_end">
+                        <i class="fa fa-picture-o" aria-hidden="true"></i>
+                        <i class="fa fa-times" aria-hidden="true"></i>
+
                     </div>
                 </li>
                 {% endfor %}
