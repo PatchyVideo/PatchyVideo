@@ -75,6 +75,9 @@ if USE_RQ :
 		cleanURL_objs = []
 		unique_ids = []
 		for url in data.videos :
+			url = url.strip()
+			if not url:
+				continue
 			obj, cleanURL = dispatch(url)
 			cleanURL_objs.append((obj, cleanURL))
 			if obj is not None :
@@ -151,6 +154,9 @@ else :
 		cleanURL_objs = []
 		unique_ids = []
 		for url in data.videos :
+			url = url.strip()
+			if not url:
+				continue
 			obj, cleanURL = dispatch(url)
 			cleanURL_objs.append((obj, cleanURL))
 			if obj is not None :
