@@ -272,6 +272,7 @@
 
         .tooltip .tooltiptext {
             visibility: hidden;
+			
             width: 180px;
             background-color: black;
             color: #fff;
@@ -281,8 +282,13 @@
 
             /* Position the tooltip */
             position: absolute;
-            z-index: 1;
-            top: 1em;
+            z-index: 999;
+			display: block;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+			font-size: large;
+			display: block;
         }
         .list-item{
 
@@ -370,9 +376,6 @@
         }
 
 
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-        }
 
 
         .content_ul{
@@ -424,6 +427,13 @@
         }
         .content_ul li:nth-child(odd){
             margin-right: 1.2%;
+        }
+
+        .item_end i:nth-child(3){
+            position: absolute;
+            bottom: -13px;
+            right: 80px;
+            font-size: 20px;
         }
     </style>
     <title>{{playlist_title}} - PatchyVideo</title>
@@ -485,12 +495,14 @@
             <ul class="content_ul">
                 {% for vid in videos %}
                 <li class="list-item shadow">
-
                     <div class="edit">
                         <h1 id="edit_first">{{vid.rank + 1}}</h1>
                         <span id="edit_second">
-                            <i class="fa fa-arrow-up" aria-hidden="true"></i>
-                            <i class="fa fa-arrow-down" aria-hidden="true"></i>
+								{% if playlist_editable %}
+								<i class="fa fa-chevron-up" aria-hidden="true"></i>
+								<i class="fa fa-chevron-down" aria-hidden="true"></i>
+								{% endif %}
+								
 
                         </span>
                         <!--      <span>
@@ -528,12 +540,18 @@
                             <span class="tooltiptext">Set Video Cover as Playlist Cover</span>
                         </span>
                         {% endif %}-->
-                    </div>
+					</div>
                     <div class="item_content">
-
+							{% if playlist_editable %}
                         <div id="insert">
-                            <i class="fa fa fa-plus" aria-hidden="true"></i>
-                        </div>
+								<div class="tooltip">
+										<a class="operation" href="/list/{{playlist_id}}/insert?rank={{vid.rank}}">
+											<i class="fa fa-plus" aria-hidden="true"></i>
+										</a>
+										<span class="tooltiptext">Insert Video Here</span>
+									</div>
+						</div>
+						{% endif %}
                   <div class="video-thumbnail">
                       {% if vid.item.cover_image|length == 0 %}
                       <img src="/proxy?url={{vid.item.thumbnail_url}}&amp;header=%7B%22User-Agent%22:%22Mozilla/5.0%20(X11;%20Ubuntu;%20Linu%E2%80%A6)%20Gecko/20100101%20Firefox/65.0%22%7D"
@@ -545,10 +563,10 @@
                   <div class="video-detail">
                       <h4><a href="/video?id={{vid._id}}">{{vid.item.title}}</a></h4>
                       <p>{{vid.item.desc}}</p>
-                      <div>
+                      <div style="overflow: hidden; white-space: nowrap;">
                           <img src="{{ url_for('static',filename='img/' + vid.item.site + '.ico') }}" width="16px"></img>
                           <a href="{{vid.item.url}}" id="link_{{vid._id}}">{{vid.item.url}}</a>
-                          <i onclick="javascript:copyToClipboard($('#link_{{vid._id}}'));" class="fa fa-copy fa-lg"></i>
+                          <i onclick="javascript:copyToClipboard($('#link_{{vid._id}}'));" style="" class="fa fa-copy fa-lg"></i>
                       </div>
                       <style>
                           .fa-copy:hover {
@@ -559,8 +577,20 @@
               </div>
 
                     <div class="item_end">
-                        <i class="fa fa-picture-o" aria-hidden="true"></i>
-                        <i class="fa fa-times" aria-hidden="true"></i>
+							{% if playlist_editable %}
+						<div class="tooltip">
+							<a class="operation" href="javascript:setCover('{{vid._id}}');">
+								<i class="fa fa-picture-o" aria-hidden="true"></i>
+							</a>
+							<span class="tooltiptext">Set Video Cover as Playlist Cover</span>
+						</div>
+                        <div class="tooltip">
+							<a class="operation" href="javascript:deleteVideo('{{vid._id}}');">
+								<i class="fa fa-times" aria-hidden="true"></i>
+							</a>
+							<span class="tooltiptext">Delete This Video</span>
+						</div>
+						{% endif %}
 
                     </div>
                 </li>
