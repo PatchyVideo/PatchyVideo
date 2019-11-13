@@ -265,12 +265,16 @@
         .Meta > li > p {
             color: #F80;
         }
-        .tooltip {
+       #edit_second .tooltip:nth-child(1){
+             position: relative;
+             top: 0px;
+         }
+        #edit_second .tooltip:nth-child(2){
             position: relative;
-            display: inline-block;
+            bottom: -70px;
         }
-
-        .tooltip .tooltiptext {
+        .tooltiptext {
+            font-size: 18px;
             visibility: hidden;
 			
             width: 180px;
@@ -279,16 +283,10 @@
             text-align: center;
             border-radius: 2px;
             padding: 5px 0;
-
             /* Position the tooltip */
             position: absolute;
-            z-index: 999;
-			display: block;
-        }
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-			font-size: large;
-			display: block;
+            z-index: 99;
+            top: 1em;
         }
         .list-item{
 
@@ -298,7 +296,7 @@
         }
         .list-item:hover{
             background-color: white;
-            opacity: 0.8;
+
         }
         .edit{
             width: 15%;
@@ -337,6 +335,12 @@
         }
         .item_end i{
             transition: all .6s ease;
+        }
+        .item_end i:nth-child(3){
+            position: absolute;
+            bottom: -13px;
+            right: 80px;
+            font-size: 20px;
         }
         #edit_second i:nth-child(1){
             font-size: 40px;
@@ -377,6 +381,16 @@
 
 
 
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            text-shadow: 0 0 5px #fff,
+            0 0 10px #fff,
+            0 0 20px #228DFF,
+            0 0 40px #228DFF,
+            0 0 60px #228DFF,
+            0 0 80px #228DFF;
+        }
+
 
         .content_ul{
             display: flex;
@@ -396,7 +410,7 @@
             width: 46.8%;
 
         }
-#insert{
+#insert i{
     width: 25px;
     height: 25px;
     border-radius: 50%;
@@ -415,13 +429,21 @@
     font-size: 25px;
     transition: all .3s ease;
 }
+.video-detail div{
+    height: 20%;
+    overflow: hidden;
+}
 .edit h1{
     color: cornflowerblue;
     font-weight: normal;
 }
         #insert:hover{
-
-            border:4px solid #006D88;
+            text-shadow: 0 0 5px #fff,
+            0 0 10px #fff,
+            0 0 20px #228DFF,
+            0 0 40px #228DFF,
+            0 0 60px #228DFF,
+            0 0 80px #228DFF;
             text-align: center;
 
         }
@@ -498,29 +520,28 @@
                     <div class="edit">
                         <h1 id="edit_first">{{vid.rank + 1}}</h1>
                         <span id="edit_second">
-								{% if playlist_editable %}
-								<i class="fa fa-chevron-up" aria-hidden="true"></i>
-								<i class="fa fa-chevron-down" aria-hidden="true"></i>
-								{% endif %}
-								
 
+                            <span class="tooltip">
+                            <a class="operation" href="javascript:moveUp('{{vid._id}}');">
+                              <i class="fa fa-arrow-up" aria-hidden="true"></i>
+                            </a>
+                            <span class="tooltiptext">Move Video Up</span>
+                           </span>
+
+     <span class="tooltip">
+                             <a class="operation" href="javascript:moveDown('{{vid._id}}');">
+                                     <i class="fa fa-arrow-down" aria-hidden="true"></i>
+                            </a>
+                         <span class="tooltiptext">Move Video Down</span>
+                           </span>
                         </span>
+
+
                         <!--      <span>
                         <h3 style="display: inline">{{vid.rank + 1}}</h3>
                         </span>-->
               <!--          {% if playlist_editable %}
-                        <span class="tooltip">
-                            <a class="operation" href="javascript:moveUp('{{vid._id}}');">
-                                <i class="fa fa-chevron-up" aria-hidden="true"></i>
-                            </a>
-                            <span class="tooltiptext">Move Video Up</span>
-                        </span>
-                        <span class="tooltip">
-                            <a class="operation" href="javascript:moveDown('{{vid._id}}');">
-                                <i class="fa fa-chevron-down" aria-hidden="true"></i>
-                            </a>
-                            <span class="tooltiptext">Move Video Down</span>
-                        </span>
+
                         <span class="tooltip">
                             <a class="operation" href="/list/{{playlist_id}}/insert?rank={{vid.rank}}">
                                 <i class="fa fa-plus" aria-hidden="true"></i>
@@ -544,14 +565,13 @@
                     <div class="item_content">
 							{% if playlist_editable %}
                         <div id="insert">
-								<div class="tooltip">
-										<a class="operation" href="/list/{{playlist_id}}/insert?rank={{vid.rank}}">
-											<i class="fa fa-plus" aria-hidden="true"></i>
-										</a>
-										<span class="tooltiptext">Insert Video Here</span>
-									</div>
-						</div>
-						{% endif %}
+                                 <span class="tooltip">
+                            <a class="operation" href="/list/{{playlist_id}}/insert?rank={{vid.rank}}">
+                                 <i class="fa fa fa-plus" aria-hidden="true"></i>
+                            </a>
+                            <span class="tooltiptext">Insert Video Here</span>
+
+                        </div>
                   <div class="video-thumbnail">
                       {% if vid.item.cover_image|length == 0 %}
                       <img src="/proxy?url={{vid.item.thumbnail_url}}&amp;header=%7B%22User-Agent%22:%22Mozilla/5.0%20(X11;%20Ubuntu;%20Linu%E2%80%A6)%20Gecko/20100101%20Firefox/65.0%22%7D"
@@ -566,7 +586,6 @@
                       <div style="overflow: hidden; white-space: nowrap;">
                           <img src="{{ url_for('static',filename='img/' + vid.item.site + '.ico') }}" width="16px"></img>
                           <a href="{{vid.item.url}}" id="link_{{vid._id}}">{{vid.item.url}}</a>
-                          <i onclick="javascript:copyToClipboard($('#link_{{vid._id}}'));" style="" class="fa fa-copy fa-lg"></i>
                       </div>
                       <style>
                           .fa-copy:hover {
@@ -577,22 +596,26 @@
               </div>
 
                     <div class="item_end">
-							{% if playlist_editable %}
-						<div class="tooltip">
-							<a class="operation" href="javascript:setCover('{{vid._id}}');">
-								<i class="fa fa-picture-o" aria-hidden="true"></i>
-							</a>
-							<span class="tooltiptext">Set Video Cover as Playlist Cover</span>
-						</div>
-                        <div class="tooltip">
-							<a class="operation" href="javascript:deleteVideo('{{vid._id}}');">
-								<i class="fa fa-times" aria-hidden="true"></i>
-							</a>
-							<span class="tooltiptext">Delete This Video</span>
-						</div>
-						{% endif %}
 
+   <span class="tooltip">
+                            <a class="operation" href="javascript:setCover('{{vid._id}}');">
+                                    <i class="fa fa-picture-o" aria-hidden="true"></i>
+                            </a>
+                            <span class="tooltiptext">Set Video Cover as Playlist Cover</span>
+                        </span>
+
+
+
+                        <span class="tooltip">
+                            <a class="operation" href="javascript:deleteVideo('{{vid._id}}');">
+                            <i class="fa fa-times" aria-hidden="true"></i>
+                            </a>
+                            <span class="tooltiptext">Delete This Video</span>
+                        </span>
+
+                        <i onclick="javascript:copyToClipboard($('#link_{{vid._id}}'));" class="fa fa-copy fa-lg"></i>
                     </div>
+
                 </li>
                 {% endfor %}
             </ul>
