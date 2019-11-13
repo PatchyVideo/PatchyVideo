@@ -521,6 +521,7 @@
                         <h1 id="edit_first">{{vid.rank + 1}}</h1>
                         <span id="edit_second">
 
+								{% if playlist_editable %}
                             <span class="tooltip">
                             <a class="operation" href="javascript:moveUp('{{vid._id}}');">
                               <i class="fa fa-arrow-up" aria-hidden="true"></i>
@@ -533,7 +534,8 @@
                                      <i class="fa fa-arrow-down" aria-hidden="true"></i>
                             </a>
                          <span class="tooltiptext">Move Video Down</span>
-                           </span>
+						   </span>
+						   {% endif %}
                         </span>
 
 
@@ -571,7 +573,8 @@
                             </a>
                             <span class="tooltiptext">Insert Video Here</span>
 
-                        </div>
+						</div>
+						{% endif %}
                   <div class="video-thumbnail">
                       {% if vid.item.cover_image|length == 0 %}
                       <img src="/proxy?url={{vid.item.thumbnail_url}}&amp;header=%7B%22User-Agent%22:%22Mozilla/5.0%20(X11;%20Ubuntu;%20Linu%E2%80%A6)%20Gecko/20100101%20Firefox/65.0%22%7D"
@@ -597,7 +600,8 @@
 
                     <div class="item_end">
 
-   <span class="tooltip">
+							
+   <span class="tooltip" style="{% if not playlist_editable %}display: none;{% endif %}">
                             <a class="operation" href="javascript:setCover('{{vid._id}}');">
                                     <i class="fa fa-picture-o" aria-hidden="true"></i>
                             </a>
@@ -606,12 +610,13 @@
 
 
 
-                        <span class="tooltip">
+                        <span class="tooltip"  style="{% if not playlist_editable %}display: none;{% endif %}">
                             <a class="operation" href="javascript:deleteVideo('{{vid._id}}');">
                             <i class="fa fa-times" aria-hidden="true"></i>
                             </a>
                             <span class="tooltiptext">Delete This Video</span>
-                        </span>
+						</span>
+						
 
                         <i onclick="javascript:copyToClipboard($('#link_{{vid._id}}'));" class="fa fa-copy fa-lg"></i>
                     </div>
