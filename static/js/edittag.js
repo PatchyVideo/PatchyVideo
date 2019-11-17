@@ -90,9 +90,18 @@ function gotoPage(category, page) {
         table_obj.append(tr);
         result.data.tags.forEach(element => {
             if (element.meta.created_by.$oid == USER_ID && element.count == 0) {
-                tr = $(`<tr class="table-content"><td class="col-1">${element.count}</td><td><a href="/search?query=${element.tag}">${element.tag}</a>
-                <a class="tag-operation" href="javascript:removeTag('${element.tag}', '${category}');">Remove</a>
-                </tr>`);
+                if (isEmpty(element.dst))
+                {
+                    tr = $(`<tr class="table-content"><td class="col-1">${element.count}</td><td><a href="/search?query=${element.tag}">${element.tag}</a>
+                    <a class="tag-operation" href="javascript:removeTag('${element.tag}', '${category}');">Remove</a>
+                    </tr>`);
+                } else {
+                    tr = $(`<tr class="table-content"><td class="col-1">-</td><td>
+                    ${element.tag}<span> -> </span>
+                    <a href="/search?query=${element.dst}">${element.dst}</a>
+                    <a class="tag-operation" href="javascript:removeTag('${element.tag}', '${category}');">Remove</a>
+                    </tr>`);
+                }
             } else {
                 tr = $(`<tr class="table-content"><td class="col-1">${element.count}</td><td><a href="/search?query=${element.tag}">${element.tag}</a></td></tr>`);
             }

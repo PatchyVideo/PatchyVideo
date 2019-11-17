@@ -9,6 +9,7 @@ from config import VideoConfig
 
 def editVideoTags(vid, tags, user):
     tags = list(set(tags))
+    tags = tagdb.translate_tags(tags)
     item = tagdb.db.items.find_one({'_id': ObjectId(vid)})
     if item is None:
         return 'ITEM_NOT_EXIST'

@@ -68,6 +68,7 @@ class PopularityTracker(object) :
 		#print(current_bin)
 		current_bin_tags = list(current_bin.keys())
 		current_bin_tags = tagdb.filter_tags(current_bin_tags)
+		current_bin_tags = tagdb.translate_tags(current_bin_tags)
 		current_bin = {tag: current_bin[tag] for tag in current_bin_tags}
 		current_hitmap = Counter(current_bin)
 		all_hitmap = all_hitmap + current_hitmap

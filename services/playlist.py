@@ -130,7 +130,7 @@ def addVideoToPlaylist(pid, vid, user) :
 		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
 		playlists.append(ObjectId(pid))
 		playlists = list(set(playlists))
-		tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, session = s())
+		tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, makeUserMeta(user), session = s())
 		db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": playlist["videos"], "meta": makeUserMeta(user)}, session = s())
 		db.playlists.update_one({"_id": ObjectId(pid)}, {"$inc": {"videos": 1}}, session = s())
 		if user is not None :
@@ -350,6 +350,7 @@ def updateCommonTags(pid, tags, user) :
 		new_tags_set = set(tags)
 		tags_added = list((old_tags_set ^ new_tags_set) - old_tags_set)
 		tags_added = tagdb.filter_tags(tags_added)
+		tags_added = tagdb.translate_tags(tags_added)
 		tags_to_remove = list((old_tags_set ^ new_tags_set) - new_tags_set)
 		if len(tags_added) - len(tags_to_remove) > PlaylistConfig.MAX_COMMON_TAGS :
 			return 'TOO_MANY_TAGS'
@@ -521,7 +522,7 @@ def insertIntoPlaylist(pid, vid, rank, user) :
 		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
 		playlists.append(ObjectId(pid))
 		playlists = list(set(playlists))
-		tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, session = s())
+		tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, makeUserMeta(user), session = s())
 		db.playlists.update_one({"_id": ObjectId(pid)}, {"$inc": {"videos": 1}}, session = s())
 		db.playlist_items.update_many({'$and': [{'pid': ObjectId(pid)}, {'rank': {'$gte': rank}}]}, {'$inc': {'rank': 1}}, session = s())
 		db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": rank, "meta": makeUserMeta(user)}, session = s())

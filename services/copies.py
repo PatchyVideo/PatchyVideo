@@ -23,7 +23,7 @@ def getAllCopies(vid) :
 	# use set to remove duplicated items
 	return list(set(copies))
 
-def removeThisCopy(dst_vid, this_vid, session):
+def _removeThisCopy(dst_vid, this_vid, user, session):
 	if this_vid is None :
 		return
 	dst_video = tagdb.retrive_item({"_id": ObjectId(dst_vid)}, session)
@@ -31,19 +31,20 @@ def removeThisCopy(dst_vid, this_vid, session):
 		return
 	dst_copies = dst_video['item']['copies']
 	dst_copies = list(set(dst_copies) - set([ObjectId(this_vid)]))
-	tagdb.update_item_query(ObjectId(dst_vid), {"$set": {"item.copies": dst_copies}}, session)
+	tagdb.update_item_query(ObjectId(dst_vid), {"$set": {"item.copies": dst_copies}}, user, session)
 
 def breakLink(vid, user):
 	with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
 		nodes = getAllCopies(vid)
 		if nodes :
 			for node in nodes :
-				removeThisCopy(node, vid, s())
-			tagdb.update_item_query(ObjectId(vid), {"$set": {"item.copies": []}}, s())
+				_removeThisCopy(node, vid, makeUserMeta(user), s())
+			tagdb.update_item_query(ObjectId(vid), {"$set": {"item.copies": []}}, makeUserMeta(user), s())
 			s.mark_succeed()
 
 def syncTags(dst, src, user):
 	src_item = tagdb.retrive_item({"_id": ObjectId(src)})
+	# BUG: race condition with tag editing
 	if src_item is None:
 		return "ITEM_NOT_EXIST"
 	src_tags = src_item['tags']

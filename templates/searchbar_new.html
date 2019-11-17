@@ -1,4 +1,5 @@
 <li id="s1">
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <form id="search-bar" action="/search" method="GET">
     <select class="form_select">
         <option value="0">Tags</option>
@@ -6,4 +7,38 @@
     <input id="search-bar-query" name="query" type="text" placeholder="Search" value="{{query}}">
     <input id="search-bar-submit" type="submit" value="Search">
 </form>
+<script>
+$( function() {
+    var availableTags = [
+    "ActionScript",
+    "AppleScript",
+    "Asp",
+    "BASIC",
+    "C",
+    "C++",
+    "Clojure",
+    "COBOL",
+    "ColdFusion",
+    "Erlang",
+    "Fortran",
+    "Groovy",
+    "Haskell",
+    "Java",
+    "JavaScript",
+    "Lisp",
+    "Perl",
+    "PHP",
+    "Python",
+    "Ruby",
+    "Scala",
+    "Scheme"
+    ];
+    $( "#search-bar-query" ).autocomplete({
+        source: availableTags,
+        delay: 0,
+        minLength: 2,
+        multiple: true
+    });
+} );
+</script>
 </li>

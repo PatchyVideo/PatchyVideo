@@ -81,7 +81,7 @@ def getAllcopies(vid, session, use_unique_id = False) :
 	# use set to remove duplicated items
 	return list(set(copies))
 
-def addThiscopy(dst_vid, this_vid, session):
+def addThiscopy(dst_vid, this_vid, user, session):
 	if this_vid is None :
 		return
 	dst_video = tagdb.retrive_item({"_id": ObjectId(dst_vid)}, session = session)
@@ -93,10 +93,11 @@ def addThiscopy(dst_vid, this_vid, session):
 	else :
 		dst_copies.append(ObjectId(this_vid))
 	dst_copies = list(set(dst_copies) - set([ObjectId(dst_vid)]))
-	tagdb.update_item_query(ObjectId(dst_vid), {"$set": {"item.copies": dst_copies}}, session = session)
+	tagdb.update_item_query(ObjectId(dst_vid), {"$set": {"item.copies": dst_copies}}, user, session = session)
 
 def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, other_copies, user):
 	tags = [tag.strip() for tag in tags]
+	tags = tagdb.translate_tags(tags)
 	if parsed is None :
 		print('Parse failed for %s' % url, file = sys.stderr)
 		return "PARSE_FAILED", {}
@@ -134,7 +135,7 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, other_copies,
 					print('Updating time', file = sys.stderr)
 					upload_time = ret['data']['uploadDate']
 					with MongoTransaction(client) as s :
-						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item.upload_time': upload_time}}, session = s())
+						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item.upload_time': upload_time}}, makeUserMeta(user), session = s())
 						s.mark_succeed()
 					if not tags :
 						print('SUCCEED', file = sys.stderr)
@@ -144,7 +145,7 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, other_copies,
 					print('Updating desc', file = sys.stderr)
 					desc = ret['data']['desc']
 					with MongoTransaction(client) as s :
-						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item.desc': desc}}, session = s())
+						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item.desc': desc}}, makeUserMeta(user), session = s())
 						s.mark_succeed()
 					if not tags :
 						print('SUCCEED', file = sys.stderr)
@@ -169,7 +170,7 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, other_copies,
 						# add this video to all other copies found
 						if len(all_copies) <= VideoConfig.MAX_COPIES :
 							for dst_vid in all_copies :
-								addThiscopy(dst_vid, all_copies, session = s())
+								addThiscopy(dst_vid, all_copies, makeUserMeta(user), session = s())
 							print('Successfully added to copies', file = sys.stderr)
 							s.mark_succeed()
 						else :
@@ -209,7 +210,7 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, other_copies,
 						all_copies = list(set(all_copies))
 						if len(all_copies) <= VideoConfig.MAX_COPIES :
 							for dst_vid in all_copies :
-								addThiscopy(dst_vid, all_copies, session = s())
+								addThiscopy(dst_vid, all_copies, makeUserMeta(user), session = s())
 							print('Successfully added to copies', file = sys.stderr)
 							s.mark_succeed()
 						else :
