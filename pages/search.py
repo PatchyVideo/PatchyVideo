@@ -3,7 +3,7 @@ import time
 
 from flask import render_template, request, jsonify, redirect, session
 
-from main import app
+from init import app
 from utils.interceptors import loginOptional
 from utils.html import buildPageSelector
 from utils.tagtools import getTagColor

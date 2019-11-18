@@ -5,7 +5,7 @@ import urllib
 
 from flask import render_template, request, jsonify, redirect, session
 
-from main import app
+from init import app
 from utils.interceptors import loginOptional, loginRequired
 
 from services.user import require_session, logout, query_user

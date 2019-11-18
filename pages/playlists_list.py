@@ -3,7 +3,7 @@ import time
 
 from flask import render_template, request, jsonify, redirect, session, abort
 
-from main import app
+from init import app
 from utils.interceptors import loginOptional, loginRequired
 from utils.html import buildPageSelector
 from services.playlist import *
