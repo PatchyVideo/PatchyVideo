@@ -1,36 +1,65 @@
 version: '3'
 services:
   web:
-    build: .
     image: patchyvideo
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
     depends_on:
       - db
       - redis
       - spider
+      - autocomplete
     environment:
       - FLASK_ENV=production
+      - FLASK_DEBUG=1
       - REDISTOGO_URL_WORKER=redis://redis:6379
       - REDISTOGO_URL=redis
-      - MONGODB_URL=mongodb://db:27017/patchyvideo
+      - MONGODB_URL=mongodb://db:27017/
       - IMAGE_PATH=/var/www/images
       - ENABLE_TRANSACTION=true
+    volumes:
+      - "/var/www/logs:/logs"
   spider:
     image: patchyvideo
     command: python worker.py
     depends_on:
       - redis
-    environments:
+    environment:
       - FLASK_ENV=production
+      - FLASK_DEBUG=1
       - REDISTOGO_URL_WORKER=redis://redis:6379
-      - IMAGE_PATH=/var/www/images
-      - MONGODB_URL=mongodb://db:27017/patchyvideo
+      - IMAGE_PATH=/images
+      - MONGODB_URL=mongodb://db:27017/
       - REDISTOGO_URL=redis
       - ENABLE_TRANSACTION=true
+    volumes:
+      - "/var/www/logs:/logs"
+      - "/var/www/images:/images"
+  tagtracker:
+    image: patchyvideo
+    command: python popularity_tracker.py
+    depends_on:
+      - db
+    environment:
+      - FLASK_ENV=production
+      - REDISTOGO_URL_WORKER=redis://redis:6379
+      - IMAGE_PATH=/images
+      - MONGODB_URL=mongodb://db:27017/
+      - REDISTOGO_URL=redis
+      - ENABLE_TRANSACTION=true
+    volumes:
+      - "/var/www/logs:/logs"
+  autocomplete:
+    image: patchyvideo-autocomplete:2019-11-18
+    depends_on:
+      - db
+    volumes:
+      - "/var/www/logs:/logs"
   redis:
     image: redis
   db:
     image: mongo
+    restart: always
+    command: /usr/bin/mongod --replSet rs1 --bind_ip 0.0.0.0
     volumes:
-      - './data:/data/db'
+      - '/var/www/data:/data/db'
