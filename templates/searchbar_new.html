@@ -1,5 +1,9 @@
 <li id="s1">
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://zeptojs.com/zepto.min.js"></script>
+    <script src="{{ url_for('static',filename='js/jquery.textcomplete.js') }}"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <form id="search-bar" action="/search" method="GET">
     <select class="form_select">
         <option value="0">Tags</option>
@@ -7,38 +11,41 @@
     <input id="search-bar-query" name="query" type="text" placeholder="Search" value="{{query}}">
     <input id="search-bar-submit" type="submit" value="Search">
 </form>
-<!--<script>
-$( function() {
-    var availableTags = [
-    "ActionScript",
-    "AppleScript",
-    "Asp",
-    "BASIC",
-    "C",
-    "C++",
-    "Clojure",
-    "COBOL",
-    "ColdFusion",
-    "Erlang",
-    "Fortran",
-    "Groovy",
-    "Haskell",
-    "Java",
-    "JavaScript",
-    "Lisp",
-    "Perl",
-    "PHP",
-    "Python",
-    "Ruby",
-    "Scala",
-    "Scheme"
-    ];
-    $( "#search-bar-query" ).autocomplete({
-        source: availableTags,
-        delay: 0,
-        minLength: 2,
-        multiple: true
+<script>
+    $('#search-bar-query').textcomplete([
+        {
+            id: 'tags',
+            match: /\b(\w{2,})$/,
+            search: function (term, callback) {
+                console.log(term);
+                $.getJSON( "https://patchyvideo.com/autocomplete/?q=" + term, function( data ) {
+                    callback(data);
+                });
+            },
+            template: function (value) {
+                if (isEmpty(value.dst))
+                {
+                    return `<span style="margin-right: 6em;">${value.src}</span><span style="float:right;">${value.count}</span>`;
+                } else {
+                    return `<span>${value.src}</span>-><span style="margin-right: 6em;">${value.dst}</span><span style="float:right;">${value.count}</span>`;
+                }
+            },
+            replace: function (value) {
+                if (isEmpty(value.dst)) {
+                    return value.src + '\n';
+                } else {
+                    return value.dst + '\n';
+                }
+            },
+            index: 1
+        }
+    ],
+    {
+        onKeydown: function (e, commands) {
+            if (e.ctrlKey && e.keyCode === 74) { // CTRL-J
+                return commands.KEY_ENTER;
+            }
+        }
     });
-} );
-</script>-->
+</script>
 </li>

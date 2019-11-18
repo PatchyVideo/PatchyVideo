@@ -6,8 +6,8 @@
     margin: auto;
     background-color: inherit;
     position: relative;
-z-index: 999;
-opacity: 1;
+    z-index: 10;
+    opacity: 1;
     	display: block;
 
 }
@@ -52,6 +52,10 @@ cursor: pointer;
 	color: white;
 	background-color: #6F6F6F;
 }
+
+
+
+
 .width {
     margin-left: 100px;
     margin-right: 100px;
@@ -59,7 +63,6 @@ cursor: pointer;
 }
 .active {
      background-color:  #D5D5D5; 
- /*   background-color: buttonface;*/
 }
 .tab-button {
     width: 49.5%;
@@ -85,6 +88,7 @@ textarea {
     margin: 0em;
     font: 400 13.3333px Arial;
 }
+
 body{
 
     background:   url("../../img/imoto3.jpg") no-repeat top center;
@@ -94,8 +98,6 @@ body{
 }
 
 .central-form{
-    /*margin-top:20px;
-    margin-bottom: 50px;*/
     
     padding: 10px;
 
@@ -123,3 +125,4 @@ body{
     #fetch-video{
         white-space: nowrap;
     }
+
