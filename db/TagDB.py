@@ -6,13 +6,12 @@ if __name__ == '__main__':
 	from query_parser import Parser
 	from bson import ObjectId
 	from collections import defaultdict
-
+	from AutocompleteInterface import AutocompleteInterface
 else:
 	from .query_parser import Parser
-
 	from bson import ObjectId
 	from collections import defaultdict
-
+	from .AutocompleteInterface import AutocompleteInterface
 
 def _diff(old_tags, new_tags):
 	old_tags_set = set(old_tags)
@@ -24,6 +23,15 @@ def _diff(old_tags, new_tags):
 class TagDB():
 	def __init__(self, db):
 		self.db = db
+		self.aci = AutocompleteInterface()
+		
+	def init_autocomplete(self) :
+		all_tags = self.db.tags.find({'dst' : {'$exists' : False}})
+		all_alias = self.db.tags.find({'dst' : {'$exists' : True}})
+		tags_tuple = [(item['tag'], item['category'], item['count']) for item in all_tags]
+		alias_tuple = [(item['tag'], item['dst']) for item in all_alias]
+		self.aci.AddTags(tags_tuple)
+		self.aci.AddAlias(alias_tuple)
 
 	def add_category(self, category, user = '', session = None):
 		cat = self.db.cats.find_one({'name': category}, session = session)
@@ -45,6 +53,7 @@ class TagDB():
 		ans = self.db.tags.find({'category': category}, session = session)
 		return ans
 
+	"""
 	def transfer_category(self, tag, new_category, user = '', session = None):
 		cat = self.db.cats.find_one({'name': new_category}, session = session)
 		if cat is None:
@@ -56,6 +65,7 @@ class TagDB():
 		self.db.cats.update_one({'name': cat['name']}, {'$inc': {'count': -1}}, session = session)
 		self.db.cats.update_one({'name': new_category}, {'$inc': {'count': 1}}, session = session)
 		return 'SUCCEED'
+	"""
 
 	def add_tag(self, tag, category, user = '', session = None):
 		cat = self.db.cats.find_one({'name': category}, session = session)
@@ -66,6 +76,7 @@ class TagDB():
 			return 'TAG_EXIST'
 		self.db.tags.insert_one({'category': category, 'tag': tag, 'meta': {'created_by': user, 'created_at': datetime.now()}, 'count': 0}, session = session)
 		self.db.cats.update_one({'name': category}, {'$inc': {'count': 1}}, session = session)
+		self.aci.AddTags([(tag, category, 0)])
 		return 'SUCCEED'
 
 	def filter_tags(self, tags, session = None):
@@ -76,27 +87,30 @@ class TagDB():
 
 	def remove_tag(self, tag, user = '', session = None):
 		tt, tag_obj = self._tag_type(tag, session = session)
-		if tt == 'tag':
+		if tt == 'tag' or tt == 'alias':
+			self.db.tags.update_many({'dst': tag}, {'$unset': {'dst': ''}, '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 			self.db.tags.delete_one({'_id': tag_obj['_id']}, session = session)
 			self.db.cats.update_one({'name': tag_obj['category']}, {'$inc': {'count': -1}}, session = session)
 			self.db.items.update_many({'tags': tag}, {'$pull': {'tags': tag}}, session = session)
+			self.aci.DeleteTagOrAlias(tag)
 			return 'SUCCEED'
-		elif tt == 'alias':
-			self.db.alias.delete_one({'_id': tag_obj['_id']}, session = session)
 		else:
 			return 'TAG_NOT_EXIST'
 
 	def rename_tag(self, tag, new_tag, user = None, session = None):
 		tt, tag_obj = self._tag_type(tag, session = session)
-		if tt == 'tag':
+		if tt == 'tag' or tt == 'alias':
 			tag_obj2 = self.db.tags.find_one({'tag': new_tag}, session = session)
 			if tag_obj2 is not None:
 				return 'TAG_EXIST'
 			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$set': {'tag': new_tag, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
-			self.db.items.update_many({'tags': {'$elemMatch': {'$eq': tag}}}, {'$set': {'tags.$': new_tag}}, session = session)
+			self.db.items.update_many({'tags': {'$in': [tag]}}, {'$set': {'tags.$': new_tag}}, session = session)
+			self.aci.DeleteTagOrAlias(tag)
+			if tt == 'tag' :
+				self.aci.AddTags([(new_tag, tag_obj['category'], tag_obj['count'])])
+			elif tt == 'alias' :
+				self.aci.AddAlias([(new_tag, tag_obj['dst'])])
 			return 'SUCCEED'
-		elif tt == 'alias':
-			self.db.alias.update_one({'_id': tag_obj['_id']}, {'$set': {'src': new_tag}}, session = session)
 		else:
 			return 'TAG_NOT_EXIST'
 
@@ -142,10 +156,10 @@ class TagDB():
 	def add_item(self, tags, item, user = '', session = None):
 		item_id = self.db.items.insert_one({'tags': tags, 'item': item, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session).inserted_id
 		self.db.tags.update_many({'tag': {'$in': tags}}, {'$inc': {'count': 1}}, session = session)
+		self.aci.SetTagOrAliasCountDiff([(t, 1) for t in tags])
 		return item_id
 
 	def verify_tags(self, tags, session = None):
-		tags = self.translate_tags(tags, session = session)
 		found_tags = self.db.tags.find({'tag': {'$in': tags}}, session = session)
 		tm = []
 		for tag in found_tags:
@@ -162,7 +176,10 @@ class TagDB():
 		self.db.items.update_one({'_id': ObjectId(item_id)}, {'$set': {'item': item, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		return 'SUCCEED'
 
-	def update_item_query(self, item_id_or_item_object, query, session = None):
+	def update_item_query(self, item_id_or_item_object, query, user = '', session = None):
+		"""
+		Your update query MUST NOT modify tags
+		"""
 		if isinstance(item_id_or_item_object, ObjectId):
 			item = self.db.items.find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
 			if item is None:
@@ -170,6 +187,7 @@ class TagDB():
 		else:
 			item = item_id_or_item_object
 		self.db.items.update_one({'_id': ObjectId(item['_id'])}, query, session = session)
+		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		return 'SUCCEED'
 
 	def update_item_tags(self, item_id_or_item_object, new_tags, user = '', session = None):
@@ -181,10 +199,12 @@ class TagDB():
 			item = item_id_or_item_object
 		self.db.tags.update_many({'tag': {'$in': item['tags']}}, {'$inc': {'count': -1}}, session = session)
 		self.db.tags.update_many({'tag': {'$in': new_tags}}, {'$inc': {'count': 1}}, session = session)
+		self.aci.SetTagOrAliasCountDiff([(t, -1) for t in item['tags']])
+		self.aci.SetTagOrAliasCountDiff([(t, 1) for t in new_tags])
 		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': new_tags, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		return 'SUCCEED'
 
-	def get_many_tag_counts(self, item_ids = None, tags = None, user = '', session = None):
+	def _get_many_tag_counts(self, item_ids = None, tags = None, user = '', session = None):
 		id_match_obj = { '_id' : { '$in': item_ids } } if item_ids else {}
 		tag_match_obj = { '_id' : { '$in' : tags } } if tags else {}
 		return self.db.items.aggregate([
@@ -206,7 +226,7 @@ class TagDB():
 		], session = session)
 
 	def update_many_items_tags_merge(self, item_ids, new_tags, user = '', session = None):
-		prior_tag_counts = dict([(item['_id'], item['count']) for item in self.get_many_tag_counts(item_ids, new_tags, user, session)])
+		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts(item_ids, new_tags, user, session)])
 		self.db.items.update_many({'_id': {'$in': item_ids}}, {
 			'$addToSet': {'tags': {'$each': new_tags}},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
@@ -214,20 +234,22 @@ class TagDB():
 		new_tag_count_diff = [(tag, num_items - prior_tag_counts.get(tag, 0)) for tag in new_tags]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'tag': tag}, {'$inc': {'count': diff}}, session = session) # $inc is atomic, no locking needed
+		self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
 		return 'SUCCEED'
 
 	def update_many_items_tags_pull(self, item_ids, tags_to_remove, user = '', session = None):
-		prior_tag_counts = dict([(item['_id'], item['count']) for item in self.get_many_tag_counts(item_ids, tags_to_remove, user, session)])
+		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts(item_ids, tags_to_remove, user, session)])
 		self.db.items.update_many({'_id': {'$in': item_ids}}, {
 			'$pullAll': {'tags': tags_to_remove},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		new_tag_count_diff = [(tag, -prior_tag_counts.get(tag, 0)) for tag in tags_to_remove]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'tag': tag}, {'$inc': {'count': diff}}, session = session)
+		self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
 		return 'SUCCEED'
 
 	def update_item_tags_merge(self, item_id, new_tags, user = '', session = None):
-		prior_tag_counts = dict([(item['_id'], item['count']) for item in self.get_many_tag_counts([item_id], new_tags, user, session)])
+		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts([item_id], new_tags, user, session)])
 		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
 		if item is None :
 			return 'ITEM_NOT_EXIST'
@@ -237,10 +259,11 @@ class TagDB():
 		new_tag_count_diff = [(tag, 1 - prior_tag_counts.get(tag, 0)) for tag in new_tags]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'tag': tag}, {'$inc': {'count': diff}}, session = session)
+		self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
 		return 'SUCCEED'
 
 	def update_item_tags_pull(self, item_id, tags_to_remove, user = '', session = None):
-		prior_tag_counts = dict([(item['_id'], item['count']) for item in self.get_many_tag_counts([item_id], new_tags, user, session)])
+		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts([item_id], tags_to_remove, user, session)])
 		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
 		if item is None :
 			return 'ITEM_NOT_EXIST'
@@ -250,6 +273,7 @@ class TagDB():
 		new_tag_count_diff = [(tag, -prior_tag_counts.get(tag, 0)) for tag in tags_to_remove]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'tag': tag}, {'$inc': {'count': diff}}, session = session)
+		self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
 		return 'SUCCEED'
 
 	def add_tag_alias(self, src_tag, dst_tag, user = '', session = None):
@@ -257,19 +281,22 @@ class TagDB():
 		tt_src, tag_obj_src = self._tag_type(src_tag, session = session)
 		if tt_dst == 'tag':
 			if tt_src == 'tag':
-				alias_obj = self.db.alias.find_one({'src': src_tag, 'dst': dst_tag}, session = session)
+				alias_obj = self.db.tags.find_one({'tag': src_tag, 'dst': dst_tag}, session = session)
 				if alias_obj is not None:
 					return 'ALIAS_EXIST'
-				self.db.alias.insert_one({'src': src_tag, 'dst': dst_tag, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session)
-				self.db.alias.update_many({'dst': src_tag}, {'$set': {'dst': dst_tag, 'meta': {'created_by': user, 'created_at': datetime.now()}}}, session = session)
-				self.db.items.update_many({'tags': {'$elemMatch': {'$eq': src_tag}}}, {'$set': {'tags.$': dst_tag, 'meta': {'created_by': user, 'created_at': datetime.now()}}}, session = session)
+				dupilcated_tags_count = self.db.items.count({'tags': {'$all': [src_tag, dst_tag]}}, session = session)
 				src_post_count = tag_obj_src['count']
-				self.db.tags.update_one({'_id': ObjectId(tag_obj_src)}, {'$set': {'count': 0}}, session = session)
-				self.db.tags.update_one({'_id': ObjectId(tag_obj_dst)}, {'$inc': {'count': src_post_count}}, session = session)
+				self.db.tags.update_one({'_id': ObjectId(tag_obj_src['_id'])}, {'$set': {'count': 0, 'dst': dst_tag, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+				self.db.tags.update_many({'dst': src_tag}, {'$set': {'dst': dst_tag, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+				self.db.tags.update_one({'_id': ObjectId(tag_obj_dst['_id'])}, {'$inc': {'count': src_post_count - dupilcated_tags_count}}, session = session)
+				self.db.items.update_many({'tags': {'$in': [src_tag]}}, {'$addToSet': {'tags': dst_tag}}, session = session)
+				self.db.items.update_many({'tags': {'$in': [src_tag]}}, {'$pullAll': {'tags': [src_tag]}}, session = session)
+				self.aci.AddAlias([(src_tag, dst_tag)])
+				self.aci.SetTagOrAliasCountDiff([(dst_tag, src_post_count - dupilcated_tags_count)])
 				return 'SUCCEED'
 			elif tt_src == 'alias':
 				# override an existing alias
-				self.db.alias.update_one({'src': src_tag}, {'$set': {'dst': dst_tag, 'meta': {'created_by': user, 'created_at': datetime.now()}}}, session = session)
+				self.db.tags.update_one({'tag': src_tag}, {'$set': {'dst': dst_tag, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 				return 'SUCCEED'
 			else:
 				return 'TAG_NOT_EXIST'
@@ -283,22 +310,26 @@ class TagDB():
 		if tt == 'tag':
 			return 'NOT_ALIAS'
 		elif tt == 'alias':
-			self.db.alias.delete_many({'src': src_tag}, session = session)
+			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$unset': {'dst': ''}}, session = session)
+			self.aci.DeleteAlias(src_tag)
+			return "SUCCEED"
 		else:
 			return 'ALIAS_NOT_EXIST'
 
 	def translate_tags(self, tags, session = None):
-		src_tag_objs = self.db.alias.find({'src': {'$in': tags}}, session = session)
+		src_tag_objs = self.db.tags.find({'tag': {'$in': tags}, 'dst': {'$exists': True}}, session = session)
 		tag_map = {}
 		for item in src_tag_objs:
-			tag_map[item['src']] = item['dst']
+			tag_map[item['tag']] = item['dst']
 		return [tag_map[tag] if tag in tag_map else tag for tag in tags]
 
+	"""
 	def count_items(self, tag_query, session = None):
 		pass
 
 	def count_items_tag(self, tag, session = None):
 		pass
+	"""
 
 	def add_tag_group(self, group_name, tags = [], user = '', session = None):
 		g_obj = self.db.groups.find_one({'name': group_name}, session = session)
@@ -349,15 +380,13 @@ class TagDB():
 		tag_obj = self.db.tags.find_one({'tag': tag}, session = session)
 		if tag_obj is None:
 			return None, None
-		alias_obj = self.db.alias.find_one({'src': tag}, session = session)
-		if alias_obj is None:
-			return 'tag', tag_obj
+		if 'dst' in tag_obj:
+			return 'alias', tag_obj
 		else:
-			return 'alias', alias_obj
+			return 'tag', tag_obj
 
 	def _check_tag_name(self, tag, session = None):
 		return True
-
 
 if __name__ == '__main__':
 	app = Flask('WebVideoIndexing')

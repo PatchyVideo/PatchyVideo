@@ -98,6 +98,7 @@ def addThiscopy(dst_vid, this_vid, user, session):
 def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, other_copies, user):
 	tags = [tag.strip() for tag in tags]
 	tags = tagdb.translate_tags(tags)
+	tags = list(set(tags))
 	if parsed is None :
 		print('Parse failed for %s' % url, file = sys.stderr)
 		return "PARSE_FAILED", {}

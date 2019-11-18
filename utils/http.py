@@ -11,6 +11,10 @@ def post_json(url, json_obj_or_string) :
     headers = {'content-type': 'application/json'}
     return requests.post(url, data = payload, headers = headers)
 
+def post_raw(url, payload) :
+    headers = {'content-type': 'text/plain; charset=utf-8'}
+    return requests.post(url, data = payload, headers = headers)
+
 def get_page(url) :
     return requests.get(url).text
 

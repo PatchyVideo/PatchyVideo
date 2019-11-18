@@ -41,7 +41,7 @@ phase 1
 phase 2
 ======================
 #support nm for nico
-replace redis queue which is slow and does not support multiple workers/coroutines
+<!!HIGH PRIORITY!!> replace redis queue which is slow and does not support multiple workers/coroutines
 #unify config
 remove footer touhou copyright
 #post video using same tags
@@ -51,7 +51,8 @@ remove footer touhou copyright
 #all query using GET
 #sort by video upload date
 #batch post as copies
-<!!HIGH PRIORITY!!> tag alias(as multi-language phase1)
+!<!!HIGH PRIORITY!!> tag alias(as multi-language phase1)
+    lacking UI for tag alias
 recover password
 documents/tagging guide
 !user access control for backend
@@ -68,6 +69,8 @@ unify naming convention for status code AND use exception to replace status code
 unify JSON return as status code, not error message
 added multi-language framework
 deployment mode using GCI
+!tags autocomplete
+    lacking UI support
 
 ======================
 phase 3
