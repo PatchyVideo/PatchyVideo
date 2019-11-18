@@ -29,7 +29,10 @@ def verifyAndSanitizeTag(tag):
 """
 
 def verifyAndSanitizeTag(tag):
-    ret = _match_object.match(tag.strip())
+    tag = tag.strip()
+    if len(tag) <= 2 :
+        return False, ''
+    ret = _match_object.match()
     if ret:
         tag_sanitized = ret.group(0)
         if tag_sanitized in ['site', 'date', 'and', 'or', 'not', 'any', 'all'] : # keywords
