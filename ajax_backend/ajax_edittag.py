@@ -63,7 +63,7 @@ def ajax_add_tag(rd, user, data):
     if ret == 'INVALID_TAG':
         response = makeResponseFailed("This tag name(%s) is invalid" % (data.tag))
     if ret == 'TAG_EXIST':
-        response = makeResponseFailed("This tag(%s) already exist in %s" % (data.tag, data.category))
+        response = makeResponseFailed("This tag(%s) already exists" % (data.tag))
     if ret == 'CATEGORY_NOT_EXIST':
         response = makeResponseFailed("This category(%s) does not exist" % (data.category))
     return "json", response

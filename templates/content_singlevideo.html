@@ -454,6 +454,49 @@
 		<p> © 2019 www.patchyvideo.com Touhou Project </p>
 	</div>
 	<script>
+		$('#ipt').textcomplete([
+			{
+				id: 'tags',
+				match: /\b([\w][\w][\w_\-']*(_\([\w'\-_]+\)?)?)$/,
+				search: function (term, callback) {
+					console.log(term);
+					$.getJSON( "https://patchyvideo.com/autocomplete/?q=" + term, function( data ) {
+						data = $.map(data, function(ele) {
+							ele['term'] = term;
+							ele['color'] = getCategoryColor(ele['category']);
+							return ele;
+						});
+						callback(data);
+					});
+				},
+				template: function (value) {
+					suffix = value.src.substring(value.term.length);
+					highlighted_term = `<b>${value.term}</b>${suffix}`;
+					if (isEmpty(value.dst)) {
+						return `<span style="color: ${value.color};"><span style="margin-right: 6em;">${highlighted_term}</span></span><span style="float:right;">${value.count}</span>`;
+					} else {
+						return `<span style="color: ${value.color};"><span>${highlighted_term}</span>-><span style="margin-right: 6em;">${value.dst}</span></span><span style="float:right;">${value.count}</span>`;
+					}
+				},
+				replace: function (value) {
+					if (isEmpty(value.dst)) {
+						return value.src + '\n';
+					} else {
+						return value.dst + '\n';
+					}
+				},
+				index: 1
+			}
+		],
+		{
+			onKeydown: function (e, commands) {
+				if (e.ctrlKey && e.keyCode === 74) { // CTRL-J
+					return commands.KEY_ENTER;
+				}
+			}
+		});
+	</script>
+	<script>
 
 		$(function () {
 			var input = $("<input>");
