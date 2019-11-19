@@ -358,9 +358,9 @@ def updateCommonTags(pid, tags, user) :
 		if ret != 'SUCCEED' :
 			return ret
 		if tags_to_remove :
-			tagdb.update_many_items_tags_pull(all_video_ids, tags_to_remove, user, session = s())
+			tagdb.update_many_items_tags_pull(all_video_ids, tags_to_remove, makeUserMeta(user), session = s())
 		if tags_added :
-			tagdb.update_many_items_tags_merge(all_video_ids, tags_added, user, session = s())
+			tagdb.update_many_items_tags_merge(all_video_ids, tags_added, makeUserMeta(user), session = s())
 		s.mark_succeed()
 		return 'SUCCEED'
 

@@ -11,7 +11,7 @@ from bson import ObjectId
 
 import redis_lock
 
-def getAllCopies(vid) :
+def _getAllCopies(vid) :
 	if not vid :
 		return []
 	this_video = tagdb.retrive_item({"_id": ObjectId(vid)})
@@ -35,7 +35,7 @@ def _removeThisCopy(dst_vid, this_vid, user, session):
 
 def breakLink(vid, user):
 	with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
-		nodes = getAllCopies(vid)
+		nodes = _getAllCopies(vid)
 		if nodes :
 			for node in nodes :
 				_removeThisCopy(node, vid, makeUserMeta(user), s())
@@ -49,7 +49,7 @@ def syncTags(dst, src, user):
 		return "ITEM_NOT_EXIST"
 	src_tags = src_item['tags']
 	with redis_lock.Lock(rdb, "videoEdit:" + src_item["item"]["unique_id"]), MongoTransaction(client) as s:
-		ret = tagdb.update_item_tags_merge(ObjectId(dst), src_tags, user, s())
+		ret = tagdb.update_item_tags_merge(ObjectId(dst), src_tags, makeUserMeta(user), s())
 		if ret == 'SUCCEED':
 			s.mark_succeed()
 		return ret

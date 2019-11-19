@@ -66,7 +66,7 @@ def _make_video_data(data, copies, playlists, url) :
 		'rating': -1.0
 	}
 
-def getAllcopies(vid, session, use_unique_id = False) :
+def _getAllCopies(vid, session, use_unique_id = False) :
 	if not vid :
 		return []
 	if use_unique_id :
@@ -160,12 +160,12 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, other_copies,
 					with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
 						print('Adding to to copies, lock acquired', file = sys.stderr)
 						# find all copies of video dst_copy, self included
-						all_copies = getAllcopies(dst_copy, session = s())
+						all_copies = _getAllCopies(dst_copy, session = s())
 						# find all videos linked to source video
-						all_copies += getAllcopies(conflicting_item['_id'], session = s())
+						all_copies += _getAllCopies(conflicting_item['_id'], session = s())
 						# add videos from other copies
 						for uid in other_copies :
-							all_copies += getAllcopies(uid, session = s(), use_unique_id = True)
+							all_copies += _getAllCopies(uid, session = s(), use_unique_id = True)
 						# remove duplicated items
 						all_copies = list(set(all_copies))
 						# add this video to all other copies found
@@ -201,10 +201,10 @@ def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, other_copies,
 					print('Adding to to copies', file = sys.stderr)
 					with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
 						print('Adding to to copies, lock acquired', file = sys.stderr)
-						all_copies = getAllcopies(dst_copy, session = s())
+						all_copies = _getAllCopies(dst_copy, session = s())
 						# add videos from other copies
 						for uid in other_copies :
-							all_copies += getAllcopies(uid, session = s(), use_unique_id = True)
+							all_copies += _getAllCopies(uid, session = s(), use_unique_id = True)
 						new_item_id = tagdb.add_item(tags, _make_video_data(ret["data"], all_copies, playlists, url), makeUserMeta(user), session = s())
 						all_copies.append(ObjectId(new_item_id))
 						# remove duplicated items

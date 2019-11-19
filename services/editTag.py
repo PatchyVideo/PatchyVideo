@@ -59,7 +59,7 @@ def removeTag(user, tag) :
             return "UNAUTHORISED_OPERATION"
         if tag_obj["count"] > 0 :
             return "NON_ZERO_VIDEO_REFERENCE"
-        ret = tagdb.remove_tag(tag_obj, user, session = s())
+        ret = tagdb.remove_tag(tag_obj, makeUserMeta(user), session = s())
         s.mark_succeed()
         return ret
     
@@ -77,6 +77,6 @@ def renameTag(user, tag, new_tag) :
             return "UNAUTHORISED_OPERATION"
         if tag_obj["count"] > 0 :
             return "NON_ZERO_VIDEO_REFERENCE"
-        ret = tagdb.rename_tag(tag_obj, sanitized_tag, user, session = s())
+        ret = tagdb.rename_tag(tag_obj, sanitized_tag, makeUserMeta(user), session = s())
         s.mark_succeed()
         return ret
