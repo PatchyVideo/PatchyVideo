@@ -98,3 +98,17 @@ function copyToClipboard(obj) {
     document.execCommand('copy');
     document.body.removeChild(el);
 }
+
+_color_map = {
+    'Copyright': '#A0A',
+    'Language': '#585455',
+    'Character': '#0A0',
+    'Author': '#A00',
+    'General': '#0073ff',
+    'Meta': '#F80'
+};
+
+function getCategoryColor(category) {
+    return _color_map[category];
+}
+

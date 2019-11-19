@@ -58,11 +58,56 @@ function addTag(category, tag) {
     }
 }
 
+function add_textcomplete(element) {
+    element.textcomplete([
+        {
+            id: 'tags',
+            match: /\b([\w][\w][\w_\-']*(_\([\w'\-_]+\)?)?)$/,
+            search: function (term, callback) {
+                console.log(term);
+                $.getJSON( "https://patchyvideo.com/autocomplete/?q=" + term, function( data ) {
+                    data = $.map(data, function(ele) {
+                        ele['term'] = term;
+                        ele['color'] = getCategoryColor(ele['category']);
+                        return ele;
+                    });
+                    callback(data);
+                });
+            },
+            template: function (value) {
+                suffix = value.src.substring(value.term.length);
+                highlighted_term = `<b>${value.term}</b>${suffix}`;
+                if (isEmpty(value.dst)) {
+                    return `<span style="color: ${value.color};"><span style="margin-right: 6em;">${highlighted_term}</span></span><span style="float:right;">${value.count}</span>`;
+                } else {
+                    return `<span style="color: ${value.color};"><span>${highlighted_term}</span>-><span style="margin-right: 6em;">${value.dst}</span></span><span style="float:right;">${value.count}</span>`;
+                }
+            },
+            replace: function (value) {
+                if (isEmpty(value.dst)) {
+                    return value.src + '\n';
+                } else {
+                    return value.dst + '\n';
+                }
+            },
+            index: 1
+        }
+    ],
+    {
+        onKeydown: function (e, commands) {
+            if (e.ctrlKey && e.keyCode === 74) { // CTRL-J
+                return commands.KEY_ENTER;
+            }
+        }
+    });
+}
+
 function buildToolBar(category, tag_count, display_count) {
     layout = $(`<div class="tag-tool-bar"></div>`);
-    info_obj = $(`<p>Showing ${display_count} out of ${tag_count} tags</p>`)
-    add_tag_input_obj = $(`<input meta-category="${category}" placeholder="Add tag to ${category}"></input>`)
-    status_obj = $(`<p meta-category="${category}" id="status-bar" style="margin: 3px; margin-left: 0px; display: none;"></p>`)
+    info_obj = $(`<p>Showing ${display_count} out of ${tag_count} tags</p>`);
+    add_tag_input_obj = $(`<input type="text" meta-category="${category}" placeholder="Add tag to ${category}"></input>`);
+    add_textcomplete(add_tag_input_obj);
+    status_obj = $(`<p meta-category="${category}" id="status-bar" style="margin: 3px; margin-left: 0px; display: none;"></p>`);
     add_tag_btn_obj = $(`<button>Add Tag</button>`);
     add_tag_btn_obj.click(function (event){
         addTag(category, $(`input[meta-category="${category}"]`).val());

@@ -19,10 +19,10 @@ function onFetchVideo_Click(event) {
 }
 
 function onPostVideoButton_Click(event) {
-    if ($("#tab-button-single").hasClass("active")) {
+    if ($("#tab-button-single").hasClass("tab-active")) {
         submitVideoSingle();
     }
-    if ($("#tab-button-batch").hasClass("active")) {
+    if ($("#tab-button-batch").hasClass("tab-active")) {
         submitVideoBatch();
     }
 }
@@ -223,8 +223,8 @@ function gotoTab(name) {
         $(this).css("display", "none");
     });
     $(".tab-button").each(function(idx){
-        $(this).removeClass("active");
+        $(this).removeClass("tab-active");
     });
     $("#tab-" + name).css("display", "block");
-    $("#tab-button-" + name).addClass("active");
+    $("#tab-button-" + name).addClass("tab-active");
 }
