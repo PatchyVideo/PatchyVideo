@@ -70,7 +70,7 @@ unify JSON return as status code, not error message
 added multi-language framework
 deployment mode using GCI
 !tags autocomplete
-    initial UI position fix needed
+    support suffix tag completion
 
 ======================
 phase 3

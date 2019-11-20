@@ -2,7 +2,7 @@
 import re
 from db.query_parser.Parser import _lex
 
-_match_object = re.compile(r"^[\w][\w_\-']*(_\([\w'\-_]+\))?$")
+_match_object = re.compile(r"^[\w][\w][\w_\!\-']*(_\([\w'\!\-_]+\))?$")
 _color_map = {
     'Copyright': '#A0A',
     'Language': '#585455',

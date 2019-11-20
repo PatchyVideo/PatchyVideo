@@ -62,7 +62,7 @@ function add_textcomplete(element) {
     element.textcomplete([
         {
             id: 'tags',
-            match: /\b([\w][\w][\w_\-']*(_\([\w'\-_]+\)?)?)$/,
+            match: /\b([\w][\w][\w_\-\!']*(_\([\w'\-_\!]+\)?)?)$/,
             search: function (term, callback) {
                 $.getJSON( "https://patchyvideo.com/autocomplete/?q=" + term, function( data ) {
                     data = $.map(data, function(ele) {
