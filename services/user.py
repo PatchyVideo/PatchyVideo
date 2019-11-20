@@ -42,9 +42,9 @@ def login(username, password, challenge, login_session_id) :
     if verify_session(login_session_id, 'LOGIN') :
         user_obj = db.users.find_one({'profile.username': username})
         if not user_obj :
-            return "USER_NOT_EXIST", None
+            return "INCORRECT_LOGIN", None
         if not verify_password_PBKDF2(password, user_obj['crypto']['salt1'], user_obj['crypto']['password_hashed']) :
-            return "INCORRECT_PASSWORD", None
+            return "INCORRECT_LOGIN", None
         common_user_obj = {
             '_id': user_obj['_id'],
             'profile': {
@@ -106,7 +106,7 @@ def update_desc(redis_user_key, user_id, new_desc) :
         return "DESC_LENGTH"
     obj = db.users.find_one({'_id': ObjectId(user_id)})
     if obj is None :
-        return 'USER_NOT_EXIST'
+        return 'INCORRECT_LOGIN'
     db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'profile.desc': new_desc}})
     common_user_obj = {
             '_id': ObjectId(obj['_id']),
@@ -128,9 +128,9 @@ def update_password(user_id, old_pass, new_pass) :
         return "PASSWORD_LENGTH"
     obj = db.users.find_one({'_id': ObjectId(user_id)})
     if obj is None :
-        return 'USER_NOT_EXIST'
+        return 'INCORRECT_LOGIN'
     if not verify_password_PBKDF2(old_pass, obj['crypto']['salt1'], obj['crypto']['password_hashed']) :
-        return 'INCORRECT_PASSWORD'
+        return 'INCORRECT_LOGIN'
     crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = update_crypto_PBKDF2(old_pass, new_pass, obj['crypto']['salt2'], obj['crypto']['master_key_encryptyed'])
     crypto = {
         'crypto_method': crypto_method,
