@@ -334,8 +334,8 @@ if (typeof jQuery === 'undefined') {
           self.dropdown.clear();
           self._clearAtNext = false;
         }
-        self.dropdown.setPosition(self.adapter.getCaretPosition());
         self.dropdown.render(self._zip(data, strategy, term));
+        self.dropdown.setPosition(self.adapter.getCaretPosition());
         if (!stillSearching) {
           // The last callback in the current lock.
           free();
@@ -459,6 +459,7 @@ if (typeof jQuery === 'undefined') {
     shown:     false,
     data:      [],     // Shown zipped data.
     className: '',
+    lineHeightMethod: '',
 
     // Public methods
     // --------------
@@ -517,8 +518,8 @@ if (typeof jQuery === 'undefined') {
           return false;
         }
       });
-      this.$el.css(this._applyPlacement(pos));
-      this.$el.css({ position: position }); // Update positioning
+      this.$el.css(this._applyPlacement(pos, this.$inputEl));
+      this.$el.css({ position: 'absolute' }); // Update positioning
 
       return this;
     },
@@ -841,7 +842,7 @@ if (typeof jQuery === 'undefined') {
       }
     },
 
-    _applyPlacement: function (position) {
+    _applyPlacement: function (position, inputEl) {
       // If the 'placement' option set to 'top', move the position above the element.
       if (this.placement.indexOf('top') !== -1) {
         // Overwrite the position object to set the 'bottom' property instead of the top.
@@ -859,6 +860,13 @@ if (typeof jQuery === 'undefined') {
       } else if (this.placement.indexOf('absright') !== -1) {
         position.right = 0;
         position.left = 'auto';
+      } else if (this.placement.indexOf('matchinput') !== -1) {
+        var inputElPos = inputEl.offset();
+        position.left = inputElPos.left;
+        position.top = inputElPos.top + inputEl.outerHeight();
+      } else if (this.placement.indexOf('matchleft') !== -1) {
+        var inputElPos = inputEl.offset();
+        position.left = inputElPos.left + parseInt(inputEl.css("padding-left"));
       }
       return position;
     }
@@ -1110,11 +1118,17 @@ if (typeof jQuery === 'undefined') {
         var style = this.el.style;
         temp.setAttribute(
           'style',
-          'margin:0px;padding:0px;font-family:' + style.fontFamily + ';font-size:' + style.fontSize
+          'line-height:1;margin:0px;padding:0px;font-family:' + style.fontFamily + ';font-size:' + style.fontSize
         );
         temp.innerHTML = 'test';
         parentNode.appendChild(temp);
-        lineHeight = temp.clientHeight;
+        lineHeight = 10;
+        /*if(this.lineHeightMethod.indexOf("clientHeight") !== -1) {
+          lineHeight = temp.clientHeight;
+        } else {
+          lineHeight = parseInt(getComputedStyle(temp,null).getPropertyValue("line-height")) * 1.2;
+        }*/
+        lineHeight = parseInt(getComputedStyle(temp,null).getPropertyValue("line-height")) * 1.2;
         parentNode.removeChild(temp);
       }
       return lineHeight;

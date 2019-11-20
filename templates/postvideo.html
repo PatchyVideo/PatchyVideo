@@ -141,7 +141,6 @@
                             id: 'tags',
                             match: /\b([\w][\w][\w_\-']*(_\([\w'\-_]+\)?)?)$/,
                             search: function (term, callback) {
-                                console.log(term);
                                 $.getJSON( "https://patchyvideo.com/autocomplete/?q=" + term, function( data ) {
                                     data = $.map(data, function(ele) {
                                         ele['term'] = term;
@@ -175,7 +174,8 @@
                             if (e.ctrlKey && e.keyCode === 74) { // CTRL-J
                                 return commands.KEY_ENTER;
                             }
-                        }
+                        },
+                        placement: "matchleft"
                     });
                 </script>
                 <p class="central-element width" id="status" style="text-align: center;">Ready</p>

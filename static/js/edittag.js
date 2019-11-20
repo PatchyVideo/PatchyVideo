@@ -64,7 +64,6 @@ function add_textcomplete(element) {
             id: 'tags',
             match: /\b([\w][\w][\w_\-']*(_\([\w'\-_]+\)?)?)$/,
             search: function (term, callback) {
-                console.log(term);
                 $.getJSON( "https://patchyvideo.com/autocomplete/?q=" + term, function( data ) {
                     data = $.map(data, function(ele) {
                         ele['term'] = term;
@@ -85,9 +84,9 @@ function add_textcomplete(element) {
             },
             replace: function (value) {
                 if (isEmpty(value.dst)) {
-                    return value.src + '\n';
+                    return value.src;
                 } else {
-                    return value.dst + '\n';
+                    return value.dst;
                 }
             },
             index: 1
@@ -98,7 +97,8 @@ function add_textcomplete(element) {
             if (e.ctrlKey && e.keyCode === 74) { // CTRL-J
                 return commands.KEY_ENTER;
             }
-        }
+        },
+        placement: "matchinput"
     });
 }
 
