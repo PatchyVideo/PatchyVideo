@@ -53,7 +53,10 @@
             },
             replace: function (value) {
                 if (isEmpty(value.dst)) {
-                    return value.src + ' ';
+                    if (value.src[value.src.length - 1] == ':')
+                        return value.src;
+                    else
+                        return value.src + ' ';
                 } else {
                     return value.dst + ' ';
                 }
