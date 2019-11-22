@@ -71,7 +71,8 @@ added multi-language framework
 deployment mode using GCI
 !tags autocomplete
     support suffix tag completion
-use reader-writer lock to protect tag rename/deletion
+#use reader-writer lock to protect tag rename/deletion
+add wiki/help page
 
 ======================
 phase 3
