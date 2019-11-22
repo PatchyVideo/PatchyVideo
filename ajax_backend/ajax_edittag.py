@@ -75,12 +75,10 @@ def ajax_remove_tag(rd, user, data):
     ret = removeTag(user, data.tag)
     if ret == 'SUCCEED' :
         response = makeResponseSuccess("SUCCEED")
-    if ret == 'TAG_NOT_EXIST' :
+    elif ret == 'TAG_NOT_EXIST' :
         response = makeResponseFailed("This tag(%s) does not exist" % (data.tag))
-    if ret == 'UNAUTHORISED_OPERATION' :
+    elif ret == 'UNAUTHORISED_OPERATION' :
         response = makeResponseFailed("You are not authorised to do this")
-    if ret == 'NON_ZERO_VIDEO_REFERENCE' :
-        response = makeResponseFailed("This tag(%s) is being referenced by video(s), please remove these references first" % (data.tag))
     return "json", response
 
 @app.route('/tags/rename_tag.do', methods = ['POST'])
@@ -90,12 +88,10 @@ def ajax_rename_tag(rd, user, data):
     ret = renameTag(user, data.tag, data.new_tag)
     if ret == 'SUCCEED' :
         response = makeResponseSuccess("SUCCEED")
-    if ret == 'TAG_NOT_EXIST' :
+    elif ret == 'TAG_NOT_EXIST' :
         response = makeResponseFailed("This tag(%s) does not exist" % (data.tag))
-    if ret == 'TAG_EXIST' :
+    elif ret == 'TAG_EXIST' :
         response = makeResponseFailed("This tag(%s) already exist" % (data.tag_new))
-    if ret == 'UNAUTHORISED_OPERATION' :
+    elif ret == 'UNAUTHORISED_OPERATION' :
         response = makeResponseFailed("You are not authorised to do this")
-    if ret == 'NON_ZERO_VIDEO_REFERENCE' :
-        response = makeResponseFailed("This tag(%s) is being referenced by video(s), please remove these references first" % (data.tag))
     return "json", response

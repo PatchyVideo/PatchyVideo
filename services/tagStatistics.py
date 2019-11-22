@@ -9,6 +9,7 @@ from utils.interceptors import ignoreError
 from utils.http import post_json, get_page
 from . import TAG_TRACKER_ADDRESS
 
+# TODO: how to update this?
 def getPopularTags(max_count = 20) :
     try :
         assert isinstance(max_count, int) and max_count <= 100 and max_count > 0

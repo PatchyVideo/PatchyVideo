@@ -1,12 +1,14 @@
 
 from db import tagdb, client
 from utils.dbtools import makeUserMeta, MongoTransaction
+from utils.rwlock import usingResource, modifyingResource
 
 from init import rdb
 from bson import ObjectId
 import redis_lock
 from config import VideoConfig
 
+@usingResource('tags')
 def editVideoTags(vid, tags, user):
     tags = tagdb.translate_tags(tags)
     tags = list(set(tags))
@@ -21,9 +23,10 @@ def editVideoTags(vid, tags, user):
             s.mark_succeed()
         return ret
 
+@usingResource('tags')
 def verifyTags(tags):
     return tagdb.verify_tags(tags)
 
 def getVideoTags(vid) :
-    return tagdb.retrive_tags(ObjectId(vid))
+    return tagdb.retrive_tags(vid)
 

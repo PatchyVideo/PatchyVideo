@@ -2,10 +2,16 @@
 import os
 import redis
 
+from functools import wraps
+
 from redisrwlock import Rwlock, RwlockClient
 
 _rw_rdb = redis.StrictRedis(host = os.getenv('REDISTOGO_URL', 'redis'))
 _client = RwlockClient(redis = _rw_rdb)
+
+"""
+Define reader-writer lock RAII helpers
+"""
 
 class WriterLock() :
     def __init__(self, name) :
@@ -34,3 +40,25 @@ class ReaderLock() :
 
     def __exit__(self, type, value, traceback) :
         _client.unlock(self.lock)
+
+"""
+Define reader-writer lock decorator helpers
+"""
+
+def modifyingResource(name):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            with WriterLock(name) :
+                return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+def usingResource(name):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            with ReaderLock(name) :
+                return func(*args, **kwargs)
+        return wrapper
+    return decorator

@@ -10,6 +10,7 @@ from db import tagdb, client
 from bson import ObjectId
 
 import redis_lock
+from utils.rwlock import usingResource, modifyingResource
 
 def _getAllCopies(vid_or_obj, session = None) :
 	if not vid_or_obj :
@@ -46,9 +47,9 @@ def breakLink(vid, user):
 			tagdb.update_item_query(ObjectId(vid), {"$set": {"item.copies": []}}, makeUserMeta(user), s())
 			s.mark_succeed()
 
+@usingResource('tags')
 def syncTags(dst, src, user):
 	src_item = tagdb.retrive_item({"_id": ObjectId(src)})
-	# BUG: race condition with tag editing
 	if src_item is None:
 		return "ITEM_NOT_EXIST"
 	src_tags = src_item['tags']
@@ -58,9 +59,9 @@ def syncTags(dst, src, user):
 			s.mark_succeed()
 		return ret
 
+@usingResource('tags')
 def broadcastTags(src, user):
 	src_item = tagdb.retrive_item({"_id": ObjectId(src)})
-	# BUG: race condition with tag editing
 	if src_item is None:
 		return "ITEM_NOT_EXIST"
 	src_tags = src_item['tags']

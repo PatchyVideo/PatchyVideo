@@ -16,21 +16,24 @@ function refreshTable(category) {
 }
 
 function removeTag(tag, category) {
-    status_obj = $(`p[meta-category="${category}"]`);
-    postJSON("/tags/remove_tag.do",
-    {
-        "tag": tag
-    }, function (result){
-        gotoPage(category, 1);
+    var ask = confirm("Are you sure you are going to delete " + tag);
+    if (ask) {
         status_obj = $(`p[meta-category="${category}"]`);
-        status_obj.css("display", "block");
-        status_obj.css("color", "green");
-        status_obj.text(result.data.message);
-    }, function (result){
-        status_obj.css("display", "block");
-        status_obj.css("color", "red");
-        status_obj.text(result.data);
-    });
+        postJSON("/tags/remove_tag.do",
+        {
+            "tag": tag
+        }, function (result){
+            gotoPage(category, 1);
+            status_obj = $(`p[meta-category="${category}"]`);
+            status_obj.css("display", "block");
+            status_obj.css("color", "green");
+            status_obj.text(result.data.message);
+        }, function (result){
+            status_obj.css("display", "block");
+            status_obj.css("color", "red");
+            status_obj.text(result.data);
+        });
+    }
 }
 
 function addTag(category, tag) {
@@ -134,7 +137,7 @@ function gotoPage(category, page) {
         tr = $(`<tr><th class="col-1">Count</th><th>Tag</th></tr>`);
         table_obj.append(tr);
         result.data.tags.forEach(element => {
-            if (element.meta.created_by.$oid == USER_ID && element.count == 0) {
+            if (element.meta.created_by.$oid == USER_ID) {
                 if (isEmpty(element.dst))
                 {
                     tr = $(`<tr class="table-content"><td class="col-1">${element.count}</td><td><a href="/search?query=${element.tag}">${element.tag}</a>

@@ -3,6 +3,7 @@ import time
 from init import app, rdb
 from utils.jsontools import *
 from utils.dbtools import makeUserMeta, makeUserMetaObject, MongoTransaction
+from utils.rwlock import usingResource, modifyingResource
 
 from spiders import dispatch
 from db import tagdb, db, client
@@ -16,7 +17,7 @@ import redis_lock
 def getPlaylist(pid) :
 	return db.playlists.find_one({'_id': ObjectId(pid)})
 
-def is_authorised(pid_or_obj, user, op = 'edit') :
+def _is_authorised(pid_or_obj, user, op = 'edit') :
 	if isinstance(pid_or_obj, str) :
 		obj = db.playlists.find_one({'_id': ObjectId(pid_or_obj)})
 	else :
@@ -42,7 +43,7 @@ def removePlaylist(pid, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
 			return "PLAYLIST_NOT_EXIST"
-		if not is_authorised(pid, user, 'remove') :
+		if not _is_authorised(pid, user, 'remove') :
 			return "UNAUTHORISED_OPERATION"
 		db.playlist_items.delete_many({"pid": ObjectId(pid)}, session = s())
 		db.playlists.delete_one({"_id": ObjectId(pid)}, session = s())
@@ -53,7 +54,7 @@ def updatePlaylistCover(pid, cover, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
 			return "PLAYLIST_NOT_EXIST"
-		if not is_authorised(pid, user) :
+		if not _is_authorised(pid, user) :
 			return "UNAUTHORISED_OPERATION"
 		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {"cover": cover}}, session = s())
 		if user is not None :
@@ -72,7 +73,7 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
 			return "PLAYLIST_NOT_EXIST", None
-		if not is_authorised(pid, user) :
+		if not _is_authorised(pid, user) :
 			return "UNAUTHORISED_OPERATION", None
 		video_obj = tagdb.retrive_item({"_id": ObjectId(vid)})
 		if video_obj is None :
@@ -95,7 +96,7 @@ def updatePlaylistInfo(pid, language, title, desc, cover, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
 			return "PLAYLIST_NOT_EXIST"
-		if not is_authorised(pid, user) :
+		if not _is_authorised(pid, user) :
 			return "UNAUTHORISED_OPERATION"
 		if cover :
 			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {"cover": cover}}, session = s())
@@ -119,7 +120,7 @@ def addVideoToPlaylist(pid, vid, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			return "PLAYLIST_NOT_EXIST"
-		if not is_authorised(playlist, user) :
+		if not _is_authorised(playlist, user) :
 			return "UNAUTHORISED_OPERATION"
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
 			return "VIDEO_NOT_EXIST"
@@ -184,7 +185,7 @@ def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
 		ret_obj = obj['item']
 		ret_obj['rank'] = obj['rank']
 		ret.append(ret_obj)
-	return "SUCCEED", ret, playlist['videos'], is_authorised(playlist, user)
+	return "SUCCEED", ret, playlist['videos'], _is_authorised(playlist, user)
 
 def listPlaylistVideos(pid, page_idx, page_size) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
@@ -272,6 +273,7 @@ def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
 	
 	return "SUCCEED", ans_obj, db.playlists.find(query).count()
 
+@usingResource('tags')
 def listCommonTags(pid) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
 	if playlist is None :
@@ -340,6 +342,7 @@ def listCommonTags(pid) :
 	else :
 		return 'SUCCEED', []
 
+@usingResource('tags')
 def updateCommonTags(pid, tags, user) :
 	with MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
@@ -415,7 +418,7 @@ def removeVideoFromPlaylist(pid, vid, page, page_size, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			return "PLAYLIST_NOT_EXIST"
-		if not is_authorised(playlist, user) :
+		if not _is_authorised(playlist, user) :
 			return "UNAUTHORISED_OPERATION"
 		if playlist["videos"] > 0 :
 			entry = db.playlist_items.find_one({"pid": ObjectId(pid), "vid": ObjectId(vid)}, session = s())
@@ -448,7 +451,7 @@ def editPlaylist_MoveUp(pid, vid, page, page_size, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			return "PLAYLIST_NOT_EXIST", None
-		if not is_authorised(playlist, user) :
+		if not _is_authorised(playlist, user) :
 			return "UNAUTHORISED_OPERATION", None
 		if playlist["videos"] > 0 :
 			entry = db.playlist_items.find_one({"pid": ObjectId(pid), "vid": ObjectId(vid)}, session = s())
@@ -479,7 +482,7 @@ def editPlaylist_MoveDown(pid, vid, page, page_size, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			return "PLAYLIST_NOT_EXIST", None
-		if not is_authorised(playlist, user) :
+		if not _is_authorised(playlist, user) :
 			return "UNAUTHORISED_OPERATION", None
 		if playlist["videos"] > 0 :
 			entry = db.playlist_items.find_one({"pid": ObjectId(pid), "vid": ObjectId(vid)}, session = s())
@@ -509,7 +512,7 @@ def insertIntoPlaylist(pid, vid, rank, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			return "PLAYLIST_NOT_EXIST"
-		if not is_authorised(playlist, user) :
+		if not _is_authorised(playlist, user) :
 			return "UNAUTHORISED_OPERATION"
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
 			return "VIDEO_NOT_EXIST"

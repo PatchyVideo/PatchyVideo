@@ -85,21 +85,23 @@ class TagDB():
 			{'$project':{'tag':1}}], session = session)
 		return [item['tag'] for item in found]
 
-	def remove_tag(self, tag, user = '', session = None):
-		tt, tag_obj = self._tag_type(tag, session = session)
+	def remove_tag(self, tag_name_or_tag_obj, user = '', session = None):
+		tt, tag_obj = self._tag_type(tag_name_or_tag_obj, session = session)
 		if tt == 'tag' or tt == 'alias':
+			tag = tag_obj['tag']
 			self.db.tags.update_many({'dst': tag}, {'$unset': {'dst': ''}, '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 			self.db.tags.delete_one({'_id': tag_obj['_id']}, session = session)
 			self.db.cats.update_one({'name': tag_obj['category']}, {'$inc': {'count': -1}}, session = session)
-			self.db.items.update_many({'tags': tag}, {'$pull': {'tags': tag}}, session = session)
+			self.db.items.update_many({'tags': {'$in': [tag]}}, {'$pull': {'tags': tag}}, session = session)
 			self.aci.DeleteTagOrAlias(tag)
 			return 'SUCCEED'
 		else:
 			return 'TAG_NOT_EXIST'
 
-	def rename_tag(self, tag, new_tag, user = None, session = None):
-		tt, tag_obj = self._tag_type(tag, session = session)
+	def rename_tag(self, tag_name_or_tag_obj, new_tag, user = None, session = None):
+		tt, tag_obj = self._tag_type(tag_name_or_tag_obj, session = session)
 		if tt == 'tag' or tt == 'alias':
+			tag = tag_obj['tag']
 			tag_obj2 = self.db.tags.find_one({'tag': new_tag}, session = session)
 			if tag_obj2 is not None:
 				return 'TAG_EXIST'
@@ -180,7 +182,7 @@ class TagDB():
 		"""
 		Your update query MUST NOT modify tags
 		"""
-		if isinstance(item_id_or_item_object, ObjectId):
+		if isinstance(item_id_or_item_object, ObjectId) or isinstance(item_id_or_item_object, str):
 			item = self.db.items.find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
 			if item is None:
 				return 'ITEM_NOT_EXIST'
@@ -191,7 +193,7 @@ class TagDB():
 		return 'SUCCEED'
 
 	def update_item_tags(self, item_id_or_item_object, new_tags, user = '', session = None):
-		if isinstance(item_id_or_item_object, ObjectId):
+		if isinstance(item_id_or_item_object, ObjectId) or isinstance(item_id_or_item_object, str):
 			item = self.db.items.find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
 			if item is None:
 				return 'ITEM_NOT_EXIST'
@@ -374,10 +376,13 @@ class TagDB():
 			return 'INCORRECT_QUERY', []
 		return query_obj, tags
 
-	def _tag_type(self, tag, session = None):
-		if not isinstance(tag, str) :
-			return 'tag', tag
-		tag_obj = self.db.tags.find_one({'tag': tag}, session = session)
+	def _tag_type(self, tag_name_or_tag_obj, session = None):
+		if isinstance(tag_name_or_tag_obj, dict) :
+			if 'dst' in tag_name_or_tag_obj :
+				return 'alias', tag_name_or_tag_obj
+			else :
+				return 'tag', tag_name_or_tag_obj
+		tag_obj = self.db.tags.find_one({'tag': tag_name_or_tag_obj}, session = session)
 		if tag_obj is None:
 			return None, None
 		if 'dst' in tag_obj:
