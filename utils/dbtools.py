@@ -15,6 +15,9 @@ def makeUserMetaObject(user):
         return {'created_by': ObjectId(user['_id']), 'created_at': datetime.utcnow()}
 
 class MongoTransactionEnabled(object) :
+    """
+    MongoDB transaction RAII helper
+    """
     def __init__(self, client) :
         self.client = client
         self.succeed = False

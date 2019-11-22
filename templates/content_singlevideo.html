@@ -364,6 +364,7 @@
 					{% endif %}
 					{% if _user is not none %}
 					<a href="/postvideo?copy={{video_id}}">[Add Copy]</a>{% if copies|length > 0 %} <a href="javascript:breaklink();">[Remove This Copy]</a>{% endif %}
+					<a href="javascript:broadcastTags('{{video_id}}')">[Broadcast Tags To Copies]</a>
 					{% endif %}
 				</div>
 				<ul>

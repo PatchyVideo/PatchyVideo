@@ -11,15 +11,19 @@ from bson import ObjectId
 
 import redis_lock
 
-def _getAllCopies(vid) :
-	if not vid :
+def _getAllCopies(vid_or_obj, session = None) :
+	if not vid_or_obj :
 		return []
-	this_video = tagdb.retrive_item({"_id": ObjectId(vid)})
+	this_video = None
+	if isinstance(vid_or_obj, str) or isinstance(vid_or_obj, ObjectId) :
+		this_video = tagdb.retrive_item({"_id": ObjectId(vid_or_obj)}, session = session)
+	else :
+		this_video = vid_or_obj
 	if this_video is None :
 		return []
 	copies = this_video['item']['copies']
 	# add self
-	copies.append(ObjectId(vid))
+	copies.append(this_video['_id'])
 	# use set to remove duplicated items
 	return list(set(copies))
 
@@ -52,4 +56,24 @@ def syncTags(dst, src, user):
 		ret = tagdb.update_item_tags_merge(ObjectId(dst), src_tags, makeUserMeta(user), s())
 		if ret == 'SUCCEED':
 			s.mark_succeed()
+		return ret
+
+def broadcastTags(src, user):
+	src_item = tagdb.retrive_item({"_id": ObjectId(src)})
+	# BUG: race condition with tag editing
+	if src_item is None:
+		return "ITEM_NOT_EXIST"
+	src_tags = src_item['tags']
+	with redis_lock.Lock(rdb, "editLink"), MongoTransaction(client) as s :
+		copies = _getAllCopies(src, session = s())
+		for copy in copies:
+			if copy != ObjectId(src) : # prevent self updating
+				copy_obj = tagdb.retrive_item({"_id": ObjectId(copy)}, session = s())
+				if copy_obj is None:
+					return "ITEM_NOT_EXIST"
+				with redis_lock.Lock(rdb, "videoEdit:" + copy_obj["item"]["unique_id"]):
+					ret = tagdb.update_item_tags_merge(ObjectId(copy), src_tags, makeUserMeta(user), s())
+					if ret != 'SUCCEED':
+						return "ITEM_NOT_EXIST"
+		s.mark_succeed()
 		return ret

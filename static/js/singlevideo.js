@@ -28,6 +28,16 @@ function syncTags(dst, src) {
     });
 }
 
+function broadcastTags(src) {
+    postJSON("/videos/broadcasttags.do",
+    {
+        "src": src
+    }, function(result)
+    {
+        location.reload();
+    });
+}
+
 function createPlaylistFromSingleVideo(vid) {
     console.log(vid);
 }
