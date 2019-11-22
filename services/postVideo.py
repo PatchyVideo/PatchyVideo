@@ -99,6 +99,7 @@ def _addThiscopy(dst_vid, this_vid, user, session):
 @usingResource('tags')
 def postVideo(url, tags, parsed, dst_copy, dst_playlist, dst_rank, other_copies, user):
 	tags = [tag.strip() for tag in tags]
+	tags = tagdb.filter_tags(tags) # tags maybe removed while waiting in queue
 	tags = tagdb.translate_tags(tags)
 	tags = list(set(tags))
 	if parsed is None :
