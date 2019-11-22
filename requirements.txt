@@ -9,6 +9,7 @@ PBKDF2
 pycryptodome
 Pillow
 python-redis-lock
+redisrwlock
 beautifulsoup4
 flask_sslify
 apscheduler
