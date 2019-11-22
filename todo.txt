@@ -54,11 +54,10 @@ remove footer touhou copyright
 !<!!HIGH PRIORITY!!> tag alias(as multi-language phase1)
     lacking UI for tag alias
 recover password
-documents/tagging guide
 !user access control for backend
 !user access control for frontend HTMLs
 #log error, don't want others to see filenames in error response
-change background image to include more patchouli
+#change background image to include more patchouli
 user sees his playlists
 #create playlist from a single video
 create playlist from current playlist but with videos from other site in "copies" field
@@ -72,7 +71,7 @@ deployment mode using GCI
 !tags autocomplete
     support suffix tag completion
 #use reader-writer lock to protect tag rename/deletion
-add wiki/help page
+add wiki/help page and documents/tagging guide
 
 ======================
 phase 3
