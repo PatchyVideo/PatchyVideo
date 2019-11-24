@@ -27,6 +27,8 @@ from PIL import Image, ImageSequence
 import io
 import json
 
+_COVER_PATH = os.getenv('IMAGE_PATH', "/images") + "/covers/"
+
 def _gif_thumbnails(frames):
 	for frame in frames:
 		thumbnail = frame.copy()
@@ -35,26 +37,28 @@ def _gif_thumbnails(frames):
 
 # TODO: maybe make save image async?
 
-def _make_video_data(data, copies, playlists, url) :
+async def _make_video_data(data, copies, playlists, url) :
 	filename = ""
 	for _ in range(3) :
 		try :
-			r = requests.get(data['thumbnailURL'])
-			if r.status_code == 200 :
-				img = Image.open(io.BytesIO(r.content))
-				if data['thumbnailURL'][-4:].lower() == '.gif' :
-					filename = random_bytes_str(24) + ".gif"
-					frames = ImageSequence.Iterator(img)
-					frames = _gif_thumbnails(frames)
-					om = next(frames) # Handle first frame separately
-					om.info = img.info # Copy sequence info
-					om.save(_COVER_PATH + filename, save_all = True, append_images = list(frames), loop = 0)
-				else :
-					filename = random_bytes_str(24) + ".png"
-					img.thumbnail((320, 200), Image.ANTIALIAS)
-					img.save(_COVER_PATH + filename)
-				break
-		except :
+			async with ClientSession() as session:
+				async with session.get(data['thumbnailURL']) as resp:
+					if resp.status == 200 :
+						img = Image.open(io.BytesIO(await resp.read()))
+						if data['thumbnailURL'][-4:].lower() == '.gif' :
+							filename = random_bytes_str(24) + ".gif"
+							frames = ImageSequence.Iterator(img)
+							frames = _gif_thumbnails(frames)
+							om = next(frames) # Handle first frame separately
+							om.info = img.info # Copy sequence info
+							om.save(_COVER_PATH + filename, save_all = True, append_images = list(frames), loop = 0)
+						else :
+							filename = random_bytes_str(24) + ".png"
+							img.thumbnail((320, 200), Image.ANTIALIAS)
+							img.save(_COVER_PATH + filename)
+						break
+		except Exception as ex :
+			print(ex)
 			continue
 	return {
 		"url": url,
@@ -215,7 +219,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 						# add videos from other copies
 						for uid in other_copies :
 							all_copies += _getAllCopies(uid, session = s(), use_unique_id = True)
-						new_item_id = tagdb.add_item(tags, _make_video_data(ret["data"], all_copies, playlists, url), makeUserMeta(user), session = s())
+						new_item_id = tagdb.add_item(tags, await _make_video_data(ret["data"], all_copies, playlists, url), makeUserMeta(user), session = s())
 						all_copies.append(ObjectId(new_item_id))
 						# remove duplicated items
 						all_copies = list(set(all_copies))
@@ -231,7 +235,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 							return "TOO_MANY_COPIES", {}
 				else :
 					async with MongoTransaction(client) as s :
-						new_item_id = tagdb.add_item(tags, _make_video_data(ret["data"], [], playlists, url), makeUserMeta(user), session = s())
+						new_item_id = tagdb.add_item(tags, await _make_video_data(ret["data"], [], playlists, url), makeUserMeta(user), session = s())
 						print('New video added to database', file = sys.stderr)
 						s.mark_succeed()
 				# if the operation is adding this video to playlist
