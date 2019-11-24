@@ -60,8 +60,17 @@ function buildParsersAndExpanders() {
     PARSERS["^(https:\\/\\/|http:\\/\\/)?(www\\.)?nicovideo\\.jp\\/watch\\/(s|n)m[\\d]+"] = function(responseDOM, responseURL) {
         // TODO: handle error
         thumbnailURL = responseDOM.filter('meta[itemprop="thumbnailUrl"]').attr("content");
+        if (thumbnailURL == null) {
+            thumbnailURL = responseDOM.filter('meta[name="thumbnail"]').attr("content");
+        }
         title = responseDOM.filter('meta[itemprop="name"]').attr("content");
+        if (title == null) {
+            title = responseDOM.filter('meta[property="og:title"]').attr("content");
+        }
         desc = responseDOM.filter('meta[itemprop="description"]').attr("content");
+        if (desc == null) {
+            desc = responseDOM.filter('meta[name="description"]').attr("content");
+        }
         setVideoMetadata(thumbnailURL, title, desc);
     };
     EXPANDERS["^(s|n)m[\\d]+"] = function(short_link) {
