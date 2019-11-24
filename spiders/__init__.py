@@ -36,8 +36,8 @@ class Spider :
 					else :	
 						return makeResponseFailed({'status_code': resp.status_code})
 		except Exception as ex :
-			#import traceback
-			#print(traceback.format_exc(), file = sys.stderr)
+			import traceback
+			print(traceback.format_exc(), file = sys.stderr)
 			return makeResponseFailed({'exception': str(ex)})
 
 	async def get_unique_id_async( self, link ) :

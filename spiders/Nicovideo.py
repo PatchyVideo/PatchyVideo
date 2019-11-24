@@ -50,4 +50,4 @@ class Nicovideo( Spider ) :
 		return self.unique_id(link)
 		
 	async def run_async(self, content, xpath, link) :
-		return self.run(content, xpath, link)
+		return self.run(self = self, content = content, xpath = xpath, link = link)

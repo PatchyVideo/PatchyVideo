@@ -128,8 +128,9 @@ class Youtube( Spider ) :
 
 		info_file_link = "https://www.youtube.com/get_video_info?video_id=" + vidid
 		async with aiohttp.ClientSession() as session:
-			async with session.post(info_file_link, headers = self.HEADERS) as resp:
-				info_file = await resp.text()
+			async with session.get(info_file_link, headers = self.HEADERS_NO_UTF8) as resp:
+				if resp.status == 200 :
+					info_file = await resp.text()
 		player_response = parse_qs(info_file)['player_response'][0]
 		player_response = json.loads(player_response)
 		videoDetails = player_response['videoDetails']

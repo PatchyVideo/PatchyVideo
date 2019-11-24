@@ -88,7 +88,7 @@ class Twitter( Spider ) :
 				ga_content = await resp.text()
 			guest_token = json.loads(ga_content)['guest_token']
 			api_url = 'https://api.twitter.com/1.1/statuses/show.json?id=%s' % item_id
-			async with session.post(api_url, headers = {'authorization': authorization, 'x-guest-token': guest_token}) as resp:
+			async with session.get(api_url, headers = {'authorization': authorization, 'x-guest-token': guest_token}) as resp:
 				api_content = await resp.text()
 
 		info = json.loads(api_content)
