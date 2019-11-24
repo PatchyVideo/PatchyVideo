@@ -1,31 +1,16 @@
+.top-navbar {
 
-
-  html .top-navbar {
-
-
-	flex: none;
 
 
 	margin: 0 auto;
 
-
 	height: 70px;
-
 
 	display: flex;
 
-
-	-webkit-align-items: center;
-
-
-	-ms-flex-align: center;
-
-
 	align-items: center;
 
-
 	overflow: hidden;
-
 
 	position: relative;
 
@@ -46,6 +31,7 @@
 
 
 	color: #761226;
+	transition: all 0.4s ease;
 
 
 }
@@ -60,19 +46,11 @@
 }
 
 
-.nav_left {
-
-
-	width: 50%;
-
-
-}
-
 
 .nav_right li#s1 {
 
 
-	width: 426px;
+	width: 600px;
 
 
 	height: 70px;
@@ -96,7 +74,9 @@
 .nav_left {
 
 
-	width: 65%;
+	width: 50%;
+	text-align: left;
+	padding-left: 20px;
 
 
 }
@@ -105,7 +85,7 @@
 .nav_right {
 
 
-	width: 50%;
+	width: 60%;
 
 
 }
@@ -123,7 +103,7 @@
 	display: inline-block;
 
 
-	margin-left: 5%;
+	margin-left: 6%;
 
 
 	text-align: center;
@@ -162,14 +142,37 @@
 }
 
 
+.form_select {
+	width: 120px;
+	height: 20px;
 
+	padding-left: 5px;
+	text-rendering: auto;
+	color: black;
+	letter-spacing: normal;
+	word-spacing: normal;
+	display: inline-block;
+
+	box-sizing: border-box;
+	align-items: center;
+	white-space: pre;
+	background-color: white;
+	cursor: pointer;
+	outline: none;
+	border-style: solid;
+	border-color: white;
+	position: relative;
+	right: 74px;
+	transition: all .6s ease;
+
+}
 #search-bar-query {
 
 
 	width: 220px;
 
 
-	height: 42px;
+	height: 40px;
 
 
 	outline: none;
@@ -181,31 +184,45 @@
 	padding-left: 13px;
 
 
-	position: relative;
+	position: absolute;
+	border: 1px solid white;
+	right: 74px;
+	top: 50%;
+	transform: translateY(-50%);
+   transition: all 0.6s ease;
 
+}
 
-	top: 0px;
+.form_select:hover{
+	outline: none;
+	border-style: solid;
+	border-color: #d1d1d1;
+	box-shadow: 0px 0px 10px 5px white,
+	0px 0px 10px dodgerblue ,
+	0px 0px 20px dodgerblue ;
+
+	color: dodgerblue;
 
 
 }
 
-
-#search-bar-query:focus {
-
-
-	font-size: 15px;
-
-
+#search-bar-query:hover{
 	border: 1px solid #d1d1d1;
-
-
 }
 
 
-#search-bar-submit {
+#search-bar-submit{
 
-
+	display: block;
 	background: #c5464a;
+	text-shadow: 0 0 10px #fff,
+	0 0 20px  #fff,
+	0 0 30px  #fff,
+	0 0 40px  #c5464a,
+	0 0 70px  #c5464a,
+	0 0 80px  #c5464a,
+	0 0 100px #c5464a,
+	0 0 150px #c5464a;
 
 
 	width: 74px;
@@ -226,19 +243,23 @@
 	cursor: pointer;
 
 
-	position: relative;
+	position: absolute;
 
+right: 0px;
+	top: 50%;
+	transform: translateY(-50%);
 
-	top: 0px;
-
-
+transition: all .6s ease;
 }
 
-
-#submit:hover {
-
-
-	background: #FF88A0;
-
-
+#search-bar-submit:hover{
+	background-color: royalblue;
+	text-shadow: 0 0 10px #fff,
+	0 0 20px  #fff,
+	0 0 30px  #fff,
+	0 0 40px  #228DFF,
+	0 0 70px  #228DFF,
+	0 0 80px  #228DFF,
+	0 0 100px #228DFF,
+	0 0 150px #228DFF;
 }
