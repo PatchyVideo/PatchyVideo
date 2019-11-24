@@ -71,6 +71,7 @@ def ajax_add_tag(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_remove_tag(rd, user, data):
+    return "json", makeResponseFailed("You are not authorised to do this")
     ret = removeTag(user, data.tag)
     if ret == 'SUCCEED' :
         response = makeResponseSuccess("SUCCEED")
@@ -84,6 +85,7 @@ def ajax_remove_tag(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_rename_tag(rd, user, data):
+    return "json", makeResponseFailed("You are not authorised to do this")
     ret = renameTag(user, data.tag, data.new_tag)
     if ret == 'SUCCEED' :
         response = makeResponseSuccess("SUCCEED")
