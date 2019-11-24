@@ -3,13 +3,14 @@ import time
 
 from flask import render_template, request, jsonify, redirect, session
 
-from init import app
+from init import app, rdb
 from utils.interceptors import basePage
 from services.listVideo import listVideo, listVideoQuery
 from utils.html import buildPageSelector
+from bson.json_util import dumps, loads
 
-from rq import Queue
-from rq.job import Job
+#from rq import Queue
+#from rq.job import Job
 from worker import conn
 from config import VideoConfig
 
@@ -17,11 +18,11 @@ from config import VideoConfig
 @basePage
 def pages_postresult(rd, job_key):
     try :
-        job = Job.fetch(job_key, connection = conn)
+        job = loads(rdb.get(f'task-{job_key}'))
     except :
         return "data", "No such job"
-    if job.is_finished :
-        result, obj = job.result
+    if job['finished'] :
+        result, obj = job['data']['result'], job['data']['result_obj']
         if result == 'SUCCEED':
             return "redirect", "/video?id=" + str(obj)
         elif result == 'TOO_MANY_COPIES':
