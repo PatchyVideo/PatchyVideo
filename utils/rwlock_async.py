@@ -236,7 +236,7 @@ class RwlockClient:
 		self.redis.delete('wait:' + self.get_owner())
 		return rwlock
 
-	async def lock_async(self, name, mode, timeout=0, retry_interval=0.1):
+	async def lock_async(self, name, mode, timeout=0, retry_interval=0.0):
 		"""Locks on a named resource with mode in timeout.
 
 		Specify timeout 0 (default) for no-wait, no-retry and

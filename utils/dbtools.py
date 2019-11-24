@@ -34,10 +34,21 @@ class MongoTransactionEnabled(object) :
         self.session.start_transaction()
         return self
 
+    async def __aenter__(self) :
+        self.session = self.client.start_session()
+        self.session.__enter__()
+        self.session.start_transaction()
+        return self
+
     def __call__(self) :
         return self.session
 
     def __exit__(self, type, value, traceback) :
+        if self.succeed :
+            self.session.commit_transaction()
+        self.session.__exit__(type, value, traceback)
+
+    async def __aexit__(self, type, value, traceback) :
         if self.succeed :
             self.session.commit_transaction()
         self.session.__exit__(type, value, traceback)
@@ -55,10 +66,16 @@ class MongoTransactionDisabled(object) :
     def __enter__(self) :
         return self
 
+    async def __aenter__(self) :
+        return self
+
     def __call__(self) :
         return None
 
     def __exit__(self, type, value, traceback) :
+        pass
+
+    async def __aexit__(self, type, value, traceback) :
         pass
 
 import os

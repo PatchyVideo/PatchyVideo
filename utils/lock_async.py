@@ -293,7 +293,7 @@ class RedisLockAsync(object):
 					return False
 				elif blocking:
 					timed_out = not self._client.blpop(self._signal, blpop_timeout) and timeout
-					await asyncio.sleep(0.1)
+					await asyncio.sleep(0)
 				else:
 					logger.debug("Failed to get %r.", self._name)
 					return False

@@ -45,4 +45,8 @@ class Nicovideo( Spider ) :
 			"unique_id": "nicovideo:%s" % vidid
 		})
 		
-
+	async def unique_id_async( self, link ) :
+		return self.unique_id(link)
+		
+	async def run_async(self, content, xpath, link) :
+		return self.run(content, xpath, link)

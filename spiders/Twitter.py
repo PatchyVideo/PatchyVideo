@@ -9,6 +9,7 @@ from datetime import timezone
 
 import re
 import json
+import aiohttp
 
 class Twitter( Spider ) :
 	NAME = 'twitter'
@@ -61,4 +62,40 @@ class Twitter( Spider ) :
 			"unique_id": "twitter:%s" % item_id
 		})
 		
+	async def unique_id_async( self, link ) :
+		return self.unique_id(link)
+		
+	async def run_async(self, content, xpath, link) :
+		if re.match(r'https?://mobile', link): # normalize mobile URL
+			link = 'https://' + match1(link, r'//mobile\.(.+)')
+		screen_name = r1(r'twitter\.com/([^/]+)', link) or r1(r'data-screen-name="([^"]*)"', content) or \
+			r1(r'<meta name="twitter:title" content="([^"]*)"', content)
+		item_id = r1(r'twitter\.com/[^/]+/status/(\d+)', link) or r1(r'data-item-id="([^"]*)"', content) or \
+			r1(r'<meta name="twitter:site:id" content="([^"]*)"', content)
+		
+		authorization = 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
 
+		ga_url = 'https://api.twitter.com/1.1/guest/activate.json'
+		async with aiohttp.ClientSession() as session:
+			async with session.post(ga_url, headers = {'authorization': authorization}) as resp:
+				ga_content = await resp.text()
+			guest_token = json.loads(ga_content)['guest_token']
+			api_url = 'https://api.twitter.com/1.1/statuses/show.json?id=%s' % item_id
+			async with session.post(api_url, headers = {'authorization': authorization, 'x-guest-token': guest_token}) as resp:
+				api_content = await resp.text()
+
+		info = json.loads(api_content)
+		desc = info['text']
+		cover = info['extended_entities']['media'][0]['media_url']
+		user_name = info['user']['name']
+		screen_name = info['user']['screen_name']
+		uploadDate = parse(info['created_at']).astimezone(timezone.utc)
+
+		return makeResponseSuccess({
+			'thumbnailURL': cover,
+			'title' : f'{user_name} @{screen_name}',
+			'desc' : desc,
+			'site': 'twitter',
+            'uploadDate' : uploadDate,
+			"unique_id": "twitter:%s" % item_id
+		})

@@ -2,7 +2,7 @@
 import os
 import sys
 import time
-from init import app, rdb
+from init import rdb
 from utils.jsontools import *
 from utils.dbtools import makeUserMeta, MongoTransaction
 from utils.crypto import random_bytes_str
@@ -14,7 +14,6 @@ from db import tagdb, db, client
 
 from bson import ObjectId
 
-import traceback
 from services.playlist import addVideoToPlaylist, insertIntoPlaylist
 from PIL import Image, ImageSequence
 import requests

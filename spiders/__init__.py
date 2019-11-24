@@ -4,6 +4,7 @@ from lxml import html
 import requests
 from utils.jsontools import makeResponseFailed
 from utils.http import clear_url
+import aiohttp
 
 class Spider :
 	def __init__(self) :
@@ -22,6 +23,24 @@ class Spider :
 	def get_unique_id( self, link ) :
 		link = clear_url(link)
 		return self.unique_id( self = self, link = link )
+
+	async def get_metadata_async( self, link ) :
+		try :
+			link = clear_url(link)
+			async with aiohttp.ClientSession() as session:
+				async with session.get(link, headers = self.HEADERS) as resp:
+					if resp.status_code == 200 :
+						page_content = await resp.text()
+						tree = html.fromstring(page_content)
+						return await self.run_async( self = self, content = page_content, xpath = tree, link = link )
+					else :	
+						return makeResponseFailed({'status_code': resp.status_code})
+		except Exception as ex :
+			return makeResponseFailed({'exception': str(ex)})
+
+	async def get_unique_id_async( self, link ) :
+		link = clear_url(link)
+		return await self.unique_id_async( self = self, link = link )
 
 _spider_modules = [ 'Patchyvideo', 'Bilibili', 'Youtube', 'Nicovideo', 'Twitter' ]
 
