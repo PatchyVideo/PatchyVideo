@@ -520,8 +520,10 @@ def insertIntoPlaylist(pid, vid, rank, user) :
 			return "VIDEO_LIMIT_EXCEEDED"
 		if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = s()) is not None :
 			return "VIDEO_ALREADY_EXIST"
-		if rank < 0 or rank > playlist['videos'] :
+		if rank < 0 :
 			return "OUT_OF_RANGE"
+		if rank > playlist['videos'] :
+			rank = playlist['videos']
 		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
 		playlists.append(ObjectId(pid))
 		playlists = list(set(playlists))
