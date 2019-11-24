@@ -1,4 +1,4 @@
-
+import sys
 import re
 from lxml import html
 import requests
@@ -28,14 +28,16 @@ class Spider :
 		try :
 			link = clear_url(link)
 			async with aiohttp.ClientSession() as session:
-				async with session.get(link, headers = self.HEADERS) as resp:
-					if resp.status_code == 200 :
+				async with session.get(link, headers = self.HEADERS_NO_UTF8) as resp:
+					if resp.status == 200 :
 						page_content = await resp.text()
 						tree = html.fromstring(page_content)
 						return await self.run_async( self = self, content = page_content, xpath = tree, link = link )
 					else :	
 						return makeResponseFailed({'status_code': resp.status_code})
 		except Exception as ex :
+			#import traceback
+			#print(traceback.format_exc(), file = sys.stderr)
 			return makeResponseFailed({'exception': str(ex)})
 
 	async def get_unique_id_async( self, link ) :

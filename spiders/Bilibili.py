@@ -11,6 +11,7 @@ class Bilibili( Spider ) :
 	PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?bilibili\.com\/video\/av[\d]+'
 	SHORT_PATTERN = r'^av[\d]+$'
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
+	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
 
 	def expand_url( self, short ) :
 		return "https://www.bilibili.com/video/" + short
@@ -39,4 +40,4 @@ class Bilibili( Spider ) :
 		return self.unique_id(link)
 		
 	async def run_async(self, content, xpath, link) :
-		return self.run(content, xpath, link)
+		return self.run(self = self, content = content, xpath = xpath, link = link)

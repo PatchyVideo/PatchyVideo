@@ -18,6 +18,7 @@ from services.playlist import addVideoToPlaylist, insertIntoPlaylist
 from PIL import Image, ImageSequence
 import requests
 import io
+import traceback
 
 import redis_lock
 from config import VideoConfig

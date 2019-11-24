@@ -3,7 +3,6 @@ pymongo
 anytree
 redis
 lxml
-rq
 requests
 PBKDF2
 pycryptodome

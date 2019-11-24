@@ -108,7 +108,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 	tags = tagdb.filter_tags(tags) # tags maybe removed while waiting in queue
 	tags = tagdb.translate_tags(tags)
 	tags = list(set(tags))
-	parsed = dispatch(url)
+	parsed, _ = dispatch(url)
 	if parsed is None :
 		print('Parse failed for %s' % url, file = sys.stderr)
 		return "PARSE_FAILED", {}
@@ -248,7 +248,6 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 	except :
 		print('****Exception!', file = sys.stderr)
 		print(traceback.format_exc(), file = sys.stderr)
-		print(ret, file = sys.stderr)
 		try :
 			problematic_lock = RedisLockAsync(rdb, 'editLink')
 			problematic_lock.reset()
@@ -276,22 +275,24 @@ def verifyUniqueness(postingId):
 def verifyTags(tags):
 	return tagdb.verify_tags([tag.strip() for tag in tags])
 
+async def func_with_write_result(func, task_id, param_json) :
+	ret = await func(param_json)
+	ret_json = dumps({'finished' : True, 'key': task_id, 'data' : ret})
+	rdb.set(f'task-{task_id}', ret_json, ex = 500)
+
 async def task_runner(func, queue) :
-	async def func_with_write_result(func, task_id, param_json) :
-		ret = await func(param_json)
-		ret_json = dumps({'finished' : True, 'key': task_id, 'data' : ret})
-		rdb.set(f'task-{task_id}', ret_json)
 	while True :
 		task_param, task_id = await queue.get()
 		task = asyncio.create_task(func_with_write_result(func, task_id, task_param))
-		await task #asyncio.gather(task)
+		asyncio.gather(task)
+		#await task
 		queue.task_done()
 
-def put_task(queue, param_json) :
+async def put_task(queue, param_json) :
 	task_id = random_bytes_str(16)
 	ret_json = dumps({'finished' : False, 'key': task_id, 'data' : None})
 	rdb.set(f'task-{task_id}', ret_json)
-	queue.put(param_json, task_id)
+	await queue.put((param_json, task_id))
 	return task_id
 
 routes = web.RouteTableDef()
@@ -300,13 +301,18 @@ _async_queue = asyncio.Queue()
 @routes.post("/")
 async def post_video_async(request):
 	rj = loads(await request.text())
-	task_id = put_task(_async_queue, rj)
+	task_id = await put_task(_async_queue, rj)
 	return web.json_response({'task_id' : task_id})
 
 app = web.Application()
 app.add_routes(routes)
 
 async def start_async_app():
+	# schedule task_runner to run
+	task_runner_task = asyncio.create_task(task_runner(postVideoAsyncJSON, _async_queue))
+	asyncio.gather(task_runner_task)
+
+	# schedule web server to run
 	runner = web.AppRunner(app)
 	await runner.setup()
 	site = web.TCPSite(runner, '0.0.0.0', 5003)
@@ -316,10 +322,6 @@ async def start_async_app():
 
 loop = asyncio.get_event_loop()
 runner, site = loop.run_until_complete(start_async_app())
-
-# schedule task_runner to run
-task_runner_task = asyncio.create_task(task_runner(postVideoAsyncJSON, _async_queue))
-asyncio.gather(task_runner_task)
 
 try:
 	loop.run_forever()

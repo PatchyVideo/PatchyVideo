@@ -9,9 +9,6 @@ from services.listVideo import listVideo, listVideoQuery
 from utils.html import buildPageSelector
 from bson.json_util import dumps, loads
 
-#from rq import Queue
-#from rq.job import Job
-from worker import conn
 from config import VideoConfig
 
 @app.route("/postresults/<job_key>", methods=['GET'])

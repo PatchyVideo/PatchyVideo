@@ -16,6 +16,7 @@ class Nicovideo( Spider ) :
 	PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?nicovideo\.jp\/watch\/(s|n)m[\d]+'
 	SHORT_PATTERN = r'^(s|n)m[\d]+$'
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.nicovideo.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
+	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.nicovideo.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
 
 	def expand_url( self, short ) :
 		return "https://www.nicovideo.jp/watch/" + short

@@ -2,7 +2,6 @@
 import time
 
 import redis
-from rq import Queue, Connection
 
 from flask import render_template, request, current_app, jsonify, redirect, session
 
