@@ -45,7 +45,7 @@
                 <li><a href="/login">Login</a></li>
                 <li><a href="/signup">Sign up</a></li>
                 {% else %}
-                <li><a href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
+                <li style="overflow: hidden; width: 130px;"><a href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
                 <li><a href="/logout">Log out</a></li>
                 {% endif %}
             </ul>

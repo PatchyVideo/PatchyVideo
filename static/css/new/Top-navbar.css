@@ -164,7 +164,7 @@
 	position: relative;
 	right: 74px;
 	transition: all .6s ease;
-
+    top: 25px;
 }
 #search-bar-query {
 
