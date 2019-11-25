@@ -54,6 +54,8 @@ class Twitter( Spider ) :
 		api_content = get_content(api_url, headers={'authorization': authorization, 'x-guest-token': guest_token})
 
 		info = json.loads(api_content)
+		if 'extended_entities' not in info :
+			return makeResponseFailed('Not a twitter video')
 		desc = info['text']
 		cover = info['extended_entities']['media'][0]['media_url']
 		user_name = info['user']['name']
@@ -65,7 +67,7 @@ class Twitter( Spider ) :
 			'title' : '%s @%s' % (user_name, screen_name),
 			'desc' : desc,
 			'site': 'twitter',
-            'uploadDate' : uploadDate,
+			'uploadDate' : uploadDate,
 			"unique_id": "twitter:%s" % item_id
 		})
 		
@@ -92,6 +94,8 @@ class Twitter( Spider ) :
 				api_content = await resp.text()
 
 		info = json.loads(api_content)
+		if 'extended_entities' not in info :
+			return makeResponseFailed('Not a twitter video')
 		desc = info['text']
 		cover = info['extended_entities']['media'][0]['media_url']
 		user_name = info['user']['name']
@@ -103,6 +107,6 @@ class Twitter( Spider ) :
 			'title' : f'{user_name} @{screen_name}',
 			'desc' : desc,
 			'site': 'twitter',
-            'uploadDate' : uploadDate,
+			'uploadDate' : uploadDate,
 			"unique_id": "twitter:%s" % item_id
 		})
