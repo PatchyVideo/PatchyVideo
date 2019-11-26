@@ -26,6 +26,13 @@ class Patchyvideo( Spider ) :
 			return makeResponseFailed({})
 		return makeResponseSuccess(vidobj['item'])
 		
+	async def get_metadata_async( self, link ) :
+		vidid = link[link.rfind("=") + 1:]
+		vidobj = getVideoDetail(vidid)
+		if vidobj is None :
+			return makeResponseFailed({})
+		return makeResponseSuccess(vidobj['item'])
+
 	async def unique_id_async( self, link ) :
 		return self.unique_id(link)
 		
