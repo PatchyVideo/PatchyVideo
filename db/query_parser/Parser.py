@@ -157,24 +157,29 @@ def _prepare_attributes(name, value):
 		elif value in ['twitter']:
 			query = 'twitter'
 		return { 'item.site': query }
-	if name == 'date':
+	elif name == 'date':
 		if value[:2] == '<=' :
 			date = parse_date(value[2:])
 			return { 'item.upload_time' : { '$lte' : date + timedelta(days = 1) } }
-		if value[:2] == '>=' :
+		elif value[:2] == '>=' :
 			date = parse_date(value[2:])
 			return { 'item.upload_time' : { '$gte' : date } }
-		if value[:1] == '<' :
+		elif value[:1] == '<' :
 			date = parse_date(value[1:])
 			return { 'item.upload_time' : { '$lt' : date } }
-		if value[:1] == '>' :
+		elif value[:1] == '>' :
 			date = parse_date(value[1:])
 			return { 'item.upload_time' : { '$gt' : date } }
-		if value[:1] == '=' :
+		elif value[:1] == '=' :
 			date = parse_date(value[1:])
 			return { 'item.upload_time' : { '$gte' : date, '$lte' : date + timedelta(days = 1) } }
 		date = parse_date(value)
 		return { 'item.upload_time' : { '$gte' : date, '$lte' : date + timedelta(days = 1) } }
+	elif name == 'notag':
+		if value == 'true' :
+			return { 'tags' : { '$size' : 0 } }
+		else :
+			return {}
 	return {}
 
 def _getk(node, idx):
