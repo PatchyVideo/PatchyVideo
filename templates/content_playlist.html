@@ -596,7 +596,7 @@
                   <div class="video-detail">
                       <h4><a href="/video?id={{vid._id}}">{{vid.item.title}}</a></h4>
                       <p>{{vid.item.desc}}</p>
-                      <div style="overflow: hidden; white-space: nowrap;">
+                      <div style="overflow: hidden; white-space: nowrap; width: 370px;">
                           <img src="{{ url_for('static',filename='img/' + vid.item.site + '.ico') }}" width="16px"></img>
                           <a href="{{vid.item.url}}" id="link_{{vid._id}}">{{vid.item.url}}</a>
                       </div>
