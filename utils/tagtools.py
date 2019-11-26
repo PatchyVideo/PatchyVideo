@@ -35,7 +35,7 @@ def verifyAndSanitizeTag(tag):
     ret = _match_object.match(tag)
     if ret:
         tag_sanitized = ret.group(0)
-        if tag_sanitized in ['site', 'date', 'and', 'or', 'not', 'any', 'all'] : # keywords
+        if tag_sanitized in ['site', 'date', 'and', 'or', 'not', 'any', 'all', 'notag', 'true', 'false'] : # keywords
             return False, ''
         return True, tag_sanitized
     return False, ''
