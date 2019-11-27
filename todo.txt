@@ -73,7 +73,7 @@ deployment mode using GCI
 add wiki/help page and documents/tagging guide
 #<!!HIGH PRIORITY!!> replace redis queue which is slow and does not support multiple workers/coroutines
 #    make postVideo async, don't want to waste time on requests.get
-reorder playlist insert/add result after async post
+#reorder playlist insert/add result after async post
 make everything async, don't want to waste time on spin locks
 
 ======================
