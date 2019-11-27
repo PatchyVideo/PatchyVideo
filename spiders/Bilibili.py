@@ -6,12 +6,18 @@ from utils.html import getInnerText
 from dateutil.parser import parse
 from datetime import timedelta
 
+import os
+
 class Bilibili( Spider ) :
 	NAME = 'bilibili'
 	PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?bilibili\.com\/video\/[aA][vV][\d]+'
 	SHORT_PATTERN = r'^[aA][Vv][\d]+$'
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
+	COOKIE = {
+		'SESSDATA' : os.getenv('bilicookie_SESSDATA', ""),
+		'bili_jct' : os.getenv('bilicookie_bili_jct', "")
+	}
 
 	def expand_url( self, short ) :
 		return "https://www.bilibili.com/video/" + short.lower()

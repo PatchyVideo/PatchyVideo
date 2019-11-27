@@ -28,7 +28,8 @@ class Spider :
 		try :
 			link = clear_url(link)
 			async with aiohttp.ClientSession() as session:
-				async with session.get(link, headers = self.HEADERS_NO_UTF8) as resp:
+				cookie = self.COOKIE if hasattr(self, 'COOKIE') else None
+				async with session.get(link, headers = self.HEADERS_NO_UTF8, cookies = cookie) as resp:
 					if resp.status == 200 :
 						page_content = await resp.text()
 						tree = html.fromstring(page_content)
