@@ -117,7 +117,6 @@ class _PlaylistReorederHelper() :
 				for unique_id in playlist_ordered :
 					if unique_id in self.playlist_map[dst_playlist]['succeed'] :
 						(video_id, _, user) = self.playlist_map[dst_playlist]['succeed'][unique_id]
-						# TODO: move locks out
 						if dst_rank == -1 :
 							addVideoToPlaylistLockFree(dst_playlist, video_id, user)
 						else :
@@ -137,6 +136,8 @@ class _PlaylistReorederHelper() :
 
 			self.playlist_map[dst_playlist]['rank'] = min(dst_rank, self.playlist_map[dst_playlist]['rank'])
 			self.playlist_map[dst_playlist]['succeed'][unique_id] = (video_id, unique_id, user)
+			if unique_id in self.playlist_map[dst_playlist]['failed'] :
+				del self.playlist_map[dst_playlist]['failed'][unique_id]
 
 			if len(self.playlist_map[dst_playlist]['succeed']) + len(self.playlist_map[dst_playlist]['failed']) >= len(self.playlist_map[dst_playlist]['all']) :
 				await self._add_to_playlist(dst_playlist)
@@ -152,6 +153,8 @@ class _PlaylistReorederHelper() :
 
 			self.playlist_map[dst_playlist]['rank'] = min(dst_rank, self.playlist_map[dst_playlist]['rank'])
 			self.playlist_map[dst_playlist]['failed'][unique_id] = unique_id
+			if unique_id in self.playlist_map[dst_playlist]['succeed'] :
+				del self.playlist_map[dst_playlist]['succeed'][unique_id]
 
 			if len(self.playlist_map[dst_playlist]['succeed']) + len(self.playlist_map[dst_playlist]['failed']) >= len(self.playlist_map[dst_playlist]['all']) :
 				await self._add_to_playlist(dst_playlist)
