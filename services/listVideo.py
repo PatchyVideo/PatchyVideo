@@ -1,4 +1,7 @@
 
+import pymongo
+import sys
+
 from db import tagdb as db
 from .tagStatistics import getPopularTags, getCommonTags, updateTagSearch
 from spiders import dispatch_no_expand
@@ -8,18 +11,26 @@ def listVideoQuery(query_str, page_idx, page_size, order = 'latest'):
 	updateTagSearch(tags)
 	if query_obj == "INCORRECT_QUERY":
 		return "FAILED", None, [], 0
-	result = db.retrive_items(query_obj)
-	if order == 'latest':
-		result = result.sort([("meta.created_at", -1)])
-	if order == 'oldest':
-		result = result.sort([("meta.created_at", 1)])
-	if order == 'video_latest':
-		result = result.sort([("item.upload_time", -1)])
-	if order == 'video_oldest':
-		result = result.sort([("item.upload_time", 1)])
-	ret = result.skip(page_idx * page_size).limit(page_size)
-	count = ret.count()
-	videos = [item for item in ret]
+	try :
+		result = db.retrive_items(query_obj)
+		if order == 'latest':
+			result = result.sort([("meta.created_at", -1)])
+		if order == 'oldest':
+			result = result.sort([("meta.created_at", 1)])
+		if order == 'video_latest':
+			result = result.sort([("item.upload_time", -1)])
+		if order == 'video_oldest':
+			result = result.sort([("item.upload_time", 1)])
+		ret = result.skip(page_idx * page_size).limit(page_size)
+		count = ret.count()
+		videos = [item for item in ret]
+	except pymongo.errors.OperationFailure as ex:
+		if '$not' in str(ex) :
+			return "FAILED_NOT_OP", None, [], 0
+		else :
+			print('Unknown error in query: \"%s\"' % query_str, file = sys.stderr)
+			print(ex, file = sys.stderr)
+			return "FAILED_UNKNOWN", None, [], 0
 	return "SUCCEED", videos, getCommonTags(videos), count
 
 def listVideo(page_idx, page_size, order = 'latest'):

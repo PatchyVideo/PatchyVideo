@@ -44,8 +44,14 @@ def pages_search(rd, user):
 		rd.videos = [item for item in videos]
 		status = "SUCCEED"
 
-	if status == "FAILED":
+	if status == "FAILED" :
 		rd.reason = "Syntax error in query"
+		return 'content_videolist_failed.html'
+	elif status == "FAILED_NOT_OP" :
+		rd.reason = "NOT operator can only be applied to tags"
+		return 'content_videolist_failed.html'
+	elif status == "FAILED_UNKNOWN" :
+		rd.reason = "Unknown error"
 		return 'content_videolist_failed.html'
 	rd.count = video_count
 	tag_category_map = getTagCategoryMap(related_tags)

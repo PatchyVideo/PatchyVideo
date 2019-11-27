@@ -178,6 +178,8 @@ def _prepare_attributes(name, value):
 	elif name == 'notag':
 		if value == 'true' :
 			return { 'tags' : { '$size' : 0 } }
+		elif value == 'false' :
+			return { 'tags' : { '$not' : { '$size' : 0 } } }
 		else :
 			return {}
 	return {}
