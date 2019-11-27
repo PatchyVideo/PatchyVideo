@@ -22,9 +22,11 @@ class Nicovideo( Spider ) :
 		return "https://www.nicovideo.jp/watch/" + short
 
 	def unique_id( self, link ) :
+		link = link.lower()
 		return "nicovideo:%s" % link[link.rfind("m") - 1:]
 
 	def run( self, content, xpath, link ) :
+		link = link.lower()
 		vidid = link[link.rfind("m") - 1:]
 		thumbnailURL = try_get_xpath(xpath, ['//meta[@itemprop="thumbnailUrl"]/@content', '//meta[@name="thumbnail"]/@content'])[0]
 		title = try_get_xpath(xpath, ['//meta[@itemprop="name"]/@content', '//meta[@property="og:title"]/@content'])[0]
