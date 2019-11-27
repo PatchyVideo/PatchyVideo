@@ -20,7 +20,7 @@ from db import tagdb, db, client
 
 from bson import ObjectId
 
-from services.playlist import addVideoToPlaylist, insertIntoPlaylist
+from services.playlist import addVideoToPlaylist, addVideoToPlaylistLockFree, insertIntoPlaylist, insertIntoPlaylistLockFree
 from config import VideoConfig
 from PIL import Image, ImageSequence
 
@@ -104,17 +104,76 @@ def _addThiscopy(dst_vid, this_vid, user, session):
 	dst_copies = list(set(dst_copies) - set([ObjectId(dst_vid)]))
 	tagdb.update_item_query(ObjectId(dst_vid), {"$set": {"item.copies": dst_copies}}, user, session = session)
 
+class _PlaylistReorederHelper() :
+	def __init__(self) :
+		self.playlist_map = {}
 
+	async def _add_to_playlist(self, dst_playlist) :
+		if self.playlist_map[dst_playlist] :
+			dst_rank = self.playlist_map[dst_playlist]['rank']
+			playlist_ordered = self.playlist_map[dst_playlist]['all']
+			cur_rank = 0
+			async with RedisLockAsync(rdb, "playlistEdit:" + dst_playlist) :
+				for unique_id in playlist_ordered :
+					if unique_id in self.playlist_map[dst_playlist]['succeed'] :
+						(video_id, _, user) = self.playlist_map[dst_playlist]['succeed'][unique_id]
+						# TODO: move locks out
+						if dst_rank == -1 :
+							addVideoToPlaylistLockFree(dst_playlist, video_id, user)
+						else :
+							insertIntoPlaylistLockFree(dst_playlist, video_id, dst_rank + cur_rank, user)
+						cur_rank += 1
+			print('Total %d out of %d videos added to playlist %s' % (len(self.playlist_map[dst_playlist]['succeed']), len(self.playlist_map[dst_playlist]['all']), dst_playlist), file = sys.stderr)
+			del self.playlist_map[dst_playlist]
+
+	async def post_video_succeed(self, video_id, unique_id, dst_playlist, playlist_ordered, dst_rank, user) :
+		if video_id and unique_id and dst_playlist and playlist_ordered :
+			if dst_playlist not in self.playlist_map :
+				self.playlist_map[dst_playlist] = {}
+				self.playlist_map[dst_playlist]['succeed'] = {}
+				self.playlist_map[dst_playlist]['failed'] = {}
+				self.playlist_map[dst_playlist]['rank'] = dst_rank
+				self.playlist_map[dst_playlist]['all'] = playlist_ordered
+
+			self.playlist_map[dst_playlist]['rank'] = min(dst_rank, self.playlist_map[dst_playlist]['rank'])
+			self.playlist_map[dst_playlist]['succeed'][unique_id] = (video_id, unique_id, user)
+
+			if len(self.playlist_map[dst_playlist]['succeed']) + len(self.playlist_map[dst_playlist]['failed']) >= len(self.playlist_map[dst_playlist]['all']) :
+				await self._add_to_playlist(dst_playlist)
+
+	async def post_video_failed(self, unique_id, dst_playlist, playlist_ordered, dst_rank) :
+		if unique_id and dst_playlist and playlist_ordered :
+			if dst_playlist not in self.playlist_map :
+				self.playlist_map[dst_playlist] = {}
+				self.playlist_map[dst_playlist]['succeed'] = {}
+				self.playlist_map[dst_playlist]['failed'] = {}
+				self.playlist_map[dst_playlist]['rank'] = dst_rank
+				self.playlist_map[dst_playlist]['all'] = playlist_ordered
+
+			self.playlist_map[dst_playlist]['rank'] = min(dst_rank, self.playlist_map[dst_playlist]['rank'])
+			self.playlist_map[dst_playlist]['failed'][unique_id] = unique_id
+
+			if len(self.playlist_map[dst_playlist]['succeed']) + len(self.playlist_map[dst_playlist]['failed']) >= len(self.playlist_map[dst_playlist]['all']) :
+				await self._add_to_playlist(dst_playlist)
+
+_playlist_reorder_helper = _PlaylistReorederHelper()
 
 @usingResourceAsync('tags')
-async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, user):
-	tags = [tag.strip() for tag in tags]
-	tags = tagdb.filter_tags(tags) # tags maybe removed while waiting in queue
-	tags = tagdb.translate_tags(tags)
-	tags = list(set(tags))
-	parsed, _ = dispatch(url)
+async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, playlist_ordered, user):
+	parsed = None
+	try :
+		dst_playlist = str(dst_playlist)
+		dst_rank = -1 if dst_rank is None else dst_rank
+		tags = [tag.strip() for tag in tags]
+		tags = tagdb.filter_tags(tags) # tags maybe removed while waiting in queue
+		tags = tagdb.translate_tags(tags)
+		tags = list(set(tags))
+		parsed, unique_id = dispatch(url)
+	except :
+		pass
 	if parsed is None :
 		print('Parse failed for %s' % url, file = sys.stderr)
+		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank)
 		return "PARSE_FAILED", {}
 	print('Adding %s with copies %s and %s to playlist %s' % (url, dst_copy or '<None>', other_copies or '<None>', dst_playlist or '<None>'), file = sys.stderr)
 	try :
@@ -122,16 +181,17 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 		if ret["status"] == 'FAILED' :
 			print('Fetch failed!!', file = sys.stderr)
 			print(ret, file = sys.stderr)
+			await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank)
 			return "FETCH_FAILED", ret
 		if hasattr(parsed, 'LOCAL_SPIDER') :
 			url = ret["data"]["url"]
 		else :
 			url = clear_url(url)
+		unique_id = ret["data"]["unique_id"]
 		lock_id = "videoEdit:" + ret["data"]["unique_id"]
 		async with RedisLockAsync(rdb, lock_id) :
 			unique, conflicting_item = verifyUniqueness(ret["data"]["unique_id"])
 			playlists = []
-			dst_rank = -1 if dst_rank is None else dst_rank
 			#playlist_lock = None
 			if dst_playlist :
 				#playlist_lock = RedisLockAsync(rdb, "playlistEdit:" + str(dst_playlist))
@@ -192,14 +252,18 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 							#if playlist_lock :
 							#    playlist_lock.release()
 							print('TOO_MANY_COPIES', file = sys.stderr)
+							await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank)
 							return "TOO_MANY_COPIES", {}
 				# if the operation is adding this video to playlist
 				if dst_playlist :
 					print('Adding to playlist at position %d' % dst_rank, file = sys.stderr)
-					if dst_rank == -1 :
-						addVideoToPlaylist(dst_playlist, conflicting_item['_id'], user)
+					if playlist_ordered :
+						await _playlist_reorder_helper.post_video_succeed(conflicting_item['_id'], unique_id, dst_playlist, playlist_ordered, dst_rank, user)
 					else :
-						insertIntoPlaylist(dst_playlist, conflicting_item['_id'], dst_rank, user)
+						if dst_rank == -1 :
+							addVideoToPlaylist(dst_playlist, conflicting_item['_id'], user)
+						else :
+							insertIntoPlaylist(dst_playlist, conflicting_item['_id'], dst_rank, user)
 				# merge tags
 				async with MongoTransaction(client) as s :
 					print('Merging tags', file = sys.stderr)
@@ -232,6 +296,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 							#if playlist_lock :
 							#    playlist_lock.release()
 							print('TOO_MANY_COPIES', file = sys.stderr)
+							await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank)
 							return "TOO_MANY_COPIES", {}
 				else :
 					async with MongoTransaction(client) as s :
@@ -241,15 +306,19 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 				# if the operation is adding this video to playlist
 				if dst_playlist :
 					print('Adding to playlist at position %d' % dst_rank, file = sys.stderr)
-					if dst_rank == -1 :
-						addVideoToPlaylist(dst_playlist, new_item_id, user)
+					if playlist_ordered :
+						await _playlist_reorder_helper.post_video_succeed(new_item_id, unique_id, dst_playlist, playlist_ordered, dst_rank, user)
 					else :
-						insertIntoPlaylist(dst_playlist, new_item_id, dst_rank, user)
+						if dst_rank == -1 :
+							addVideoToPlaylist(dst_playlist, new_item_id, user)
+						else :
+							insertIntoPlaylist(dst_playlist, new_item_id, dst_rank, user)
 				#if playlist_lock :
 				#    playlist_lock.release()
 				print('SUCCEED', file = sys.stderr)
 				return 'SUCCEED', new_item_id
 	except :
+		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank)
 		print('****Exception!', file = sys.stderr)
 		print(traceback.format_exc(), file = sys.stderr)
 		try :
@@ -267,8 +336,9 @@ async def postVideoAsyncJSON(param_json) :
 	dst_rank = param_json['dst_rank']
 	other_copies = param_json['other_copies']
 	user = param_json['user']
+	playlist_ordered = param_json['playlist_ordered']
 	print(f'Posting {url}', file = sys.stderr)
-	ret, ret_obj = await postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, user)
+	ret, ret_obj = await postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, playlist_ordered, user)
 	print(f'Done posting {url}', file = sys.stderr)
 	return {'result' : ret, 'result_obj' : ret_obj}
 

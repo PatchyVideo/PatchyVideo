@@ -26,7 +26,7 @@ def post_task(json_str) :
 	ret_obj = loads(post_raw(SCRAPER_ADDRESS, json_str.encode('utf-8')).text)
 	return ret_obj['task_id']
 
-def create_json_for_posting(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, user) :
+def create_json_for_posting(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, user, playlist_ordered = None) :
 	return dumps({
 		'url' : url,
 		'tags' : tags,
@@ -34,7 +34,8 @@ def create_json_for_posting(url, tags, dst_copy, dst_playlist, dst_rank, other_c
 		'dst_playlist' : dst_playlist,
 		'dst_rank' : dst_rank,
 		'other_copies' : other_copies,
-		'user' : user
+		'user' : user,
+		'playlist_ordered' : playlist_ordered
 	})
 
 @app.route('/postvideo.do', methods = ['POST'])
@@ -101,7 +102,7 @@ def ajax_postvideo_batch_do(rd, user, data):
 		if obj is None:
 			succeed = False
 		next_idx = idx if dst_rank >= 0 else 0
-		task_id = post_task(create_json_for_posting(cleanURL, data.tags, dst_copy, dst_playlist, dst_rank + next_idx, unique_ids if as_copies else [], user))
+		task_id = post_task(create_json_for_posting(cleanURL, data.tags, dst_copy, dst_playlist, dst_rank + next_idx, unique_ids if as_copies else [], user, unique_ids))
 	if succeed :
 		ret = makeResponseSuccess({
 			"task_id": task_id
