@@ -284,7 +284,6 @@ class RedisLockAsync(object):
 			raise TimeoutTooLarge("Timeout (%d) cannot be greater than expire (%d)" % (timeout, self._expire))
 
 		busy = True
-		blpop_timeout = timeout or self._expire or 0
 		timed_out = False
 		while busy:
 			busy = not self._client.set(self._name, self._id, nx=True, ex=self._expire)
@@ -292,8 +291,8 @@ class RedisLockAsync(object):
 				if timed_out:
 					return False
 				elif blocking:
-					timed_out = not self._client.blpop(self._signal, blpop_timeout) and timeout
-					await asyncio.sleep(0)
+					timed_out = not self._client.lpop(self._signal) and timeout
+					await asyncio.sleep(0.1)
 				else:
 					logger.debug("Failed to get %r.", self._name)
 					return False
