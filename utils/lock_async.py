@@ -261,6 +261,47 @@ class RedisLockAsync(object):
 			self._start_lock_renewer()
 		return True
 
+	async def acquire_async(self, blocking=True, timeout=None):
+		"""
+		:param blocking:
+			Boolean value specifying whether lock should be blocking or not.
+		:param timeout:
+			An integer value specifying the maximum number of seconds to block.
+		"""
+		logger.debug("Getting %r ...", self._name)
+
+		if self._held:
+			raise AlreadyAcquired("Already acquired from this RedisLockAsync instance.")
+
+		if not blocking and timeout is not None:
+			raise TimeoutNotUsable("Timeout cannot be used if blocking=False")
+
+		timeout = timeout if timeout is None else int(timeout)
+		if timeout is not None and timeout <= 0:
+			raise InvalidTimeout("Timeout (%d) cannot be less than or equal to 0" % timeout)
+
+		if timeout and self._expire and timeout > self._expire:
+			raise TimeoutTooLarge("Timeout (%d) cannot be greater than expire (%d)" % (timeout, self._expire))
+
+		busy = True
+		timed_out = False
+		while busy:
+			busy = not self._client.set(self._name, self._id, nx=True, ex=self._expire)
+			if busy:
+				if timed_out:
+					return False
+				elif blocking:
+					timed_out = not self._client.lpop(self._signal) and timeout
+					await asyncio.sleep(0.1)
+				else:
+					logger.debug("Failed to get %r.", self._name)
+					return False
+
+		logger.debug("Got lock for %r.", self._name)
+		if self._lock_renewal_interval is not None:
+			self._start_lock_renewer()
+		return True
+
 	def extend(self, expire=None):
 		"""Extends expiration time of the lock.
 
@@ -348,17 +389,11 @@ class RedisLockAsync(object):
 		self.release()
 
 	async def __aenter__(self):
-		print('Locking %s' % self._name)
-		while True :
-			acquired = self.acquire(blocking=True,timeout=1)
-			if acquired :
-				break
-			await asyncio.sleep(0.1)
+		acquired = await self.acquire_async(blocking=True)
 		assert acquired, "RedisLockAsync wasn't acquired, but blocking=True"
 		return self
 
 	async def __aexit__(self, exc_type=None, exc_value=None, traceback=None):
-		print('Unlocking %s' % self._name)
 		self.release()
 
 	def release(self):
