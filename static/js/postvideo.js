@@ -57,6 +57,22 @@ function buildParsersAndExpanders() {
     EXPANDERS["^av[\\d]+"] = function(short_link) {
         return "https://www.bilibili.com/video/" + short_link;
     };
+    PARSERS["^(https:\\/\\/|http:\\/\\/)?(www\\.)?acfun\\.cn\\/v\\/[aA][cC][\\d]+"] = function(responseDOM, responseURL) {
+        err = responseDOM.find('div.error-body');
+        if (err.length > 0) {
+            setVideoMetadata("", "", "");
+            setStatus("Error fetching video", "red");
+            return;
+        }
+        thumbnailURL = '';
+        title = responseDOM.find('h1.title').text();
+        desc = responseDOM.find('div.sp1.J_description').text();
+        desc = desc.replace(/<br\s*?\/?>/g, '\n');
+        setVideoMetadata(thumbnailURL, title, desc);
+    };
+    EXPANDERS["^[aA][cC][\\d]+"] = function(short_link) {
+        return "https://www.acfun.cn/v/" + short_link;
+    };
     PARSERS["^(https:\\/\\/|http:\\/\\/)?(www\\.)?nicovideo\\.jp\\/watch\\/(s|n)m[\\d]+"] = function(responseDOM, responseURL) {
         // TODO: handle error
         thumbnailURL = responseDOM.filter('meta[itemprop="thumbnailUrl"]').attr("content");
