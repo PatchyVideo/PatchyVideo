@@ -106,6 +106,7 @@ class TagDB():
 			if tag_obj2 is not None:
 				return 'TAG_EXIST'
 			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$set': {'tag': new_tag, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+			self.db.tags.update_many({'dst': tag}, {'$set': {'dst': new_tag, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 			self.db.items.update_many({'tags': {'$in': [tag]}}, {'$set': {'tags.$': new_tag}}, session = session)
 			self.aci.DeleteTagOrAlias(tag)
 			if tt == 'tag' :
