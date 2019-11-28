@@ -3,6 +3,8 @@ import sys
 import time
 import asyncio
 import traceback
+import PIL
+
 from aiohttp import web
 from aiohttp import ClientSession
 from bson.json_util import dumps, loads
@@ -45,7 +47,7 @@ async def _make_video_data(data, copies, playlists, url) :
 				async with session.get(data['thumbnailURL']) as resp:
 					if resp.status == 200 :
 						img = Image.open(io.BytesIO(await resp.read()))
-						if data['thumbnailURL'][-4:].lower() == '.gif' :
+						if isinstance(img, PIL.GifImagePlugin.GifImageFile) :
 							filename = random_bytes_str(24) + ".gif"
 							frames = ImageSequence.Iterator(img)
 							frames = _gif_thumbnails(frames)

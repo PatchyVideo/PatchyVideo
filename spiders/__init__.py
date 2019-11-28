@@ -45,7 +45,7 @@ class Spider :
 		link = clear_url(link)
 		return await self.unique_id_async( self = self, link = link )
 
-_spider_modules = [ 'Patchyvideo', 'Bilibili', 'Youtube', 'Nicovideo', 'Twitter' ]
+_spider_modules = [ 'Patchyvideo', 'Bilibili', 'Youtube', 'Nicovideo', 'Twitter', 'Acfun' ]
 
 _dispatch_map = []
 
