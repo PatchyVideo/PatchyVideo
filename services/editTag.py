@@ -1,7 +1,7 @@
 
 
 from utils.dbtools import makeUserMeta, MongoTransaction
-from utils.tagtools import verifyAndSanitizeTag
+from utils.tagtools import verifyAndSanitizeTag, verifyAndSanitizeAlias
 from utils.rwlock import usingResource, modifyingResource
 
 from db import tagdb, client
@@ -35,7 +35,7 @@ def addTag(user, tag, category):
     if not ret :
         return "INVALID_TAG"
     if len(sanitized_tag) > TagsConfig.MAX_TAG_LENGTH :
-        return "TAG_LENGTH_EXCEED"
+        return "TAG_TOO_LONG"
     with MongoTransaction(client) as s :
         result = tagdb.add_tag(sanitized_tag, category, makeUserMeta(user), s())
         s.mark_succeed()
@@ -71,7 +71,7 @@ def renameTag(user, tag, new_tag) :
     if not ret :
         return "INVALID_TAG"
     if len(sanitized_tag) > TagsConfig.MAX_TAG_LENGTH :
-        return "TAG_LENGTH_EXCEED"
+        return "TAG_TOO_LONG"
     with MongoTransaction(client) as s :
         tag_obj = tagdb.db.tags.find_one({'tag': tag}, session = s())
         if tag_obj is None :
@@ -81,3 +81,34 @@ def renameTag(user, tag, new_tag) :
         ret = tagdb.rename_tag(tag_obj, sanitized_tag, makeUserMeta(user), session = s())
         s.mark_succeed()
         return ret
+
+@modifyingResource('tags')
+def addAlias(user, alias, dst_tag) :
+    ret, sanitized_alias = verifyAndSanitizeAlias(alias)
+    if not ret :
+        return "INVALID_TAG"
+    if len(sanitized_alias) > TagsConfig.MAX_TAG_LENGTH :
+        return "TAG_TOO_LONG"
+    with MongoTransaction(client) as s :
+        tag_obj = tagdb.db.tags.find_one({'tag': dst_tag}, session = s())
+        alias_obj = tagdb.db.tags.find_one({'tag': alias}, session = s())
+        if tag_obj is None :
+            return "TAG_NOT_EXIST"
+        if alias_obj is not None :
+            return "ALIAS_EXIST"
+        ret = tagdb.add_tag_alias(alias, dst_tag, makeUserMeta(user), session = s())
+        s.mark_succeed()
+        return ret
+
+@modifyingResource('tags')
+def removeAlias(user, alias) :
+    with MongoTransaction(client) as s :
+        alias_obj = tagdb.db.tags.find_one({'tag': alias}, session = s())
+        if alias_obj is None :
+            return "ALIAS_NOT_EXIST"
+        if not _is_authorised(alias_obj, user, 'remove') :
+            return "UNAUTHORISED_OPERATION"
+        ret = tagdb.remove_tag_alias(alias, makeUserMeta(user), session = s())
+        s.mark_succeed()
+        return ret
+
