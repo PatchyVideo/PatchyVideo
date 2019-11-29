@@ -53,10 +53,10 @@
             "console": "integratedTerminal",
             "jinja": true,
             "env": {
-                "MONGODB_URL": "localhost:27017",
-                "REDISTOGO_URL": "127.0.0.1",
-                "REDISTOGO_URL_WORKER": "redis://127.0.0.1",
-                "IMAGE_PATH": "~/images",
+                "MONGODB_URL": "192.168.99.100:27017",
+                "REDISTOGO_URL": "192.168.99.100",
+                "REDISTOGO_URL_WORKER": "redis://192.168.99.100",
+                "IMAGE_PATH": "E:/pvdata2",
                 "ENABLE_TRANSACTION": "false"
             }
         },
