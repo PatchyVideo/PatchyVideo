@@ -10,23 +10,21 @@ from utils.jsontools import *
 
 from spiders import dispatch
 
-from services.getVideo import getVideoDetail, getTagCategories
+from services.getVideo import getVideoDetailWithTagObjects, getTagCategories
 from services.playlist import listPlaylistsForVideo
 from config import TagsConfig, VideoConfig
 
-@app.route('/getvideo', methods = ['POST'])
+@app.route('/getvideo.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
 def ajax_getvideo(rd, user, data):
     try:
-        obj = getVideoDetail(data.vid)
+        obj, tags = getVideoDetailWithTagObjects(data.vid)
     except:
         obj = None
     if not obj:
         abort("No such video id=%s" % data.vid, 404)
-    tag_by_category = getTagCategories(obj['tags'])
-    for category in tag_by_category :
-        tag_by_category[category] = list(sorted(tag_by_category[category]))
+    
     copies = []
     for item in obj['item']['copies'] :
         try:
@@ -38,7 +36,7 @@ def ajax_getvideo(rd, user, data):
     playlists = listPlaylistsForVideo(data.vid)
     return "json", makeResponseSuccess({
         "video" : obj,
-        "tag_by_category" : tag_by_category,
+        "tags" : tags,
         "copies" : copies,
         "playlists" : playlists
     })

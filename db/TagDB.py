@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import re
+
 if __name__ == '__main__':
 	from flask_pymongo import PyMongo
 	from flask import Flask
@@ -79,6 +81,23 @@ class TagDB():
 		self.aci.AddTags([(tag, category, 0)])
 		return 'SUCCEED'
 
+	def find_tags_wildcard(self, query, category) :
+		assert isinstance(query, str)
+		query = re.escape(query)
+		query = query.replace('\\*', '.*')
+		query = f'^{query}$'
+		if category :
+			return self.db.tags.find({'tag': {'$regex': query}, 'category': category})
+		else :
+			return self.db.tags.find({'tag': {'$regex': query}})
+
+	def find_tags_regex(self, query, category) :
+		assert isinstance(query, str)
+		if category :
+			return self.db.tags.find({'tag': {'$regex': query}, 'category': category})
+		else :
+			return self.db.tags.find({'tag': {'$regex': query}})
+
 	def filter_tags(self, tags, session = None):
 		found = self.db.tags.aggregate([
 			{'$match':{'tag':{'$in':tags}}},
@@ -89,10 +108,24 @@ class TagDB():
 		tt, tag_obj = self._tag_type(tag_name_or_tag_obj, session = session)
 		if tt == 'tag' or tt == 'alias':
 			tag = tag_obj['tag']
-			self.db.tags.update_many({'dst': tag}, {'$unset': {'dst': ''}, '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+			self.db.tags.update_many({'dst': tag}, {'$unset': {'dst': '', 'type': '', 'language': ''}, '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 			self.db.tags.delete_one({'_id': tag_obj['_id']}, session = session)
 			self.db.cats.update_one({'name': tag_obj['category']}, {'$inc': {'count': -1}}, session = session)
 			self.db.items.update_many({'tags': {'$in': [tag]}}, {'$pull': {'tags': tag}}, session = session)
+			# if an alias being deleted, check if it is a language alias
+			if 'type' in tag_obj and tag_obj['type'] == 'language' :
+				dst_tag_obj = self.db.tags.find_one({'tag': tag_obj['dst']}, session = session)
+				assert dst_tag_obj
+				assert 'languages' in dst_tag_obj
+				language = ''
+				# find the language corresponding to the tag being removed
+				for (lang, corresponding_tag) in dst_tag_obj['languages'].items() :
+					if corresponding_tag == tag :
+						language = lang
+						break
+				assert language
+				# remove it
+				self.db.tags.update_one({'_id': dst_tag_obj['_id']}, {'$unset': {f'languages.{language}': ''}}, session = session)
 			self.aci.DeleteTagOrAlias(tag)
 			return 'SUCCEED'
 		else:
@@ -108,6 +141,20 @@ class TagDB():
 			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$set': {'tag': new_tag, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 			self.db.tags.update_many({'dst': tag}, {'$set': {'dst': new_tag, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 			self.db.items.update_many({'tags': {'$in': [tag]}}, {'$set': {'tags.$': new_tag}}, session = session)
+			# if an alias being renamed, check if it is a language alias
+			if 'type' in tag_obj and tag_obj['type'] == 'language' :
+				dst_tag_obj = self.db.tags.find_one({'tag': tag_obj['dst']}, session = session)
+				assert dst_tag_obj
+				assert 'languages' in dst_tag_obj
+				language = ''
+				# find the language corresponding to the tag being removed
+				for (lang, corresponding_tag) in dst_tag_obj['languages'].items() :
+					if corresponding_tag == tag :
+						language = lang
+						break
+				assert language
+				# remove it
+				self.db.tags.update_one({'_id': dst_tag_obj['_id']}, {'$set': {f'languages.{language}': new_tag}}, session = session)
 			self.aci.DeleteTagOrAlias(tag)
 			if tt == 'tag' :
 				self.aci.AddTags([(new_tag, tag_obj['category'], tag_obj['count'])])
@@ -279,7 +326,8 @@ class TagDB():
 		self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
 		return 'SUCCEED'
 
-	def add_tag_alias(self, src_tag, dst_tag, user = '', session = None):
+	def add_tag_alias(self, src_tag, dst_tag, alias_type, language = '', user = '', session = None):
+		assert alias_type in ['regular', 'language']
 		tt_dst, tag_obj_dst = self._tag_type(dst_tag, session = session)
 		tt_src, tag_obj_src = self._tag_type(src_tag, session = session)
 		if tt_dst == 'tag':
@@ -289,20 +337,50 @@ class TagDB():
 					return 'ALIAS_EXIST'
 				dupilcated_tags_count = self.db.items.count({'tags': {'$all': [src_tag, dst_tag]}}, session = session)
 				src_post_count = tag_obj_src['count']
-				self.db.tags.update_one({'_id': ObjectId(tag_obj_src['_id'])}, {'$set': {'count': 0, 'dst': dst_tag, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+				if alias_type == 'regular' :
+					self.db.tags.update_one({'_id': ObjectId(tag_obj_src['_id'])}, {'$set': {
+						'count': 0,
+						'dst': dst_tag,
+						'type': 'regular',
+						'meta.modified_by': user,
+						'meta.modified_at': datetime.now()
+						}}, session = session)
+				elif alias_type == 'language' :
+					assert len(language) > 0
+					self.db.tags.update_one({'_id': ObjectId(tag_obj_src['_id'])}, {'$set': {
+						'count': 0,
+						'dst': dst_tag,
+						'type': 'language',
+						'language' : language,
+						'meta.modified_by': user,
+						'meta.modified_at': datetime.now()
+						}}, session = session)
 				self.db.tags.update_many({'dst': src_tag}, {'$set': {'dst': dst_tag, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 				self.db.tags.update_one({'_id': ObjectId(tag_obj_dst['_id'])}, {'$inc': {'count': src_post_count - dupilcated_tags_count}}, session = session)
+				if alias_type == 'language' :
+					if 'languages' not in tag_obj_dst :
+						self.db.tags.update_one({'_id': ObjectId(tag_obj_dst['_id'])}, {'$set': {'languages': {language: src_tag}}}, session = session)
+					else :
+						if language in tag_obj_dst['languages'] :
+							# overwriting an existing language tag
+							# change old tag type to regular
+							self.db.tags.update_one({'_id': ObjectId(tag_obj_src['_id'])}, {'$set': {'type': 'regular'}}, session = session)
+						self.db.tags.update_one({'_id': ObjectId(tag_obj_dst['_id'])}, {'$set': {f'languages.{language}': src_tag}}, session = session)
 				self.db.items.update_many({'tags': {'$in': [src_tag]}}, {'$addToSet': {'tags': dst_tag}}, session = session)
 				self.db.items.update_many({'tags': {'$in': [src_tag]}}, {'$pullAll': {'tags': [src_tag]}}, session = session)
 				self.aci.AddAlias([(src_tag, dst_tag)])
 				self.aci.SetTagOrAliasCountDiff([(dst_tag, src_post_count - dupilcated_tags_count)])
 				return 'SUCCEED'
 			elif tt_src == 'alias':
-				# override an existing alias
-				self.db.tags.update_one({'tag': src_tag}, {'$set': {'dst': dst_tag, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
-				return 'SUCCEED'
+				# overwriting an existing alias
+				# step 1: remove it
+				self.remove_tag_alias(src_tag, user, session)
+				# step 2: add it
+				return self.add_tag_alias(src_tag, dst_tag, alias_type, language, user, session)
 			else:
-				return 'TAG_NOT_EXIST'
+				# if src tag not exist, add one
+				self.add_tag(src_tag, tag_obj_dst['category'], user, session)
+				return self.add_tag_alias(src_tag, dst_tag, alias_type, language, user, session)
 		elif tt_dst == 'alias':
 			return self.add_tag_alias(src_tag, tag_obj_dst['dst'], user, session = session)
 		else:
@@ -313,7 +391,21 @@ class TagDB():
 		if tt == 'tag':
 			return 'NOT_ALIAS'
 		elif tt == 'alias':
-			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$unset': {'dst': ''}}, session = session)
+			dst_tag = tag_obj['dst']
+			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$unset': {'dst': '', 'type': ''}}, session = session)
+			if 'type' in tag_obj and tag_obj['type'] == 'language' :
+				dst_tag_obj = self.db.tags.find_one({'tag': dst_tag}, session = session)
+				assert dst_tag_obj
+				assert 'languages' in dst_tag_obj
+				language = ''
+				# find the language corresponding to the alias being removed
+				for (lang, corresponding_tag) in dst_tag_obj['languages'].items() :
+					if corresponding_tag == src_tag :
+						language = lang
+						break
+				assert language
+				# remove it
+				self.db.tags.update_one({'_id': dst_tag_obj['_id']}, {'$unset': {f'languages.{language}': ''}}, session = session)
 			self.aci.DeleteAlias(src_tag)
 			return "SUCCEED"
 		else:
