@@ -109,6 +109,7 @@ def ajax_add_tag(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_remove_tag(rd, user, data):
+    return "json", makeResponseFailed("UNAUTHORISED_OPERATION")
     ret = removeTag(user, data.tag)
     if ret == 'SUCCEED' :
         response = makeResponseSuccess("SUCCEED")
