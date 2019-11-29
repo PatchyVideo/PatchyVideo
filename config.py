@@ -16,6 +16,7 @@ class PlaylistConfig:
 Tags
 """
 class TagsConfig:
+    MAX_LANGUAGE_LENGTH = 6
     MAX_TAG_LENGTH = 48
     MAX_CATEGORY_LENGTH = 16
 
