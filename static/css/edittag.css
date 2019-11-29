@@ -64,6 +64,7 @@ tr:nth-child(even) {
 .other-language {
     position: absolute;
     left: 35em;
+    color: gray;
 }
 
 .col-1 {
