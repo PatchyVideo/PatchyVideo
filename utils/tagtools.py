@@ -3,7 +3,7 @@ import re
 from db.query_parser.Parser import _lex
 
 _match_object = re.compile(r"^[\w][\w][\w_\!\-']*(_\([\w'\!\-_]+\))?$")
-_match_language_object = re.compile(r"^[\w]{4,}$")
+
 _color_map = {
     'Copyright': '#A0A',
     'Language': '#585455',
@@ -28,15 +28,32 @@ def verifyAndSanitizeTagOrAlias(alias):
             return True, alias
     return False, ''
 
+_VALID_LANGUAGES = {
+    "CHS": "Chinese (Simplified)",
+	"CHT": "Chinese (Traditional)",
+	"CSY": "Czech",
+	"NLD": "Dutch",
+	"ENG": "English",
+	"FRA": "French",
+	"DEU": "German",
+	"HUN": "Hungarian",
+	"ITA": "Italian",
+	"JPN": "Japanese",
+	"KOR": "Korean",
+	"PLK": "Polish",
+	"PTB": "Portuguese (Brazil)",
+	"ROM": "Romanian",
+	"RUS": "Russian",
+	"ESP": "Spanish",
+	"TRK": "Turkish",
+	"VIN": "Vietnamese"
+}
+
 def verifyAndSanitizeLanguage(lang):
-    lang = lang.strip()
-    if len(lang) <= 2 :
+    if lang in _VALID_LANGUAGES :
+        return True, lang
+    else :
         return False, ''
-    ret = _match_language_object.match(lang)
-    if ret:
-        lang_sanitized = ret.group(0)
-        return True, lang_sanitized
-    return False, ''
 
 def getTagColor(tags, tag_category_map):
     ans = {}

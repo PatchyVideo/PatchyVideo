@@ -137,6 +137,8 @@ def addTagLanguage(user, alias, dst_tag, language) :
     if not ret :
         return "INVALID_ALIAS"
     ret, sanitized_lang = verifyAndSanitizeLanguage(language)
+    if not ret :
+        return "INVALID_LANGUAGE"
     if len(sanitized_lang) > TagsConfig.MAX_LANGUAGE_LENGTH :
         return "LANGUAGE_TOO_LONG"
     with MongoTransaction(client) as s :

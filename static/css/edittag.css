@@ -61,6 +61,11 @@ tr:nth-child(even) {
     visibility: visible;
 }
 
+.other-language {
+    position: absolute;
+    left: 35em;
+}
+
 .col-1 {
     width: 100px;
 }

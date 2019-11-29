@@ -140,10 +140,29 @@ function gotoPage(category, page) {
             if (element.meta.created_by.$oid == USER_ID) {
                 if (isEmpty(element.dst))
                 {
-                    tr = $(`<tr class="table-content"><td class="col-1">${element.count}</td><td><a href="/search?query=${element.tag}">${element.tag}</a>
-                    <a class="tag-operation" href="javascript:removeTag('${element.tag}', '${category}');">Remove</a>
-                    </tr>`);
+                    if (isEmpty(element.languages))
+                    {
+                        tr = $(`<tr class="table-content"><td class="col-1">${element.count}</td><td><a href="/search?query=${element.tag}">${element.tag}</a>
+                        <a class="tag-operation" href="javascript:removeTag('${element.tag}', '${category}');">Remove</a>
+                        </tr>`);
+                    }
+                    else
+                    {
+                        var new_element = `<tr class="table-content"><td class="col-1">${element.count}</td><td><a href="/search?query=${element.tag}">${element.tag}</a>`;
+                        new_element += `<span class="other-language">`;
+                        for (var lang_key in element.languages)
+                        {
+                            new_element += `${lang_key}:<a href="/search?query=${element.languages[lang_key]}">${element.languages[lang_key]}</a> `;
+                        }
+                        new_element += `</span>`;
+                        new_element += `</tr>`;
+                        tr = $(new_element);
+                    }
                 } else {
+                    if (!isEmpty(element.type) && element.type == "language")
+                    {
+                        return;
+                    }
                     tr = $(`<tr class="table-content"><td class="col-1">-</td><td>
                     ${element.tag}<span> -> </span>
                     <a href="/search?query=${element.dst}">${element.dst}</a>
