@@ -335,7 +335,7 @@ class TagDB():
 				alias_obj = self.db.tags.find_one({'tag': src_tag, 'dst': dst_tag}, session = session)
 				if alias_obj is not None:
 					return 'ALIAS_EXIST'
-				dupilcated_tags_count = self.db.items.count({'tags': {'$all': [src_tag, dst_tag]}}, session = session)
+				dupilcated_tags_count = self.db.items.count_documents({'tags': {'$all': [src_tag, dst_tag]}}, session = session)
 				src_post_count = tag_obj_src['count']
 				if alias_type == 'regular' :
 					self.db.tags.update_one({'_id': ObjectId(tag_obj_src['_id'])}, {'$set': {
