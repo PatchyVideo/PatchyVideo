@@ -103,7 +103,6 @@ def ajax_add_tag(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_remove_tag(rd, user, data):
-    return "json", makeResponseFailed("UNAUTHORISED_OPERATION")
     removeTag(user, data.tag)
 
 @app.route('/tags/rename_tag.do', methods = ['POST'])

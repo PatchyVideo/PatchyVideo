@@ -325,7 +325,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 				return 'SUCCEED', new_item_id
 	except UserError as ue :
 		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank)
-		return ue.msg, traceback.format_exc()
+		return ue.msg, {"aux": ue.aux, "traceback": traceback.format_exc()}
 	except :
 		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank)
 		print('****Exception!', file = sys.stderr)

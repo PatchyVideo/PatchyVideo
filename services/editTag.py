@@ -85,6 +85,7 @@ def _is_authorised(tag_or_obj, user, op = 'remove') :
 
 @modifyingResource('tags')
 def removeTag(user, tag) :
+    raise UserError('UNAUTHORISED_OPERATION')
     with MongoTransaction(client) as s :
         tag_obj = tagdb.db.tags.find_one({'tag': tag}, session = s())
         if tag_obj and not _is_authorised(tag_obj, user, 'remove') :

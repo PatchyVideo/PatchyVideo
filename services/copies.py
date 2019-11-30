@@ -55,10 +55,8 @@ def syncTags(dst, src, user):
 		raise UserError("ITEM_NOT_EXIST")
 	src_tags = src_item['tags']
 	with redis_lock.Lock(rdb, "videoEdit:" + src_item["item"]["unique_id"]), MongoTransaction(client) as s:
-		ret = tagdb.update_item_tags_merge(ObjectId(dst), src_tags, makeUserMeta(user), s())
-		if ret == 'SUCCEED':
-			s.mark_succeed()
-		return ret
+		tagdb.update_item_tags_merge(ObjectId(dst), src_tags, makeUserMeta(user), s())
+		s.mark_succeed()
 
 @usingResource('tags')
 def broadcastTags(src, user):
@@ -74,8 +72,5 @@ def broadcastTags(src, user):
 				if copy_obj is None:
 					raise UserError("ITEM_NOT_EXIST")
 				with redis_lock.Lock(rdb, "videoEdit:" + copy_obj["item"]["unique_id"]):
-					ret = tagdb.update_item_tags_merge(ObjectId(copy), src_tags, makeUserMeta(user), s())
-					if ret != 'SUCCEED':
-						raise UserError("ITEM_NOT_EXIST")
+					tagdb.update_item_tags_merge(ObjectId(copy), src_tags, makeUserMeta(user), s())
 		s.mark_succeed()
-		return ret

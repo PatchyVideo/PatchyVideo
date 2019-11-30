@@ -46,6 +46,6 @@ function signup() {
         window.location = "/login";
     },
     function(result){
-        setStatus(result.data, "red");
+        setStatus(result.data.reason, "red");
     });
 }

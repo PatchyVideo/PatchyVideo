@@ -16,7 +16,10 @@ from config import PlaylistConfig
 import redis_lock
 
 def getPlaylist(pid) :
-	return db.playlists.find_one({'_id': ObjectId(pid)})
+	ret = db.playlists.find_one({'_id': ObjectId(pid)})
+	if not ret :
+		raise UserError('PLAYLIST_NOT_EXIST')
+	return ret
 
 def _is_authorised(pid_or_obj, user, op = 'edit') :
 	if isinstance(pid_or_obj, str) :
@@ -25,8 +28,7 @@ def _is_authorised(pid_or_obj, user, op = 'edit') :
 		obj = pid_or_obj
 	creator = str(obj['meta']['created_by'])
 	user_id = str(user['_id'])
-	if not (creator == user_id or (op + 'Playlist' in user['access_control']['allowed_ops']) or user['access_control']['status'] == 'admin') :
-		raise UserError('UNAUTHORISED_OPERATION')
+	return creator == user_id or (op + 'Playlist' in user['access_control']['allowed_ops']) or user['access_control']['status'] == 'admin'
 
 def _check_authorised(pid_or_obj, user, op = 'edit') :
 	if not _is_authorised(pid_or_obj, user, op) :
@@ -98,7 +100,7 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
 				'meta.modified_by': '',
 				'meta.modified_at': datetime.now()}}, session = s())
-		_, video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
+		video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
 		s.mark_succeed()
 		return {'videos': video_page, 'video_count': video_count, 'page': page}
 
@@ -144,7 +146,7 @@ def addVideoToPlaylist(pid, vid, user) :
 		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
 			raise UserError('VIDEO_LIMIT_EXCEEDED')
 		if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = s()) is not None :
-			raise UserError('VIDEO_ALREADY_EXIST')
+			raise UserError('VIDEO_ALREADY_EXIST', vid)
 		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
 		playlists.append(ObjectId(pid))
 		playlists = list(set(playlists))
@@ -172,7 +174,7 @@ def addVideoToPlaylistLockFree(pid, vid, user) :
 		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
 			raise UserError('VIDEO_LIMIT_EXCEEDED')
 		if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = s()) is not None :
-			raise UserError('VIDEO_ALREADY_EXIST')
+			raise UserError('VIDEO_ALREADY_EXIST', vid)
 		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
 		playlists.append(ObjectId(pid))
 		playlists = list(set(playlists))
@@ -391,7 +393,7 @@ def updateCommonTags(pid, tags, user) :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
 		# user is editing video tags, not the playlist itself, no need to lock playlist or check for authorization
-		_, old_tags = listCommonTags(pid)
+		old_tags = listCommonTags(pid)
 		old_tags_set = set(old_tags)
 		new_tags_set = set(tags)
 		tags_added = list((old_tags_set ^ new_tags_set) - old_tags_set)
@@ -508,7 +510,7 @@ def editPlaylist_MoveUp(pid, vid, page, page_size, user) :
 				db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
 					'meta.modified_by': '',
 					'meta.modified_at': datetime.now()}}, session = s())
-			_, video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
+			video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
 			s.mark_succeed()
 			return {'videos': video_page, 'video_count': video_count, 'page': page}
 		else :
@@ -537,7 +539,7 @@ def editPlaylist_MoveDown(pid, vid, page, page_size, user) :
 				db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
 					'meta.modified_by': '',
 					'meta.modified_at': datetime.now()}}, session = s())
-			_, video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
+			video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
 			s.mark_succeed()
 			return {'videos': video_page, 'video_count': video_count, 'page': page}
 		else :
@@ -554,7 +556,7 @@ def insertIntoPlaylist(pid, vid, rank, user) :
 		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
 			raise UserError('VIDEO_LIMIT_EXCEEDED')
 		if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = s()) is not None :
-			raise UserError('VIDEO_ALREADY_EXIST')
+			raise UserError('VIDEO_ALREADY_EXIST', vid)
 		if rank < 0 :
 			raise UserError('OUT_OF_RANGE')
 		if rank > playlist['videos'] :
@@ -587,7 +589,7 @@ def insertIntoPlaylistLockFree(pid, vid, rank, user) :
 		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
 			raise UserError('VIDEO_LIMIT_EXCEEDED')
 		if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = s()) is not None :
-			raise UserError('VIDEO_ALREADY_EXIST')
+			raise UserError('VIDEO_ALREADY_EXIST', vid)
 		if rank < 0 :
 			raise UserError('OUT_OF_RANGE')
 		if rank > playlist['videos'] :

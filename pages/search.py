@@ -7,6 +7,7 @@ from init import app
 from utils.interceptors import loginOptional
 from utils.html import buildPageSelector
 from utils.tagtools import getTagColor
+from utils.exceptions import UserError
 from services.listVideo import listVideo, listVideoQuery
 from services.getVideo import getTagCategoryMap
 from config import DisplayConfig, QueryConfig
@@ -36,23 +37,24 @@ def pages_search(rd, user):
 		if len(rd.query) > QueryConfig.MAX_QUERY_LENGTH:
 			rd.reason = 'Query too long(max %d characters)' % QueryConfig.MAX_QUERY_LENGTH
 			return 'content_videolist_failed.html'
-		status, videos, related_tags, video_count = listVideoQuery(rd.query, rd.page - 1, rd.page_size, rd.order)
+		try :
+			videos, related_tags, video_count = listVideoQuery(rd.query, rd.page - 1, rd.page_size, rd.order)
+		except UserError as ue :
+			if ue.msg == 'INCORRECT_QUERY' :
+				rd.reason = "Syntax error in query"
+				return 'content_videolist_failed.html'
+			elif ue.msg == 'FAILED_NOT_OP' :
+				rd.reason = "NOT operator can only be applied to tags"
+				return 'content_videolist_failed.html'
+			elif ue.msg == 'FAILED_UNKNOWN' :
+				rd.reason = "Unknown error"
+				return 'content_videolist_failed.html'
 		rd.videos = videos
 	else :
 		videos, related_tags = listVideo(rd.page - 1, rd.page_size, rd.order)
 		video_count = videos.count()
 		rd.videos = [item for item in videos]
-		status = "SUCCEED"
 
-	if status == "FAILED" :
-		rd.reason = "Syntax error in query"
-		return 'content_videolist_failed.html'
-	elif status == "FAILED_NOT_OP" :
-		rd.reason = "NOT operator can only be applied to tags"
-		return 'content_videolist_failed.html'
-	elif status == "FAILED_UNKNOWN" :
-		rd.reason = "Unknown error"
-		return 'content_videolist_failed.html'
 	rd.count = video_count
 	tag_category_map = getTagCategoryMap(related_tags)
 	tag_color_map = getTagColor(related_tags, tag_category_map)

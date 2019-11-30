@@ -51,10 +51,10 @@ def postVideo(user, url, tags, copy, pid, rank):
 	if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
 		raise UserError('TAGS_LIMIT_EXCEEDED')
 	obj, cleanURL = dispatch(url)
-	if not cleanURL :
-		raise UserError('EMPTY_URL')
 	if obj is None:
 		raise UserError('UNSUPPORTED_WEBSITE')
+	if not cleanURL :
+		raise UserError('EMPTY_URL')
 	_verifyTags(tags)
 	return _postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], user))
 

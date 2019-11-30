@@ -22,7 +22,7 @@ from config import VideoConfig, TagsConfig
 def ajax_postvideo_do(rd, user, data):
 	dst_copy = data.copy if 'copy' in data.__dict__ else ''
 	dst_playlist = data.pid if 'pid' in data.__dict__ else ''
-	dst_rank = int(data.rank if 'rank' in data.__dict__ else -1)
+	dst_rank = int((data.rank if 'rank' in data.__dict__ else -1) or -1)
 	task_id = postVideo(user, data.url, data.tags, dst_copy, dst_playlist, dst_rank)
 	return "json", makeResponseSuccess({"task_id": task_id})
 

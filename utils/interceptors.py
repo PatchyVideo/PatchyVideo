@@ -81,6 +81,13 @@ def loginRequired(func):
 				return _handle_return(ret, rd)
 			except HTTPException as e:
 				raise e
+			except UserError as ue :
+				if 'NOT_EXIST' in ue.msg :
+					abort(404)
+				else :
+					print('****UserError!', file = sys.stderr)
+					print(traceback.format_exc(), file = sys.stderr)
+					abort(400)
 			except:
 				print('****Exception!', file = sys.stderr)
 				print(traceback.format_exc(), file = sys.stderr)
@@ -122,6 +129,13 @@ def loginOptional(func):
 			return _handle_return(ret, rd)
 		except HTTPException as e:
 			raise e
+		except UserError as ue :
+			if 'NOT_EXIST' in ue.msg :
+				abort(404)
+			else :
+				print('****UserError!', file = sys.stderr)
+				print(traceback.format_exc(), file = sys.stderr)
+				abort(400)
 		except:
 			print('****Exception!', file = sys.stderr)
 			print(traceback.format_exc(), file = sys.stderr)

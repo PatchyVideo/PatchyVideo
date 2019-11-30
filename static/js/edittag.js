@@ -24,14 +24,10 @@ function removeTag(tag, category) {
             "tag": tag
         }, function (result){
             gotoPage(category, 1);
-            status_obj = $(`p[meta-category="${category}"]`);
-            status_obj.css("display", "block");
-            status_obj.css("color", "green");
-            status_obj.text(result.data.message);
         }, function (result){
             status_obj.css("display", "block");
             status_obj.css("color", "red");
-            status_obj.text(result.data);
+            status_obj.text(result.data.reason);
         });
     }
 }
@@ -45,14 +41,10 @@ function addTag(category, tag) {
             "category": category
         }, function (result){
             gotoPage(category, 1);
-            status_obj = $(`p[meta-category="${category}"]`);
-            status_obj.css("display", "block");
-            status_obj.css("color", "green");
-            status_obj.text(result.data.message);
         }, function (result){
             status_obj.css("display", "block");
             status_obj.css("color", "red");
-            status_obj.text(result.data);
+            status_obj.text(result.data.reason);
         });
     } else {
         status_obj.css("display", "block");

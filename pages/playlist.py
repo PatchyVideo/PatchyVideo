@@ -33,13 +33,8 @@ def pages_create_playlist(rd, user):
 def pages_create_playlist_from_single_video(rd, user):
     if 'vid' in request.values:
         vid = request.values['vid']
-        try:
-            ret, new_pid = createPlaylistFromSingleVideo("english", vid, user)
-            if ret != 'SUCCEED':
-                abort(500)
-            return 'redirect', '/list/%s/' % new_pid
-        except:
-            abort(500)
+        new_pid = createPlaylistFromSingleVideo("english", vid, user)
+        return 'redirect', '/list/%s/' % new_pid
     else:
         abort(400)
 
@@ -48,8 +43,6 @@ def pages_create_playlist_from_single_video(rd, user):
 def pages_edit_playlist(pid, rd, user):
     rd.pid = pid
     playlist = getPlaylist(pid)
-    if playlist is None :
-        abort(404)
     rd.title = playlist['title']['english']
     rd.desc = playlist['desc']['english']
     return "create_playlist.html"
@@ -68,14 +61,10 @@ def pages_playlist(pid, rd, user):
     rd.order = "latest"
     rd.playlist_editable = False
     if user:
-        status, videos, video_count, rd.playlist_editable = listPlaylistVideosWithAuthorizationInfo(pid, rd.page - 1, rd.page_size, user)
+        videos, video_count, rd.playlist_editable = listPlaylistVideosWithAuthorizationInfo(pid, rd.page - 1, rd.page_size, user)
     else:
-        status, videos, video_count = listPlaylistVideos(pid, rd.page - 1, rd.page_size)
-    if status != "SUCCEED" :
-        abort(404)
+        videos, video_count = listPlaylistVideos(pid, rd.page - 1, rd.page_size)
     playlist = getPlaylist(pid)
-    if playlist is None :
-        abort(404)
     rd.playlist_title = playlist['title']['english']
     rd.playlist_desc = playlist['desc']['english']
     rd.playlist_id = playlist['_id']

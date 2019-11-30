@@ -55,6 +55,7 @@ def ajax_playlist_movedown_do(rd, user, data):
 def ajax_lists_new_do(rd, user, data):
     if data.pid :
         updatePlaylistInfo(data.pid, "english", data.title, data.desc, data.cover, user)
+        return "json", makeResponseSuccess({"pid": data.pid})
     else :
         pid = createPlaylist("english", data.title, data.desc, data.cover, user)
         return "json", makeResponseSuccess({"pid": pid})

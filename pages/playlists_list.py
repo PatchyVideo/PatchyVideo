@@ -27,7 +27,7 @@ def pages_playlists_list(rd, user):
 	rd.search_term = ''
 	if rd.search_term :
 		query_obj = {'$or':[{'title.english': {'$regex': rd.search_term}}, {'desc.english': {'$regex': rd.search_term}}]}
-	_, playlists, playlists_count = listPlaylists(rd.page - 1, rd.page_size, query_obj, rd.order)
+	playlists, playlists_count = listPlaylists(rd.page - 1, rd.page_size, query_obj, rd.order)
 	rd.lists = [i for i in playlists]
 	rd.count = playlists_count
 	rd.page_count = (playlists_count - 1) // rd.page_size + 1

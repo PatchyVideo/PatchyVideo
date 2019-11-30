@@ -25,7 +25,7 @@ function changepass() {
         setStatus("Password changed");
     },
     function(result){
-        setStatus(result.data, "red");
+        setStatus(result.data.reason, "red");
     });
 }
 
@@ -44,6 +44,6 @@ function changedesc() {
         setStatus("Description updated");
     },
     function(result){
-        setStatus(result.data, "red");
+        setStatus(result.data.reason, "red");
     });
 }
