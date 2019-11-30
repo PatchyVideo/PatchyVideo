@@ -7,10 +7,13 @@ from utils.exceptions import UserError
 from init import rdb
 from bson import ObjectId
 import redis_lock
-from config import VideoConfig
+from config import VideoConfig, TagsConfig
 
 @usingResource('tags')
 def editVideoTags(vid, tags, user):
+    if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
+        raise UserError('TAGS_LIMIT_EXCEEDED')
+    tagdb.verify_tags(tags)
     tags = tagdb.translate_tags(tags)
     tags = list(set(tags))
     item = tagdb.db.items.find_one({'_id': ObjectId(vid)})
@@ -21,10 +24,6 @@ def editVideoTags(vid, tags, user):
     with redis_lock.Lock(rdb, "videoEdit:" + item['item']['unique_id']), MongoTransaction(client) as s :
         tagdb.update_item_tags(item, tags, makeUserMeta(user), s())
         s.mark_succeed()
-
-@usingResource('tags')
-def verifyTags(tags):
-    tagdb.verify_tags(tags)
 
 def getVideoTags(vid) :
     return tagdb.retrive_tags(vid)

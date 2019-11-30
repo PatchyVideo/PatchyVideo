@@ -33,6 +33,16 @@ def _check_authorised(pid_or_obj, user, op = 'edit') :
 		raise UserError('UNAUTHORISED_OPERATION')
 
 def createPlaylist(language, title, desc, cover, user) :
+	if len(title) > PlaylistConfig.MAX_TITLE_LENGTH :
+		raise UserError('TITLE_TOO_LONG')
+	if len(desc) > PlaylistConfig.MAX_DESC_LENGTH :
+		raise UserError('DESC_TOO_LONG')
+	if len(cover) > PlaylistConfig.MAX_COVER_URL_LENGTH :
+		raise UserError('URL_TOO_LONG')
+	if not title :
+		raise UserError('EMPTY_TITLE')
+	if not desc :
+		raise UserError('EMPTY_DESC')
 	obj = {"title": {language: title}, "desc": {language: desc}, "views": 0, "videos": 0, "cover": cover, "meta": makeUserMetaObject(user)}
 	pid = db.playlists.insert_one(obj)
 	return str(pid.inserted_id)
@@ -93,6 +103,16 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 		return {'videos': video_page, 'video_count': video_count, 'page': page}
 
 def updatePlaylistInfo(pid, language, title, desc, cover, user) :
+	if len(title) > PlaylistConfig.MAX_TITLE_LENGTH :
+		raise UserError('TITLE_TOO_LONG')
+	if len(desc) > PlaylistConfig.MAX_DESC_LENGTH :
+		raise UserError('DESC_TOO_LONG')
+	if len(cover) > PlaylistConfig.MAX_COVER_URL_LENGTH :
+		raise UserError('URL_TOO_LONG')
+	if not title :
+		raise UserError('EMPTY_TITLE')
+	if not desc :
+		raise UserError('EMPTY_DESC')
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
 			raise UserError('PLAYLIST_NOT_EXIST')

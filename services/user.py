@@ -40,6 +40,14 @@ def logout(sid) :
 
 # we allow the same user to login multiple times and all of his login sessions are valid
 def login(username, password, challenge, login_session_id) :
+    if len(username) > UserConfig.MAX_USERNAME_LENGTH :
+        raise UserError('USERNAME_TOO_LONG')
+    if len(username) < UserConfig.MIN_USERNAME_LENGTH :
+        raise UserError('USERNAME_TOO_SHORT')
+    if len(password) > UserConfig.MAX_PASSWORD_LENGTH :
+        raise UserError('PASSWORD_TOO_LONG')
+    if len(password) < UserConfig.MIN_PASSWORD_LENGTH :
+        raise UserError('PASSWORD_TOO_SHORT')
     if verify_session(login_session_id, 'LOGIN') :
         user_obj = db.users.find_one({'profile.username': username})
         if not user_obj :
@@ -65,6 +73,14 @@ def query_user(uid) :
     return db.users.find_one({'_id': ObjectId(uid)})
 
 def signup(username, password, email, challenge, signup_session_id) :
+    if len(username) > UserConfig.MAX_USERNAME_LENGTH :
+        raise UserError('USERNAME_TOO_LONG')
+    if len(username) < UserConfig.MIN_USERNAME_LENGTH :
+        raise UserError('USERNAME_TOO_SHORT')
+    if len(password) > UserConfig.MAX_PASSWORD_LENGTH :
+        raise UserError('PASSWORD_TOO_LONG')
+    if len(password) < UserConfig.MIN_PASSWORD_LENGTH :
+        raise UserError('PASSWORD_TOO_SHORT')
     if verify_session(signup_session_id, 'SIGNUP') :
         if email :
             if len(email) > UserConfig.MAX_EMAIL_LENGTH or not re.match(r"[^@]+@[^@]+\.[^@]+", email):

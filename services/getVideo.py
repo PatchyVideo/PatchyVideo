@@ -1,6 +1,7 @@
 
 from db import tagdb as db
 from bson import ObjectId
+from utils.exceptions import UserError
 
 def getVideoDetail(id):
     return db.retrive_item({'_id': ObjectId(id)})
@@ -10,7 +11,7 @@ def getVideoDetailWithTagObjects(id) :
     if obj :
         tags = [tag for tag in db.db.tags.find({'tag': {'$in': obj['tags']}})]
         return obj, tags
-    return None, None
+    raise UserError('ITEM_NOT_EXIST')
 
 def getTagCategories(tags) :
     return db.get_tag_category(tags)

@@ -4,3 +4,6 @@ class UserError(Exception) :
         self.msg = msg
         self.aux = aux
 
+class ScraperError(Exception) :
+    def __init__(self) :
+        pass

@@ -11,7 +11,7 @@ from bson.json_util import dumps, loads
 from init import rdb#, logger
 
 from . import Namespace
-from .jsontools import makeResponseError, makeResponseFailed, jsonResponse
+from .jsontools import makeResponseError, makeResponseFailed, makeResponseSuccess, jsonResponse
 from .exceptions import UserError
 
 def _handle_return(ret, rd):
@@ -147,13 +147,16 @@ def jsonRequest(func):
 			return jsonResponse(makeResponseFailed("INCORRECT_REQUEST"))
 		except HTTPException as e:
 			raise e
-		except UserError as e:
-			return jsonResponse(makeResponseFailed(e.msg))
+		except UserError as ue:
+			return jsonResponse(makeResponseFailed({"reason": ue.msg, "aux": ue.aux}))
 		except:
 			print('****Exception!', file = sys.stderr)
 			print(traceback.format_exc(), file = sys.stderr)
 			abort(400)
-		return ret
+		if not ret :
+			return "json", makeResponseSuccess({})
+		else :
+			return ret
 	return wrapper
 
 def ignoreError(func):

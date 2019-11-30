@@ -97,68 +97,36 @@ def ajax_query_tags_regex(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_add_tag(rd, user, data):
-    data.tag = data.tag.strip()
-    ret = addTag(user, data.tag, data.category)
-    if ret == 'SUCCEED':
-        response = makeResponseSuccess("SUCCEED")
-    else :
-        response = makeResponseFailed(ret)
-    return "json", response
+    addTag(user, data.tag.strip(), data.category)
 
 @app.route('/tags/remove_tag.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_remove_tag(rd, user, data):
     return "json", makeResponseFailed("UNAUTHORISED_OPERATION")
-    ret = removeTag(user, data.tag)
-    if ret == 'SUCCEED' :
-        response = makeResponseSuccess("SUCCEED")
-    else :
-        response = makeResponseFailed(ret)
-    return "json", response
-
+    removeTag(user, data.tag)
 
 @app.route('/tags/rename_tag.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_rename_tag(rd, user, data):
-    ret = renameTag(user, data.tag, data.new_tag)
-    if ret == 'SUCCEED' :
-        response = makeResponseSuccess("SUCCEED")
-    else :
-        response = makeResponseFailed(ret)
-    return "json", response
+    renameTag(user, data.tag, data.new_tag)
 
 @app.route('/tags/add_alias.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_add_alias(rd, user, data):
-    ret = addAlias(user, data.alias, data.dst_tag)
-    if ret == 'SUCCEED' :
-        response = makeResponseSuccess("SUCCEED")
-    else :
-        response = makeResponseFailed(ret)
-    return "json", response
+    addAlias(user, data.alias, data.dst_tag)
 
 @app.route('/tags/add_tag_language.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_add_tag_language(rd, user, data):
-    ret = addTagLanguage(user, data.alias, data.dst_tag, data.language)
-    if ret == 'SUCCEED' :
-        response = makeResponseSuccess("SUCCEED")
-    else :
-        response = makeResponseFailed(ret)
-    return "json", response
+    addTagLanguage(user, data.alias, data.dst_tag, data.language)
 
 @app.route('/tags/remove_alias.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_remove_alias(rd, user, data):
-    ret = removeAlias(user, data.alias)
-    if ret == 'SUCCEED' :
-        response = makeResponseSuccess("SUCCEED")
-    else :
-        response = makeResponseFailed(ret)
-    return "json", response
+    removeAlias(user, data.alias)
 

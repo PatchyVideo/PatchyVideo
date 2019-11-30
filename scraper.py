@@ -16,6 +16,7 @@ from utils.crypto import random_bytes_str
 from utils.http import clear_url
 from utils.rwlock_async import modifyingResourceAsync, usingResourceAsync
 from utils.lock_async import RedisLockAsync
+from utils.exceptions import UserError
 
 from spiders import dispatch
 from db import tagdb, db, client
@@ -60,7 +61,7 @@ async def _make_video_data(data, copies, playlists, url) :
 							img.save(_COVER_PATH + filename)
 						break
 		except Exception as ex :
-			print(ex)
+			print(ex, file = sys.stderr)
 			continue
 	return {
 		"url": url,
@@ -322,6 +323,9 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 				#    playlist_lock.release()
 				print('SUCCEED', file = sys.stderr)
 				return 'SUCCEED', new_item_id
+	except UserError as ue :
+		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank)
+		return ue.msg, traceback.format_exc()
 	except :
 		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank)
 		print('****Exception!', file = sys.stderr)
