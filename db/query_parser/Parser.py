@@ -220,6 +220,7 @@ def _prepare_tag_list(node, groups, tag_translator, wildcard_translator):
 			return 'single-tag', { 'tags' : tag }
 
 # parse syntax tree into query structure with some simple optimizations
+# TODO: handle none tag
 def _parse_tree(node, groups, tag_translator, wildcard_translator, any_node = False):
 	if node.name == '<tag-list>':
 		return _prepare_tag_list(node, groups, tag_translator, wildcard_translator)
