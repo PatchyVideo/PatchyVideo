@@ -1,4 +1,6 @@
 
+import sys
+
 from .SLR import Parser
 from anytree import Node, RenderTree
 
@@ -357,7 +359,10 @@ def _parse_tree(node, groups, wildcard_translator, any_node = False):
 				return 'complex-query', { '$or' : [ treel, treer ] }
 
 def parse_tag(query, tag_translator, group_translator, wildcard_translator):
-	ts, ss = _lex(query)
+	try :
+		ts, ss = _lex(query)
+	except :
+		return None, None
 	tags = []
 	groups = []
 	for i, (k, v) in enumerate(zip(ts, ss)):
@@ -391,7 +396,7 @@ def parse_url(query):
 
 def parse(query, tag_translator, group_translator, wildcard_translator):
 	tag_query, tags = parse_tag(query, tag_translator, group_translator, wildcard_translator)
-	print(tag_query)
+	print(f'"{query}" to {tag_query}', file = sys.stderr)
 	url_query = parse_url(query)
 	if tag_query and url_query:
 		return { '$or': [tag_query, url_query] }, tags
