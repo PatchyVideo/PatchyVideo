@@ -57,7 +57,8 @@
                 "REDISTOGO_URL": "localhost",
                 "REDISTOGO_URL_WORKER": "redis://localhost",
                 "IMAGE_PATH": "../images",
-                "ENABLE_TRANSACTION": "false"
+                "ENABLE_TRANSACTION": "false",
+                "VERSION": "cf2cb641b84a604eae7fbe9668631e2205e70ddb"
             }
         },
         {
