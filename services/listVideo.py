@@ -5,12 +5,11 @@ import sys
 from db import tagdb as db
 from .tagStatistics import getPopularTags, getCommonTags, updateTagSearch
 from spiders import dispatch_no_expand
+from utils.exceptions import UserError
 
 def listVideoQuery(query_str, page_idx, page_size, order = 'latest'):
 	query_obj, tags = db.compile_query(query_str)
 	updateTagSearch(tags)
-	if query_obj == "INCORRECT_QUERY":
-		return "FAILED", None, [], 0
 	try :
 		result = db.retrive_items(query_obj)
 		if order == 'latest':
@@ -26,12 +25,12 @@ def listVideoQuery(query_str, page_idx, page_size, order = 'latest'):
 		videos = [item for item in ret]
 	except pymongo.errors.OperationFailure as ex:
 		if '$not' in str(ex) :
-			return "FAILED_NOT_OP", None, [], 0
+			raise UserError('FAILED_NOT_OP')
 		else :
 			print('Unknown error in query: \"%s\"' % query_str, file = sys.stderr)
 			print(ex, file = sys.stderr)
-			return "FAILED_UNKNOWN", None, [], 0
-	return "SUCCEED", videos, getCommonTags(videos), count
+			raise UserError('FAILED_UNKNOWN')
+	return videos, getCommonTags(videos), count
 
 def listVideo(page_idx, page_size, order = 'latest'):
 	result = db.retrive_items({})

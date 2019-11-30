@@ -69,7 +69,7 @@ function deleteVideo(vid) {
     }, function(result){
         location.reload();
     }, function(result){
-        alert(result.data);
+        alert(result.data.reason);
     });
 }
 
@@ -83,7 +83,7 @@ function moveUp(vid) {
     }, function(result){
         location.reload();
     }, function(result){
-        alert(result.data);
+        alert(result.data.reason);
     });
 }
 
@@ -97,7 +97,7 @@ function moveDown(vid) {
     }, function(result){
         location.reload();
     }, function(result){
-        alert(result.data);
+        alert(result.data.reason);
     });
 }
 
@@ -115,6 +115,6 @@ function setCover(vid) {
     }, function(result){
         location.reload();
     }, function(result){
-        alert(result.data);
+        alert(result.data.reason);
     });
 }

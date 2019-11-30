@@ -10,7 +10,7 @@ from utils.jsontools import *
 
 from spiders import dispatch
 
-from services.getVideo import getVideoDetailWithTagObjects, getTagCategories
+from services.getVideo import getVideoDetailWithTagObjects, getTagCategories, getVideoDetail
 from services.playlist import listPlaylistsForVideo
 from config import TagsConfig, VideoConfig
 
@@ -18,21 +18,12 @@ from config import TagsConfig, VideoConfig
 @loginOptional
 @jsonRequest
 def ajax_getvideo(rd, user, data):
-    try:
-        obj, tags = getVideoDetailWithTagObjects(data.vid)
-    except:
-        obj = None
-    if not obj:
-        abort("No such video id=%s" % data.vid, 404)
-    
+    obj, tags = getVideoDetailWithTagObjects(data.vid)
     copies = []
     for item in obj['item']['copies'] :
-        try:
-            ver = getVideoDetail(item)
-        except :
-            ver = None
-        if ver is not None :
-            copies.append(ver)
+        ver = getVideoDetail(item)
+        assert ver
+        copies.append(ver)
     playlists = listPlaylistsForVideo(data.vid)
     return "json", makeResponseSuccess({
         "video" : obj,

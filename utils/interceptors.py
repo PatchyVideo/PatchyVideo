@@ -12,7 +12,9 @@ from bson.json_util import dumps, loads
 from init import rdb#, logger
 
 from . import Namespace
-from .jsontools import makeResponseError, makeResponseFailed, jsonResponse
+
+from .jsontools import makeResponseError, makeResponseFailed, makeResponseSuccess, jsonResponse
+from .exceptions import UserError
 
 if os.getenv("VERSION", "") == "" :
 	_VERSION_URL = "https://github.com/zyddnys/PatchyVideo/"
@@ -92,6 +94,13 @@ def loginRequired(func):
 				return _handle_return(ret, rd)
 			except HTTPException as e:
 				raise e
+			except UserError as ue :
+				if 'NOT_EXIST' in ue.msg :
+					abort(404)
+				else :
+					print('****UserError!', file = sys.stderr)
+					print(traceback.format_exc(), file = sys.stderr)
+					abort(400)
 			except:
 				print('****Exception!', file = sys.stderr)
 				print(traceback.format_exc(), file = sys.stderr)
@@ -108,14 +117,14 @@ def loginRequiredJSON(func):
 			kwargs['user'] = _get_user_obj(session['sid'])
 			if kwargs['user'] is None :
 				#logger.warning('JSON - %s - Access Denied' % func.__name__)
-				return jsonResponse(makeResponseError("You are not authorised for this operation"))
+				return jsonResponse(makeResponseError("UNAUTHORISED_OPERATION"))
 			rd._user = kwargs['user']
 			kwargs['rd'] = rd
 			ret = func(*args, **kwargs)
 			return _handle_return(ret, rd)
 		else :
 			#logger.warning('JSON - %s - Access Denied' % func.__name__)
-			return jsonResponse(makeResponseError("You are not authorised for this operation"))
+			return jsonResponse(makeResponseError("UNAUTHORISED_OPERATION"))
 	return wrapper
 
 def loginOptional(func):
@@ -135,6 +144,13 @@ def loginOptional(func):
 			return _handle_return(ret, rd)
 		except HTTPException as e:
 			raise e
+		except UserError as ue :
+			if 'NOT_EXIST' in ue.msg :
+				abort(404)
+			else :
+				print('****UserError!', file = sys.stderr)
+				print(traceback.format_exc(), file = sys.stderr)
+				abort(400)
 		except:
 			print('****Exception!', file = sys.stderr)
 			print(traceback.format_exc(), file = sys.stderr)
@@ -146,7 +162,7 @@ def jsonRequest(func):
 	def wrapper(*args, **kwargs):
 		data = request.get_json()
 		if data is None:
-			return jsonResponse(makeResponseFailed("Incomplete JSON form"))
+			return jsonResponse(makeResponseFailed("INCORRECT_REQUEST"))
 		kwargs['data'] = Namespace.create_from_dict(data)
 		"""if hasattr(kwargs['rd'], '_user') :
 			logger.info('JSON_U - %s - %s - %s' % (kwargs['rd']._user['profile']['username'], func.__name__, dumps(data)))
@@ -155,16 +171,21 @@ def jsonRequest(func):
 		try:
 			ret = func(*args, **kwargs)
 		except AttributeError:
-			return jsonResponse(makeResponseFailed("Incomplete JSON form"))
+			return jsonResponse(makeResponseFailed("INCORRECT_REQUEST"))
 		except ValueError:
-			return jsonResponse(makeResponseFailed("Incorrect JSON data type"))
+			return jsonResponse(makeResponseFailed("INCORRECT_REQUEST"))
 		except HTTPException as e:
 			raise e
+		except UserError as ue:
+			return jsonResponse(makeResponseFailed({"reason": ue.msg, "aux": ue.aux}))
 		except:
 			print('****Exception!', file = sys.stderr)
 			print(traceback.format_exc(), file = sys.stderr)
 			abort(400)
-		return ret
+		if not ret :
+			return "json", makeResponseSuccess({})
+		else :
+			return ret
 	return wrapper
 
 def ignoreError(func):

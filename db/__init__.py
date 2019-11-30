@@ -14,9 +14,12 @@ from .TagDB import TagDB
 tagdb = TagDB(db)
 
 # add initial tag categories
-tagdb.add_category('General')
-tagdb.add_category('Character')
-tagdb.add_category('Copyright')
-tagdb.add_category('Author')
-tagdb.add_category('Meta')
-tagdb.add_category('Language')
+try :
+    tagdb.add_category('General')
+    tagdb.add_category('Character')
+    tagdb.add_category('Copyright')
+    tagdb.add_category('Author')
+    tagdb.add_category('Meta')
+    tagdb.add_category('Language')
+except :
+    pass

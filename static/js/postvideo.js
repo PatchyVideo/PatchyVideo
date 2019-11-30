@@ -189,7 +189,7 @@ function submitVideoSingle() {
         setStatus("Post succeed, please wait while our server is processing your post.");
     },
     function(result){
-        alert(result.data);
+        alert(result.data.reason);
         setStatus("Ready");
     });
 }
@@ -211,7 +211,7 @@ function submitVideoBatch() {
             setStatus("Post succeed, please wait while our server is processing your post.");
         },
         function(result){
-            alert(result.data);
+            alert(result.data.reason);
             setStatus("Ready");
         }
     );

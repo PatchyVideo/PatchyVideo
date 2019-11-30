@@ -8,6 +8,7 @@ from flask import render_template, request, current_app, jsonify, redirect, sess
 from init import app
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
+from utils.exceptions import UserError
 
 from spiders import dispatch
 from services.listVideo import listVideo, listVideoQuery
@@ -34,10 +35,8 @@ def ajax_listvideo_do(rd, data, user):
 @jsonRequest
 def ajax_queryvideo_do(rd, data, user):
 	if len(data.query) > QueryConfig.MAX_QUERY_LENGTH :
-		return "json", makeResponseError("Query too long(max %d characters)" % QueryConfig.MAX_QUERY_LENGTH)
-	status, videos, related_tags, video_count = listVideoQuery(data.query, data.page - 1, data.page_size)
-	if status == "FAILED":
-		return "json", makeResponseError("Syntax error in query")
+		raise UserError('QUERY_TOO_LONG')
+	videos, related_tags, video_count = listVideoQuery(data.query, data.page - 1, data.page_size)
 	tag_category_map = getTagCategoryMap(related_tags)
 	ret = makeResponseSuccess({
 		"videos": [i for i in videos],

@@ -34,6 +34,6 @@ function login() {
         }
     },
     function(result){
-        setStatus(result.data, "red");
+        setStatus(result.data.reason, "red");
     });
 }
