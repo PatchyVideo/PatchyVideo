@@ -133,6 +133,8 @@ def _lex( query ) :
 			elif state == 'in()' :
 				raise Exception()
 		else :
+			if state == 'pre()' :
+				state = 'normal'
 			tag += ch
 	return ts, ss
 
@@ -190,7 +192,10 @@ def _getk(node, idx):
 def _getv(node, idx):
 	return node.children[idx].name.split()[1]
 
-def _prepare_tag_list(node, groups):
+def _cd(t) :
+	return list(set(t))
+
+def _prepare_tag_list(node, groups, wildcard_translator):
 	if len(node.children) == 3:
 		if _getk(node, 0) == 'ALL':
 			return 'all-tags', { 'tags' : { '$all' : groups[_getv(node, 2)] } }
@@ -202,29 +207,32 @@ def _prepare_tag_list(node, groups):
 			except:
 				return 'complex-query', {}
 	else:
-		return 'single-tag', { 'tags' : _getv(node, 0) }
+		tag = _getv(node, 0)
+		if '*' in tag :
+			return 'any-tags', { 'tags' : { '$in' : wildcard_translator(tag) } }
+		else :
+			return 'single-tag', { 'tags' : _getv(node, 0) }
 
 # parse syntax tree into query structure with some simple optimizations
-# TODO: reordering optimization required
-def _parse_tree(node, groups, any_node = False):
+def _parse_tree(node, groups, wildcard_translator, any_node = False):
 	if node.name == '<tag-list>':
-		return _prepare_tag_list(node, groups)
+		return _prepare_tag_list(node, groups, wildcard_translator)
 	if node.name == '<primary-query>':
 		if len(node.children) == 1:
-			return _prepare_tag_list(node.children[0], groups)
+			return _prepare_tag_list(node.children[0], groups, wildcard_translator)
 		elif len(node.children) == 3:
-			return _parse_tree(node.children[1], groups)
+			return _parse_tree(node.children[1], groups, wildcard_translator)
 		else:
-			struct, tree = _parse_tree(node.children[2], groups, any_node = True)
+			struct, tree = _parse_tree(node.children[2], groups, wildcard_translator, any_node = True)
 			if struct == 'any-tags' or struct == 'single-tag':
 			    return struct, tree
 			return 'complex-query', { '$or' : tree }
 	if node.name == '<unary-query>' :
 		if len(node.children) == 1:
-			return _parse_tree(node.children[0], groups)
+			return _parse_tree(node.children[0], groups, wildcard_translator)
 		else:
 			# handle NOT operator
-			struct, tree = _parse_tree(node.children[1], groups)
+			struct, tree = _parse_tree(node.children[1], groups, wildcard_translator)
 			if struct == 'complex-query':
 				return 'not-complex-query', { '$not' : tree }
 			elif struct == 'not-complex-query':
@@ -245,61 +253,110 @@ def _parse_tree(node, groups, any_node = False):
 				return 'not-complex-query', { '$not' : tree }
 	if node.name == '<and-query>':
 		if len(node.children) == 1:
-			return _parse_tree(node.children[0], groups)
+			return _parse_tree(node.children[0], groups, wildcard_translator)
 		elif len(node.children) == 2 and any_node:
-			structl, treel = _parse_tree(node.children[0], groups, any_node)
-			structr, treer = _parse_tree(node.children[1], groups, any_node)
+			structl, treel = _parse_tree(node.children[0], groups, any_node, wildcard_translator)
+			structr, treer = _parse_tree(node.children[1], groups, any_node, wildcard_translator)
 			if structl == 'single-tag' and structr == 'single-tag':
-				return 'any-tags', { 'tags' : { '$in' : [ treel['tags'], treer['tags'] ] } }
+				in_tag = _cd([ treel['tags'], treer['tags'] ])
+				if len(in_tag) == 1 :
+					return 'single-tag', { 'tags' : in_tag[0] }
+				else :
+					return 'any-tags', { 'tags' : { '$in' : in_tag } }
 			elif structl == 'single-tag' and structr == 'any-tags':
-				return 'any-tags', { 'tags' : { '$in' : [ treel['tags'] ] + treer['tags']['$in'] } }
+				in_tag = _cd([ treel['tags'] ] + treer['tags']['$in'])
+				if len(in_tag) == 1 :
+					return 'single-tag', { 'tags' : in_tag[0] }
+				else :
+					return 'any-tags', { 'tags' : { '$in' : in_tag } }
 			elif structl == 'any-tags' and structr == 'single-tag':
-				return 'any-tags', { 'tags' : { '$in' : [ treer['tags'] ] + treel['tags']['$in'] } }
+				in_tag = _cd([ treer['tags'] ] + treel['tags']['$in'])
+				if len(in_tag) == 1 :
+					return 'single-tag', { 'tags' : in_tag[0] }
+				else :
+					return 'any-tags', { 'tags' : { '$in' : in_tag } }
 			elif structl == 'any-tags' and structr == 'any-tags':
-				return 'any-tags', { 'tags' : { '$in' : treel['tags']['$in'] + treer['tags']['$in'] } }
+				in_tag = _cd(treel['tags']['$in'] + treer['tags']['$in'])
+				if len(in_tag) == 1 :
+					return 'single-tag', { 'tags' : in_tag[0] }
+				else :
+					return 'any-tags', { 'tags' : { '$in' : in_tag } }
 			elif '$or' in treel and '$or' in treer:
 				return 'complex-query', { '$or' : treel['$or'] + treer['$or'] }
 			else:
 				return 'complex-query', (treel if isinstance(treel, list) else [treel]) + (treer if isinstance(treer, list) else [treer])
 		else:
 			if len(node.children) == 3:
-				structl, treel = _parse_tree(node.children[0], groups)
-				structr, treer = _parse_tree(node.children[2], groups)
+				structl, treel = _parse_tree(node.children[0], groups, wildcard_translator)
+				structr, treer = _parse_tree(node.children[2], groups, wildcard_translator)
 			else:
-				structl, treel = _parse_tree(node.children[0], groups)
-				structr, treer = _parse_tree(node.children[1], groups)
+				structl, treel = _parse_tree(node.children[0], groups, wildcard_translator)
+				structr, treer = _parse_tree(node.children[1], groups, wildcard_translator)
 			if structl == 'single-tag' and structr == 'single-tag':
-				return 'all-tags', { 'tags' : { '$all' : [ treel['tags'], treer['tags'] ] } }
+				in_tag = _cd([ treel['tags'], treer['tags'] ])
+				if len(in_tag) == 1 :
+					return 'single-tag', { 'tags' : in_tag[0] }
+				else :
+					return 'all-tags', { 'tags' : { '$all' : in_tag } }
+				return 'all-tags', { 'tags' : { '$all' : _cd([ treel['tags'], treer['tags'] ]) } }
 			elif structl == 'single-tag' and structr == 'all-tags':
-				return 'all-tags', { 'tags' : { '$all' : [ treel['tags'] ] + treer['tags']['$all'] } }
+				in_tag = _cd([ treel['tags'] ] + treer['tags']['$all'])
+				if len(in_tag) == 1 :
+					return 'single-tag', { 'tags' : in_tag[0] }
+				else :
+					return 'all-tags', { 'tags' : { '$all' : in_tag } }
 			elif structl == 'all-tags' and structr == 'single-tag':
-				return 'all-tags', { 'tags' : { '$all' : [ treer['tags'] ] + treel['tags']['$all'] } }
+				in_tag = _cd([ treer['tags'] ] + treel['tags']['$all'])
+				if len(in_tag) == 1 :
+					return 'single-tag', { 'tags' : in_tag[0] }
+				else :
+					return 'all-tags', { 'tags' : { '$all' : in_tag } }
 			elif structl == 'all-tags' and structr == 'all-tags':
-				return 'all-tags', { 'tags' : { '$all' : treel['tags']['$all'] + treer['tags']['$all'] } }
+				in_tag = _cd(treel['tags']['$all'] + treer['tags']['$all'])
+				if len(in_tag) == 1 :
+					return 'single-tag', { 'tags' : in_tag[0] }
+				else :
+					return 'all-tags', { 'tags' : { '$all' : in_tag } }
 			elif '$and' in treel and '$and' in treer:
 				return 'complex-query', { '$and' : treel['$and'] + treer['$and'] }
 			else:
 				return 'complex-query', { '$and' : [ treel, treer ] }
 	if node.name == '<query>':
 		if len(node.children) == 1:
-			return _parse_tree(node.children[0], groups)
+			return _parse_tree(node.children[0], groups, wildcard_translator)
 		elif len(node.children) == 3:
-			structl, treel = _parse_tree(node.children[0], groups)
-			structr, treer = _parse_tree(node.children[2], groups)
+			structl, treel = _parse_tree(node.children[0], groups, wildcard_translator)
+			structr, treer = _parse_tree(node.children[2], groups, wildcard_translator)
 			if structl == 'single-tag' and structr == 'single-tag':
-				return 'any-tags', { 'tags' : { '$in' : [ treel['tags'], treer['tags'] ] } }
+				in_tag = _cd([ treel['tags'], treer['tags'] ])
+				if len(in_tag) == 1 :
+					return 'single-tag', { 'tags' : in_tag[0] }
+				else :
+					return 'any-tags', { 'tags' : { '$in' : in_tag } }
 			elif structl == 'single-tag' and structr == 'any-tags':
-				return 'any-tags', { 'tags' : { '$in' : [ treel['tags'] ] + treer['tags']['$in'] } }
+				in_tag = _cd([ treel['tags'] ] + treer['tags']['$in'])
+				if len(in_tag) == 1 :
+					return 'single-tag', { 'tags' : in_tag[0] }
+				else :
+					return 'any-tags', { 'tags' : { '$in' : in_tag } }
 			elif structl == 'any-tags' and structr == 'single-tag':
-				return 'any-tags', { 'tags' : { '$in' : [ treer['tags'] ] + treel['tags']['$in'] } }
+				in_tag = _cd([ treer['tags'] ] + treel['tags']['$in'])
+				if len(in_tag) == 1 :
+					return 'single-tag', { 'tags' : in_tag[0] }
+				else :
+					return 'any-tags', { 'tags' : { '$in' : in_tag } }
 			elif structl == 'any-tags' and structr == 'any-tags':
-				return 'any-tags', { 'tags' : { '$in' : treel['tags']['$in'] + treer['tags']['$in'] } }
+				in_tag = _cd(treel['tags']['$in'] + treer['tags']['$in'])
+				if len(in_tag) == 1 :
+					return 'single-tag', { 'tags' : in_tag[0] }
+				else :
+					return 'any-tags', { 'tags' : { '$in' : in_tag } }
 			elif '$or' in treel and '$or' in treer:
 				return 'complex-query', { '$or' : treel['$or'] + treer['$or'] }
 			else:
 				return 'complex-query', { '$or' : [ treel, treer ] }
 
-def parse_tag(query, tag_translator, group_translator):
+def parse_tag(query, tag_translator, group_translator, wildcard_translator):
 	ts, ss = _lex(query)
 	tags = []
 	groups = []
@@ -320,7 +377,7 @@ def parse_tag(query, tag_translator, group_translator):
 	if tree is None:
 		return None, None
 	try:
-		_, ans = _parse_tree(tree, group_map)
+		_, ans = _parse_tree(tree, group_map, wildcard_translator)
 		return ans, tags
 	except:
 		return None, None
@@ -332,8 +389,9 @@ def parse_url(query):
 		return None
 	return { 'item.unique_id': obj.get_unique_id(obj, cleanURL) }
 
-def parse(query, tag_translator, group_translator):
-	tag_query, tags = parse_tag(query, tag_translator, group_translator)
+def parse(query, tag_translator, group_translator, wildcard_translator):
+	tag_query, tags = parse_tag(query, tag_translator, group_translator, wildcard_translator)
+	print(tag_query)
 	url_query = parse_url(query)
 	if tag_query and url_query:
 		return { '$or': [tag_query, url_query] }, tags

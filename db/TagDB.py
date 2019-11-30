@@ -463,8 +463,25 @@ class TagDB():
 				gm[g] = []
 		return gm
 
+	def translate_tag_wildcard(self, query) :
+		query = re.escape(query)
+		query = query.replace('\\*', '.*')
+		query = f'^{query}$'
+		ret = self.db.tags.aggregate([
+		{
+			'$match' : {
+				'tag' : {'$regex' : query}
+			}
+		},
+		{
+			'$project' : {
+				'tag' : 1
+			}
+		}])
+		return [item['tag'] for item in ret]
+
 	def compile_query(self, query, session = None):
-		query_obj, tags = Parser.parse(query, self.translate_tags, self.translate_tag_group)
+		query_obj, tags = Parser.parse(query, self.translate_tags, self.translate_tag_group, self.translate_tag_wildcard)
 		if query_obj is None:
 			return 'INCORRECT_QUERY', []
 		return query_obj, tags
