@@ -4,6 +4,7 @@ from init import app, rdb
 from utils.jsontools import *
 from utils.dbtools import makeUserMeta, makeUserMetaObject, MongoTransaction
 from utils.rwlock import usingResource, modifyingResource
+from utils.exceptions import UserError
 
 from spiders import dispatch
 from db import tagdb, db, client
@@ -24,7 +25,12 @@ def _is_authorised(pid_or_obj, user, op = 'edit') :
 		obj = pid_or_obj
 	creator = str(obj['meta']['created_by'])
 	user_id = str(user['_id'])
-	return creator == user_id or (op + 'Playlist' in user['access_control']['allowed_ops']) or user['access_control']['status'] == 'admin'
+	if not (creator == user_id or (op + 'Playlist' in user['access_control']['allowed_ops']) or user['access_control']['status'] == 'admin') :
+		raise UserError('UNAUTHORISED_OPERATION')
+
+def _check_authorised(pid_or_obj, user, op = 'edit') :
+	if not _is_authorised(pid_or_obj, user, op) :
+		raise UserError('UNAUTHORISED_OPERATION')
 
 def createPlaylist(language, title, desc, cover, user) :
 	obj = {"title": {language: title}, "desc": {language: desc}, "views": 0, "videos": 0, "cover": cover, "meta": makeUserMetaObject(user)}
@@ -34,28 +40,25 @@ def createPlaylist(language, title, desc, cover, user) :
 def createPlaylistFromSingleVideo(language, vid, user) :
 	video_obj = tagdb.retrive_item(ObjectId(vid))
 	if video_obj is None :
-		return "VIDEO_NOT_EXIST"
+		raise UserError('VIDEO_NOT_EXIST')
 	new_playlist_id = createPlaylist(language, video_obj['item']['title'], video_obj['item']['desc'], video_obj['item']['cover_image'], user)
-	ret = addVideoToPlaylist(new_playlist_id, vid, user)
-	return ret, new_playlist_id
+	addVideoToPlaylist(new_playlist_id, vid, user)
+	return new_playlist_id
 
 def removePlaylist(pid, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
-			return "PLAYLIST_NOT_EXIST"
-		if not _is_authorised(pid, user, 'remove') :
-			return "UNAUTHORISED_OPERATION"
+			raise UserError('PLAYLIST_NOT_EXIST')
+		_check_authorised(pid, user, 'remove')
 		db.playlist_items.delete_many({"pid": ObjectId(pid)}, session = s())
 		db.playlists.delete_one({"_id": ObjectId(pid)}, session = s())
 		s.mark_succeed()
-		return "SUCCEED"
 
 def updatePlaylistCover(pid, cover, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
-			return "PLAYLIST_NOT_EXIST"
-		if not _is_authorised(pid, user) :
-			return "UNAUTHORISED_OPERATION"
+			raise UserError('PLAYLIST_NOT_EXIST')
+		_check_authorised(pid, user)
 		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {"cover": cover}}, session = s())
 		if user is not None :
 			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
@@ -66,18 +69,15 @@ def updatePlaylistCover(pid, cover, user) :
 				'meta.modified_by': '',
 				'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()
-		return "SUCCEED"
-
 
 def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
-			return "PLAYLIST_NOT_EXIST", None
-		if not _is_authorised(pid, user) :
-			return "UNAUTHORISED_OPERATION", None
+			raise UserError('PLAYLIST_NOT_EXIST')
+		_check_authorised(pid, user)
 		video_obj = tagdb.retrive_item({"_id": ObjectId(vid)})
 		if video_obj is None :
-			return "VIDEO_NOT_EXIST", None
+			raise UserError('VIDEO_NOT_EXIST')
 		cover = video_obj['item']['cover_image']
 		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {"cover": cover}}, session = s())
 		if user is not None :
@@ -90,14 +90,13 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 				'meta.modified_at': datetime.now()}}, session = s())
 		_, video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
 		s.mark_succeed()
-		return "SUCCEED", {'videos': video_page, 'video_count': video_count, 'page': page}
+		return {'videos': video_page, 'video_count': video_count, 'page': page}
 
 def updatePlaylistInfo(pid, language, title, desc, cover, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
-			return "PLAYLIST_NOT_EXIST"
-		if not _is_authorised(pid, user) :
-			return "UNAUTHORISED_OPERATION"
+			raise UserError('PLAYLIST_NOT_EXIST')
+		_check_authorised(pid, user)
 		if cover :
 			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {"cover": cover}}, session = s())
 		if user is not None :
@@ -113,21 +112,19 @@ def updatePlaylistInfo(pid, language, title, desc, cover, user) :
 				'meta.modified_by': '',
 				'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()
-		return "SUCCEED"
 
 def addVideoToPlaylist(pid, vid, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
-			return "PLAYLIST_NOT_EXIST"
-		if not _is_authorised(playlist, user) :
-			return "UNAUTHORISED_OPERATION"
+			raise UserError('PLAYLIST_NOT_EXIST')
+		_check_authorised(playlist, user)
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
-			return "VIDEO_NOT_EXIST"
+			raise UserError('VIDEO_NOT_EXIST')
 		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
-			return "VIDEO_LIMIT_EXCEEDED"
+			raise UserError('VIDEO_LIMIT_EXCEEDED')
 		if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = s()) is not None :
-			return "VIDEO_ALREADY_EXIST"
+			raise UserError('VIDEO_ALREADY_EXIST')
 		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
 		playlists.append(ObjectId(pid))
 		playlists = list(set(playlists))
@@ -143,21 +140,19 @@ def addVideoToPlaylist(pid, vid, user) :
 				'meta.modified_by': '',
 				'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()
-		return "SUCCEED"
 
 def addVideoToPlaylistLockFree(pid, vid, user) :
 	with MongoTransaction(client) as s :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
-			return "PLAYLIST_NOT_EXIST"
-		if not _is_authorised(playlist, user) :
-			return "UNAUTHORISED_OPERATION"
+			raise UserError('PLAYLIST_NOT_EXIST')
+		_check_authorised(playlist, user)
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
-			return "VIDEO_NOT_EXIST"
+			raise UserError('VIDEO_NOT_EXIST')
 		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
-			return "VIDEO_LIMIT_EXCEEDED"
+			raise UserError('VIDEO_LIMIT_EXCEEDED')
 		if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = s()) is not None :
-			return "VIDEO_ALREADY_EXIST"
+			raise UserError('VIDEO_ALREADY_EXIST')
 		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
 		playlists.append(ObjectId(pid))
 		playlists = list(set(playlists))
@@ -173,12 +168,11 @@ def addVideoToPlaylistLockFree(pid, vid, user) :
 				'meta.modified_by': '',
 				'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()
-		return "SUCCEED"
 
 def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
 	if playlist is None :
-		return "PLAYLIST_NOT_EXIST", None, 0
+		raise UserError('PLAYLIST_NOT_EXIST')
 	ans_obj = db.playlist_items.aggregate([
 		{
 			'$match': {
@@ -215,12 +209,12 @@ def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
 		ret_obj = obj['item']
 		ret_obj['rank'] = obj['rank']
 		ret.append(ret_obj)
-	return "SUCCEED", ret, playlist['videos'], _is_authorised(playlist, user)
+	return ret, playlist['videos'], _is_authorised(playlist, user)
 
 def listPlaylistVideos(pid, page_idx, page_size) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
 	if playlist is None :
-		return "PLAYLIST_NOT_EXIST", None, 0
+		raise UserError('PLAYLIST_NOT_EXIST')
 	ans_obj = db.playlist_items.aggregate([
 		{
 			'$match': {
@@ -257,14 +251,14 @@ def listPlaylistVideos(pid, page_idx, page_size) :
 		ret_obj = obj['item']
 		ret_obj['rank'] = obj['rank']
 		ret.append(ret_obj)
-	return "SUCCEED", ret, playlist['videos']
+	return ret, playlist['videos']
 
 def listAllPlaylistVideosUnordered(pid) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
 	if playlist is None :
-		return "PLAYLIST_NOT_EXIST", None, 0
+		raise UserError('PLAYLIST_NOT_EXIST')
 	ans_obj = db.playlist_items.find({"pid": ObjectId(pid)})
-	return "SUCCEED", [ObjectId(item['vid']) for item in ans_obj], playlist['videos']
+	return [ObjectId(item['vid']) for item in ans_obj], playlist['videos']
 
 def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
 	sort_obj = { "meta.created_at" : 1 }
@@ -301,13 +295,13 @@ def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
 		'$limit' : page_size
 	}])
 	
-	return "SUCCEED", ans_obj, db.playlists.find(query).count()
+	return ans_obj, db.playlists.find(query).count()
 
 @usingResource('tags')
 def listCommonTags(pid) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
 	if playlist is None :
-		return "PLAYLIST_NOT_EXIST", None
+		raise UserError('PLAYLIST_NOT_EXIST')
 	result = db.playlist_items.aggregate([
 	{
 		"$match" : {
@@ -367,16 +361,15 @@ def listCommonTags(pid) :
 	])
 	ret = [i for i in result]
 	if ret :
-		ret = ret[0]['commonTags']
-		return 'SUCCEED', ret
+		return ret[0]['commonTags']
 	else :
-		return 'SUCCEED', []
+		return []
 
 @usingResource('tags')
 def updateCommonTags(pid, tags, user) :
 	with MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
-			return "PLAYLIST_NOT_EXIST"
+			raise UserError('PLAYLIST_NOT_EXIST')
 		# user is editing video tags, not the playlist itself, no need to lock playlist or check for authorization
 		_, old_tags = listCommonTags(pid)
 		old_tags_set = set(old_tags)
@@ -386,22 +379,18 @@ def updateCommonTags(pid, tags, user) :
 		tags_added = tagdb.translate_tags(tags_added)
 		tags_to_remove = list((old_tags_set ^ new_tags_set) - new_tags_set)
 		if len(tags_added) - len(tags_to_remove) > PlaylistConfig.MAX_COMMON_TAGS :
-			return 'TOO_MANY_TAGS'
-		ret, all_video_ids, _ = listAllPlaylistVideosUnordered(pid)
-		if ret != 'SUCCEED' :
-			return ret
+			raise UserError('TOO_MANY_TAGS')
+		all_video_ids, _ = listAllPlaylistVideosUnordered(pid)
 		if tags_to_remove :
 			tagdb.update_many_items_tags_pull(all_video_ids, tags_to_remove, makeUserMeta(user), session = s())
 		if tags_added :
 			tagdb.update_many_items_tags_merge(all_video_ids, tags_added, makeUserMeta(user), session = s())
 		s.mark_succeed()
-		return 'SUCCEED'
-
 
 def listPlaylistsForVideo(vid) :
 	video = tagdb.retrive_item({'_id': ObjectId(vid)})
 	if video is None :
-		return "VIDEO_NOT_EXIST"
+		raise UserError('VIDEO_NOT_EXIST')
 	result = db.playlist_items.aggregate([
 		{
 			'$match': {
@@ -447,13 +436,12 @@ def removeVideoFromPlaylist(pid, vid, page, page_size, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
-			return "PLAYLIST_NOT_EXIST"
-		if not _is_authorised(playlist, user) :
-			return "UNAUTHORISED_OPERATION"
+			raise UserError('PLAYLIST_NOT_EXIST')
+		_check_authorised(playlist, user)
 		if playlist["videos"] > 0 :
 			entry = db.playlist_items.find_one({"pid": ObjectId(pid), "vid": ObjectId(vid)}, session = s())
 			if entry is None :
-				return "VIDEO_NOT_EXIST_OR_NOT_IN_PLAYLIST"
+				raise UserError('VIDEO_NOT_EXIST_OR_NOT_IN_PLAYLIST')
 			db.playlist_items.update_many({'$and': [{'pid': ObjectId(pid)}, {'rank': {'$gt': entry['rank']}}]}, {'$inc': {'rank': -1}}, session = s())
 			db.playlist_items.delete_one({'_id': entry['_id']}, session = s())
 			db.playlists.update_one({"_id": ObjectId(pid)}, {"$inc": {"videos": -1}}, session = s())
@@ -466,30 +454,29 @@ def removeVideoFromPlaylist(pid, vid, page, page_size, user) :
 					'meta.modified_by': '',
 					'meta.modified_at': datetime.now()}}, session = s())
 		else :
-			return "EMPTY_PLAYLIST"
-		_, video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
+			raise UserError('EMPTY_PLAYLIST')
+		video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
 		if len(video_page) == 0 and page > 1 and video_count > 0 :
 			# in case deleting video results in current page becomes empty, show the previous page
-			_, video_page, video_count = listPlaylistVideos(pid, page - 2, page_size)
+			video_page, video_count = listPlaylistVideos(pid, page - 2, page_size)
 			s.mark_succeed()
-			return "SUCCEED", {'videos': video_page, 'video_count': video_count, 'page': page - 1}
+			return {'videos': video_page, 'video_count': video_count, 'page': page - 1}
 		s.mark_succeed()
-		return "SUCCEED", {'videos': video_page, 'video_count': video_count, 'page': page}
+		return {'videos': video_page, 'video_count': video_count, 'page': page}
 
 def editPlaylist_MoveUp(pid, vid, page, page_size, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
-			return "PLAYLIST_NOT_EXIST", None
-		if not _is_authorised(playlist, user) :
-			return "UNAUTHORISED_OPERATION", None
+			raise UserError('PLAYLIST_NOT_EXIST')
+		_check_authorised(playlist, user)
 		if playlist["videos"] > 0 :
 			entry = db.playlist_items.find_one({"pid": ObjectId(pid), "vid": ObjectId(vid)}, session = s())
 			if entry is None :
 				s.mark_failover()
-				return "VIDEO_NOT_EXIST_OR_NOT_IN_PLAYLIST", None
+				raise UserError('VIDEO_NOT_EXIST_OR_NOT_IN_PLAYLIST')
 			if entry['rank'] <= 0 :
-				return "SUCCEED", None
+				return None
 			exchange_entry = db.playlist_items.find_one({"pid": ObjectId(pid), "rank": entry['rank'] - 1}, session = s())
 			db.playlist_items.update_one({'_id': entry['_id']}, {'$set': {'rank': entry['rank'] - 1}}, session = s())
 			db.playlist_items.update_one({'_id': exchange_entry['_id']}, {'$set': {'rank': entry['rank']}}, session = s())
@@ -503,23 +490,22 @@ def editPlaylist_MoveUp(pid, vid, page, page_size, user) :
 					'meta.modified_at': datetime.now()}}, session = s())
 			_, video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
 			s.mark_succeed()
-			return "SUCCEED", {'videos': video_page, 'video_count': video_count, 'page': page}
+			return {'videos': video_page, 'video_count': video_count, 'page': page}
 		else :
-			return "EMPTY_PLAYLIST", None
+			raise UserError('EMPTY_PLAYLIST')
 
 def editPlaylist_MoveDown(pid, vid, page, page_size, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
-			return "PLAYLIST_NOT_EXIST", None
-		if not _is_authorised(playlist, user) :
-			return "UNAUTHORISED_OPERATION", None
+			raise UserError('PLAYLIST_NOT_EXIST')
+		_check_authorised(playlist, user)
 		if playlist["videos"] > 0 :
 			entry = db.playlist_items.find_one({"pid": ObjectId(pid), "vid": ObjectId(vid)}, session = s())
 			if entry is None :
-				return "VIDEO_NOT_EXIST_OR_NOT_IN_PLAYLIST", None
+				raise UserError('VIDEO_NOT_EXIST_OR_NOT_IN_PLAYLIST')
 			if entry['rank'] >= playlist["videos"] - 1 :
-				return "SUCCEED", None
+				return None
 			exchange_entry = db.playlist_items.find_one({"pid": ObjectId(pid), "rank": entry['rank'] + 1}, session = s())
 			db.playlist_items.update_one({'_id': entry['_id']}, {'$set': {'rank': entry['rank'] + 1}}, session = s())
 			db.playlist_items.update_one({'_id': exchange_entry['_id']}, {'$set': {'rank': entry['rank']}}, session = s())
@@ -533,25 +519,24 @@ def editPlaylist_MoveDown(pid, vid, page, page_size, user) :
 					'meta.modified_at': datetime.now()}}, session = s())
 			_, video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
 			s.mark_succeed()
-			return "SUCCEED", {'videos': video_page, 'video_count': video_count, 'page': page}
+			return {'videos': video_page, 'video_count': video_count, 'page': page}
 		else :
-			return "EMPTY_PLAYLIST", None
+			raise UserError('EMPTY_PLAYLIST')
 
 def insertIntoPlaylist(pid, vid, rank, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
-			return "PLAYLIST_NOT_EXIST"
-		if not _is_authorised(playlist, user) :
-			return "UNAUTHORISED_OPERATION"
+			raise UserError('PLAYLIST_NOT_EXIST')
+		_check_authorised(playlist, user)
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
-			return "VIDEO_NOT_EXIST"
+			raise UserError('VIDEO_NOT_EXIST')
 		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
-			return "VIDEO_LIMIT_EXCEEDED"
+			raise UserError('VIDEO_LIMIT_EXCEEDED')
 		if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = s()) is not None :
-			return "VIDEO_ALREADY_EXIST"
+			raise UserError('VIDEO_ALREADY_EXIST')
 		if rank < 0 :
-			return "OUT_OF_RANGE"
+			raise UserError('OUT_OF_RANGE')
 		if rank > playlist['videos'] :
 			rank = playlist['videos']
 		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
@@ -570,23 +555,21 @@ def insertIntoPlaylist(pid, vid, rank, user) :
 				'meta.modified_by': '',
 				'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()
-		return "SUCCEED"
 
 def insertIntoPlaylistLockFree(pid, vid, rank, user) :
 	with MongoTransaction(client) as s :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
-			return "PLAYLIST_NOT_EXIST"
-		if not _is_authorised(playlist, user) :
-			return "UNAUTHORISED_OPERATION"
+			raise UserError('PLAYLIST_NOT_EXIST')
+		_check_authorised(playlist, user)
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
-			return "VIDEO_NOT_EXIST"
+			raise UserError('VIDEO_NOT_EXIST')
 		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
-			return "VIDEO_LIMIT_EXCEEDED"
+			raise UserError('VIDEO_LIMIT_EXCEEDED')
 		if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = s()) is not None :
-			return "VIDEO_ALREADY_EXIST"
+			raise UserError('VIDEO_ALREADY_EXIST')
 		if rank < 0 :
-			return "OUT_OF_RANGE"
+			raise UserError('OUT_OF_RANGE')
 		if rank > playlist['videos'] :
 			rank = playlist['videos']
 		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
@@ -605,4 +588,3 @@ def insertIntoPlaylistLockFree(pid, vid, rank, user) :
 				'meta.modified_by': '',
 				'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()
-		return "SUCCEED"

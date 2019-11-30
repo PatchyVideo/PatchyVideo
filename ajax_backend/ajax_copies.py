@@ -17,7 +17,6 @@ from services.copies import breakLink, syncTags, broadcastTags
 @loginRequiredJSON
 @jsonRequest
 def ajax_breaklink(rd, user, data):
-    print('break link')
     vid = data.video_id
     breakLink(vid, user)
     ret = makeResponseSuccess({})

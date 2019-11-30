@@ -3,6 +3,7 @@ import time
 from init import app, rdb
 from utils.jsontools import *
 from utils.dbtools import makeUserMeta, MongoTransaction
+from utils.exceptions import UserError
 
 from spiders import dispatch
 from db import tagdb, client
@@ -51,7 +52,7 @@ def breakLink(vid, user):
 def syncTags(dst, src, user):
 	src_item = tagdb.retrive_item({"_id": ObjectId(src)})
 	if src_item is None:
-		return "ITEM_NOT_EXIST"
+		raise UserError("ITEM_NOT_EXIST")
 	src_tags = src_item['tags']
 	with redis_lock.Lock(rdb, "videoEdit:" + src_item["item"]["unique_id"]), MongoTransaction(client) as s:
 		ret = tagdb.update_item_tags_merge(ObjectId(dst), src_tags, makeUserMeta(user), s())
@@ -63,7 +64,7 @@ def syncTags(dst, src, user):
 def broadcastTags(src, user):
 	src_item = tagdb.retrive_item({"_id": ObjectId(src)})
 	if src_item is None:
-		return "ITEM_NOT_EXIST"
+		raise UserError("ITEM_NOT_EXIST")
 	src_tags = src_item['tags']
 	with redis_lock.Lock(rdb, "editLink"), MongoTransaction(client) as s :
 		copies = _getAllCopies(src, session = s())
@@ -71,10 +72,10 @@ def broadcastTags(src, user):
 			if copy != ObjectId(src) : # prevent self updating
 				copy_obj = tagdb.retrive_item({"_id": ObjectId(copy)}, session = s())
 				if copy_obj is None:
-					return "ITEM_NOT_EXIST"
+					raise UserError("ITEM_NOT_EXIST")
 				with redis_lock.Lock(rdb, "videoEdit:" + copy_obj["item"]["unique_id"]):
 					ret = tagdb.update_item_tags_merge(ObjectId(copy), src_tags, makeUserMeta(user), s())
 					if ret != 'SUCCEED':
-						return "ITEM_NOT_EXIST"
+						raise UserError("ITEM_NOT_EXIST")
 		s.mark_succeed()
 		return ret

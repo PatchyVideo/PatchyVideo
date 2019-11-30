@@ -215,7 +215,7 @@ class TagDB():
 			tm.append(tag['tag'])
 		for tag in tags:
 			if not tag in tm:
-				raise UserError('TAG_NOT_EXIST')
+				raise UserError('TAG_NOT_EXIST', tag)
 
 	def update_item(self, item_id, item, user = '', session = None):
 		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
@@ -370,9 +370,9 @@ class TagDB():
 			else:
 				# if src tag not exist, add one
 				self.add_tag(src_tag, tag_obj_dst['category'], user, session)
-				return self.add_tag_alias(src_tag, dst_tag, alias_type, language, user, session)
+				self.add_tag_alias(src_tag, dst_tag, alias_type, language, user, session)
 		elif tt_dst == 'alias':
-			return self.add_tag_alias(src_tag, tag_obj_dst['dst'], user, session = session)
+			self.add_tag_alias(src_tag, tag_obj_dst['dst'], user, session = session)
 		else:
 			raise UserError('TAG_NOT_EXIST')
 

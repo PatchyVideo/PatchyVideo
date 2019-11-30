@@ -16,9 +16,7 @@ def getPopularTags(max_count = 20) :
         response = get_page(TAG_TRACKER_ADDRESS + "/get?count=%d" % max_count)
         json_obj = json.loads(response)
         return json_obj['tags']
-    except Exception as e :
-        print('---getPopularTags---')
-        print(e)
+    except :
         return []
 
 def getCommonTags(videos, max_count = 20) :
