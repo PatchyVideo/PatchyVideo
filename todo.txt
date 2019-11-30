@@ -42,7 +42,7 @@ phase 2
 ======================
 #support nm for nico
 #unify config
-remove footer touhou copyright
+#remove footer touhou copyright
 #post video using same tags
 #sync merge tags from copies
 #get video upload date

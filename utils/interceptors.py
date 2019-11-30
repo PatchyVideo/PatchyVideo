@@ -1,4 +1,5 @@
 
+import os
 import sys
 import json
 import urllib
@@ -13,6 +14,12 @@ from init import rdb#, logger
 from . import Namespace
 from .jsontools import makeResponseError, makeResponseFailed, jsonResponse
 
+if os.getenv("VERSION", "") == "" :
+	_VERSION_URL = "https://github.com/zyddnys/PatchyVideo/"
+	_VERSION = "v0.1"
+else :
+	_VERSION = os.getenv("VERSION", "")[:16]
+	_VERSION_URL = "https://github.com/zyddnys/PatchyVideo/commit/" + os.getenv("VERSION", "")
 
 def _handle_return(ret, rd):
 	if isinstance(ret, str):
@@ -49,6 +56,8 @@ def basePage(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs) :
 		rd = Namespace()
+		rd._version = _VERSION
+		rd._version_url = _VERSION_URL
 		kwargs['rd'] = rd
 		try:
 			ret = func(*args, **kwargs)
@@ -70,6 +79,8 @@ def loginRequired(func):
 		encoded_url = urllib.parse.quote(path)
 		if 'sid' in session:
 			rd = Namespace()
+			rd._version = _VERSION
+			rd._version_url = _VERSION_URL
 			kwargs['user'] = _get_user_obj(session['sid'])
 			if kwargs['user'] is None :
 				return redirect('/login?redirect_url=' + encoded_url)
@@ -116,6 +127,8 @@ def loginOptional(func):
 		else :
 			kwargs['user'] = None
 		rd._user = kwargs['user']
+		rd._version = _VERSION
+		rd._version_url = _VERSION_URL
 		kwargs['rd'] = rd
 		try:
 			ret = func(*args, **kwargs)
