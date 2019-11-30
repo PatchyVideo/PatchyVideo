@@ -57,7 +57,9 @@ recover password
 !user access control for frontend HTMLs
 #log error, don't want others to see filenames in error response
 #change background image to include more patchouli
+better user profile page
 user sees his playlists
+user sees his uploads
 #create playlist from a single video
 create playlist from current playlist but with videos from other site in "copies" field
 search playlist
@@ -65,7 +67,7 @@ beautiful http error page
 #add interactive admin shell
 unify naming convention for status code AND use exception to replace status code
 unify JSON return as status code, not error message
-added multi-language framework
+add multi-language framework
 deployment mode using GCI
 !tags autocomplete
     support suffix tag completion
@@ -74,12 +76,15 @@ add wiki/help page and documents/tagging guide
 #<!!HIGH PRIORITY!!> replace redis queue which is slow and does not support multiple workers/coroutines
 #    make postVideo async, don't want to waste time on requests.get
 #reorder playlist insert/add result after async post
-make everything async, don't want to waste time on spin locks
+make autocomplete with fast_io::epoll
+fix autocomplete unicode bug
+support suffix autocomplete
+tag rename
 
 ======================
 phase 3
 ======================
-tag rename
+make everything async, don't want to waste time on spin locks
 user subscript to playlists
 user photo storing
 thumbnail for playlist
@@ -92,3 +97,4 @@ tag prompt/auto-complete
 elasticsearch for title and description in video/playlist
 show uploader profile photo
 jsproxy for sites
+video tagging histroy
