@@ -57,7 +57,23 @@ function add_textcomplete(element) {
     element.textcomplete([
         {
             id: 'tags',
-            match: /\b([\w][\w][\w_\-\!']*(_\([\w'\-_\!]+\)?)?)$/,
+            match: function(text) {
+                var status = 'normal';
+                var i = text.length;
+                while (i--) {
+                    if (status == 'normal') {
+                        if (text.charAt(i) == ' ' ||
+                            text.charAt(i) == '\t' ||
+                            text.charAt(i) == '\n' ||
+                            text.charAt(i) == '\v' ||
+                            text.charAt(i) == '\f' ||
+                            text.charAt(i) == '\r') {
+                            return i + 1;
+                        }
+                    }
+                }
+                return 0;
+            },
             search: function (term, callback) {
                 $.getJSON( "https://patchyvideo.com/autocomplete/?q=" + term, function( data ) {
                     data = $.map(data, function(ele) {

@@ -313,10 +313,25 @@ if (typeof jQuery === 'undefined') {
         var strategy = this.strategies[i];
         var context = strategy.context(text);
         if (context || context === '') {
-          var matchRegexp = isFunction(strategy.match) ? strategy.match(text) : strategy.match;
-          if (isString(context)) { text = context; }
-          var match = text.match(matchRegexp);
-          if (match) { return [strategy, match[strategy.index], match]; }
+          if (isFunction(strategy.match))
+          {
+            var startPos = strategy.match(text);
+            if (startPos >= 0)
+            {
+              var match = text.substring(startPos, text.length);
+              var utf8length = encodeURI(match).split(/%..|./).length - 1;
+              if (utf8length >= 2) {
+                return [strategy, match, match];
+              }
+            }
+          }
+          else
+          {
+            var matchRegexp = strategy.match;
+            if (isString(context)) { text = context; }
+            var match = text.match(matchRegexp);
+            if (match) { return [strategy, match[strategy.index], match]; }
+          }
         }
       }
       return []
@@ -1088,7 +1103,16 @@ if (typeof jQuery === 'undefined') {
           post = newSubstr[1] + post;
           newSubstr = newSubstr[0];
         }
-        pre = pre.replace(strategy.match, newSubstr);
+        if ($.isFunction(strategy.match))
+        {
+          var startPos = strategy.match(pre);
+          var prefix = pre.substring(0, startPos);
+          pre = prefix + newSubstr;
+        }
+        else
+        {
+          pre = pre.replace(strategy.match, newSubstr);
+        }
         this.$el.val(pre + post);
         this.el.selectionStart = this.el.selectionEnd = pre.length;
       }
@@ -1165,7 +1189,16 @@ if (typeof jQuery === 'undefined') {
           post = newSubstr[1] + post;
           newSubstr = newSubstr[0];
         }
-        pre = pre.replace(strategy.match, newSubstr);
+        if ($.isFunction(strategy.match))
+        {
+          var startPos = strategy.match(pre);
+          var prefix = pre.substring(0, startPos);
+          pre = prefix + newSubstr;
+        }
+        else
+        {
+          pre = pre.replace(strategy.match, newSubstr);
+        }
         this.$el.val(pre + post);
         this.el.focus();
         var range = this.el.createTextRange();
@@ -1225,8 +1258,17 @@ if (typeof jQuery === 'undefined') {
           post = newSubstr[1] + post;
           newSubstr = newSubstr[0];
         }
-        pre = pre.replace(strategy.match, newSubstr)
-            .replace(/ $/, "&nbsp"); // &nbsp necessary at least for CKeditor to not eat spaces
+        if ($.isFunction(strategy.match))
+        {
+          var startPos = strategy.match(pre);
+          var prefix = pre.substring(0, startPos);
+          pre = prefix + newSubstr;
+        }
+        else
+        {
+          pre = pre.replace(strategy.match, newSubstr);
+        }
+        pre = pre.replace(/ $/, "&nbsp"); // &nbsp necessary at least for CKeditor to not eat spaces
         range.selectNodeContents(range.startContainer);
         range.deleteContents();
         
