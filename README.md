@@ -1,5 +1,5 @@
-# Todo list
-See [here](./todo.txt)
+# 中文部署教程
+[点这里](./项目的本地部署.docx)
 # Running locally for developers
 1. Install docker
 2. Install VSCode
