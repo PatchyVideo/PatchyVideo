@@ -7,7 +7,7 @@ from .tagStatistics import getPopularTags, getCommonTags, updateTagSearch
 from spiders import dispatch_no_expand
 from utils.exceptions import UserError
 
-def listVideoQuery(query_str, page_idx, page_size, order = 'latest'):
+def listVideoQuery(query_str, page_idx, page_size, order = 'latest', user_language = 'CHS'):
 	query_obj, tags = db.compile_query(query_str)
 	updateTagSearch(tags)
 	try :
@@ -30,9 +30,9 @@ def listVideoQuery(query_str, page_idx, page_size, order = 'latest'):
 			print('Unknown error in query: \"%s\"' % query_str, file = sys.stderr)
 			print(ex, file = sys.stderr)
 			raise UserError('FAILED_UNKNOWN')
-	return videos, getCommonTags(videos), count
+	return videos, getCommonTags(user_language, videos), count
 
-def listVideo(page_idx, page_size, order = 'latest'):
+def listVideo(page_idx, page_size, order = 'latest', user_language = 'CHS'):
 	result = db.retrive_items({})
 	if order == 'latest':
 		result = result.sort([("meta.created_at", -1)])
@@ -42,5 +42,5 @@ def listVideo(page_idx, page_size, order = 'latest'):
 		result = result.sort([("item.upload_time", -1)])
 	if order == 'video_oldest':
 		result = result.sort([("item.upload_time", 1)])
-	return result.skip(page_idx * page_size).limit(page_size), getPopularTags()
+	return result.skip(page_idx * page_size).limit(page_size), getPopularTags(user_language)
 

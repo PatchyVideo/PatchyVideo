@@ -85,7 +85,6 @@ def _is_authorised(tag_or_obj, user, op = 'remove') :
 
 @modifyingResource('tags')
 def removeTag(user, tag) :
-    raise UserError('UNAUTHORISED_OPERATION')
     with MongoTransaction(client) as s :
         tag_obj = tagdb.db.tags.find_one({'tag': tag}, session = s())
         if tag_obj and not _is_authorised(tag_obj, user, 'remove') :
@@ -116,7 +115,6 @@ def addAlias(user, alias, dst_tag) :
         raise UserError('TAG_TOO_LONG')
     with MongoTransaction(client) as s :
         alias_obj = tagdb.db.tags.find_one({'tag': alias}, session = s())
-        # you are adding a regular tag alias, you can't overwrite other's work
         if alias_obj is not None :
             raise UserError('ALIAS_EXIST')
         tagdb.add_tag_alias(sanitized_alias, dst_tag, 'regular', '', makeUserMeta(user), session = s())
@@ -131,7 +129,9 @@ def addTagLanguage(user, alias, dst_tag, language) :
     if not ret :
         raise UserError('INVALID_LANGUAGE')
     with MongoTransaction(client) as s :
-        # you are adding language alias, you have higher priority than regular alias, so you can overwrite a regular alias with language alias
+        alias_obj = tagdb.db.tags.find_one({'tag': alias}, session = s())
+        if alias_obj is not None :
+            raise UserError('ALIAS_EXIST')
         tagdb.add_tag_alias(sanitized_alias, dst_tag, 'language', sanitized_lang, makeUserMeta(user), session = s())
         s.mark_succeed()
 
