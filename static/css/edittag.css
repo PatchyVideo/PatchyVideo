@@ -49,7 +49,7 @@ tr:nth-child(even) {
 
 .table-content .tag-operation {
     position: absolute;
-    left: 25em;
+    left: 32em;
     visibility: hidden;
 }
 
@@ -67,8 +67,21 @@ tr:nth-child(even) {
     color: gray;
 }
 
+.other-language > span {
+    margin-left: 1em;
+}
+
 .col-1 {
     width: 100px;
+}
+
+.col-2 {
+    width: 10px;
+    cursor: cell;
+}
+
+.select-tag-order {
+    margin-left: 1em;
 }
 
 .page-selector {
@@ -122,4 +135,45 @@ tr:nth-child(even) {
     padding: 8px;
 }
 
+.edit-language-div {
+    display: none;
+}
 
+.multilanguage-tag-textbox {
+    border: none;
+    width: 11em;
+    margin-left: 5px;
+    background: transparent;
+    padding: 2px;
+    position: absolute;
+    left: 21em;
+}
+
+.multilanguage-tag-save {
+    width: 3em;
+    border: 2px;
+    position: absolute;
+    left: 33em;
+    visibility: hidden;
+}
+
+.multilanguage-tag-save:hover {
+    background: #ccc;
+}
+
+.multilanguage-tag-textbox:focus {
+    border: 1px;
+}
+
+.add-language-div {
+    ;
+}
+
+.add-multilanguage-textbox {
+    width: 11em;
+    margin-left: 5px;
+    background: transparent;
+    padding: 2px;
+    position: absolute;
+    left: 21em;
+}

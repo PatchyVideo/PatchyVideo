@@ -112,3 +112,23 @@ function getCategoryColor(category) {
     return _color_map[category];
 }
 
+_LANGUAGE_MAP = {
+    "CHS": "简体中文",
+	"CHT": "繁體中文",
+	"JPN": "日本語",
+	"ENG": "English",
+	"KOR": "한국어",
+	"CSY": "čeština",
+	"NLD": "Nederlands",
+	"FRA": "français",
+	"DEU": "Deutsch",
+	"HUN": "magyar nyelv",
+	"ITA": "italiano",
+	"PLK": "polski",
+	"PTB": "português",
+	"ROM": "limba română",
+	"RUS": "русский язык",
+	"ESP": "español",
+	"TRK": "Türk dili",
+	"VIN": "Tiếng Việt"
+}
