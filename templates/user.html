@@ -2,258 +2,256 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <title>{{_user['profile']['username']}}'s Profile</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Top-navbar.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/common.css') }}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="{{ url_for('static',filename='js/generic.js') }}"></script>
-    <script src="{{ url_for('static',filename='js/jquery.color.js') }}"></script>
-    <script src="{{ url_for('static',filename='js/user.js') }}"></script>
-    <link rel="icon" href="{{ url_for('static',filename='img/Patchouli_logo.png') }}" type="image/x-icon"/>
+	<meta charset="UTF-8">
+	<title>{{_user['profile']['username']}} - PatchyVideo</title>
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Top-navbar.css') }}">
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/common.css') }}">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="{{ url_for('static',filename='js/generic.js') }}"></script>
+	<script src="{{ url_for('static',filename='js/jquery.color.js') }}"></script>
+	<script src="{{ url_for('static',filename='js/user.js') }}"></script>
+	<link rel="icon" href="{{ url_for('static',filename='img/Patchouli_logo.png') }}" type="image/x-icon"/>
 
-    <script>
-        var i = 0;
+	<script>
+		var i = 0;
 
-        function getcolor() {
-            var str = "#";
-            var random = 0;
-            var aryNum = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
-            for (i = 0; i < 6; i++) {
-                random = parseInt(Math.random() * 16);
-                str += aryNum[random];
-            };
-            return str;
-        }
+		function getcolor() {
+			var str = "#";
+			var random = 0;
+			var aryNum = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
+			for (i = 0; i < 6; i++) {
+				random = parseInt(Math.random() * 16);
+				str += aryNum[random];
+			};
+			return str;
+		}
 
-        $(function () {
+		$(function () {
 
-            $('h4').click(function () {
-                $(this).stop().animate({
-                    color: getcolor()
-                }, 500, 'swing');
-            });
-            $('.bigbox_left').click(function () {
-                $(this).fadeOut(1000);
-                $(this).siblings().fadeIn(2000);
-            })
-        });
-    </script>
-    <style>
-        .w {
-            display: block;
-        }
+			$('h4').click(function () {
+				$(this).stop().animate({
+					color: getcolor()
+				}, 500, 'swing');
+			});
+			$('.bigbox_left').click(function () {
+				$(this).fadeOut(1000);
+				$(this).siblings().fadeIn(2000);
+			})
+		});
+	</script>
+	<style>
+		.w {
+			display: block;
+		}
 
-        input::-webkit-input-placeholder {
-            font-size: 12px;
+		input::-webkit-input-placeholder {
+			font-size: 12px;
 
-        }
+		}
 
 
-        body {
-            width: 100%;
-            height: 100%;
+		body {
+			width: 100%;
+			height: 100%;
 
-            background: none;
-        }
+			background: none;
+		}
 
-        h4 {
+		h4 {
 
-            position: absolute;
-            display: block;
-        }
+			position: absolute;
+			display: block;
+		}
 
-        .content {
-            width: 1600px;
-            height: 1060px;
+		.content {
+			width: 1600px;
+			height: 1060px;
 
-            background: url("{{ url_for('static',filename='img/imoto.jpg') }}") no-repeat top center;
-            opacity: 0.9;
-            background-size: cover;
-            background-attachment: fixed;
+			background: url("{{ url_for('static',filename='img/imoto.jpg') }}") no-repeat top center;
+			opacity: 0.9;
+			background-size: cover;
+			background-attachment: fixed;
 
-        }
+		}
 
-        .font {}
+		.font {}
 
-        .standard {
-            width: 1500px;
-            margin: 10px 50px 0px;
-        }
+		.standard {
+			width: 1500px;
+			margin: 10px 50px 0px;
+		}
 
-        .topmsg {
+		.topmsg {
 
-            font-size: 24px;
-            font-weight: lighter;
-            font-family: PingFang SC, Arial, Microsoft YaHei, sans-serif;
-            height: 50px;
-            border-bottom: 1px solid #ccc;
-            /*background-color: white;*/
-        }
+			font-size: 24px;
+			font-weight: lighter;
+			font-family: PingFang SC, Arial, Microsoft YaHei, sans-serif;
+			height: 50px;
+			border-bottom: 1px solid #ccc;
+			/*background-color: white;*/
+		}
 
-        .bigbox {
-            height: 1000px;
-            display: flex;
-            background-color: white;
-            opacity: 0.9;
-        }
+		.bigbox {
+			height: 1000px;
+			display: flex;
+			background-color: white;
+			opacity: 0.9;
+		}
 
-        .bigbox_left {
-            position: absolute;
+		.bigbox_left {
+			position: absolute;
 
-            width: 50%;
-            height: 900px;
-            background: url("../static/img/imoto_left.jpg") no-repeat;
-            background-size: 100% 100%;
-            /*     background-color: #D5D5D5; */
-        }
+			width: 50%;
+			height: 900px;
+			background: url("../static/img/imoto_left.jpg") no-repeat;
+			background-size: 100% 100%;
+			/*     background-color: #D5D5D5; */
+		}
 
-        .bigbox_right {
-            position: absolute;
-            right: 0px;
-            padding: 50px;
-            padding-top: 150px;
+		.bigbox_right {
+			position: absolute;
+			right: 0px;
+			padding: 50px;
+			padding-top: 150px;
 
-            margin: auto;
-            width: 40%;
-            height: 900px;
+			margin: auto;
+			width: 40%;
+			height: 900px;
 
-        }
+		}
 
-        .desc_name {
-            margin-bottom: 20px;
-        }
+		.desc_name {
+			margin-bottom: 20px;
+		}
 
-        .bigbox_right .desc {
-            width: 100%;
-            height: 250px;
-            font-size: 18px;
-        }
+		.bigbox_right .desc {
+			width: 100%;
+			height: 250px;
+			font-size: 18px;
+		}
 
-        .desc_name {
-            color: #333;
-            font-family: Arial, Helvetica, sans-serif;
-        }
+		.desc_name {
+			color: #333;
+			font-family: Arial, Helvetica, sans-serif;
+		}
 
-        .bigbox button {
-            width: 100px;
-            height: 40px;
-            display: inline-block;
-            line-height: 1;
-            white-space: nowrap;
-            cursor: pointer;
-            background: #fff;
-            border: 1px solid #c4c4c4;
-            color: #1f2d3d;
-            margin: 0;
-            padding: 10px 15px;
-            border-radius: 4px;
-        }
+		.bigbox button {
+			width: 100px;
+			height: 40px;
+			display: inline-block;
+			line-height: 1;
+			white-space: nowrap;
+			cursor: pointer;
+			background: #fff;
+			border: 1px solid #c4c4c4;
+			color: #1f2d3d;
+			margin: 0;
+			padding: 10px 15px;
+			border-radius: 4px;
+		}
 
-        .text-form {
-            margin-bottom: 20px;
-        }
+		.text-form {
+			margin-bottom: 20px;
+		}
 
-        textarea {
-            width: 100%;
-            height: 100px;
-            padding: 10px;
-            font-size: 16px;
-            color: #4a4a4a;
-            border: 1px solid #d1d1d1;
-            border-radius: 2px;
-        }
+		textarea {
+			width: 100%;
+			height: 100px;
+			padding: 10px;
+			font-size: 16px;
+			color: #4a4a4a;
+			border: 1px solid #d1d1d1;
+			border-radius: 2px;
+		}
 
-        .psd-form input {
-            width: 300px;
-            height: 30px;
-            margin-bottom: 20px;
-            padding-left: 10px;
-            display: block;
-            font-size: 16px;
-            color: #4a4a4a;
-            border: 1px solid #d1d1d1;
-            border-radius: 2px;
-        }
+		.psd-form input {
+			width: 300px;
+			height: 30px;
+			margin-bottom: 20px;
+			padding-left: 10px;
+			display: block;
+			font-size: 16px;
+			color: #4a4a4a;
+			border: 1px solid #d1d1d1;
+			border-radius: 2px;
+		}
 
-        #imoto2 {
-            position: absolute;
-            display: none;
-            width: 50%;
-            height: 800px;
-            background: url("../static/img/imoto_left2.jpg") no-repeat;
-            background-size: 100% 100%;
-        }
-    </style>
+		#imoto2 {
+			position: absolute;
+			display: none;
+			width: 50%;
+			height: 800px;
+			background: url("../static/img/imoto_left2.jpg") no-repeat;
+			background-size: 100% 100%;
+		}
+	</style>
 </head>
 
 <body>
-    <div class="top-navbar w " id="top-navbar">
-
-        <div class="nav_left">
-          <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/lists">Playlists</a></li>
-            <li><a href="/postvideo">Post Video</a></li>
-            <li><a href="/edittag">Tags</a></li>
-          </ul>
-        </div>
-    
-        <div class="nav_right">
-          <ul>
-            {% include "searchbar_new.html" %}
-            {% if _user is none %}
-            <li><a href="/login">Login</a></li>
-            <li><a href="/signup">Sign up</a></li>
-            {% else %}
-            <li><a style="overflow: hidden; width: 130px;" href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
-            <li><a href="/logout">Log out</a></li>
-            {% endif %}
-          </ul>
-        </div>
-      </div>
-    <!--     —————————————————————————————————————— -->
-    <div class="content w">
+	<div class="top-navbar w " id="top-navbar">
+		<div class="nav_left">
+			<ul>
+				<li><a href="/">主页</a></li>
+				<li><a href="/lists">播放列表</a></li>
+				<li><a href="/postvideo">发布视频</a></li>
+				<li><a href="/edittag">标签</a></li>
+			</ul>
+		</div>
+		<div class="nav_right">
+			<ul>
+				{% include "searchbar_new.html" %}
+				{% if _user is none %}
+				<li><a href="/login">登录</a></li>
+				<li><a href="/signup">注册</a></li>
+				{% else %}
+				<li><a style="overflow: hidden; width: 130px;" href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
+				<li><a href="/logout">登出</a></li>
+				{% endif %}
+			</ul>
+		</div>
+	</div>
+	<!--     —————————————————————————————————————— -->
+	<div class="content w">
 
 
-        <div class="topmsg standard font">
-            <h4 id="anime">{{_user['profile']['username']}}'s Profile</h4>
-        </div>
+		<div class="topmsg standard font">
+			<h4 id="anime">{{_user['profile']['username']}}</h4>
+		</div>
 
-        <div class="bigbox standard">
-            <div class="bigbox_left"></div>
-            <div class="bigbox_left" id="imoto2"></div>
-            <div class="bigbox_right">
-                <div class="desc">
-                    <div class="desc_name">Describe yourself</div>
-                    <div class="text-form">
-                        <textarea name="desc" id="desc" cols="30" rows="10">{{_user['profile']['desc']}}</textarea>
-                    </div>
-                    <button onclick="javascript:changedesc();">Save</button>
-                </div>
+		<div class="bigbox standard">
+			<div class="bigbox_left"></div>
+			<div class="bigbox_left" id="imoto2"></div>
+			<div class="bigbox_right">
+				<div class="desc">
+					<div class="desc_name">描述</div>
+					<div class="text-form">
+						<textarea name="desc" id="desc" cols="30" rows="10">{{_user['profile']['desc']}}</textarea>
+					</div>
+					<button onclick="javascript:changedesc();">保存</button>
+				</div>
 
-                <div class="psd">
-                    <div class="desc_name">Change password</div>
-                    <div class="psd-form">
-                        <input id="password1" type="password" placeholder="Old Password">
-                        <input id="password2" type="password" placeholder="New Password">
-                        <input id="password3" type="password" placeholder="Repeat New Password">
-                    </div>
-                    <button onclick="javascript:changepass();">Update</button>
-                </div>
-                <p id="status" style="margin-top: 15px;">Ready</p>
-            </div>
+				<div class="psd">
+					<div class="desc_name">修改密码</div>
+					<div class="psd-form">
+						<input id="password1" type="password" placeholder="旧密码">
+						<input id="password2" type="password" placeholder="新密码">
+						<input id="password3" type="password" placeholder="重复新密码">
+					</div>
+					<button onclick="javascript:changepass();">更新</button>
+				</div>
+				<p id="status" style="margin-top: 15px;">就绪</p>
+			</div>
 
-            
-            <!-- bigbox栏结束  -->
-        </div>
+			
+			<!-- bigbox栏结束  -->
+		</div>
 
 
-    </div>
+	</div>
 
-    <div class="footer w">
-        <p> Running PatchyVideo(<a href="{{_version_url}}">{{_version}}</a>) </p>
-    </div>
+	<div class="footer w">
+		<p> Running PatchyVideo(<a href="{{_version_url}}">{{_version}}</a>) </p>
+	</div>
 </body>
 
 </html>

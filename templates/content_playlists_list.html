@@ -26,7 +26,7 @@
 
 }
     </style>
-    <title>Playlists - PatchyVideo</title>
+    <title>播放列表 - PatchyVideo</title>
 </head>
 
 <body>
@@ -43,21 +43,21 @@
     <div class="top-navbar w " id="top-navbar">
         <div class="nav_left">
             <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/lists">Playlists</a></li>
-                <li><a href="/postvideo">Post Video</a></li>
-                <li><a href="/edittag">Tags</a></li>
+                <li><a href="/">主页</a></li>
+                <li><a href="/lists">播放列表</a></li>
+                <li><a href="/postvideo">发布视频</a></li>
+                <li><a href="/edittag">标签</a></li>
             </ul>
         </div>
         <div class="nav_right">
             <ul>
                 {% include "searchbar_new.html" %}
                 {% if _user is none %}
-                <li><a href="/login">Login</a></li>
-                <li><a href="/signup">Sign up</a></li>
+                <li><a href="/login">登录</a></li>
+                <li><a href="/signup">注册</a></li>
                 {% else %}
                 <li><a style="overflow: hidden; width: 130px;" href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
-                <li><a href="/logout">Log out</a></li>
+                <li><a href="/logout">登出</a></li>
                 {% endif %}
             </ul>
         </div>
@@ -67,7 +67,7 @@
             <div class="deemo shadow">
                 <div class="d_t">
                     <p>Playlists help people organize videos of the same series or have other attributes in common that require order.</br>Use playlist ONLY IF order is a must, otherwise using tags falls better in line with the site's design.</br>播放列表功能的核心是为视频提供顺序，如果顺序不是必须要求则使用tag是更好的选择。</p>
-                    <a href="/lists/new" class="button button-glow button-border button-rounded button-primary">Create New Playlist</a>
+                    <a href="/lists/new" class="button button-glow button-border button-rounded button-primary">创建播放列表</a>
                 </div>
                 <!-- re_video栏结束  -->
             </div>
@@ -78,14 +78,14 @@
                         <a href="/list/{{l._id}}">
                             <h2>{{l.title.english}}</h2>
                         </a>
-                        <h5 style="float: right;">Total {{l.videos}} videos</h5>
+                        <h5 style="float: right;">共{{l.videos}}个视频</h5>
                     </div>
                     <div class="re_video">
                             <img src="/images/covers/{{l.cover}}" alt=""
                             width="320px" height="200px" title="{{l.title.english}}">
                         <p>{{l.desc.english}}</p>
                     </div>
-                    <span>Created by <a href="/users/{{l.user_detail._id}}">{{l.user_detail.profile.username}}</a></span>
+                    <span>作者：<a href="/users/{{l.user_detail._id}}">{{l.user_detail.profile.username}}</a></span>
                 </div>
                 {% endfor %}
             </div>

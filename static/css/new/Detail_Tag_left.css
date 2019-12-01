@@ -26,10 +26,10 @@
 }
 .left_list h1{
   font-family: Tahoma,Verdana,Helvetica,sans-serif;
-  line-height: 1.5em;
+  
   padding-left: 20px;
   margin-top: 20px; 
-
+  width: 5em;
 
 }
 .left_list li a{

@@ -7,10 +7,10 @@
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
 <form id="search-bar" action="/search" method="GET" autocomplete="off">
     <select class="form_select">
-        <option value="0">Tags</option>
+        <option value="tags">标签</option>
     </select>
-    <input id="search-bar-query" name="query" type="text" placeholder="Search" value="{{query}}">
-    <input id="search-bar-submit" type="submit" value="Search">
+    <input id="search-bar-query" name="query" type="text" placeholder="标签" value="{{query}}">
+    <input id="search-bar-submit" type="submit" value="搜索">
 </form>
 <link href="{{ url_for('static',filename='css/textcomplete.css') }}" rel="stylesheet">
 <script>

@@ -35,6 +35,7 @@ def _renderAnonymousIndex(rd):
 	rd.title = 'PatchyVideo'
 	videos, tags = listVideo(rd.page - 1, rd.page_size, rd.order)
 	video_count = videos.count()
+	rd.is_hot = '热门'
 	rd.videos = [item for item in videos]
 	rd.count = video_count
 	tag_category_map = getTagCategoryMap(tags)
@@ -58,6 +59,7 @@ def _renderRegisteredIndex(rd, user):
 		abort(400, 'order must be one of latest,oldest,video_latest,video_oldest')
 	rd.query = request.values['query'] if 'query' in request.values else ""
 	rd.title = 'PatchyVideo'
+	rd.is_hot = '热门'
 	videos, tags = listVideo(rd.page - 1, rd.page_size, rd.order)
 	video_count = videos.count()
 	rd.videos = [item for item in videos]

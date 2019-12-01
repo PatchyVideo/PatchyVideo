@@ -35,30 +35,28 @@
     </style>
     <meta id="copy" content="{{copy}}"></meta>
     <meta id="pid" content="{{pid}}"></meta>
-    <title>Create Playlist - PatchyVideo</title>
+    <title>创建播放列表 - PatchyVideo</title>
 </head>
 
 <body>
     <div class="top-navbar w " id="top-navbar">
-
         <div class="nav_left">
             <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/lists">Playlists</a></li>
-                <li><a href="/postvideo">Post Video</a></li>
-                <li><a href="/edittag">Tags</a></li>
+                <li><a href="/">主页</a></li>
+                <li><a href="/lists">播放列表</a></li>
+                <li><a href="/postvideo">发布视频</a></li>
+                <li><a href="/edittag">标签</a></li>
             </ul>
         </div>
-
         <div class="nav_right">
             <ul>
                 {% include "searchbar_new.html" %}
                 {% if _user is none %}
-                <li><a href="/login">Login</a></li>
-                <li><a href="/signup">Sign up</a></li>
+                <li><a href="/login">登录</a></li>
+                <li><a href="/signup">注册</a></li>
                 {% else %}
                 <li><a style="overflow: hidden; width: 130px;" href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
-                <li><a href="/logout">Log out</a></li>
+                <li><a href="/logout">登出</a></li>
                 {% endif %}
             </ul>
         </div>
@@ -67,11 +65,11 @@
 
         <div class="content">
             <div class="central-form" style="top: 0px;">
-                <input class="central-element width" type="text" name="playlist-title" id="playlist-title" placeholder="Playlist title" value="{{title}}"/>
+                <input class="central-element width" type="text" name="playlist-title" id="playlist-title" placeholder="标题" value="{{title}}"/>
                 <!-- <p><h2>TODO: Playlist cover image upload here</h2></p> -->
-                <textarea name="playlist-desc" id="playlist-desc" class="central-element width" placeholder="Playlist description" style="height: 300px;">{{desc}}</textarea>
-                <p class="central-element width" id="status" style="text-align: center;">Ready</p>
-                <button class="central-element narrow bottom-element create-button" id="create-playlist-button">Create</button>
+                <textarea name="playlist-desc" id="playlist-desc" class="central-element width" placeholder="描述" style="height: 300px;">{{desc}}</textarea>
+                <p class="central-element width" id="status" style="text-align: center;">就绪</p>
+                <button class="central-element narrow bottom-element create-button" id="create-playlist-button">创建</button>
             </div>
         </div>
     </div>

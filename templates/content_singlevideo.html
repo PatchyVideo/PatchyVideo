@@ -247,36 +247,34 @@
 
 <body>
 	<div class="top-navbar w " id="top-navbar">
-
-		<div class="nav_left">
-			<ul>
-				<li><a href="/">Home</a></li>
-				<li><a href="/lists">Playlists</a></li>
-				<li><a href="/postvideo">Post Video</a></li>
-				<li><a href="/edittag">Tags</a></li>
-			</ul>
-		</div>
-
-		<div class="nav_right">
-			<ul>
-				{% include "searchbar_new.html" %}
-				{% if _user is none %}
-				<li><a href="/login">Login</a></li>
-				<li><a href="/signup">Sign up</a></li>
-				{% else %}
-				<li><a style="overflow: hidden; width: 130px;" href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
-				<li><a href="/logout">Log out</a></li>
-				{% endif %}
-			</ul>
-		</div>
-	</div>
+        <div class="nav_left">
+            <ul>
+                <li><a href="/">主页</a></li>
+                <li><a href="/lists">播放列表</a></li>
+                <li><a href="/postvideo">发布视频</a></li>
+                <li><a href="/edittag">标签</a></li>
+            </ul>
+        </div>
+        <div class="nav_right">
+            <ul>
+                {% include "searchbar_new.html" %}
+                {% if _user is none %}
+                <li><a href="/login">登录</a></li>
+                <li><a href="/signup">注册</a></li>
+                {% else %}
+                <li><a style="overflow: hidden; width: 130px;" href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
+                <li><a href="/logout">登出</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
 	<div class="w">
 		<div class="left-navbar ">
 			<div class="left_list">
-				<h1>Tags</h1>
+				<h1>标签</h1>
 				{% if _user is not none %}
-				<button class="edit-tag-button" id="edit_tags">Edit</button>
-				<a href="/postvideo?use_tags={{video_id}}">[Post Video]</a>
+				<button class="edit-tag-button" id="edit_tags">编辑</button>
+				<a href="/postvideo?use_tags={{video_id}}">[使用标签发布视频]</a>
 				{% endif %}
 				{% if 'Copyright' in tag_by_category %}
 				<span>Copyright</span>
@@ -357,17 +355,17 @@
 
 
 				<div class="new_top">
-					<h2>Copies</h2>
+					<h2>副本</h2>
 					{% if copies|length > 0 %}
-					This video has {{copies|length}} other copies.
+					此视频共有{{copies|length}}个副本.
 					{% else %}
-					This video has no other copies.
+					此视频不存在副本
 					{% endif %}
 					{% if _user is not none %}
-						<a href="/postvideo?copy={{video_id}}">[Add Copy]</a>
+						<a href="/postvideo?copy={{video_id}}">[添加副本]</a>
 						{% if copies|length > 0 %}
-							<a href="javascript:breaklink();">[Remove This Copy]</a>
-							<a href="javascript:broadcastTags('{{video_id}}')">[Broadcast Tags To Copies]</a>
+							<a href="javascript:breaklink();">[删除此副本]]</a>
+							<a href="javascript:broadcastTags('{{video_id}}')">[同步副本标签]</a>
 						{% endif %}
 					{% endif %}
 				</div>
@@ -377,7 +375,7 @@
 						<img src="{{ url_for('static',filename='img/' + copy.item.site + '.ico') }}" width="16px"></img>
 						<a style="display: inline;" href="/video?id={{copy._id}}">{{copy.item.title}}</a>
 						{% if _user is not none %}
-						<a class="sync-tags-button" href="javascript:syncTags('{{video_id}}', '{{copy._id}}')">[Sync Tags From This Video]</a>
+						<a class="sync-tags-button" href="javascript:syncTags('{{video_id}}', '{{copy._id}}')">[从此副本同步标签]</a>
 						{% endif %}
 					</li>
 					{% endfor %}
@@ -390,14 +388,14 @@
 				<!-- 新视频栏开始  -->
 
 				<div class="new_top">
-					<h2>Playlists</h2>
+					<h2>播放列表</h2>
 					{% if playlists|length == 0 %}
-					<p style="display: inline;">This video is not included in any playlists.</p>
+					<p style="display: inline;">此视频不在任何播放列表中</p>
 					{% else %}
-					<p style="display: inline;">This video is included in {{playlists|length}} playlists.</p>
+					<p style="display: inline;">此视频存在于{{playlists|length}}个播放列表中</p>
 					{% endif %}
 					{% if _user is not none %}
-					<a href="/lists/newfromsinglevideo.do?vid={{video_id}}">[Create Playlist From This Video]</a>
+					<a href="/lists/newfromsinglevideo.do?vid={{video_id}}">[由此视频创建播放列表]</a>
 					{% endif %}
 				</div>
 			</div>
@@ -405,11 +403,11 @@
 				{% for playlist in playlists %}
 				<li class="playlist-list-item">
 					{% if playlist.prev|length > 0 %}
-					<a href="/video?id={{playlist.prev}}" style="float: left;">[Prev]</a>
+					<a href="/video?id={{playlist.prev}}" style="float: left;">[前]</a>
 					{% endif %}
 					<a href="/list/{{playlist._id}}" class="">{{playlist.title.english}}</a>
 					{% if playlist.next|length > 0 %}
-					<a href="/video?id={{playlist.next}}" style="float: right;">[Next]</a>
+					<a href="/video?id={{playlist.next}}" style="float: right;">[后]</a>
 					{% endif %}
 				</li>
 				{% endfor %}
@@ -448,9 +446,9 @@
 						</div>
 					</div>
 				</div>
-				<span class="tag_title">Edit Tags</span>
-				<span class="tag_title">Tag already exist</span>
-				<span class="tag_title">Tag not exist</span>
+				<span class="tag_title">编辑标签</span>
+				<span class="tag_title">标签已存在</span>
+				<span class="tag_title">标签不存在</span>
 		
 			</div>
 		</div>

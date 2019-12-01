@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sign up - PatchyVideo</title>
+    <title>注册 - PatchyVideo</title>
     <link rel="stylesheet" href="{{ url_for('static',filename='css/new/login_sign up.css') }}">
     <script src="{{ url_for('static',filename='js/signup.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -26,23 +26,23 @@
     <div class="w">
         <h1><a href="/">PatchyVideo</a></h1>
         <div class="top in">
-            <a href="/login">Login</a>
+            <a href="/login">登录</a>
             <b>·</b>
-            <a href="/signup">Sign up</a>
+            <a href="/signup">注册</a>
         </div>
         <div class="middle in">
             <form id="signup-info" method="POST">
                 <div class="central-form">
-                    <input id="username" name="username" type="text" placeholder="Username"></input>
-                    <input id="password1" name="password1" type="password" placeholder="Password"></input>
-                    <input id="password2" name="password2" type="password" placeholder="Repeat Password"></input>
-                    <input id="email" name="email" type="email" placeholder="Email(Optional)"></input>
-                    <p id="status" style="text-align: center;">Ready</p>
+                    <input id="username" name="username" type="text" placeholder="用户名"></input>
+                    <input id="password1" name="password1" type="password" placeholder="密码"></input>
+                    <input id="password2" name="password2" type="password" placeholder="重复密码"></input>
+                    <input id="email" name="email" type="email" placeholder="Email(可选)"></input>
+                    <p id="status" style="text-align: center;">就绪</p>
                 </div>
             </form>
         </div>
         <div class="bottom in">
-            <div class="login in" onclick="javascript:signup();">Sign up</div>
+            <div class="login in" onclick="javascript:signup();">注册</div>
         </div>
     </div>
 </body>
