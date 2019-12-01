@@ -52,7 +52,7 @@ class TagDB():
 		cat = self.db.cats.find_one({'name': category}, session = session)
 		if cat is None:
 			raise UserError("CATEGORY_NOT_EXIST")
-		ans = self.db.tags.find({'category': category}, session = session)
+		ans = self.db.tags.find({'category': category, 'type': {'$ne': 'language'}}, session = session)
 		return ans
 
 	"""
@@ -86,16 +86,16 @@ class TagDB():
 		query = query.replace('\\*', '.*')
 		query = f'^{query}$'
 		if category :
-			return self.db.tags.find({'tag': {'$regex': query}, 'category': category})
+			return self.db.tags.find({'type': {'$ne': 'language'}, 'tag': {'$regex': query}, 'category': category})
 		else :
-			return self.db.tags.find({'tag': {'$regex': query}})
+			return self.db.tags.find({'type': {'$ne': 'language'}, 'tag': {'$regex': query}})
 
 	def find_tags_regex(self, query, category) :
 		assert isinstance(query, str)
 		if category :
-			return self.db.tags.find({'tag': {'$regex': query}, 'category': category})
+			return self.db.tags.find({'type': {'$ne': 'language'}, 'tag': {'$regex': query}, 'category': category})
 		else :
-			return self.db.tags.find({'tag': {'$regex': query}})
+			return self.db.tags.find({'type': {'$ne': 'language'}, 'tag': {'$regex': query}})
 
 	def filter_tags(self, tags, session = None):
 		found = self.db.tags.aggregate([
