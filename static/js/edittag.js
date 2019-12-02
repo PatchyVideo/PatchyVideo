@@ -1,6 +1,8 @@
 
 PAGE_SIZE = 30
 USER_ID = ""
+EDITTAG_CUR_PAGE = 1
+EDITTAG_CUR_CATEGORY = ''
 
 //////////////////////////////////////////////////////
 //    jQuery
@@ -32,13 +34,15 @@ function removeTag(tag, category) {
 	}
 }
 
-function addTag(category, tag) {
+function addTag(category, tag, lang) {
+	console.log(`Adding ${tag} to ${category} with lang ${lang}`);
 	status_obj = $(`p[meta-category="${category}"]`);
 	if (tag.length > 0) {
 		postJSON("/tags/add_tag.do",
 		{
 			"tag": tag,
-			"category": category
+			"category": category,
+			"language": lang
 		}, function (result){
 			gotoPage(category, 1);
 		}, function (result){
@@ -114,7 +118,7 @@ function buildToolBar(category, tag_count, display_count, order) {
 	layout = $(`<div class="tag-tool-bar"></div>`);
 	header_obj = $(`<div></div>`);
 	info_obj = $(`<p style="display: inline;">显示${display_count}/${tag_count}个标签</p>`);
-	add_tag_input_obj = $(`<input type="text" meta-category="${category}" placeholder="向${category}类别添加标签"></input>`);
+	add_tag_input_obj = $(`<input type="text" style="color: ${getCategoryColor(category)}" meta-category="${category}" placeholder="向${category}类别添加标签"></input>`);
 	add_textcomplete(add_tag_input_obj);
 	status_obj = $(`<p meta-category="${category}" id="status-bar" style="margin: 3px; margin-left: 0px; display: none;"></p>`);
 	order_obj = $(`
@@ -128,13 +132,24 @@ function buildToolBar(category, tag_count, display_count, order) {
 		order = 'latest';
 	}
 	order_obj.val(order);
+	
+	select_language_str = `<select meta-category="${category}" class="add-tag-language-select">`;
+	for (key in _LANGUAGE_MAP) {
+		select_language_str += `<option value="${key}">${_LANGUAGE_MAP[key]}</option>`;
+	}
+	select_language_str += `</select>`;
+	select_language_obj = $(select_language_str);
+
 	add_tag_btn_obj = $(`<button>添加</button>`);
 	add_tag_btn_obj.click(function (event){
-		addTag(category, $(`input[meta-category="${category}"]`).val());
+		addTag(category, $(`input[meta-category="${category}"]`).val(), $(`select[meta-category="${category}"]`).val());
 	});
+
+
 	header_obj.append(info_obj);
 	header_obj.append(order_obj);
 	layout.append(header_obj);
+	layout.append(select_language_obj);
 	layout.append(add_tag_input_obj);
 	layout.append(add_tag_btn_obj);
 	layout.append(status_obj);
@@ -143,16 +158,18 @@ function buildToolBar(category, tag_count, display_count, order) {
 
 function expandLanguageEdit(obj) {
 	tag = $(obj).attr("data-tag");
-	row = $(`[data-tag="${tag}"]`);
+	row = $(`[data-root-tag="${tag}"]`);
 	visible = $("span.unselectable", row).text() == "-";
 	if (visible) {
 		$("span.other-language", row).css("display", "");
 		$("div.edit-language-div", row).css("display", "none");
 		$("span.unselectable", row).text("+");
+		$("div.root-tag-language-edit", row).css("display", "none");
 	} else {
 		$("span.other-language", row).css("display", "none");
 		$("div.edit-language-div", row).css("display", "block");
 		$("span.unselectable", row).text("-");
+		$("div.root-tag-language-edit", row).css("display", "inline");
 	}
 }
 
@@ -209,9 +226,11 @@ function addLanguageAlias(obj) {
 		"language": language
     }, function(result){
 		edit_language_div_obj = parent.parent();
+		td = edit_language_div_obj.parent();
+		td_category = td.attr("data-category");
 		lang_row_obj = $(`<div data-language="${language}">
 		<span>${_LANGUAGE_MAP[language]}</span>
-		<input oninput="onAliasChanged(this);" data-alias="${alias_text}" data-tag="${tag}" class="multilanguage-tag-textbox" value="${alias_text}" />
+		<input style="color: ${getCategoryColor(td_category)};" oninput="onAliasChanged(this);" data-alias="${alias_text}" data-tag="${tag}" class="multilanguage-tag-textbox" value="${alias_text}" />
 		<button onclick="saveLanguageAlias(this);" data-tag="${tag}" class="multilanguage-tag-save">保存</button>
 		</div>
 		`);
@@ -219,26 +238,28 @@ function addLanguageAlias(obj) {
 		option_to_remove.remove();
 		input_obj.val("");
 		edit_language_div_obj.append(lang_row_obj);
-		td = edit_language_div_obj.parent();
+		
 
 		other_language_obj = $("span.other-language", td);
-		new_other_language_obj = $(`<span data-lang="${language}">${_LANGUAGE_MAP[language]}:<a href="/search?query=${alias_text}">${alias_text}</a></span>`);
+		new_other_language_obj = $(`<span data-lang="${language}">${_LANGUAGE_MAP[language]}:<a style="color: ${getCategoryColor(td_category)};" href="/search?query=${alias_text}">${alias_text}</a></span>`);
 		other_language_obj.append(new_other_language_obj);
 	}, function(result){
         alert(result.data.reason);
     });
 }
 
-function buildAddLanguageRow(tag, languages) {
+function buildAddLanguageRow(tag, root_language, languages, color) {
 	var html = `<div class="add-language-div" data-tag="${tag}">`;
 	var remaining_languages = [];
 	if (isEmpty(languages)) {
 		for (lang_key in _LANGUAGE_MAP) {
-			remaining_languages.push(lang_key);
+			if (lang_key !== root_language) {
+				remaining_languages.push(lang_key);
+			}
 		}
 	} else {
 		for (lang_key in _LANGUAGE_MAP) {
-			if (!(lang_key in languages)) {
+			if (!(lang_key in languages) && lang_key !== root_language) {
 				remaining_languages.push(lang_key);
 			}
 		}
@@ -249,14 +270,61 @@ function buildAddLanguageRow(tag, languages) {
 			html += `<option value="${lang}">${_LANGUAGE_MAP[lang]}</option>`;
 		});
 		html += `</select>`;
-		html += `<input class="add-multilanguage-textbox" />`;
+		html += `<input style="color: ${color};" class="add-multilanguage-textbox" />`;
 		html += `<button onclick="addLanguageAlias(this);" class="multilanguage-tag-save" style="visibility: visible;">添加</button>`;
 	}
 	html += `</div>`;
 	return html;
 }
 
+function changeRootLanguage(obj) {
+	sender = $(obj);
+	root_tag_language_edit_div = sender.parent();
+	new_lang = $(`select`, root_tag_language_edit_div).val();
+	tag = root_tag_language_edit_div.attr("data-tag");
+	console.log(`Changing root tag language for ${tag} to ${new_lang}`);
+	postJSON("/tags/update_root_tag_language.do",
+    {
+		"tag": tag,
+		"language": new_lang
+    }, function(result){
+		gotoPage(EDITTAG_CUR_CATEGORY, EDITTAG_CUR_PAGE);
+    }, function(result){
+        alert(result.data.reason);
+    });
+}
+
+function onRootLanguageSelectChanged(obj) {
+	sender = $(obj);
+	root_tag_language_edit_div = sender.parent();
+	old_lang = root_tag_language_edit_div.attr("data-lang");
+	new_lang = sender.val();
+	if (old_lang !== new_lang) {
+		$(`button.root-tag-language-edit-save`, root_tag_language_edit_div).css('visibility', 'visible');
+	} else {
+		$(`button.root-tag-language-edit-save`, root_tag_language_edit_div).css('visibility', 'hidden');
+	}
+}
+
+function buildRootTagLanguageEdit(tag, root_language) {
+	var html = `<div class="root-tag-language-edit" data-tag="${tag}" data-lang=${root_language}>`;
+	html += `<select onchange="onRootLanguageSelectChanged(this);">`;
+	for (lang in _LANGUAGE_MAP) {
+		if (lang == root_language) {
+			html += `<option value="${lang}" selected="">${_LANGUAGE_MAP[lang]}</option>`;
+		} else {
+			html += `<option value="${lang}">${_LANGUAGE_MAP[lang]}</option>`;
+		}
+	}
+	html += `</select>`;
+	html += `<button onclick="changeRootLanguage(this);" class="root-tag-language-edit-save">修改</button>`;
+	html += `</div>`;
+	return html;
+}
+
 function gotoPage(category, page) {
+	EDITTAG_CUR_PAGE = page;
+	EDITTAG_CUR_CATEGORY = category;
 	div_obj = $(`div[page-content="${category}"]`);
 	if (div_obj.length == 0)
 		return;
@@ -270,19 +338,22 @@ function gotoPage(category, page) {
 	}, function (result) {
 		table_obj = $(`<table content="${category}"></table>`);
 		toolbar_obj = buildToolBar(category, result.data.count, result.data.tags.length, order);
-		tr = $(`<tr><th class="col-1">数量</th><th></th><th>标签</th></tr>`);
+		tr = $(`<tr><th class="col-1">数量</th><th class="col-2-header"></th><th>标签</th></tr>`);
 		table_obj.append(tr);
 		result.data.tags.forEach(element => {
-			var expandObj = `<td class="col-2" onclick="javascript:expandLanguageEdit(this);" data-tag="${element.tag}"><span class="unselectable">+</span></td>`;
+			tag_color = getCategoryColor(element.category);
+			expandObj = `<td class="col-2" onclick="javascript:expandLanguageEdit(this);" data-tag="${element.tag}"><span class="unselectable">+</span></td>`;
+			root_tag_language = buildRootTagLanguageEdit(element.tag, element.language);
 			if (isEmpty(element.dst))
 			{
 				var new_element = `
-				<tr class="table-content" data-tag="${element.tag}">
+				<tr class="table-content" data-root-tag="${element.tag}">
 					<td class="col-1">${element.count}</td>
 					${expandObj}
-					<td>
+					<td data-category="${element.category}">
 						<div>
-							<a href="/search?query=${element.tag}">${element.tag}</a>
+							<a style="color: ${tag_color};" href="/search?query=${element.tag}">${element.tag}</a>
+							${root_tag_language}
 							<a class="tag-operation" href='javascript:removeTag("${element.tag}", "${category}");'>删除</a>
 					`;
 				new_element += `<span class="other-language">`;
@@ -290,18 +361,18 @@ function gotoPage(category, page) {
 				{
 					for (var lang_key in element.languages)
 					{
-						new_element += `<span data-lang="${lang_key}">${_LANGUAGE_MAP[lang_key]}:<a href="/search?query=${element.languages[lang_key]}">${element.languages[lang_key]}</a></span>`;
+						new_element += `<span data-lang="${lang_key}">${_LANGUAGE_MAP[lang_key]}:<a style="color: ${tag_color};" href="/search?query=${element.languages[lang_key]}">${element.languages[lang_key]}</a></span>`;
 					}
 				}
 				new_element += `</span>`;
 				new_element += `</div>`;
 				new_element += `<div class="edit-language-div">`;
-				new_element += buildAddLanguageRow(element.tag, element.languages);
+				new_element += buildAddLanguageRow(element.tag, element.language, element.languages, tag_color);
 				for (var lang_key in element.languages)
 				{
 					new_element += `<div data-language="${lang_key}">
 					<span>${_LANGUAGE_MAP[lang_key]}</span>
-					<input oninput="onAliasChanged(this);" data-alias="${element.languages[lang_key]}" data-tag="${element.tag}" class="multilanguage-tag-textbox" value="${element.languages[lang_key]}" />
+					<input style="color: ${tag_color};" oninput="onAliasChanged(this);" data-alias="${element.languages[lang_key]}" data-tag="${element.tag}" class="multilanguage-tag-textbox" value="${element.languages[lang_key]}" />
 					<button onclick="saveLanguageAlias(this);" data-tag="${element.tag}" class="multilanguage-tag-save">保存</button>
 					</div>
 					`;
@@ -312,11 +383,11 @@ function gotoPage(category, page) {
 				tr = $(new_element);
 			} else {
 				tr = $(`
-				<tr class="table-content" data-tag="${element.tag}">
+				<tr class="table-content" data-root-tag="${element.tag}">
 					<td class="col-1">-</td>
 					<td class="col-2"></td>
 					<td>${element.tag}<span> -> </span>
-						<a href="/search?query=${element.dst}">${element.dst}</a>
+						<a style="color: ${tag_color};" href="/search?query=${element.dst}">${element.dst}</a>
 					</td>
 					<a class="tag-operation" href='javascript:removeTag("${element.tag}", "${category}");'>删除</a>
 				</tr>`);

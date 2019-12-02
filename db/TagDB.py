@@ -69,14 +69,14 @@ class TagDB():
 		return 'SUCCEED'
 	"""
 
-	def add_tag(self, tag, category, user = '', session = None):
+	def add_tag(self, tag, category, language, user = '', session = None):
 		cat = self.db.cats.find_one({'name': category}, session = session)
 		if cat is None:
 			raise UserError("CATEGORY_NOT_EXIST")
 		tag_obj = self.db.tags.find_one({'tag': tag}, session = session)
 		if tag_obj is not None:
 			raise UserError("TAG_EXIST")
-		self.db.tags.insert_one({'category': category, 'tag': tag, 'meta': {'created_by': user, 'created_at': datetime.now()}, 'count': 0}, session = session)
+		self.db.tags.insert_one({'category': category, 'language': language, 'tag': tag, 'meta': {'created_by': user, 'created_at': datetime.now()}, 'count': 0}, session = session)
 		self.db.cats.update_one({'name': category}, {'$inc': {'count': 1}}, session = session)
 		self.aci.AddTags([(tag, category, 0)])
 
@@ -170,7 +170,6 @@ class TagDB():
 		else:
 			return self.db.items.find_one(tag_query_or_item_id, session = session)
 
-	# TODO: ....
 	def retrive_tags(self, item_id, session = None):
 		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
 		if item is None:
@@ -207,7 +206,6 @@ class TagDB():
 		self.aci.SetTagOrAliasCountDiff([(t, 1) for t in tags])
 		return item_id
 
-	# TODO: ....
 	def verify_tags(self, tags, session = None):
 		found_tags = self.db.tags.find({'tag': {'$in': tags}}, session = session)
 		tm = []
@@ -317,7 +315,20 @@ class TagDB():
 			self.db.tags.update_one({'tag': tag}, {'$inc': {'count': diff}}, session = session)
 		self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
 
+	def update_tag_language(self, tag, language, user = '', session = None):
+		tt, tag_obj = self._tag_type(tag, session = session)
+		if not tt :
+			raise UserError('TAG_NOT_EXIST')
+		if tt != 'tag' :
+			raise UserError('NOT_TAG')
+		if 'languages' in tag_obj and language in tag_obj['languages'] :
+			self.db.tags.update_one({'tag': tag_obj['languages'][language]}, {'$set': {'type': 'regular'}}, session = session)
+			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$unset': {f'languages.{language}': ''}}, session = session)
+		self.db.tags.update_one({'_id': tag_obj['_id']}, {'$set': {'language': language}}, session = session)
+
 	def add_tag_alias(self, src_tag, dst_tag, alias_type, language = '', user = '', session = None):
+		if dst_tag == src_tag :
+			raise UserError('SAME_TAG')
 		assert alias_type in ['regular', 'language']
 		tt_dst, tag_obj_dst = self._tag_type(dst_tag, session = session)
 		tt_src, tag_obj_src = self._tag_type(src_tag, session = session)
@@ -331,6 +342,7 @@ class TagDB():
 				if alias_type == 'regular' :
 					self.db.tags.update_one({'_id': ObjectId(tag_obj_src['_id'])}, {'$set': {
 						'count': 0,
+						'language': language or tag_obj_dst['language'],
 						'dst': dst_tag,
 						'type': 'regular',
 						'meta.modified_by': user,
@@ -338,6 +350,9 @@ class TagDB():
 						}}, session = session)
 				elif alias_type == 'language' :
 					assert len(language) > 0
+					if 'language' in tag_obj_dst and tag_obj_dst['language'] == language :
+						# root tag has the same language as the one user is trying to add
+						raise UserError('LANGUAGE_EXIST')
 					self.db.tags.update_one({'_id': ObjectId(tag_obj_src['_id'])}, {'$set': {
 						'count': 0,
 						'dst': dst_tag,
@@ -369,7 +384,7 @@ class TagDB():
 				return self.add_tag_alias(src_tag, dst_tag, alias_type, language, user, session)
 			else:
 				# if src tag not exist, add one
-				self.add_tag(src_tag, tag_obj_dst['category'], user, session)
+				self.add_tag(src_tag, tag_obj_dst['category'], language or tag_obj_dst['language'], user, session)
 				self.add_tag_alias(src_tag, dst_tag, alias_type, language, user, session)
 		elif tt_dst == 'alias':
 			self.add_tag_alias(src_tag, tag_obj_dst['dst'], user, session = session)

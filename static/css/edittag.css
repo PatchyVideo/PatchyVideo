@@ -77,7 +77,6 @@ tr:nth-child(even) {
 
 .col-2 {
     width: 10px;
-    cursor: cell;
 }
 
 .select-tag-order {
@@ -177,3 +176,20 @@ tr:nth-child(even) {
     position: absolute;
     left: 21em;
 }
+
+.add-tag-language-select {
+    margin: 0.5em;
+    padding: 0.2em;
+}
+
+.root-tag-language-edit {
+    display: none;
+}
+
+.root-tag-language-edit-save {
+    width: 3em;
+    border: 2px;
+    margin-left: 5px;
+    visibility: hidden;
+}
+

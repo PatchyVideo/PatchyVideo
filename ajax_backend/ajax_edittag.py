@@ -11,7 +11,7 @@ from utils.jsontools import *
 
 from spiders import dispatch
 
-from services.editTag import addTag, queryTags, queryCategories, queryTagCategories, removeTag, renameTag, addAlias, removeAlias, addTagLanguage, queryTagsWildcard, queryTagsRegex
+from services.editTag import addTag, queryTags, queryCategories, queryTagCategories, removeTag, renameTag, addAlias, removeAlias, addTagLanguage, queryTagsWildcard, queryTagsRegex, updateTagLanguage
 from config import TagsConfig
 
 @app.route('/tags/query_categories.do', methods = ['POST'])
@@ -97,7 +97,7 @@ def ajax_query_tags_regex(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_add_tag(rd, user, data):
-    addTag(user, data.tag.strip(), data.category)
+    addTag(user, data.tag.strip(), data.category, data.language)
 
 @app.route('/tags/remove_tag.do', methods = ['POST'])
 @loginRequiredJSON
@@ -129,3 +129,8 @@ def ajax_add_tag_language(rd, user, data):
 def ajax_remove_alias(rd, user, data):
     removeAlias(user, data.alias)
 
+@app.route('/tags/update_root_tag_language.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_update_root_tag_language(rd, user, data):
+    updateTagLanguage(user, data.tag, data.language)
