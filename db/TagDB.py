@@ -124,7 +124,7 @@ class TagDB():
 						break
 				assert language
 				# remove it
-				self.db.tags.update_one({'_id': dst_tag_obj['_id']}, {'$unset': {f'languages.{language}': ''}}, session = session)
+				self.db.tags.update_one({'_id': dst_tag_obj['_id']}, {'$unset': {f'languages.{language}': ''}, '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 			self.aci.DeleteTagOrAlias(tag)
 		else:
 			raise UserError('TAG_NOT_EXIST')
@@ -322,9 +322,9 @@ class TagDB():
 		if tt != 'tag' :
 			raise UserError('NOT_TAG')
 		if 'languages' in tag_obj and language in tag_obj['languages'] :
-			self.db.tags.update_one({'tag': tag_obj['languages'][language]}, {'$set': {'type': 'regular'}}, session = session)
+			self.db.tags.update_one({'tag': tag_obj['languages'][language]}, {'$set': {'type': 'regular', 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$unset': {f'languages.{language}': ''}}, session = session)
-		self.db.tags.update_one({'_id': tag_obj['_id']}, {'$set': {'language': language}}, session = session)
+		self.db.tags.update_one({'_id': tag_obj['_id']}, {'$set': {'language': language, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 
 	def add_tag_alias(self, src_tag, dst_tag, alias_type, language = '', user = '', session = None):
 		if dst_tag == src_tag :
@@ -370,7 +370,7 @@ class TagDB():
 						if language in tag_obj_dst['languages'] :
 							# overwriting an existing language tag
 							# change old tag type to regular
-							self.db.tags.update_one({'_id': ObjectId(tag_obj_src['_id'])}, {'$set': {'type': 'regular'}}, session = session)
+							self.db.tags.update_one({'_id': ObjectId(tag_obj_src['_id'])}, {'$set': {'type': 'regular', 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 						self.db.tags.update_one({'_id': ObjectId(tag_obj_dst['_id'])}, {'$set': {f'languages.{language}': src_tag}}, session = session)
 				self.db.items.update_many({'tags': {'$in': [src_tag]}}, {'$addToSet': {'tags': dst_tag}}, session = session)
 				self.db.items.update_many({'tags': {'$in': [src_tag]}}, {'$pullAll': {'tags': [src_tag]}}, session = session)
@@ -410,7 +410,7 @@ class TagDB():
 						break
 				assert language
 				# remove it
-				self.db.tags.update_one({'_id': dst_tag_obj['_id']}, {'$unset': {f'languages.{language}': ''}}, session = session)
+				self.db.tags.update_one({'_id': dst_tag_obj['_id']}, {'$unset': {f'languages.{language}': ''}, '$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 			self.aci.DeleteAlias(src_tag)
 		else:
 			raise UserError('ALIAS_NOT_EXIST')
@@ -481,7 +481,6 @@ class TagDB():
 		}])
 		return [item['tag'] for item in ret]
 
-	# TODO: ....
 	def compile_query(self, query, session = None):
 		query_obj, tags = Parser.parse(query, self.translate_tags, self.translate_tag_group, self.translate_tag_wildcard)
 		if query_obj is None:
