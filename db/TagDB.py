@@ -32,7 +32,7 @@ class TagDB():
 		all_tags = self.db.tags.find({'dst' : {'$exists' : False}})
 		all_alias = self.db.tags.find({'dst' : {'$exists' : True}})
 		tags_tuple = [(item['tag'], item['category'], item['count']) for item in all_tags]
-		alias_tuple = [(item['tag'], item['dst']) for item in all_alias]
+		alias_tuple = [(item['tag'], item['dst'], item['type']) for item in all_alias]
 		self.aci.AddTags(tags_tuple)
 		self.aci.AddAlias(alias_tuple)
 
@@ -157,7 +157,7 @@ class TagDB():
 			if tt == 'tag' :
 				self.aci.AddTags([(new_tag, tag_obj['category'], tag_obj['count'])])
 			elif tt == 'alias' :
-				self.aci.AddAlias([(new_tag, tag_obj['dst'])])
+				self.aci.AddAlias([(new_tag, tag_obj['dst'], tag_obj['type'])])
 		else:
 			raise UserError('TAG_NOT_EXIST')
 
@@ -374,7 +374,7 @@ class TagDB():
 						self.db.tags.update_one({'_id': ObjectId(tag_obj_dst['_id'])}, {'$set': {f'languages.{language}': src_tag}}, session = session)
 				self.db.items.update_many({'tags': {'$in': [src_tag]}}, {'$addToSet': {'tags': dst_tag}}, session = session)
 				self.db.items.update_many({'tags': {'$in': [src_tag]}}, {'$pullAll': {'tags': [src_tag]}}, session = session)
-				self.aci.AddAlias([(src_tag, dst_tag)])
+				self.aci.AddAlias([(src_tag, dst_tag, alias_type)])
 				self.aci.SetTagOrAliasCountDiff([(dst_tag, src_post_count - dupilcated_tags_count)])
 			elif tt_src == 'alias':
 				# overwriting an existing alias

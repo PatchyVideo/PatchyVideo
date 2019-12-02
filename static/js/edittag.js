@@ -76,7 +76,7 @@ function add_textcomplete(element) {
 				return 0;
 			},
 			search: function (term, callback) {
-				$.getJSON( "https://patchyvideo.com/autocomplete/?q=" + term, function( data ) {
+				$.getJSON( "/autocomplete/?q=" + term, function( data ) {
 					data = $.map(data, function(ele) {
 						ele['term'] = term;
 						ele['color'] = getCategoryColor(ele['category']);

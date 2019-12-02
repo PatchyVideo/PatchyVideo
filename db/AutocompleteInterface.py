@@ -30,10 +30,10 @@ class AutocompleteInterface() :
 			payload += tag + " " + category + (" %d " % count)
 		self._post("AddTags", "addwords", payload)
 
-	def AddAlias(self, list_of_tuple_of_src_dst) :
-		payload = "%d " % len(list_of_tuple_of_src_dst)
-		for (src, dst) in list_of_tuple_of_src_dst :
-			payload += src + " " + dst + " "
+	def AddAlias(self, list_of_tuple_of_src_dst_type) :
+		payload = "%d " % len(list_of_tuple_of_src_dst_type)
+		for (src, dst, type_) in list_of_tuple_of_src_dst_type :
+			payload += src + " " + dst + " " + ('0' if type_ == 'language' else '1') + " "
 		self._post("AddAlias", "addalias", payload)
 
 	def SetTagOrAliasCount(self, list_of_tuple_of_tag_count) :
