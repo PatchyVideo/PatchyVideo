@@ -104,8 +104,8 @@ def renameTag(user, tag, new_tag) :
         raise UserError('TAG_TOO_LONG')
     with MongoTransaction(client) as s :
         tag_obj = tagdb.db.tags.find_one({'tag': tag}, session = s())
-        if tag_obj and not _is_authorised(tag_obj, user, 'rename') :
-            raise UserError('UNAUTHORISED_OPERATION')
+        #if tag_obj and not _is_authorised(tag_obj, user, 'rename') :
+        #    raise UserError('UNAUTHORISED_OPERATION')
         tagdb.rename_tag(tag_obj, sanitized_tag, makeUserMeta(user), session = s())
         s.mark_succeed()
 
