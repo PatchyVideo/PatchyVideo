@@ -81,6 +81,10 @@ def translateTagsToPreferredLanguage(tag_objs, user_language) :
 		found_preferred_language = False
 		if 'languages' in tag_obj :
 			for preferred_language in lang_map :
+				if 'language' in tag_obj and tag_obj['language'] == preferred_language :
+					ret.append(tag_obj['tag'])
+					found_preferred_language = True
+					break
 				if preferred_language in tag_obj['languages'] :
 					ret.append(tag_obj['languages'][preferred_language])
 					found_preferred_language = True

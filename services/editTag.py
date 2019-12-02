@@ -151,6 +151,9 @@ def removeAlias(user, alias) :
 @modifyingResource('tags')
 def updateTagLanguage(user, tag, language) :
     with MongoTransaction(client) as s :
+        tag_obj = tagdb.db.tags.find_one({'tag': tag}, session = s())
+        if tag_obj and not _is_authorised(tag_obj, user, 'edit') :
+            raise UserError('UNAUTHORISED_OPERATION')
         tagdb.update_tag_language(tag, language, makeUserMeta(user), session = s())
         s.mark_succeed()
 
