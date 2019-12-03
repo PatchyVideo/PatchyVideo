@@ -23,5 +23,5 @@ def ajax_videos_edittags(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_videos_gettags(rd, user, data):
-    tags = getVideoTags(data.video_id)
+    tags = getVideoTags(data.video_id, 'CHS')
     return "json", makeResponseSuccess(tags)

@@ -3,11 +3,13 @@ from db import tagdb, client
 from utils.dbtools import makeUserMeta, MongoTransaction
 from utils.rwlock import usingResource, modifyingResource
 from utils.exceptions import UserError
+from utils.tagtools import translateTagsToPreferredLanguage
 
 from init import rdb
 from bson import ObjectId
 import redis_lock
 from config import VideoConfig, TagsConfig
+from services.getVideo import getVideoDetailWithTagObjects
 
 @usingResource('tags')
 def editVideoTags(vid, tags, user):
@@ -25,6 +27,7 @@ def editVideoTags(vid, tags, user):
         tagdb.update_item_tags(item, tags, makeUserMeta(user), s())
         s.mark_succeed()
 
-def getVideoTags(vid) :
-    return tagdb.retrive_tags(vid)
+def getVideoTags(vid, user_language) :
+    _, tag_objs = getVideoDetailWithTagObjects(vid)
+    return translateTagsToPreferredLanguage(tag_objs, user_language)
 

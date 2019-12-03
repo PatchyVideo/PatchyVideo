@@ -3,8 +3,10 @@ import time
 
 from flask import render_template, request, jsonify, redirect, session
 
+from db import tagdb
 from init import app
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
+from utils.tagtools import translateTagsToPreferredLanguage, getTagObjects
 from services.playlist import *
 from utils.html import buildPageSelector
 
@@ -13,7 +15,9 @@ from utils.html import buildPageSelector
 @jsonRequest
 def ajax_playlist_getcommontags_do(rd, data, user):
     tags = listCommonTags(data.pid)
-    return "json", makeResponseSuccess(tags)
+    tag_objs = getTagObjects(tagdb, tags)
+    tags_translated = translateTagsToPreferredLanguage(tag_objs, 'CHS')
+    return "json", makeResponseSuccess(tags_translated)
 
 @app.route('/list/setcommontags.do', methods = ['POST'])
 @loginRequiredJSON
