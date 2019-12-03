@@ -1,195 +1,206 @@
 
 .tag-form {
-    width: 400px;
-    margin: auto;
-    position: relative;
-    top: 20px;
+	width: 400px;
+	margin: auto;
+	position: relative;
+	top: 20px;
 }
 
 .add-tag-form {
-    width: 400px;
+	width: 400px;
 }
 
 .add-tag-form > input {
-    width: 350px;
-    float: left;
+	width: 350px;
+	float: left;
 }
 
 .add-tag-form > button {
-    width: 50px;
+	width: 50px;
 }
 
 .add-alias-form > input {
-    width: 175px;
-    float: left;
+	width: 175px;
+	float: left;
 }
 
 .add-alias-form > button {
-    width: 50px;
+	width: 50px;
 }
 
 .tag-categories {
-    position: relative;
+	position: relative;
 }
 table {
-    font-family: arial, sans-serif;
-    border-collapse: collapse;
-    width: 100%;
+	font-family: arial, sans-serif;
+	border-collapse: collapse;
+	width: 100%;
 }
   
 td, th {
-    border: 1px solid #dddddd;
-    text-align: left;
-    padding: 8px;
+	border: 1px solid #dddddd;
+	text-align: left;
+	padding: 8px;
 }
   
 tr:nth-child(even) {
-    background-color: #fafafa;
+	background-color: #fafafa;
 }
 
 .table-content .tag-operation {
-    position: absolute;
-    left: 32em;
-    visibility: hidden;
+	position: absolute;
+	left: 32em;
+	visibility: hidden;
 }
 
 .table-content:hover {
-    background-color: aliceblue;
+	background-color: aliceblue;
 }
 
 .table-content:hover .tag-operation {
-    visibility: visible;
+	visibility: visible;
 }
 
 .other-language {
-    position: absolute;
-    left: 35em;
-    color: gray;
+	position: absolute;
+	left: 35em;
+	color: gray;
 }
 
 .other-language > span {
-    margin-left: 1em;
+	margin-left: 1em;
 }
 
 .col-1 {
-    width: 100px;
+	width: 100px;
 }
 
 .col-2 {
-    width: 10px;
+	width: 10px;
 }
 
 .select-tag-order {
-    margin-left: 1em;
+	margin-left: 1em;
 }
 
 .page-selector {
-    text-align: center;
-    margin-top: 5px;
-    font-size: 1.2em;
+	text-align: center;
+	margin-top: 5px;
+	font-size: 1.2em;
 }
 
 .page-selector > span, .page-selector > a {
-    width: 10px;
-    margin: 1px;
-    padding: 1px;
-    padding-left: 6px;
-    padding-right: 6px;
-    text-decoration: none;
+	width: 10px;
+	margin: 1px;
+	padding: 1px;
+	padding-left: 6px;
+	padding-right: 6px;
+	text-decoration: none;
 }
 
 .page-selector > a {
-    color: blue;
+	color: blue;
 }
 
 .page-selector > a:hover {
-    background-color: blue;
-    color: white;
+	background-color: blue;
+	color: white;
 }
 
 .table-button {
-    padding: 2px;
-    margin: 3px;
-    background-color: antiquewhite;
+	padding: 2px;
+	margin: 3px;
+	background-color: antiquewhite;
 }
 
 .table-button:hover {
-    background-color: cyan;
+	background-color: cyan;
 }
 
 .tag-tool-bar > input {
-    width: 300px;
-    float: left;
-    border: 1px solid #ccc;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    padding: 8px;
+	width: 300px;
+	float: left;
+	border: 1px solid #ccc;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	padding: 8px;
 }
 
 .tag-tool-bar > button {
-    width: 90px;
-    border: 1px solid #ccc;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    padding: 8px;
+	width: 90px;
+	border: 1px solid #ccc;
+	margin-top: 5px;
+	margin-bottom: 5px;
+	padding: 8px;
 }
 
 .edit-language-div {
-    display: none;
+	display: none;
 }
 
 .multilanguage-tag-textbox {
-    border: none;
-    width: 11em;
-    margin-left: 5px;
-    background: transparent;
-    padding: 2px;
-    position: absolute;
-    left: 21em;
+	border: none;
+	width: 11em;
+	margin-left: 5px;
+	background: transparent;
+	padding: 2px;
+	position: absolute;
+	left: 21em;
 }
 
 .multilanguage-tag-save {
-    width: 3em;
-    border: 2px;
-    position: absolute;
-    left: 33em;
-    visibility: hidden;
+	width: 3em;
+	border: 2px;
+	position: absolute;
+	left: 33em;
+	visibility: hidden;
 }
 
 .multilanguage-tag-save:hover {
-    background: #ccc;
+	background: #ccc;
 }
 
 .multilanguage-tag-textbox:focus {
-    border: 1px;
+	border: 1px;
 }
 
 .add-language-div {
-    ;
+	;
 }
 
 .add-multilanguage-textbox {
-    width: 11em;
-    margin-left: 5px;
-    background: transparent;
-    padding: 2px;
-    position: absolute;
-    left: 21em;
+	width: 11em;
+	margin-left: 5px;
+	background: transparent;
+	padding: 2px;
+	position: absolute;
+	left: 21em;
 }
 
 .add-tag-language-select {
-    margin: 0.5em;
-    padding: 0.2em;
+	margin: 0.5em;
+	padding: 0.2em;
 }
 
 .root-tag-language-edit {
-    display: none;
+	display: none;
 }
 
 .root-tag-language-edit-save {
-    width: 3em;
-    border: 2px;
-    margin-left: 5px;
-    visibility: hidden;
+	width: 3em;
+	border: 2px;
+	margin-left: 5px;
+	visibility: hidden;
+}
+
+.multilanguage-tag-remove {
+	width: 3em;
+	border: 2px;
+	position: absolute;
+	left: 36.5em;
+}
+
+.multilanguage-tag-remove:hover {
+	background: #ccc;
 }
 

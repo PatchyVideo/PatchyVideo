@@ -18,7 +18,7 @@ function refreshTable(category) {
 }
 
 function removeTag(tag, category) {
-	var ask = confirm("你确定要删除" + tag);
+	var ask = confirm(`你确定要删除"${tag}"？\n此操作不可逆。`);
 	if (ask) {
 		status_obj = $(`p[meta-category="${category}"]`);
 		postJSON("/tags/remove_tag.do",
@@ -208,7 +208,23 @@ function saveLanguageAlias(obj) {
     }, function(result){
         alert(result.data.reason);
     });
-	
+}
+
+function removeLanguageAlias(obj) {
+	parent = $(obj).parent();
+	input_obj = $("input.multilanguage-tag-textbox", parent);
+	alias = input_obj.attr("data-alias");
+	var ask = confirm(`你确定要删除"${alias}"？\n此操作不可逆。`);
+	if (ask) {
+		postJSON("/tags/remove_tag.do",
+		{
+			"tag": alias
+		}, function(result){
+			gotoPage(EDITTAG_CUR_CATEGORY, EDITTAG_CUR_PAGE);
+		}, function(result){
+			alert(result.data.reason);
+		});
+	}
 }
 
 function addLanguageAlias(obj) {
@@ -374,6 +390,7 @@ function gotoPage(category, page) {
 					<span>${_LANGUAGE_MAP[lang_key]}</span>
 					<input style="color: ${tag_color};" oninput="onAliasChanged(this);" data-alias="${element.languages[lang_key]}" data-tag="${element.tag}" class="multilanguage-tag-textbox" value="${element.languages[lang_key]}" />
 					<button onclick="saveLanguageAlias(this);" data-tag="${element.tag}" class="multilanguage-tag-save">保存</button>
+					<button onclick="removeLanguageAlias(this);" data-tag="${element.tag}" class="multilanguage-tag-remove">删除</button>
 					</div>
 					`;
 				}
