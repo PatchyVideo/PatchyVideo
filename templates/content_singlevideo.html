@@ -20,6 +20,7 @@
 	</meta>
 	<meta id="video-id" content="{{video_id}}">
 	</meta>
+	<meta id="playlist-pid" content="{% if playlists|length == 1 %}{{playlists[0]._id}}{% endif %}"></meta>
 	<title>{{title}} - PatchyVideo</title>
 	<style type="text/css">
 		body {
@@ -346,7 +347,7 @@
 				{% endif %}
 				<div class="re_video">
 					<img src="/images/covers/{{cover_image}}" width="320px" alt="{{title}}" title="{{title}}">
-					<p>{{desc}}</p>
+					<p id="desc-area">{{desc}}</p>
 				</div>
 			</div>
 			<!-- 推荐视频栏结束  -->

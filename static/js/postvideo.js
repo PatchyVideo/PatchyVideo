@@ -70,7 +70,7 @@ function buildParsersAndExpanders() {
         desc = desc.replace(/<br\s*?\/?>/g, '\n');
         setVideoMetadata(thumbnailURL, title, desc);
     };
-    EXPANDERS["^[aA][cC][\\d]+"] = function(short_link) {
+    EXPANDERS["^ac[\\d]+"] = function(short_link) {
         return "https://www.acfun.cn/v/" + short_link;
     };
     PARSERS["^(https:\\/\\/|http:\\/\\/)?(www\\.)?nicovideo\\.jp\\/watch\\/(s|n)m[\\d]+"] = function(responseDOM, responseURL) {
@@ -148,16 +148,16 @@ function checkURL(url) {
     new_url = ""
     url = url.trim();
     for(var key in EXPANDERS) {
-        if (new RegExp(key).test(url)) {
+        if (new RegExp(key, 'i').test(url)) {
             url = EXPANDERS[key](url);
             break;
         }
     }
     url = clearURL(url);
     for(var key in PARSERS) {
-        if (new RegExp(key).test(url)) {
+        if (new RegExp(key, 'i').test(url)) {
             pass = true;
-            new_url = url.match(new RegExp(key))[0];
+            new_url = url.match(new RegExp(key, 'i'))[0];
             break;
         }
     }
@@ -166,7 +166,7 @@ function checkURL(url) {
 
 function dispatchParser(url, responseDOM) {
     for(var key in PARSERS) {
-        if (new RegExp(key).test(url)) {
+        if (new RegExp(key, 'i').test(url)) {
             PARSERS[key](responseDOM, url);
         }
     }
@@ -181,7 +181,7 @@ function submitVideoSingle() {
         pid: $("#pid").attr("content"),
         copy: $("#copy").attr("content"),
         url: $("#video-url").val(),
-        tags: $("#tags").val().split(/\r?\n/).filter(function(i){return i})
+        tags: $("#tags").val().split(/\r?\n/).filter(function(i){return i;})
     },
     function(result){
         $("#status2").css("display", "block");

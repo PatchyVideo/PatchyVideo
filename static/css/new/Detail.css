@@ -40,12 +40,6 @@
   border-bottom:3px solid #21C6EF;
 }
 
-.re_video a{
-  width: 100px;
-  text-align: center;
-  line-height:100px;
-}
-
 .re_video  img{
   display: block;
   vertical-align:middle;
