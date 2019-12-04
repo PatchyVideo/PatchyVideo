@@ -60,9 +60,11 @@ function buildUrlMatchers() {
 	};
 	_URL_MATCHERS["(s|n)m[\\d]+"] = function(match) {
 	};
-	_URL_MATCHERS["(https:\\/\\/(www\\.|m\\.)?youtube\\.com\\/watch\\?v=[-\\w]+|https:\\/\\/youtu\\.be\\/(watch\\?v=[-\\w]+|[-\\w]+))"] = function(match) {
+	_URL_MATCHERS["((https:\\/\\/)?(www\\.|m\\.)?youtube\\.com\\/watch\\?v=[-\\w]+|https:\\/\\/youtu\\.be\\/(watch\\?v=[-\\w]+|[-\\w]+))"] = function(match) {
 	};
 	_URL_MATCHERS["(https:\\/\\/)?(www\\.|mobile\\.)?twitter\\.com\\/[\\w]+\\/status\\/[\\d]+"] = function(match) {
+	};
+	_URL_MATCHERS["youtube-[-\\w]+"] = function(match) {
 	};
 	_URL_EXPANDERS["^ac[\\d]+"] = function(short_link) {
 		return "https://www.acfun.cn/v/" + short_link;
@@ -72,6 +74,9 @@ function buildUrlMatchers() {
 	};
 	_URL_EXPANDERS["^(s|n)m[\\d]+"] = function(short_link) {
 		return "https://www.nicovideo.jp/watch/" + short_link;
+	};
+	_URL_EXPANDERS["^youtube-[-\\w]+"] = function(short_link) {
+		return "https://www.youtube.com/watch?v=" + short_link.substring(8);
 	};
 }
 
