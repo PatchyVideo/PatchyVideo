@@ -66,17 +66,22 @@ function buildUrlMatchers() {
 	};
 	_URL_MATCHERS["youtube-[-\\w]+"] = function(match) {
 	};
+	_URL_MATCHERS["mylist/[\\d]+"] = function(match) {
+	};
 	_URL_EXPANDERS["^ac[\\d]+"] = function(short_link) {
-		return "https://www.acfun.cn/v/" + short_link;
+		return ["https://www.acfun.cn/v/" + short_link, "video"];
 	};
 	_URL_EXPANDERS["^av[\\d]+"] = function(short_link) {
-		return "https://www.bilibili.com/video/" + short_link;
+		return ["https://www.bilibili.com/video/" + short_link, "video"];
 	};
 	_URL_EXPANDERS["^(s|n)m[\\d]+"] = function(short_link) {
-		return "https://www.nicovideo.jp/watch/" + short_link;
+		return ["https://www.nicovideo.jp/watch/" + short_link, "video"];
 	};
 	_URL_EXPANDERS["^youtube-[-\\w]+"] = function(short_link) {
-		return "https://www.youtube.com/watch?v=" + short_link.substring(8);
+		return ["https://www.youtube.com/watch?v=" + short_link.substring(8), "video"];
+	};
+	_URL_EXPANDERS["^mylist/[\\d]+"] = function(short_link) {
+		return ["https://www.nicovideo.jp/" + short_link, "playlist"];
 	};
 }
 
@@ -96,10 +101,21 @@ function postAsCopy(sender, url) {
 	});
 }
 
-function buildUrlTools(url) {
-	ret = '';
-	ret += `<button onclick='postAsCopy(this, "${url}")'>添加副本</button>`
-	return ret;
+function buildUrlTools(logged_in, url, link_type) {
+	if (!logged_in) {
+		return '';
+	}
+	
+	if (link_type == "video") {
+		ret = `<div class="url-tools">`;
+		ret += `<button onclick='postAsCopy(this, "${url}")'>添加副本</button>`
+		ret += `</div>`;
+		return ret;
+	}
+	/*else if (link_type == "playlist") {
+		ret += `<button onclick='postPlaylist(this, "${url}")'>添加播放列表</button>`;
+	}*/
+	return '';
 }
 
 function urlifyDesc() {
@@ -119,24 +135,13 @@ function urlifyDesc() {
 	combined_matcher_regex = new RegExp(combined_matcher, 'ig');
 	is_logged_in = !isEmpty($("#user-id").attr("content"));
 	desc_urlified = desc_text.replace(combined_matcher_regex, function(url) {
-		
 		for (var key in _URL_EXPANDERS) {
 			if (new RegExp(key, 'i').test(url)) {
-				expanded_url = _URL_EXPANDERS[key](url);
-				if (is_logged_in) {
-					tools_text = `<div class="url-tools">${buildUrlTools(expanded_url)}</div>`;
-				} else {
-					tools_text = '';
-				}
-				return `<div class="video-link-div"><a href="${expanded_url}">${url}</a>${tools_text}</div>`;
+				const [expanded_url, link_type] = _URL_EXPANDERS[key](url);
+				return `<div class="video-link-div"><a href="${expanded_url}">${url}</a>${buildUrlTools(is_logged_in, expanded_url, link_type)}</div>`;
 			}
 		}
-		if (is_logged_in) {
-			tools_text = `<div class="url-tools">${buildUrlTools(url)}</div>`;
-		} else {
-			tools_text = '';
-		}
-		return `<div class="video-link-div"><a href="${url}">${url}</a>${tools_text}</div>`;
+		return `<div class="video-link-div"><a href="${url}">${url}</a>${buildUrlTools(is_logged_in, expanded_url, link_type)}</div>`;
 	});
 	desc_obj.html(desc_urlified);
 }

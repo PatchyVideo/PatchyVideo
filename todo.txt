@@ -79,7 +79,8 @@ make autocomplete with fast_io::epoll
 support suffix autocomplete
 !tag rename
     lack tag rename for non-language tags
-root tag language mark
+#root tag language mark
+add refresh video detail function, update video detail
 
 ======================
 phase 3
