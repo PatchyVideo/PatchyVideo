@@ -21,6 +21,9 @@
 	<meta id="video-id" content="{{video_id}}">
 	</meta>
 	<meta id="playlist-pid" content="{% if playlists|length == 1 %}{{playlists[0]._id}}{% endif %}"></meta>
+	{% if _user is not none %}
+	<meta id="user-id" content="1"></meta>
+	{% endif %}
 	<title>{{title}} - PatchyVideo</title>
 	<style type="text/css">
 		body {
