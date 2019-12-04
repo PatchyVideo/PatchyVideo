@@ -65,8 +65,8 @@ create playlist from current playlist but with videos from other site in "copies
 search playlist
 beautiful http error page
 #add interactive admin shell
-unify naming convention for status code AND use exception to replace status code
-unify JSON return as status code, not error message
+#unify naming convention for status code AND use exception to replace status code
+#unify JSON return as status code, not error message
 add multi-language framework
 deployment mode using GCI
 #use reader-writer lock to protect tag rename/deletion
