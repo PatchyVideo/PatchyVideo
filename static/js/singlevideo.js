@@ -119,16 +119,22 @@ function urlifyDesc() {
 	combined_matcher_regex = new RegExp(combined_matcher, 'ig');
 	is_logged_in = !isEmpty($("#user-id").attr("content"));
 	desc_urlified = desc_text.replace(combined_matcher_regex, function(url) {
+		
+		for (var key in _URL_EXPANDERS) {
+			if (new RegExp(key, 'i').test(url)) {
+				expanded_url = _URL_EXPANDERS[key](url);
+				if (is_logged_in) {
+					tools_text = `<div class="url-tools">${buildUrlTools(expanded_url)}</div>`;
+				} else {
+					tools_text = '';
+				}
+				return `<div class="video-link-div"><a href="${expanded_url}">${url}</a>${tools_text}</div>`;
+			}
+		}
 		if (is_logged_in) {
 			tools_text = `<div class="url-tools">${buildUrlTools(url)}</div>`;
 		} else {
 			tools_text = '';
-		}
-		for (var key in _URL_EXPANDERS) {
-			if (new RegExp(key, 'i').test(url)) {
-				expanded_url = _URL_EXPANDERS[key](url);
-				return `<div class="video-link-div"><a href="${expanded_url}">${url}</a>${tools_text}</div>`;
-			}
 		}
 		return `<div class="video-link-div"><a href="${url}">${url}</a>${tools_text}</div>`;
 	});
