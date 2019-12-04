@@ -221,17 +221,13 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 					if not tags :
 						print('SUCCEED', file = sys.stderr)
 						return 'SUCCEED', conflicting_item['_id']
-
+				"""
 				if conflicting_item['item']['site'] == 'nicovideo':
 					print('Updating desc', file = sys.stderr)
 					desc = ret['data']['desc']
 					with MongoTransaction(client) as s :
 						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item.desc': desc}}, makeUserMeta(user), session = s())
 						s.mark_succeed()
-					if not tags :
-						print('SUCCEED', file = sys.stderr)
-						return 'SUCCEED', conflicting_item['_id']
-				"""
 
 				# this video already exist in the database
 				# if the operation is to add a link to other copies and not adding self

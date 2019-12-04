@@ -30,10 +30,18 @@ class Nicovideo( Spider ) :
 		vidid = link[link.rfind("m") - 1:]
 		thumbnailURL = try_get_xpath(xpath, ['//meta[@itemprop="thumbnailUrl"]/@content', '//meta[@name="thumbnail"]/@content'])[0]
 		title = try_get_xpath(xpath, ['//meta[@itemprop="name"]/@content', '//meta[@property="og:title"]/@content'])[0]
-		desc = try_get_xpath(xpath, [
-			('//p[@itemprop="description"]', lambda ret : [tostring(ret[0], encoding='UTF-8').decode()]),
-			'//meta[@itemprop="description"]/@content',
-			'//meta[@name="description"]/@content'])[0]
+		jsons = try_get_xpath(xpath, ['//script[@type="application/ld+json"]/text()'])
+		desc = None
+		for json_str in jsons :
+			json_obj = json.loads(json_str)
+			if '@type' in json_obj and json_obj['@type'] == 'VideoObject' :
+				desc = json_obj['description']
+				break
+		if desc is None :
+			desc = try_get_xpath(xpath, [
+				('//p[@itemprop="description"]', lambda ret : [tostring(ret[0], encoding='UTF-8').decode()]),
+				'//meta[@itemprop="description"]/@content',
+				'//meta[@name="description"]/@content'])[0]
 		uploadDate = try_get_xpath(xpath, ['//meta[@property="video:release_date"]/@content', '//meta[@name="video:release_date"]/@content'])[0]
 		desc = re.sub(r'<br\s*?\/?>', '\n', desc)
 		soup = BeautifulSoup(desc, features = "lxml")
