@@ -10,11 +10,13 @@ if __name__ == '__main__':
 	from bson import ObjectId
 	from collections import defaultdict
 	from AutocompleteInterface import AutocompleteInterface
+	from TagDB_language import VALID_LANGUAGES, PREFERRED_LANGUAGE_MAP
 else:
 	from .query_parser import Parser
 	from bson import ObjectId
 	from collections import defaultdict
 	from .AutocompleteInterface import AutocompleteInterface
+	from .TagDB_language import VALID_LANGUAGES, PREFERRED_LANGUAGE_MAP
 
 def _diff(old_tags, new_tags):
 	old_tags_set = set(old_tags)
@@ -23,11 +25,50 @@ def _diff(old_tags, new_tags):
 	removed_tags = (new_tags_set ^ old_tags_set) - added_tags
 	return list(added_tags), list(removed_tags)
 
+"""
+db.categories:
+{
+    "_id": ...,
+    "id": 0,
+    "color": "#0073ff",
+    "languages": {
+        "CHS": "其他",
+        "ENG": "General",
+        ...
+    }
+}
+
+db.tags:
+{
+    "_id": ...,
+    "id": 0,
+    "category": 1, // 1 for Copyright
+    "count": 114514,
+    "languages": {
+        "CHS": "东方",
+        "ENG": "touhou",
+        ...
+    },
+    "alias": [
+        "toho",
+        ...
+    ]
+}
+
+db.tag_alias:
+{
+    "_id": ...,
+    "tag": "东方",
+    "dst": 0
+}
+"""
+
 class TagDB():
 	def __init__(self, db):
 		self.db = db
 		self.aci = AutocompleteInterface()
-		
+
+	"""	
 	def init_autocomplete(self) :
 		all_tags = self.db.tags.find({'dst' : {'$exists' : False}})
 		all_alias = self.db.tags.find({'dst' : {'$exists' : True}})
@@ -35,6 +76,7 @@ class TagDB():
 		alias_tuple = [(item['tag'], item['dst'], item['type']) for item in all_alias]
 		self.aci.AddTags(tags_tuple)
 		self.aci.AddAlias(alias_tuple)
+	"""
 
 	def add_category(self, category, user = '', session = None):
 		cat = self.db.cats.find_one({'name': category}, session = session)
@@ -48,7 +90,7 @@ class TagDB():
 			ans.append(item)
 		return ans
 
-	def list_category_tags(self, category, session = None):
+	def list_category_tags(self, category, language, session = None):
 		cat = self.db.cats.find_one({'name': category}, session = session)
 		if cat is None:
 			raise UserError("CATEGORY_NOT_EXIST")
