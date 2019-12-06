@@ -68,7 +68,6 @@ class TagDB():
 		self.db = db
 		self.aci = AutocompleteInterface()
 
-	"""	
 	def init_autocomplete(self) :
 		all_tags = self.db.tags.find({'dst' : {'$exists' : False}})
 		all_alias = self.db.tags.find({'dst' : {'$exists' : True}})
@@ -76,7 +75,6 @@ class TagDB():
 		alias_tuple = [(item['tag'], item['dst'], item['type']) for item in all_alias]
 		self.aci.AddTags(tags_tuple)
 		self.aci.AddAlias(alias_tuple)
-	"""
 
 	def add_category(self, category, user = '', session = None):
 		cat = self.db.cats.find_one({'name': category}, session = session)

@@ -56,12 +56,10 @@ border: 2px solid #efefef;
   .recommend,.Copies_blibili,.Playlists{
 
 
-    height:100%;
     margin-bottom: 10px;
 
   }
   .recommend{
-    height: 100%;
     display: flex;
     flex-wrap: wrap;
 }
