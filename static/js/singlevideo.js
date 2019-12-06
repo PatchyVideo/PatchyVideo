@@ -49,38 +49,33 @@ _URL_EXPANDERS = {};
 
 function buildUrlMatchers() {
 	_URL_MATCHERS["(https:\\/\\/|http:\\/\\/)?(www\\.)?bilibili\\.com\\/video\\/av[\\d]+"] = function(match) {
-	};
-	_URL_MATCHERS["av[\\d]+"] = function(match) {
+		return [match, "video"];
 	};
 	_URL_MATCHERS["(https:\\/\\/|http:\\/\\/)?(www\\.)?acfun\\.cn\\/v\\/ac[\\d]+"] = function(match) {
-	};
-	_URL_MATCHERS["ac[\\d]+"] = function(match) {
+		return [match, "video"];
 	};
 	_URL_MATCHERS["(https:\\/\\/|http:\\/\\/)?(www\\.)?nicovideo\\.jp\\/watch\\/(s|n)m[\\d]+"] = function(match) {
-	};
-	_URL_MATCHERS["(s|n)m[\\d]+"] = function(match) {
+		return [match, "video"];
 	};
 	_URL_MATCHERS["((https:\\/\\/)?(www\\.|m\\.)?youtube\\.com\\/watch\\?v=[-\\w]+|https:\\/\\/youtu\\.be\\/(watch\\?v=[-\\w]+|[-\\w]+))"] = function(match) {
+		return [match, "video"];
 	};
 	_URL_MATCHERS["(https:\\/\\/)?(www\\.|mobile\\.)?twitter\\.com\\/[\\w]+\\/status\\/[\\d]+"] = function(match) {
+		return [match, "video"];
 	};
-	_URL_MATCHERS["youtube-[-\\w]+"] = function(match) {
-	};
-	_URL_MATCHERS["mylist/[\\d]+"] = function(match) {
-	};
-	_URL_EXPANDERS["^ac[\\d]+"] = function(short_link) {
+	_URL_MATCHERS["ac[\\d]+"] = function(short_link) {
 		return ["https://www.acfun.cn/v/" + short_link, "video"];
 	};
-	_URL_EXPANDERS["^av[\\d]+"] = function(short_link) {
+	_URL_MATCHERS["av[\\d]+"] = function(short_link) {
 		return ["https://www.bilibili.com/video/" + short_link, "video"];
 	};
-	_URL_EXPANDERS["^(s|n)m[\\d]+"] = function(short_link) {
+	_URL_MATCHERS["(s|n)m[\\d]+"] = function(short_link) {
 		return ["https://www.nicovideo.jp/watch/" + short_link, "video"];
 	};
-	_URL_EXPANDERS["^youtube-[-\\w]+"] = function(short_link) {
+	_URL_MATCHERS["youtube-[-\\w]+"] = function(short_link) {
 		return ["https://www.youtube.com/watch?v=" + short_link.substring(8), "video"];
 	};
-	_URL_EXPANDERS["^mylist/[\\d]+"] = function(short_link) {
+	_URL_MATCHERS["mylist\\/[\\d]+"] = function(short_link) {
 		return ["https://www.nicovideo.jp/" + short_link, "playlist"];
 	};
 }
@@ -135,13 +130,12 @@ function urlifyDesc() {
 	combined_matcher_regex = new RegExp(combined_matcher, 'ig');
 	is_logged_in = !isEmpty($("#user-id").attr("content"));
 	desc_urlified = desc_text.replace(combined_matcher_regex, function(url) {
-		for (var key in _URL_EXPANDERS) {
+		for (var key in _URL_MATCHERS) {
 			if (new RegExp(key, 'i').test(url)) {
-				const [expanded_url, link_type] = _URL_EXPANDERS[key](url);
+				const [expanded_url, link_type] = _URL_MATCHERS[key](url);
 				return `<div class="video-link-div"><a href="${expanded_url}">${url}</a>${buildUrlTools(is_logged_in, expanded_url, link_type)}</div>`;
 			}
 		}
-		return `<div class="video-link-div"><a href="${url}">${url}</a>${buildUrlTools(is_logged_in, expanded_url, link_type)}</div>`;
 	});
 	desc_obj.html(desc_urlified);
 }
