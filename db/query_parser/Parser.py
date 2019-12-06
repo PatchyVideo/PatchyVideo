@@ -152,7 +152,9 @@ def _prepare_attributes(name, value):
 	name = name.lower()
 	if name == 'site':
 		query = ''
-		if value in ['bilibili', 'bili']:
+		if value == 'acfun':
+			query = 'acfun'
+		elif value in ['bilibili', 'bili']:
 			query = 'bilibili'
 		elif value in ['youtube', 'ytb']:
 			query = 'youtube'
