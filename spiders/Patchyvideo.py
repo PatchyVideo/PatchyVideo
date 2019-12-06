@@ -12,6 +12,9 @@ class Patchyvideo( Spider ) :
 	SHORT_PATTERN = r''
 	LOCAL_SPIDER = True
 
+	def normalize_url( self, link ) :
+		return link
+
 	def unique_id( self, link ) :
 		vidid = link[link.rfind("=") + 1:]
 		vidobj = getVideoDetail(vidid)

@@ -30,6 +30,12 @@ class Twitter( Spider ) :
 		'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0',  # noqa
 	}
 
+	def normalize_url( self, link ) :
+		if re.match(r'https?://mobile', link): # normalize mobile URL
+			link = 'https://' + match1(link, r'//mobile\.(.+)')
+		item_id = r1(r'twitter\.com/[^/]+/status/(\d+)', link)
+		return "https://twitter.com/i/status/" + item_id
+
 	def unique_id( self, link ) :
 		if re.match(r'https?://mobile', link): # normalize mobile URL
 			link = 'https://' + match1(link, r'//mobile\.(.+)')
@@ -68,7 +74,8 @@ class Twitter( Spider ) :
 			'desc' : desc,
 			'site': 'twitter',
 			'uploadDate' : uploadDate,
-			"unique_id": "twitter:%s" % item_id
+			"unique_id": "twitter:%s" % item_id,
+			"url_overwrite": f'https://twitter.com/{screen_name}/status/{item_id}'
 		})
 		
 	async def unique_id_async( self, link ) :
@@ -108,5 +115,6 @@ class Twitter( Spider ) :
 			'desc' : desc,
 			'site': 'twitter',
 			'uploadDate' : uploadDate,
-			"unique_id": "twitter:%s" % item_id
+			"unique_id": "twitter:%s" % item_id,
+			"url_overwrite": f'https://twitter.com/{screen_name}/status/{item_id}'
 		})

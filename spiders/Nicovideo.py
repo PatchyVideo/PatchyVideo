@@ -18,6 +18,10 @@ class Nicovideo( Spider ) :
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.nicovideo.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.nicovideo.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
 
+	def normalize_url( self, link ) :
+		link = link.lower()
+		return "https://www.nicovideo.jp/watch/" + link[link.rfind("m") - 1:]
+
 	def expand_url( self, short ) :
 		return "https://www.nicovideo.jp/watch/" + short
 

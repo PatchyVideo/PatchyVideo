@@ -69,7 +69,7 @@ def dispatch( url ) :
 		match_result = re.match( reg, url )
 		if match_result :
 			g0 = match_result.group( 0 )
-			return target, g0
+			return target, target.normalize_url( target, g0 )
 	return None, None
 
 def dispatch_no_expand( url ) :

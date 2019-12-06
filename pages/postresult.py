@@ -28,11 +28,11 @@ def pages_postresult(rd, job_key):
         elif result == 'VIDEO_ALREADY_EXIST':
             return "data", 'Video already exist, <a href="/video?id=%s">click me</a> to see.' % obj['aux']
         elif result == 'FETCH_FAILED' :
-            return "data", "<h1>Failed to fetch video</h1><p>" + obj['data']['exception'] + "</p>"
+            return "data", "<h1>Failed to fetch video</h1><p>" + str(obj['data']) + "</p>"
         elif result == 'UNKNOWN' :
-            return "data", obj
+            return "data", str(obj)
         elif result == 'UNAUTHORISED_OPERATION' :
-            return "data", "You are not allowed to insert to playlist</br>" + obj
+            return "data", "You are not allowed to insert to playlist</br>" + str(obj['data'])
         elif result == 'PLAYLIST_NOT_EXIST' :
             return "data", "playlist no longer exist"
         elif result == 'VIDEO_NOT_EXIST' :

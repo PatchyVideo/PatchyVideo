@@ -64,7 +64,7 @@ async def _make_video_data(data, copies, playlists, url) :
 			print(ex, file = sys.stderr)
 			continue
 	return {
-		"url": url,
+		"url": (data['url_overwrite'] if 'url_overwrite' in data else url),
 		"title": data['title'],
 		"desc": data['desc'],
 		"thumbnail_url": data['thumbnailURL'],
@@ -116,7 +116,19 @@ class _PlaylistReorederHelper() :
 			dst_rank = self.playlist_map[dst_playlist]['rank']
 			playlist_ordered = self.playlist_map[dst_playlist]['all']
 			cur_rank = 0
-			async with RedisLockAsync(rdb, "playlistEdit:" + dst_playlist) :
+			try :
+				async with RedisLockAsync(rdb, "playlistEdit:" + dst_playlist) :
+					for unique_id in playlist_ordered :
+						if unique_id in self.playlist_map[dst_playlist]['succeed'] :
+							(video_id, _, user) = self.playlist_map[dst_playlist]['succeed'][unique_id]
+							if dst_rank == -1 :
+								addVideoToPlaylistLockFree(dst_playlist, video_id, user)
+							else :
+								insertIntoPlaylistLockFree(dst_playlist, video_id, dst_rank + cur_rank, user)
+							cur_rank += 1
+			except Exception as ex :
+				print('****Exception _add_to_playlist! %s' % ex, file = sys.stderr)
+				print(traceback.format_exc(), file = sys.stderr)
 				for unique_id in playlist_ordered :
 					if unique_id in self.playlist_map[dst_playlist]['succeed'] :
 						(video_id, _, user) = self.playlist_map[dst_playlist]['succeed'][unique_id]

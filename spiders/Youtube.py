@@ -28,10 +28,20 @@ def _str(s):
 
 class Youtube( Spider ) :
 	NAME = 'youtube'
-	PATTERN = r'^((https:\/\/)?(www\.|m\.)?youtube\.com\/watch\?v=[-\w]+|https:\/\/youtu\.be\/(watch\?v=[-\w]+|[-\w]+))'
+	PATTERN = r'^((https:\/\/)?(www\.|m\.)?youtube\.com\/watch\?v=[-\w]+|(https:\/\/)?youtu\.be\/(watch\?v=[-\w]+|[-\w]+))'
 	SHORT_PATTERN = r''
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.youtube.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.youtube.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
+
+	def normalize_url( self, link ) :
+		if 'youtube.com' in link:
+			vidid = link[link.rfind('=') + 1:]
+		elif 'youtu.be' in link:
+			if 'watch?v=' in link:
+				vidid = link[link.rfind('=') + 1:]
+			else:
+				vidid = link[link.rfind('/') + 1:]
+		return "https://www.youtube.com/watch?v=" + vidid
 
 	def expand_url( self, short ) :
 		return short

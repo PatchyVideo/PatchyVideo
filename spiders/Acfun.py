@@ -20,6 +20,10 @@ class Acfun( Spider ) :
 	THUMBNAIL_URL_2 = re.compile(r'https:\/\/cdn\.aixifan\.com\/dotnet\/[\/\w]+\.(jpg|png)')
 	EXTRACT_NUM = re.compile(r'^[\d]+')
 
+	def normalize_url( self, link ) :
+		link = link.lower()
+		return "https://www.acfun.cn/v/" + link[link.rfind("ac"):]
+
 	def expand_url( self, short ) :
 		return "https://www.acfun.cn/v/" + short.lower()
 

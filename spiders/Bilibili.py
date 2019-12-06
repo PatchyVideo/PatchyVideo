@@ -20,6 +20,10 @@ class Bilibili( Spider ) :
 		'bili_jct' : os.getenv('bilicookie_bili_jct', "")
 	}
 
+	def normalize_url( self, link ) :
+		link = link.lower()
+		return "https://www.bilibili.com/video/" + link[link.rfind("av"):]
+
 	def expand_url( self, short ) :
 		return "https://www.bilibili.com/video/" + short.lower()
 
