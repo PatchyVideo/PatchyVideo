@@ -61,6 +61,7 @@ border: 2px solid #efefef;
 
   }
   .recommend{
+    height: 100%;
     display: flex;
     flex-wrap: wrap;
 }
