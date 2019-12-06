@@ -80,6 +80,21 @@ support suffix autocomplete
 !tag rename
     lack tag rename for non-language tags
 #root tag language mark
+user-friendly error messages
+show tag counts on video detail page
+
+======================
+offical launch
+======================
+restructured tag system for full multi language support
+tag group
+tag cooccurrences/related tag when posting video
+tag rule(e.g. adding touhou_mmd will results in mmd tag being added)
+batch post from existing playlist
+full text search
+mobile phone UI
+full multi-language support(CHS/CHT/JPN/ENG)
++ phase 2
 
 ======================
 phase 3
@@ -87,14 +102,14 @@ phase 3
 make everything async, don't want to waste time on spin locks
 user subscript to playlists
 user photo storing
-thumbnail for playlist
-full multi-language support
+custom thumbnail for playlist
 user subscriptions
 danmaku
 comment section
 video downloading
 tag prompt/auto-complete
-elasticsearch for title and description in video/playlist
 show uploader profile photo
 jsproxy for sites
 video tagging histroy
+autotag using browser plugins(use tensorflow.js to recognize characters)
+autotag with simple NLP
