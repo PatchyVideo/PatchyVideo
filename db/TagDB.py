@@ -95,10 +95,15 @@ class TagDB() :
 		self.db.cats.update_one({'name': new_category}, {'$inc': {'count': 1}}, session = session)
 
 	def _get_free_tag_id(self, session) :
-		obj = self.db.free_tags.fine_one()
+		obj = self.db.free_tags.find_one()
 		if obj is None :
-			return self.db.tags.count_documents({}, seesion = session)
+			try :
+				return self.db.tags.count_documents({}, session = session)
+			except Exception as ex:
+				print(ex)
+				return 0
 		else :
+			self.db.free_tags.delete_one({'id': obj['id']})
 			return obj['id']
 	
 	def add_tag(self, tag, category, language, user = '', session = None) :
@@ -107,12 +112,13 @@ class TagDB() :
 		tag_obj = self._tag(tag, return_none = True, session = session)
 		if tag_obj is not None :
 			raise UserError('TAG_ALREADY_EXIST')
+		tag_id = self._get_free_tag_id(session)
 		item_id = self.db.tags.insert_one({
-			'id': self._get_free_tag_id(session),
+			'id': tag_id,
 			'category': category,
 			'count': 0,
 			'icon': '',
-			f'languages.{language}': tag,
+			'languages': {language: tag},
 			'alias': [],
 			'meta': {'created_by': user, 'created_at': datetime.now()}
 		}, session = session).inserted_id
@@ -123,6 +129,7 @@ class TagDB() :
 			'meta': {'created_by': user, 'created_at': datetime.now()}
 		}, session = session)
 		self.db.cats.update_one({'name': category}, {'$inc': {'count': 1}}, session = session)
+		return tag_id
 
 	"""
 	def find_tags_wildcard(self, query, category) :
@@ -159,6 +166,7 @@ class TagDB() :
 		self.db.tags.delete_one({'_id': tag_obj['_id']}, session = session)
 		self.db.cats.update_one({'name': tag_obj['category']}, {'$inc': {'count': -1}}, session = session)
 		self.db.items.update_many({'tags': {'$in': [tag]}}, {'$pull': {'tags': tag}}, session = session)
+		self.db.free_tags.insert_one({'id': tag})
 
 	def _get_tag_name_reference_count(self, tag_name, tag_obj) :
 		ans = 0
@@ -172,7 +180,7 @@ class TagDB() :
 				ans += 1
 		return ans, lang
 
-	def add_or_rename_tag(self, tag_name, new_tag_name, language, user = None, session = None) :
+	def add_or_rename_tag(self, tag_name, new_tag_name, language, user = '', session = None) :
 		if tag_name == new_tag_name :
 			raise UserError('SAME_NAME')
 		self._check_language(language)
@@ -215,7 +223,7 @@ class TagDB() :
 			}
 		}, session = session)
 
-	def add_or_rename_alias(self, tag_name, alias_name, user = None, session = None) :
+	def add_or_rename_alias(self, tag_name, alias_name, user = '', session = None) :
 		if tag_name == alias_name :
 			raise UserError('SAME_NAME')
 		old_alias_name = tag_name
@@ -410,13 +418,14 @@ class TagDB() :
 			self.db.tags.update_one({'tag': tag}, {'$inc': {'count': diff}}, session = session)
 		# self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
 
-	def remove_tag_alias(self, alias_name, user = '', session = None):
-		alias_obj = self.db.tag_alias.find_one({'tag': alias_name}, session = session)
-		if alias_obj is not None :
-			raise UserError('ALIAS_ALREADY_EXIST')
-
-		rc, lang_referenced = self._get_tag_name_reference_count(old_alias_name, tag_obj)
+	def remove_alias(self, alias_name, user = '', session = None) :
+		tag_obj = self._tag(alias_name, session = session)
+		rc, lang_referenced = self._get_tag_name_reference_count(alias_name, tag_obj)
 		if rc == 1 and lang_referenced is None :
+			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$pullAll': {'alias': [alias_name]}}, session = session)
+			self.db.tag_alias.delete_one({'tag': alias_name}, session = session)
+		else :
+			raise UserError('NOT_ALIAS')
 
 	def add_tag_group(self, group_name, tags = [], user = '', session = None):
 		g_obj = self.db.groups.find_one({'name': group_name}, session = session)
@@ -475,20 +484,6 @@ class TagDB() :
 			raise UserError('INCORRECT_QUERY')
 		return query_obj, tags
 
-	def _tag_type(self, tag_name_or_tag_obj, session = None):
-		if isinstance(tag_name_or_tag_obj, dict) :
-			if 'dst' in tag_name_or_tag_obj :
-				return 'alias', tag_name_or_tag_obj
-			else :
-				return 'tag', tag_name_or_tag_obj
-		tag_obj = self.db.tags.find_one({'tag': tag_name_or_tag_obj}, session = session)
-		if tag_obj is None:
-			return None, None
-		if 'dst' in tag_obj:
-			return 'alias', tag_obj
-		else:
-			return 'tag', tag_obj
-
 	def _tag(self, tag, return_none = False, session = None) :
 		if isinstance(tag, dict) :
 			return tag
@@ -513,8 +508,8 @@ class TagDB() :
 		if language not in VALID_LANGUAGES :
 			raise UserError('UNRECOGNIZED_LANGUAGE')
 
-	def _check_category(self, category, session = session) :
-		cat = self.db.cats.find_one({'name': new_category}, session = session)
+	def _check_category(self, category, session) :
+		cat = self.db.cats.find_one({'name': category}, session = session)
 		if cat is None:
 			raise UserError('CATEGORY_NOT_EXIST')
 		return cat
