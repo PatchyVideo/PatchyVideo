@@ -157,42 +157,40 @@ function buildToolBar(category, tag_count, display_count, order) {
 }
 
 function expandLanguageEdit(obj) {
-	tag = $(obj).attr("data-tag");
-	row = $(`[data-root-tag="${tag}"]`);
+	tagid = $(obj).attr("data-tag-id");
+	row = $(`[data-tag-id="${tagid}"]`);
 	visible = $("span.unselectable", row).text() == "-";
 	if (visible) {
-		$("span.other-language", row).css("display", "");
-		$("div.edit-language-div", row).css("display", "none");
+		$("div.language-prompt-div", row).css("display", "");
+		$("div.edit-tag-div", row).css("display", "none");
 		$("span.unselectable", row).text("+");
-		$("div.root-tag-language-edit", row).css("display", "none");
 	} else {
-		$("span.other-language", row).css("display", "none");
-		$("div.edit-language-div", row).css("display", "block");
+		$("div.language-prompt-div", row).css("display", "none");
+		$("div.edit-tag-div", row).css("display", "block");
 		$("span.unselectable", row).text("-");
-		$("div.root-tag-language-edit", row).css("display", "inline");
 	}
 }
 
-function onAliasChanged(obj) {
+function onInputChanged(obj) {
 	parent = $(obj).parent();
-	new_alias = $(obj).val().trim();
-	old_alias = $(obj).attr("data-alias");
-	if (new_alias !== old_alias) {
+	new_tag = $(obj).val().trim();
+	old_tag = $(obj).attr("data-tag");
+	if (new_tag !== old_tag) {
 		$("button.multilanguage-tag-save", parent).css("visibility", "visible");
 	} else {
 		$("button.multilanguage-tag-save", parent).css("visibility", "hidden");
 	}
 }
 
-function saveLanguageAlias(obj) {
+function saveLanguageTag(obj) {
 	parent = $(obj).parent();
 	input_obj = $("input.multilanguage-tag-textbox", parent);
 	button_obj = $("button.multilanguage-tag-save", parent);
-	new_alias = input_obj.val().trim();
-	old_alias = input_obj.attr("data-alias");
+	new_tag = input_obj.val().trim();
+	old_tag = input_obj.attr("data-tag");
 	language = parent.attr("data-language");
-	console.log(`change "${old_alias}" to "${new_alias}" for lang ${language}`); // TODO: ....
-	postJSON("/tags/rename_tag.do",
+	console.log(`change "${old_tag}" to "${new_tag}" for lang ${language}`); // TODO: ....
+	/*postJSON("/tags/rename_tag.do",
     {
 		"tag": old_alias,
 		"new_tag": new_alias
@@ -207,7 +205,7 @@ function saveLanguageAlias(obj) {
 		other_language_item_a_obj.text(`${new_alias}`);
     }, function(result){
         alert(result.data.reason);
-    });
+    });*/
 }
 
 function removeLanguageAlias(obj) {
@@ -233,9 +231,9 @@ function addLanguageAlias(obj) {
 	alias_text = input_obj.val().trim();
 	select_obj = $("select", parent);
 	language = select_obj.val();
-	tag = parent.attr("data-tag");
+	tag = parent.attr("data-tag-id");
 	console.log(`adding "${alias_text}" to "${tag}" for lang ${language}`); // TODO: ....
-	postJSON("/tags/add_tag_language.do",
+	/*postJSON("/tags/add_tag_language.do",
     {
 		"alias": alias_text,
 		"dst_tag": tag,
@@ -246,8 +244,8 @@ function addLanguageAlias(obj) {
 		td_category = td.attr("data-category");
 		lang_row_obj = $(`<div data-language="${language}">
 		<span>${_LANGUAGE_MAP[language]}</span>
-		<input style="color: ${getCategoryColor(td_category)};" oninput="onAliasChanged(this);" data-alias="${alias_text}" data-tag="${tag}" class="multilanguage-tag-textbox" value="${alias_text}" />
-		<button onclick="saveLanguageAlias(this);" data-tag="${tag}" class="multilanguage-tag-save">保存</button>
+		<input style="color: ${getCategoryColor(td_category)};" oninput="onInputChanged(this);" data-alias="${alias_text}" data-tag-id="${tag}" class="multilanguage-tag-textbox" value="${alias_text}" />
+		<button onclick="saveLanguageTag(this);" data-tag-id="${tag}" class="multilanguage-tag-save">保存</button>
 		</div>
 		`);
 		option_to_remove = $(`option[value=${language}]`, select_obj);
@@ -261,11 +259,11 @@ function addLanguageAlias(obj) {
 		other_language_obj.append(new_other_language_obj);
 	}, function(result){
         alert(result.data.reason);
-    });
+    });*/
 }
 
 function buildAddLanguageRow(tag, root_language, languages, color) {
-	var html = `<div class="add-language-div" data-tag="${tag}">`;
+	var html = `<div class="add-language-div" data-tag-id="${tag}">`;
 	var remaining_languages = [];
 	if (isEmpty(languages)) {
 		for (lang_key in _LANGUAGE_MAP) {
@@ -293,51 +291,6 @@ function buildAddLanguageRow(tag, root_language, languages, color) {
 	return html;
 }
 
-function changeRootLanguage(obj) {
-	sender = $(obj);
-	root_tag_language_edit_div = sender.parent();
-	new_lang = $(`select`, root_tag_language_edit_div).val();
-	tag = root_tag_language_edit_div.attr("data-tag");
-	console.log(`Changing root tag language for ${tag} to ${new_lang}`);
-	postJSON("/tags/update_root_tag_language.do",
-    {
-		"tag": tag,
-		"language": new_lang
-    }, function(result){
-		gotoPage(EDITTAG_CUR_CATEGORY, EDITTAG_CUR_PAGE);
-    }, function(result){
-        alert(result.data.reason);
-    });
-}
-
-function onRootLanguageSelectChanged(obj) {
-	sender = $(obj);
-	root_tag_language_edit_div = sender.parent();
-	old_lang = root_tag_language_edit_div.attr("data-lang");
-	new_lang = sender.val();
-	if (old_lang !== new_lang) {
-		$(`button.root-tag-language-edit-save`, root_tag_language_edit_div).css('visibility', 'visible');
-	} else {
-		$(`button.root-tag-language-edit-save`, root_tag_language_edit_div).css('visibility', 'hidden');
-	}
-}
-
-function buildRootTagLanguageEdit(tag, root_language) {
-	var html = `<div class="root-tag-language-edit" data-tag="${tag}" data-lang=${root_language}>`;
-	html += `<select onchange="onRootLanguageSelectChanged(this);">`;
-	for (lang in _LANGUAGE_MAP) {
-		if (lang == root_language) {
-			html += `<option value="${lang}" selected="">${_LANGUAGE_MAP[lang]}</option>`;
-		} else {
-			html += `<option value="${lang}">${_LANGUAGE_MAP[lang]}</option>`;
-		}
-	}
-	html += `</select>`;
-	html += `<button onclick="changeRootLanguage(this);" class="root-tag-language-edit-save">修改</button>`;
-	html += `</div>`;
-	return html;
-}
-
 function gotoPage(category, page) {
 	EDITTAG_CUR_PAGE = page;
 	EDITTAG_CUR_CATEGORY = category;
@@ -358,57 +311,38 @@ function gotoPage(category, page) {
 		table_obj.append(tr);
 		result.data.tags.forEach(element => {
 			tag_color = getCategoryColor(element.category);
-			expandObj = `<td class="col-2" onclick="javascript:expandLanguageEdit(this);" data-tag="${element.tag}"><span class="unselectable">+</span></td>`;
-			root_tag_language = buildRootTagLanguageEdit(element.tag, element.language);
-			if (isEmpty(element.dst))
+			expandObj = `<td class="col-2" onclick="javascript:expandLanguageEdit(this);" data-tag-id="${element.id}"><span class="unselectable">+</span></td>`;
+			//root_tag_language = buildRootTagLanguageEdit(element.tag, element.language);
+
+			var new_element = `
+			<tr class="table-content" data-tag-id="${element.id}">
+				<td class="col-1">${element.count}</td>
+				${expandObj}
+				<td data-category="${element.category}">
+					<div class="language-prompt-div">
+				`;
+			for (var lang_key in element.languages)
 			{
-				var new_element = `
-				<tr class="table-content" data-root-tag="${element.tag}">
-					<td class="col-1">${element.count}</td>
-					${expandObj}
-					<td data-category="${element.category}">
-						<div>
-							<a style="color: ${tag_color};" href="/search?query=${element.tag}">${element.tag}</a>
-							${root_tag_language}
-							<a class="tag-operation" href='javascript:removeTag("${element.tag}", "${category}");'>删除</a>
-					`;
-				new_element += `<span class="other-language">`;
-				if (!isEmpty(element.languages))
-				{
-					for (var lang_key in element.languages)
-					{
-						new_element += `<span data-lang="${lang_key}">${_LANGUAGE_MAP[lang_key]}:<a style="color: ${tag_color};" href="/search?query=${element.languages[lang_key]}">${element.languages[lang_key]}</a></span>`;
-					}
-				}
-				new_element += `</span>`;
-				new_element += `</div>`;
-				new_element += `<div class="edit-language-div">`;
-				new_element += buildAddLanguageRow(element.tag, element.language, element.languages, tag_color);
-				for (var lang_key in element.languages)
-				{
-					new_element += `<div data-language="${lang_key}">
-					<span>${_LANGUAGE_MAP[lang_key]}</span>
-					<input style="color: ${tag_color};" oninput="onAliasChanged(this);" data-alias="${element.languages[lang_key]}" data-tag="${element.tag}" class="multilanguage-tag-textbox" value="${element.languages[lang_key]}" />
-					<button onclick="saveLanguageAlias(this);" data-tag="${element.tag}" class="multilanguage-tag-save">保存</button>
-					<button onclick="removeLanguageAlias(this);" data-tag="${element.tag}" class="multilanguage-tag-remove">删除</button>
-					</div>
-					`;
-				}
-				new_element += `</div>`;
-				new_element += `</td>`;
-				new_element += `</tr>`;
-				tr = $(new_element);
-			} else {
-				tr = $(`
-				<tr class="table-content" data-root-tag="${element.tag}">
-					<td class="col-1">-</td>
-					<td class="col-2"></td>
-					<td>${element.tag}<span> -> </span>
-						<a style="color: ${tag_color};" href="/search?query=${element.dst}">${element.dst}</a>
-					</td>
-					<a class="tag-operation" href='javascript:removeTag("${element.tag}", "${category}");'>删除</a>
-				</tr>`);
+				new_element += `<span data-lang="${lang_key}">${_LANGUAGE_MAP[lang_key]}:<a style="color: ${tag_color};" href="/search?query=${element.languages[lang_key]}">${element.languages[lang_key]}</a></span>`;
 			}
+			new_element += `</div>`;
+
+			new_element += `<div class="edit-tag-div">`;
+			new_element += buildAddLanguageRow(element.id, element.language, element.languages, tag_color);
+			for (var lang_key in element.languages)
+			{
+				new_element += `<div data-language="${lang_key}">
+				<span>${_LANGUAGE_MAP[lang_key]}</span>
+				<input style="color: ${tag_color};" oninput="onInputChanged(this);" data-tag="${element.languages[lang_key]}" data-tag-id="${element.id}" class="multilanguage-tag-textbox" value="${element.languages[lang_key]}" />
+				<button onclick="saveLanguageTag(this);" data-tag-id="${element.id}" class="multilanguage-tag-save">保存</button>
+				</div>
+				`;
+			}
+			new_element += `</div>`;
+			new_element += `</td>`;
+			new_element += `</tr>`;
+			tr = $(new_element);
+			
 			table_obj.append(tr);
 		});
 		p_obj = buildPageSelector(category, page, result.data.page_count);

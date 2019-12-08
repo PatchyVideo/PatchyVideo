@@ -328,7 +328,7 @@ class TagDB() :
 	def add_item(self, tags, item, user = '', session = None) :
 		tag_ids = self.filter_and_translate_tags(tags)
 		item_id = self.db.items.insert_one({'tags': tag_ids, 'item': item, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session).inserted_id
-		self.db.tags.update_many({'tag': {'$in': tag_ids}}, {'$inc': {'count': 1}}, session = session)
+		self.db.tags.update_many({'id': {'$in': tag_ids}}, {'$inc': {'count': 1}}, session = session)
 		return item_id
 
 	def verify_tags(self, tags, session = None) :
@@ -365,8 +365,8 @@ class TagDB() :
 				raise UserError('ITEM_NOT_EXIST')
 		else:
 			item = item_id_or_item_object
-		self.db.tags.update_many({'tag': {'$in': item['tags']}}, {'$inc': {'count': -1}}, session = session)
-		self.db.tags.update_many({'tag': {'$in': new_tag_ids}}, {'$inc': {'count': 1}}, session = session)
+		self.db.tags.update_many({'id': {'$in': item['tags']}}, {'$inc': {'count': -1}}, session = session)
+		self.db.tags.update_many({'id': {'$in': new_tag_ids}}, {'$inc': {'count': 1}}, session = session)
 		#self.aci.SetTagOrAliasCountDiff([(t, -1) for t in item['tags']])
 		#self.aci.SetTagOrAliasCountDiff([(t, 1) for t in new_tag_ids])
 		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': new_tag_ids, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
@@ -401,7 +401,7 @@ class TagDB() :
 		num_items = len(item_ids)
 		new_tag_count_diff = [(tag, num_items - prior_tag_counts.get(tag, 0)) for tag in new_tag_ids]
 		for (tag, diff) in new_tag_count_diff:
-			self.db.tags.update_one({'tag': tag}, {'$inc': {'count': diff}}, session = session) # $inc is atomic, no locking needed
+			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session) # $inc is atomic, no locking needed
 		# self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
 
 	def update_many_items_tags_pull(self, item_ids, tags_to_remove, user = '', session = None):
@@ -412,7 +412,7 @@ class TagDB() :
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		new_tag_count_diff = [(tag, -prior_tag_counts.get(tag, 0)) for tag in tag_ids_to_remove]
 		for (tag, diff) in new_tag_count_diff:
-			self.db.tags.update_one({'tag': tag}, {'$inc': {'count': diff}}, session = session)
+			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
 		# self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
 
 	def update_item_tags_merge(self, item_id, new_tags, user = '', session = None):
@@ -426,7 +426,7 @@ class TagDB() :
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		new_tag_count_diff = [(tag, 1 - prior_tag_counts.get(tag, 0)) for tag in new_tag_ids]
 		for (tag, diff) in new_tag_count_diff:
-			self.db.tags.update_one({'tag': tag}, {'$inc': {'count': diff}}, session = session)
+			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
 		# self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
 
 	def update_item_tags_pull(self, item_id, tags_to_remove, user = '', session = None):
@@ -440,7 +440,7 @@ class TagDB() :
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		new_tag_count_diff = [(tag, -prior_tag_counts.get(tag, 0)) for tag in tag_ids_to_remove]
 		for (tag, diff) in new_tag_count_diff:
-			self.db.tags.update_one({'tag': tag}, {'$inc': {'count': diff}}, session = session)
+			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
 		# self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
 
 	def remove_alias(self, alias_name, user = '', session = None) :
