@@ -319,8 +319,7 @@ def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
 	
 	return ans_obj, db.playlists.find(query).count()
 
-@usingResource('tags')
-def listCommonTags(pid) :
+def listCommonTagIDs(pid) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
 	if playlist is None :
 		raise UserError('PLAYLIST_NOT_EXIST')
@@ -388,17 +387,20 @@ def listCommonTags(pid) :
 		return []
 
 @usingResource('tags')
+def listCommonTags(pid, language) :
+	return tagdb.translate_tag_ids_to_user_language(listCommonTagIDs(pid), language)[0]
+
+@usingResource('tags')
 def updateCommonTags(pid, tags, user) :
 	with MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
 		# user is editing video tags, not the playlist itself, no need to lock playlist or check for authorization
-		old_tags = listCommonTags(pid)
+		tags = tagdb.filter_and_translate_tags(tags, s())
+		old_tags = listCommonTagIDs(pid)
 		old_tags_set = set(old_tags)
 		new_tags_set = set(tags)
 		tags_added = list((old_tags_set ^ new_tags_set) - old_tags_set)
-		tags_added = tagdb.filter_tags(tags_added)
-		tags_added = tagdb.translate_tags(tags_added)
 		tags_to_remove = list((old_tags_set ^ new_tags_set) - new_tags_set)
 		if len(tags_added) - len(tags_to_remove) > PlaylistConfig.MAX_COMMON_TAGS :
 			raise UserError('TOO_MANY_TAGS')

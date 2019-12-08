@@ -29,6 +29,7 @@ def queryTags(category, page_idx, page_size, order = 'none'):
         result = result.sort([("count", 1)])
     return result.skip(page_idx * page_size).limit(page_size)
 
+"""
 def queryTagsWildcard(query, category, page_idx, page_size, order = 'none'):
     result = tagdb.find_tags_wildcard(query, category)
     if isinstance(result, str):
@@ -56,6 +57,7 @@ def queryTagsRegex(query, category, page_idx, page_size, order = 'none'):
     elif order == 'count_inv':
         result = result.sort([("count", 1)])
     return result.skip(page_idx * page_size).limit(page_size)
+"""
 
 def queryCategories():
     return tagdb.list_categories()
@@ -65,13 +67,10 @@ def addTag(user, tag, category, language):
     ret, sanitized_tag = verifyAndSanitizeTagOrAlias(tag)
     if not ret :
         raise UserError('INVALID_TAG')
-    ret, sanitized_lang = verifyAndSanitizeLanguage(language)
-    if not ret :
-        raise UserError('INVALID_LANGUAGE')
     if len(sanitized_tag) > TagsConfig.MAX_TAG_LENGTH :
         raise UserError('TAG_TOO_LONG')
     with MongoTransaction(client) as s :
-        tagdb.add_tag(sanitized_tag, category, sanitized_lang, makeUserMeta(user), s())
+        tagdb.add_tag(sanitized_tag, category, language, makeUserMeta(user), s())
         s.mark_succeed()
 
 def queryTagCategories(tags) :
@@ -96,47 +95,28 @@ def removeTag(user, tag) :
         s.mark_succeed()
 
 @modifyingResource('tags')
-def renameTag(user, tag, new_tag) :
+def renameTagOrAddTagLanguage(user, tag, new_tag, language) :
     ret, sanitized_tag = verifyAndSanitizeTagOrAlias(new_tag)
     if not ret :
         raise UserError('INVALID_TAG')
     if len(sanitized_tag) > TagsConfig.MAX_TAG_LENGTH :
         raise UserError('TAG_TOO_LONG')
     with MongoTransaction(client) as s :
-        tag_obj = tagdb.db.tags.find_one({'tag': tag}, session = s())
+        #tag_obj = tagdb.db.tags.find_one({'tag': tag}, session = s())
         #if tag_obj and not _is_authorised(tag_obj, user, 'rename') :
         #    raise UserError('UNAUTHORISED_OPERATION')
-        tagdb.rename_tag(tag_obj, sanitized_tag, makeUserMeta(user), session = s())
+        tagdb.add_or_rename_tag(tag, sanitized_tag, language, makeUserMeta(user), session = s())
         s.mark_succeed()
 
 @modifyingResource('tags')
-def addAlias(user, alias, dst_tag) :
-    ret, sanitized_alias = verifyAndSanitizeTagOrAlias(alias)
+def renameOrAddAlias(user, old_name_or_tag_name, new_name) :
+    ret, sanitized_alias = verifyAndSanitizeTagOrAlias(new_name)
     if not ret :
         raise UserError('INVALID_TAG')
     if len(sanitized_alias) > TagsConfig.MAX_TAG_LENGTH :
         raise UserError('TAG_TOO_LONG')
     with MongoTransaction(client) as s :
-        alias_obj = tagdb.db.tags.find_one({'tag': alias}, session = s())
-        if alias_obj is not None :
-            raise UserError('ALIAS_EXIST')
-        tagdb.add_tag_alias(sanitized_alias, dst_tag, 'regular', '', makeUserMeta(user), session = s())
-        s.mark_succeed()
-
-@modifyingResource('tags')
-def addTagLanguage(user, alias, dst_tag, language) :
-    ret, sanitized_alias = verifyAndSanitizeTagOrAlias(alias)
-    if not ret :
-        raise UserError('INVALID_ALIAS')
-    ret, sanitized_lang = verifyAndSanitizeLanguage(language)
-    if not ret :
-        raise UserError('INVALID_LANGUAGE')
-    with MongoTransaction(client) as s :
-        alias_obj = tagdb.db.tags.find_one({'tag': alias}, session = s())
-        if alias_obj is not None and 'type' in alias_obj and alias_obj['type'] == 'language' :
-            # you can overwrite an existing regular alias with a language one
-            raise UserError('ALIAS_EXIST')
-        tagdb.add_tag_alias(sanitized_alias, dst_tag, 'language', sanitized_lang, makeUserMeta(user), session = s())
+        tagdb.add_or_rename_alias(old_name_or_tag_name, sanitized_alias, makeUserMeta(user), session = s())
         s.mark_succeed()
 
 @modifyingResource('tags')
@@ -145,15 +125,6 @@ def removeAlias(user, alias) :
         alias_obj = tagdb.db.tags.find_one({'tag': alias}, session = s())
         if alias_obj and not _is_authorised(alias_obj, user, 'remove') :
             raise UserError('UNAUTHORISED_OPERATION')
-        tagdb.remove_tag_alias(alias, makeUserMeta(user), session = s())
-        s.mark_succeed()
-
-@modifyingResource('tags')
-def updateTagLanguage(user, tag, language) :
-    with MongoTransaction(client) as s :
-        tag_obj = tagdb.db.tags.find_one({'tag': tag}, session = s())
-        if tag_obj and not _is_authorised(tag_obj, user, 'edit') :
-            raise UserError('UNAUTHORISED_OPERATION')
-        tagdb.update_tag_language(tag, language, makeUserMeta(user), session = s())
+        tagdb.remove_alias(alias, makeUserMeta(user), session = s())
         s.mark_succeed()
 

@@ -9,15 +9,12 @@ from init import rdb
 from bson import ObjectId
 import redis_lock
 from config import VideoConfig, TagsConfig
-from services.getVideo import getVideoDetailWithTagObjects
 
 @usingResource('tags')
 def editVideoTags(vid, tags, user):
     if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
         raise UserError('TAGS_LIMIT_EXCEEDED')
     tagdb.verify_tags(tags)
-    tags = tagdb.translate_tags(tags)
-    tags = list(set(tags))
     item = tagdb.db.items.find_one({'_id': ObjectId(vid)})
     if item is None:
         raise UserError('ITEM_NOT_EXIST')
@@ -28,6 +25,6 @@ def editVideoTags(vid, tags, user):
         s.mark_succeed()
 
 def getVideoTags(vid, user_language) :
-    _, tag_objs = getVideoDetailWithTagObjects(vid)
-    return translateTagsToPreferredLanguage(tag_objs, user_language)
+    item, tags, category_tag_map, tag_category_map = tagdb.retrive_item_with_tag_category_map(vid, user_language)
+    return tags
 

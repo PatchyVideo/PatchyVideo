@@ -10,10 +10,11 @@ from utils.jsontools import *
 
 from spiders import dispatch
 
-from services.getVideo import getVideoDetailWithTagObjects, getTagCategories, getVideoDetail
+from services.getVideo import getVideoDetail
 from services.playlist import listPlaylistsForVideo
 from config import TagsConfig, VideoConfig
 
+"""
 @app.route('/getvideo.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
@@ -31,3 +32,4 @@ def ajax_getvideo(rd, user, data):
         "copies" : copies,
         "playlists" : playlists
     })
+"""

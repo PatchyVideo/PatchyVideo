@@ -14,10 +14,8 @@ from utils.html import buildPageSelector
 @loginOptional
 @jsonRequest
 def ajax_playlist_getcommontags_do(rd, data, user):
-    tags = listCommonTags(data.pid)
-    tag_objs = getTagObjects(tagdb, tags)
-    tags_translated = translateTagsToPreferredLanguage(tag_objs, 'CHS')
-    return "json", makeResponseSuccess(tags_translated)
+    tags = listCommonTags(data.pid, 'CHS')
+    return "json", makeResponseSuccess(tags)
 
 @app.route('/list/setcommontags.do', methods = ['POST'])
 @loginRequiredJSON

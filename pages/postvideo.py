@@ -5,9 +5,7 @@ from flask import render_template, request, jsonify, redirect, session
 
 from init import app
 from utils.interceptors import loginOptional, loginRequired
-from utils.tagtools import translateTagsToPreferredLanguage
-
-from services.getVideo import getVideoDetailWithTagObjects
+from db import tagdb
 
 @app.route('/postvideo')
 @loginRequired
@@ -18,15 +16,13 @@ def pages_postvideo(rd, user):
     rd.rank = -1
     if 'copy' in request.values:
         vid = request.values['copy']
-        _, tag_objs = getVideoDetailWithTagObjects(vid)
-        tags_translated = translateTagsToPreferredLanguage(tag_objs, 'CHS')
-        rd.default_tags = '\n'.join(tags_translated)
+        _, tags, _, _ = tagdb.retrive_item_with_tag_category_map(vid, 'CHS')
+        rd.default_tags = '\n'.join(tags)
         rd.copy = vid
     if 'use_tags' in request.values:
         vid = request.values['use_tags']
-        _, tag_objs = getVideoDetailWithTagObjects(vid)
-        tags_translated = translateTagsToPreferredLanguage(tag_objs, 'CHS')
-        rd.default_tags = '\n'.join(tags_translated)
+        _, tags, _, _ = tagdb.retrive_item_with_tag_category_map(vid, 'CHS')
+        rd.default_tags = '\n'.join(tags)
     return "postvideo.html"
 
 

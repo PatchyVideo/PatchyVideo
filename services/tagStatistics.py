@@ -15,8 +15,8 @@ def getPopularTags(user_language, max_count = 20) :
         assert isinstance(max_count, int) and max_count <= 100 and max_count > 0
         response = get_page(TAG_TRACKER_ADDRESS + "/get?count=%d" % max_count)
         json_obj = json.loads(response)
-        tag_objs = getTagObjects(tagdb, json_obj['tags'])
-        return translateTagsToPreferredLanguage(tag_objs, user_language)
+        tag_ids = [int(i) for i in json_obj['tags']]
+        return tagdb.translate_tag_ids_to_user_language(tag_ids, user_language)[0]
     except :
         return []
 
@@ -25,13 +25,13 @@ def getCommonTags(user_language, videos, max_count = 20) :
         return []
     all_tags = list(itertools.chain(*[vid['tags'] for vid in videos]))
     tag_map = Counter(all_tags).most_common(n = max_count)
-    tag_objs = getTagObjects(tagdb, [item[0] for item in tag_map])
-    return translateTagsToPreferredLanguage(tag_objs, user_language)
+    tag_ids = [item[0] for item in tag_map]
+    return tagdb.translate_tag_ids_to_user_language(tag_ids, user_language)[0]
 
 @ignoreError
 def updateTagSearch(tags) :
-    tags = list(set(tags))
+    tag_ids = tagdb.filter_and_translate_tags(tags)
     payload = {
-        'hitmap': dict.fromkeys(tags, 1)
+        'hitmap': dict.fromkeys(tag_ids, 1)
     }
     post_json(TAG_TRACKER_ADDRESS + "/hit", payload)

@@ -182,10 +182,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 	try :
 		dst_playlist = str(dst_playlist)
 		dst_rank = -1 if dst_rank is None else dst_rank
-		tags = [tag.strip() for tag in tags]
-		tags = tagdb.filter_tags(tags) # tags maybe removed while waiting in queue
-		tags = tagdb.translate_tags(tags)
-		tags = list(set(tags))
+		#tags = tagdb.filter_and_translate_tags(tags)
 		parsed, unique_id = dispatch(url)
 	except :
 		pass
