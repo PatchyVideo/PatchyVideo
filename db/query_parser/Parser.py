@@ -199,12 +199,23 @@ def _getv(node, idx):
 def _cd(t) :
 	return list(set(t))
 
+def _int(a) :
+	if isinstance(a, int) :
+		return a
+	elif isinstance(a, str) :
+		try :
+			return int(a)
+		except :
+			return a
+	elif isinstance(a, list) :
+		return [_int(b) for b in a]
+
 def _prepare_tag_list(node, groups, tag_translator, wildcard_translator):
 	if len(node.children) == 3:
 		if _getk(node, 0) == 'ALL':
-			return 'all-tags', { 'tags' : { '$all' : groups[_getv(node, 2)] } }
+			return 'all-tags', { 'tags' : { '$all' : _int(groups[_getv(node, 2)]) } }
 		elif _getk(node, 0) == 'ANY':
-			return 'any-tags', { 'tags' : { '$in' : groups[_getv(node, 2)] } }
+			return 'any-tags', { 'tags' : { '$in' : _int(groups[_getv(node, 2)]) } }
 		else :
 			try:
 				return 'complex-query', _prepare_attributes(_getv(node, 0), _getv(node, 2))
@@ -213,13 +224,13 @@ def _prepare_tag_list(node, groups, tag_translator, wildcard_translator):
 	else:
 		tag = _getv(node, 0)
 		if '*' in tag :
-			in_tags = _cd(tag_translator(wildcard_translator(tag)))
+			in_tags = _cd(wildcard_translator(tag))
 			if len(in_tags) == 1 :
-				return 'single-tag', { 'tags' : in_tags[0] }
+				return 'single-tag', { 'tags' : _int(in_tags[0]) }
 			else :
-				return 'any-tags', { 'tags' : { '$in' : in_tags } }
+				return 'any-tags', { 'tags' : { '$in' : _int(in_tags) } }
 		else :
-			return 'single-tag', { 'tags' : tag }
+			return 'single-tag', { 'tags' : _int(tag) }
 
 # parse syntax tree into query structure with some simple optimizations
 # TODO: handle none tag
@@ -378,7 +389,7 @@ def parse_tag(query, tag_translator, group_translator, wildcard_translator):
 				groups.append(v)
 			else:
 				tags.append(v)
-	tags = tag_translator(tags)
+	tags = [str(t) for t in tag_translator(tags)]
 	group_map = group_translator(groups)
 	ti = 0
 	for i, (k, v) in enumerate(zip(ts, ss)):

@@ -82,7 +82,7 @@ class TagDB() :
 	def list_categories(self, session = None) :
 		return [item for item in self.db.cats.find({}, session = session)]
 
-	def list_category_tags(self, category, language, session = None) :
+	def list_category_tags(self, category, session = None) :
 		self._check_category(category, session)
 		ans = self.db.tags.find({'category': category}, session = session)
 		return ans
@@ -159,6 +159,17 @@ class TagDB() :
 		], session = session)
 		return list(set([item['tag_obj']['id'] for item in found]))
 
+	def translate_tags(self, tags, session = None) :
+		tag_alias_objs = self.db.tag_alias.aggregate([
+			{'$match': {'tag': {'$in': tags}}},
+			{'$lookup': {"from" : "tags", "localField" : "dst", "foreignField" : "_id", "as" : "tag_obj"}},
+			{'$unwind': {'path': '$tag_obj'}}
+		], session = session)
+		tag_map = {}
+		for item in tag_alias_objs:
+			tag_map[item['tag']] = item['tag_obj']['id']
+		return [tag_map[tag] if tag in tag_map else tag for tag in tags]
+
 	def remove_tag(self, tag_name_or_tag_obj, user = '', session = None) :
 		tag_obj = self._tag(tag_name_or_tag_obj, session = session)
 		tag = tag_obj['id']
@@ -181,8 +192,6 @@ class TagDB() :
 		return ans, lang
 
 	def add_or_rename_tag(self, tag_name, new_tag_name, language, user = '', session = None) :
-		if tag_name == new_tag_name :
-			raise UserError('SAME_NAME')
 		self._check_language(language)
 		tag_obj = self._tag(tag_name, session = session)
 		new_tag_alias_obj = self.db.tag_alias.find_one({'tag': new_tag_name}, session = session)
@@ -212,7 +221,7 @@ class TagDB() :
 			rc, lang_referenced = self._get_tag_name_reference_count(tag_name, tag_obj)
 			assert rc > 0
 			# delete ONLY IF it is referenced only once AND it is exactly referenced by the given language
-			if rc == 1 and lang_referenced == language :
+			if rc == 1 and lang_referenced == language and tag_name != new_tag_name :
 				self.db.tag_alias.delete_one({'tag': tag_name}, session = session)
 
 		# add or update tag specified by language
@@ -236,14 +245,14 @@ class TagDB() :
 		if rc == 1 and lang_referenced is None :
 			# rename
 			# in such case, tag_name IS old_alias_name
-			self.db.tag_alias.update_one({
+			self.db.tag_alias.update_one({'tag': old_alias_name}, {
 			'$set': {
 				'tag': alias_name,
 				'meta.modified_by': user, 'meta.modified_at': datetime.now()
 			}
 			}, session = session)
 			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$pullAll': {'alias': [old_alias_name]}}, session = session)
-			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$addToSet': {'alias': {alias_name}}}, session = session)
+			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$addToSet': {'alias': alias_name}}, session = session)
 		else :
 			# add
 			self.db.tag_alias.insert_one({
@@ -252,7 +261,7 @@ class TagDB() :
 				'meta': {'created_by': user, 'created_at': datetime.now()}
 			}, session = session)
 			self.db.tags.update_one({'_id': tag_obj['_id']}, {
-				'$addToSet': {'alias': {alias_name}},
+				'$addToSet': {'alias': alias_name},
 			}, session = session)
 	
 	def retrive_items(self, tag_query, session = None) :
@@ -465,18 +474,13 @@ class TagDB() :
 		query = re.escape(query)
 		query = query.replace('\\*', '.*')
 		query = f'^{query}$'
-		ret = self.db.tags.aggregate([
-		{
-			'$match' : {
-				'tag' : {'$regex' : query}
-			}
-		},
-		{
-			'$project' : {
-				'tag' : 1
-			}
-		}])
-		return [item['tag'] for item in ret]
+		ret = self.db.tag_alias.aggregate([
+			{'$match': {'tag' : {'$regex' : query}}},
+			{'$lookup': {"from" : "tags", "localField" : "dst", "foreignField" : "_id", "as" : "tag_obj"}},
+			{'$unwind': {'path': '$tag_obj'}},
+			{'$project': {'tag_obj.id': 1}}
+		])
+		return [item['tag_obj']['id'] for item in ret]
 
 	def compile_query(self, query, session = None):
 		query_obj, tags = Parser.parse(query, self.translate_tags, self.translate_tag_group, self.translate_tag_wildcard)
