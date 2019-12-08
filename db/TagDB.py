@@ -284,26 +284,42 @@ class TagDB() :
 		for obj in found :
 			ans[obj['tag_obj']['category']].append(obj['tag'])
 		return ans
-
-	def get_tag_category_map(self, tags, session = None):
-		tag_objs = self.db.tags.find({'tag': {'$in': tags}}, session = session)
-		ans = {}
-		for obj in tag_objs:
-			ans[obj['tag']] = obj['category']
-		return ans
 	"""
 
-	def retrive_item_with_tag_category_map(self, tag_query_or_item_id, language, session = None) :
-		if isinstance(tag_query_or_item_id, ObjectId):
-			item_obj = self.db.items.find_one({'_id': ObjectId(tag_query_or_item_id)}, session = session)
-		else:
-			item_obj = self.db.items.find_one(tag_query_or_item_id, session = session)
-		tag_objs = self.db.tags.find({'tag': {'$in': item_obj['tags']}}, session = session)
+	def get_tag_category_map(self, tags, session = None):
+		tag_objs = self.db.tag_alias.aggregate([
+			{'$match': {'tag': {'$in': tags}}},
+			{'$lookup': {"from" : "tags", "localField" : "dst", "foreignField" : "_id", "as" : "tag_obj"}},
+			{'$unwind': {'path': '$tag_obj'}}
+		], session = session)
+		ans = {}
+		for obj in tag_objs:
+			ans[obj['tag']] = obj['tag_obj']['category']
+		return ans
+	
+	def translate_tag_ids_to_user_language(self, tag_ids, language, session = None) :
+		tag_objs = self.db.tags.find({'id': {'$in': tag_ids}}, session = session)
 		category_tag_map = defaultdict(list)
 		tag_category_map = {}
 		tags = []
 		for obj in tag_objs :
-			tag_in_user_language = translateTagToPreferredLanguage(obj)
+			tag_in_user_language = translateTagToPreferredLanguage(obj, language)
+			tags.append(tag_in_user_language)
+			category_tag_map[obj['category']].append(tag_in_user_language)
+			tag_category_map[tag_in_user_language] = obj['category']
+		return tags, category_tag_map, tag_category_map
+
+	def retrive_item_with_tag_category_map(self, tag_query_or_item_id, language, session = None) :
+		if isinstance(tag_query_or_item_id, ObjectId) or isinstance(tag_query_or_item_id, str):
+			item_obj = self.db.items.find_one({'_id': ObjectId(tag_query_or_item_id)}, session = session)
+		else:
+			item_obj = self.db.items.find_one(tag_query_or_item_id, session = session)
+		tag_objs = self.db.tags.find({'id': {'$in': item_obj['tags']}}, session = session)
+		category_tag_map = defaultdict(list)
+		tag_category_map = {}
+		tags = []
+		for obj in tag_objs :
+			tag_in_user_language = translateTagToPreferredLanguage(obj, language)
 			tags.append(tag_in_user_language)
 			category_tag_map[obj['category']].append(tag_in_user_language)
 			tag_category_map[tag_in_user_language] = obj['category']
@@ -317,7 +333,7 @@ class TagDB() :
 
 	def verify_tags(self, tags, session = None) :
 		found_tags = self.db.tag_alias.find({'tag': {'$in': tags}}, session = session)
-		tm = [tag for tag in found_tags['tag']]
+		tm = [tag['tag'] for tag in found_tags]
 		for tag in tags :
 			if tag not in tm :
 				raise UserError('TAG_NOT_EXIST', tag)

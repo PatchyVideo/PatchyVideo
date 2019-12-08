@@ -389,12 +389,12 @@ def parse_tag(query, tag_translator, group_translator, wildcard_translator):
 				groups.append(v)
 			else:
 				tags.append(v)
-	tags = [str(t) for t in tag_translator(tags)]
+	tags2 = [str(t) for t in tag_translator(tags)]
 	group_map = group_translator(groups)
 	ti = 0
 	for i, (k, v) in enumerate(zip(ts, ss)):
 		if k == 'TAG' and ((i > 0 and ts[i-1] != ':') or i == 0):
-			ss[i] = tags[ti]
+			ss[i] = tags2[ti]
 			ti += 1
 	tree = _p.Parse(ts, ss)
 	if tree is None:
