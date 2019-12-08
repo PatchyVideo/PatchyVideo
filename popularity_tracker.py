@@ -65,20 +65,20 @@ class PopularityTracker(object) :
 		to_subtract_bin_idx = (self.idx + 2) % (self.num_bins + 2)
 		all_hitmap = Counter(self.hitmap)
 		current_bin = self.bins[self.idx] or {}
-		print('current')
-		print(current_bin)
+		#print('current')
+		#print(current_bin)
 		current_bin_tags = list(current_bin.keys())
 		current_bin = {tag: current_bin[tag] for tag in current_bin_tags}
 		current_hitmap = Counter(current_bin)
 		all_hitmap = all_hitmap + current_hitmap
 		if self.bins[to_subtract_bin_idx] is not None :
-			print('subtracting')
-			print(self.bins[to_subtract_bin_idx])
+			#print('subtracting')
+			#print(self.bins[to_subtract_bin_idx])
 			to_subtract_hitmap = Counter(self.bins[to_subtract_bin_idx])
 			all_hitmap = all_hitmap - to_subtract_hitmap
 			self.bins[to_subtract_bin_idx] = {}
-		print('all_hitmap')
-		print(all_hitmap)
+		#print('all_hitmap')
+		#print(all_hitmap)
 		self.hitmap = all_hitmap
 		self.idx = next_bin_idx
 		self._sort()
@@ -112,8 +112,8 @@ def get_page(rd) :
 	except :
 		count = 20
 	hitmap_update_lock.acquire()
-	print('get')
-	print(tracker.hitmap_sorted)
+	#print('get')
+	#print(tracker.hitmap_sorted)
 	count = min(count, len(tracker.hitmap_sorted))
 	hitmap = list(tracker.hitmap_sorted.keys())[:count]
 	hitmap_update_lock.release()
@@ -126,13 +126,13 @@ scheduler = BackgroundScheduler(daemon = True)
 scheduler.start()
 
 def update_popularity() :
-	print('update')
+	#print('update')
 	tracker.update_popularity_and_move_to_next_bin()
 
 atexit.register(lambda: scheduler.shutdown(wait = False))
 
 if __name__ == "__main__":
 	scheduler.add_job(update_popularity, 'interval', minutes = 10)
-	print('started')
+	#print('started')
 	app.run(host = '0.0.0.0', port = 5001)
 
