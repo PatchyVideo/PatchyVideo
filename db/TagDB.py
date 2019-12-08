@@ -88,7 +88,7 @@ class TagDB():
 			ans.append(item)
 		return ans
 
-	def list_category_tags(self, category, language, session = None):
+	def list_category_tags(self, category, session = None):
 		cat = self.db.cats.find_one({'name': category}, session = session)
 		if cat is None:
 			raise UserError("CATEGORY_NOT_EXIST")
