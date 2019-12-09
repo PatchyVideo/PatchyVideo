@@ -190,22 +190,67 @@ function saveLanguageTag(obj) {
 	old_tag = input_obj.attr("data-tag");
 	language = parent.attr("data-language");
 	console.log(`change "${old_tag}" to "${new_tag}" for lang ${language}`); // TODO: ....
-	/*postJSON("/tags/rename_tag.do",
+	postJSON("/tags/rename_tag.do",
     {
-		"tag": old_alias,
-		"new_tag": new_alias
+		"tag": old_tag,
+		"new_tag": new_tag,
+		"language": language
     }, function(result){
-        input_obj.attr("data-alias", new_alias);
+        input_obj.attr("data-tag", new_tag);
 		button_obj.css("visibility", "hidden");
 		td = parent.parent().parent();
-		other_language_obj = $("span.other-language", td);
-		other_language_item_obj = $(`span[data-lang=${language}]`, other_language_obj);
-		other_language_item_a_obj = $("a", other_language_item_obj);
-		other_language_item_a_obj.attr("href", `/search?query=${new_alias}`);
-		other_language_item_a_obj.text(`${new_alias}`);
+		language_prompt_obj = $("div.language-prompt-div", td);
+		language_prompt_span_obj = $(`span[data-lang="${language}"]`, language_prompt_obj);
+		language_prompt_span_a_obj = $("a", language_prompt_span_obj);
+		language_prompt_span_a_obj.attr("href", `/search?query=${new_tag}`);
+		language_prompt_span_a_obj.text(`${new_tag}`);
     }, function(result){
         alert(result.data.reason);
-    });*/
+    });
+}
+
+function saveAliasTag(obj) {
+	parent = $(obj).parent();
+	input_obj = $("input.multilanguage-tag-textbox", parent);
+	button_obj = $("button.multilanguage-tag-save", parent);
+	new_tag = input_obj.val().trim();
+	old_tag = input_obj.attr("data-tag");
+	console.log(`change alias "${old_tag}" to "${new_tag}"`);
+	postJSON("/tags/rename_alias.do",
+    {
+		"tag": old_tag,
+		"new_tag": new_tag
+    }, function(result){
+        input_obj.attr("data-tag", new_tag);
+		button_obj.css("visibility", "hidden");
+		td = parent.parent().parent();
+		language_prompt_obj = $("div.language-prompt-div", td);
+		language_prompt_span_obj = $(`span[data-alias="${old_tag}"]`, language_prompt_obj);
+		language_prompt_span_a_obj = $("a", language_prompt_span_obj);
+		language_prompt_span_a_obj.attr("href", `/search?query=${new_tag}`);
+		language_prompt_span_a_obj.text(`${new_tag}`);
+    }, function(result){
+        alert(result.data.reason);
+    });
+}
+
+function removeAliasTag(obj) {
+	parent = $(obj).parent();
+	input_obj = $("input.multilanguage-tag-textbox", parent);
+	button_obj = $("button.multilanguage-tag-save", parent);
+	alias = input_obj.attr("data-tag");
+	var ask = confirm(`你确定要删除"${alias}"？\n此操作不可逆。`);
+	if (ask) {
+		console.log(`removing "${alias}"`);
+		postJSON("/tags/remove_alias.do",
+		{
+			"alias": alias
+		}, function(result){
+			gotoPage(EDITTAG_CUR_CATEGORY, EDITTAG_CUR_PAGE);
+		}, function(result){
+			alert(result.data.reason);
+		});
+	}
 }
 
 function removeLanguageAlias(obj) {
@@ -233,47 +278,73 @@ function addLanguageAlias(obj) {
 	language = select_obj.val();
 	tag = parent.attr("data-tag-id");
 	console.log(`adding "${alias_text}" to "${tag}" for lang ${language}`); // TODO: ....
-	/*postJSON("/tags/add_tag_language.do",
-    {
-		"alias": alias_text,
-		"dst_tag": tag,
-		"language": language
-    }, function(result){
-		edit_language_div_obj = parent.parent();
-		td = edit_language_div_obj.parent();
-		td_category = td.attr("data-category");
-		lang_row_obj = $(`<div data-language="${language}">
-		<span>${_LANGUAGE_MAP[language]}</span>
-		<input style="color: ${getCategoryColor(td_category)};" oninput="onInputChanged(this);" data-alias="${alias_text}" data-tag-id="${tag}" class="multilanguage-tag-textbox" value="${alias_text}" />
-		<button onclick="saveLanguageTag(this);" data-tag-id="${tag}" class="multilanguage-tag-save">保存</button>
-		</div>
-		`);
-		option_to_remove = $(`option[value=${language}]`, select_obj);
-		option_to_remove.remove();
-		input_obj.val("");
-		edit_language_div_obj.append(lang_row_obj);
-		
+	if (language == "-") {
+		console.log('adding as alias');
+		postJSON("/tags/add_alias.do",
+		{
+			"tag": tag,
+			"new_tag": alias_text
+		}, function(result){
+			edit_tag_div_obj = parent.parent();
+			td = edit_tag_div_obj.parent();
+			td_category = td.attr("data-category");
+			lang_row_obj = $(`<div data-alias="${alias_text}">
+			<span>-----</span>
+			<input style="color: ${getCategoryColor(td_category)};" oninput="onInputChanged(this);" data-tag="${alias_text}" data-tag-id="${tag}" class="multilanguage-tag-textbox" value="${alias_text}" />
+			<button onclick="saveAliasTag(this);" data-tag-id="${tag}" class="multilanguage-tag-save">保存</button>
+			</div>
+			`);
+			input_obj.val("");
+			edit_tag_div_obj.append(lang_row_obj);
 
-		other_language_obj = $("span.other-language", td);
-		new_other_language_obj = $(`<span data-lang="${language}">${_LANGUAGE_MAP[language]}:<a style="color: ${getCategoryColor(td_category)};" href="/search?query=${alias_text}">${alias_text}</a></span>`);
-		other_language_obj.append(new_other_language_obj);
-	}, function(result){
-        alert(result.data.reason);
-    });*/
+			language_prompt_obj = $("div.language-prompt-div", td);
+			new_language_prompt_span_obj = $(`<span data-alias="${alias_text}">-:<a style="color: ${getCategoryColor(td_category)};" href="/search?query=${alias_text}">${alias_text}</a></span>`);
+			language_prompt_obj.append(new_language_prompt_span_obj);
+		}, function(result){
+			alert(result.data.reason);
+		});
+	} else {
+		new_language_text = alias_text;
+		postJSON("/tags/add_tag_language.do",
+		{
+			"tag": tag,
+			"new_tag": new_language_text,
+			"language": language
+		}, function(result){
+			edit_tag_div_obj = parent.parent();
+			td = edit_tag_div_obj.parent();
+			td_category = td.attr("data-category");
+			lang_row_obj = $(`<div data-language="${language}">
+			<span>${_LANGUAGE_MAP[language]}</span>
+			<input style="color: ${getCategoryColor(td_category)};" oninput="onInputChanged(this);" data-tag="${new_language_text}" data-tag-id="${tag}" class="multilanguage-tag-textbox" value="${new_language_text}" />
+			<button onclick="saveLanguageTag(this);" data-tag-id="${tag}" class="multilanguage-tag-save">保存</button>
+			</div>
+			`);
+			option_to_remove = $(`option[value="${language}"]`, select_obj);
+			option_to_remove.remove();
+			input_obj.val("");
+			edit_tag_div_obj.append(lang_row_obj);
+			
+
+			language_prompt_obj = $("div.language-prompt-div", td);
+			new_language_prompt_span_obj = $(`<span data-lang="${language}">${_LANGUAGE_MAP[language]}:<a style="color: ${getCategoryColor(td_category)};" href="/search?query=${new_language_text}">${new_language_text}</a></span>`);
+			language_prompt_obj.append(new_language_prompt_span_obj);
+		}, function(result){
+			alert(result.data.reason);
+		});
+	}
 }
 
-function buildAddLanguageRow(tag, root_language, languages, color) {
+function buildAddLanguageRow(tag, languages, color) {
 	var html = `<div class="add-language-div" data-tag-id="${tag}">`;
 	var remaining_languages = [];
 	if (isEmpty(languages)) {
 		for (lang_key in _LANGUAGE_MAP) {
-			if (lang_key !== root_language) {
-				remaining_languages.push(lang_key);
-			}
+			remaining_languages.push(lang_key);
 		}
 	} else {
 		for (lang_key in _LANGUAGE_MAP) {
-			if (!(lang_key in languages) && lang_key !== root_language) {
+			if (!(lang_key in languages)) {
 				remaining_languages.push(lang_key);
 			}
 		}
@@ -283,6 +354,7 @@ function buildAddLanguageRow(tag, root_language, languages, color) {
 		remaining_languages.forEach(function(lang) {
 			html += `<option value="${lang}">${_LANGUAGE_MAP[lang]}</option>`;
 		});
+		html += `<option value="-">-</option>`;
 		html += `</select>`;
 		html += `<input style="color: ${color};" class="add-multilanguage-textbox" />`;
 		html += `<button onclick="addLanguageAlias(this);" class="multilanguage-tag-save" style="visibility: visible;">添加</button>`;
@@ -325,16 +397,32 @@ function gotoPage(category, page) {
 			{
 				new_element += `<span data-lang="${lang_key}">${_LANGUAGE_MAP[lang_key]}:<a style="color: ${tag_color};" href="/search?query=${element.languages[lang_key]}">${element.languages[lang_key]}</a></span>`;
 			}
+			for (var i in element.alias)
+			{
+				var alias = element.alias[i];
+				new_element += `<span data-alias="${alias}">-:<a style="color: ${tag_color};" href="/search?query=${alias}">${alias}</a></span>`;
+			}
 			new_element += `</div>`;
 
 			new_element += `<div class="edit-tag-div">`;
-			new_element += buildAddLanguageRow(element.id, element.language, element.languages, tag_color);
+			new_element += buildAddLanguageRow(element.id, element.languages, tag_color);
 			for (var lang_key in element.languages)
 			{
 				new_element += `<div data-language="${lang_key}">
 				<span>${_LANGUAGE_MAP[lang_key]}</span>
 				<input style="color: ${tag_color};" oninput="onInputChanged(this);" data-tag="${element.languages[lang_key]}" data-tag-id="${element.id}" class="multilanguage-tag-textbox" value="${element.languages[lang_key]}" />
 				<button onclick="saveLanguageTag(this);" data-tag-id="${element.id}" class="multilanguage-tag-save">保存</button>
+				</div>
+				`;
+			}
+			for (var i in element.alias)
+			{
+				var alias = element.alias[i];
+				new_element += `<div data-alias="${alias}">
+				<span>-----</span>
+				<input style="color: ${tag_color};" oninput="onInputChanged(this);" data-tag="${alias}" data-tag-id="${element.id}" class="multilanguage-tag-textbox" value="${alias}" />
+				<button onclick="saveAliasTag(this);" data-tag-id="${element.id}" class="multilanguage-tag-save">保存</button>
+				<button onclick="removeAliasTag(this);" data-tag-id="${element.id}" class="multilanguage-tag-remove">删除</button>
 				</div>
 				`;
 			}

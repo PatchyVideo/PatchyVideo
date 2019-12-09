@@ -199,16 +199,23 @@ class TagDB() :
 			raise UserError('TAG_ALREADY_EXIST')
 		
 		if new_tag_alias_obj is None :
-			rc, lang_referenced = self._get_tag_name_reference_count(tag_name, tag_obj)
-			assert rc > 0
-			# if it is only referenced once AND it is exactly referenced by the given language 
-			if rc == 1 and lang_referenced == language :
-				self.db.tag_alias.update_one({'tag': tag_name}, {
-					'$set': {
+			if not isinstance(tag_name, int) :
+				rc, lang_referenced = self._get_tag_name_reference_count(tag_name, tag_obj)
+				assert rc > 0
+				# if it is only referenced once AND it is exactly referenced by the given language 
+				if rc == 1 and lang_referenced == language :
+					self.db.tag_alias.update_one({'tag': tag_name}, {
+						'$set': {
+							'tag': new_tag_name,
+							'meta.modified_by': user, 'meta.modified_at': datetime.now()
+						}
+					}, session = session)
+				else :
+					self.db.tag_alias.insert_one({
 						'tag': new_tag_name,
-						'meta.modified_by': user, 'meta.modified_at': datetime.now()
-					}
-				}, session = session)
+						'dst': tag_obj['_id'],
+						'meta': {'created_by': user, 'created_at': datetime.now()}
+					}, session = session)
 			else :
 				self.db.tag_alias.insert_one({
 					'tag': new_tag_name,
@@ -218,11 +225,12 @@ class TagDB() :
 		else :
 			# since tag_alias already exists for new_tag_name, no need to insert new tag_alias
 			# but we need to consider whether or not to delete the old one
-			rc, lang_referenced = self._get_tag_name_reference_count(tag_name, tag_obj)
-			assert rc > 0
-			# delete ONLY IF it is referenced only once AND it is exactly referenced by the given language
-			if rc == 1 and lang_referenced == language and tag_name != new_tag_name :
-				self.db.tag_alias.delete_one({'tag': tag_name}, session = session)
+			if not isinstance(tag_name, int) :
+				rc, lang_referenced = self._get_tag_name_reference_count(tag_name, tag_obj)
+				assert rc > 0
+				# delete ONLY IF it is referenced only once AND it is exactly referenced by the given language
+				if rc == 1 and lang_referenced == language and tag_name != new_tag_name :
+					self.db.tag_alias.delete_one({'tag': tag_name}, session = session)
 
 		# add or update tag specified by language
 		self.db.tags.update_one({'_id': tag_obj['_id']}, {
@@ -240,6 +248,17 @@ class TagDB() :
 		alias_obj = self.db.tag_alias.find_one({'tag': alias_name}, session = session)
 		if alias_obj is not None :
 			raise UserError('ALIAS_ALREADY_EXIST')
+
+		if isinstance(tag_name, int) :
+			# add
+			self.db.tag_alias.insert_one({
+				'tag': alias_name,
+				'dst': tag_obj['_id'],
+				'meta': {'created_by': user, 'created_at': datetime.now()}
+			}, session = session)
+			self.db.tags.update_one({'_id': tag_obj['_id']}, {
+				'$addToSet': {'alias': alias_name},
+			}, session = session)
 
 		rc, lang_referenced = self._get_tag_name_reference_count(old_alias_name, tag_obj)
 		if rc == 1 and lang_referenced is None :
@@ -505,7 +524,12 @@ class TagDB() :
 		return query_obj, tags
 
 	def _tag(self, tag, return_none = False, session = None) :
-		if isinstance(tag, dict) :
+		if isinstance(tag, int) :
+			ans = self.db.tags.find_one({'id': tag}, session = session)
+			if ans is None :
+				raise UserError('TAG_NOT_EXIST')
+			return ans
+		elif isinstance(tag, dict) :
 			return tag
 		elif isinstance(tag, str) :
 			alias_obj = self.db.tag_alias.find_one({'tag': tag}, session = session)
