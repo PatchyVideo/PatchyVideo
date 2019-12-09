@@ -29,7 +29,7 @@ if __name__ == '__main__' :
 if __name__ == '__main__' :
     with MongoTransaction(client) as s :
         all_tags = [t for t in db.tags.find(session = s())]
-        all_root_tags = [t for t in db.tags.find({'dst': {'$exists': False}}, session = s())]
+        all_root_tags = [t for t in db.tags.find({'dst': {'$exists': False}}, session = s()).sort([("meta.created_at", 1)])]
         all_alias_tags = [t for t in db.tags.find({'dst': {'$exists': True}}, session = s())]
         db.tags.delete_many({}, session = s())
         db.cats.update_many({}, {'$set': {'count': 0}}, session = s())
@@ -52,7 +52,7 @@ if __name__ == '__main__' :
                 else :
                     tag_ids.append(tag_map[t])
             video_tag_map[str(vid['_id'])] = tag_ids
-            print(f"{vid['tags']} -> {tag_ids}")
+            #print(f"{vid['tags']} -> {tag_ids}")
         for (_id, tags) in video_tag_map.items() :
             db.items.update_one({'_id': ObjectId(_id)}, {'$set': {'tags': tags}}, session = s())
         s.mark_succeed()
