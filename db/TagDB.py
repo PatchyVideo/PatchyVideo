@@ -58,21 +58,33 @@ db.tag_alias:
 }
 """
 
+_CATEGORY_MAP = {
+	'General': 0,
+	'Character': 1,
+	'Copyright': 2,
+	'Author': 3,
+	'Meta': 4,
+	'Language': 5
+}
+
 class TagDB() :
 	def __init__(self, db) :
 		self.db = db
 		self.aci = AutocompleteInterface()
-
-	"""
+	
 	def init_autocomplete(self) :
-		all_tags = self.db.tags.find({'dst' : {'$exists' : False}})
-		all_alias = self.db.tags.find({'dst' : {'$exists' : True}})
-		tags_tuple = [(item['tag'], item['category'], item['count']) for item in all_tags]
-		alias_tuple = [(item['tag'], item['dst'], item['type']) for item in all_alias]
-		self.aci.AddTags(tags_tuple)
-		self.aci.AddAlias(alias_tuple)
-	"""
-
+		all_tags = self.db.tags.find()
+		all_words = self.db.tag_alias.aggregate([
+			{'$match': {}},
+			{'$lookup': {"from" : "tags", "localField" : "dst", "foreignField" : "_id", "as" : "tag_obj"}},
+			{'$unwind': {'path': '$tag_obj'}},
+			{'$project': {'tag_obj.id': 1, 'tag': 1}}
+		])
+		tags_tuple = [(item['id'], item['count'], _CATEGORY_MAP[item['category']]) for item in all_tags]
+		words_tuple = [(item['tag_obj']['id'], item['tag']) for item in all_words]
+		self.aci.AddTag(tags_tuple)
+		self.aci.AddWord(words_tuple)
+	
 	def add_category(self, category, color, user = '', session = None) :
 		cat = self.db.cats.find_one({'name': category}, session = session)
 		if cat is not None:
@@ -122,13 +134,14 @@ class TagDB() :
 			'alias': [],
 			'meta': {'created_by': user, 'created_at': datetime.now()}
 		}, session = session).inserted_id
-		assert isinstance(item_id, ObjectId)
 		self.db.tag_alias.insert_one({
 			'tag': tag,
 			'dst': item_id,
 			'meta': {'created_by': user, 'created_at': datetime.now()}
 		}, session = session)
 		self.db.cats.update_one({'name': category}, {'$inc': {'count': 1}}, session = session)
+		self.aci.AddTag([(tag_id, 0, _CATEGORY_MAP[category])])
+		self.aci.AddWord([(tag_id, tag)])
 		return tag_id
 
 	"""
@@ -172,12 +185,13 @@ class TagDB() :
 
 	def remove_tag(self, tag_name_or_tag_obj, user = '', session = None) :
 		tag_obj = self._tag(tag_name_or_tag_obj, session = session)
-		tag = tag_obj['id']
+		tagid = tag_obj['id']
 		self.db.tag_alias.delete_many({'dst': tag_obj['_id']}, session = session)
 		self.db.tags.delete_one({'_id': tag_obj['_id']}, session = session)
 		self.db.cats.update_one({'name': tag_obj['category']}, {'$inc': {'count': -1}}, session = session)
-		self.db.items.update_many({'tags': {'$in': [tag]}}, {'$pull': {'tags': tag}}, session = session)
-		self.db.free_tags.insert_one({'id': tag})
+		self.db.items.update_many({'tags': {'$in': [tagid]}}, {'$pull': {'tags': tagid}}, session = session)
+		self.db.free_tags.insert_one({'id': tagid})
+		self.aci.DeleteTag(tagid)
 
 	def _get_tag_name_reference_count(self, tag_name, tag_obj) :
 		ans = 0
@@ -202,7 +216,8 @@ class TagDB() :
 			if not isinstance(tag_name, int) :
 				rc, lang_referenced = self._get_tag_name_reference_count(tag_name, tag_obj)
 				assert rc > 0
-				# if it is only referenced once AND it is exactly referenced by the given language 
+				# if it is only referenced once AND it is exactly referenced by the given language
+				# then it is a unique rename operation, we have to delete the old name
 				if rc == 1 and lang_referenced == language :
 					self.db.tag_alias.update_one({'tag': tag_name}, {
 						'$set': {
@@ -210,18 +225,22 @@ class TagDB() :
 							'meta.modified_by': user, 'meta.modified_at': datetime.now()
 						}
 					}, session = session)
+					self.aci.DeleteWord(tag_name)
+					self.aci.AddWord([(tag_obj['id'], new_tag_name)])
 				else :
 					self.db.tag_alias.insert_one({
 						'tag': new_tag_name,
 						'dst': tag_obj['_id'],
 						'meta': {'created_by': user, 'created_at': datetime.now()}
 					}, session = session)
+					self.aci.AddWord([(tag_obj['id'], new_tag_name)])
 			else :
 				self.db.tag_alias.insert_one({
 					'tag': new_tag_name,
 					'dst': tag_obj['_id'],
 					'meta': {'created_by': user, 'created_at': datetime.now()}
 				}, session = session)
+				self.aci.AddWord([(tag_obj['id'], new_tag_name)])
 		else :
 			# since tag_alias already exists for new_tag_name, no need to insert new tag_alias
 			# but we need to consider whether or not to delete the old one
@@ -231,6 +250,7 @@ class TagDB() :
 				# delete ONLY IF it is referenced only once AND it is exactly referenced by the given language
 				if rc == 1 and lang_referenced == language and tag_name != new_tag_name :
 					self.db.tag_alias.delete_one({'tag': tag_name}, session = session)
+					self.aci.DeleteWord(tag_name)
 
 		# add or update tag specified by language
 		self.db.tags.update_one({'_id': tag_obj['_id']}, {
@@ -259,29 +279,33 @@ class TagDB() :
 			self.db.tags.update_one({'_id': tag_obj['_id']}, {
 				'$addToSet': {'alias': alias_name},
 			}, session = session)
-
-		rc, lang_referenced = self._get_tag_name_reference_count(old_alias_name, tag_obj)
-		if rc == 1 and lang_referenced is None :
-			# rename
-			# in such case, tag_name IS old_alias_name
-			self.db.tag_alias.update_one({'tag': old_alias_name}, {
-			'$set': {
-				'tag': alias_name,
-				'meta.modified_by': user, 'meta.modified_at': datetime.now()
-			}
-			}, session = session)
-			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$pullAll': {'alias': [old_alias_name]}}, session = session)
-			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$addToSet': {'alias': alias_name}}, session = session)
+			self.aci.AddWord([(tag_obj['id'], alias_name)])
 		else :
-			# add
-			self.db.tag_alias.insert_one({
-				'tag': alias_name,
-				'dst': tag_obj['_id'],
-				'meta': {'created_by': user, 'created_at': datetime.now()}
-			}, session = session)
-			self.db.tags.update_one({'_id': tag_obj['_id']}, {
-				'$addToSet': {'alias': alias_name},
-			}, session = session)
+			rc, lang_referenced = self._get_tag_name_reference_count(old_alias_name, tag_obj)
+			if rc == 1 and lang_referenced is None :
+				# rename
+				# in such case, tag_name IS old_alias_name
+				self.db.tag_alias.update_one({'tag': old_alias_name}, {
+				'$set': {
+					'tag': alias_name,
+					'meta.modified_by': user, 'meta.modified_at': datetime.now()
+				}
+				}, session = session)
+				self.db.tags.update_one({'_id': tag_obj['_id']}, {'$pullAll': {'alias': [old_alias_name]}}, session = session)
+				self.db.tags.update_one({'_id': tag_obj['_id']}, {'$addToSet': {'alias': alias_name}}, session = session)
+				self.aci.DeleteWord(old_alias_name)
+				self.aci.AddWord([(tag_obj['id'], alias_name)])
+			else :
+				# add
+				self.db.tag_alias.insert_one({
+					'tag': alias_name,
+					'dst': tag_obj['_id'],
+					'meta': {'created_by': user, 'created_at': datetime.now()}
+				}, session = session)
+				self.db.tags.update_one({'_id': tag_obj['_id']}, {
+					'$addToSet': {'alias': alias_name},
+				}, session = session)
+				self.aci.AddWord([(tag_obj['id'], alias_name)])
 	
 	def retrive_items(self, tag_query, session = None) :
 		return self.db.items.find(tag_query, session = session)
@@ -350,6 +374,7 @@ class TagDB() :
 		tag_ids = self.filter_and_translate_tags(tags)
 		item_id = self.db.items.insert_one({'tags': tag_ids, 'item': item, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session).inserted_id
 		self.db.tags.update_many({'id': {'$in': tag_ids}}, {'$inc': {'count': 1}}, session = session)
+		self.aci.SetCountDiff([(tagid, 1) for tagid in tag_ids])
 		return item_id
 
 	def verify_tags(self, tags, session = None) :
@@ -388,9 +413,9 @@ class TagDB() :
 			item = item_id_or_item_object
 		self.db.tags.update_many({'id': {'$in': item['tags']}}, {'$inc': {'count': -1}}, session = session)
 		self.db.tags.update_many({'id': {'$in': new_tag_ids}}, {'$inc': {'count': 1}}, session = session)
-		#self.aci.SetTagOrAliasCountDiff([(t, -1) for t in item['tags']])
-		#self.aci.SetTagOrAliasCountDiff([(t, 1) for t in new_tag_ids])
 		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': new_tag_ids, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+		self.aci.SetCountDiff([(t, -1) for t in item['tags']])
+		self.aci.SetCountDiff([(t, 1) for t in new_tag_ids])
 
 	def _get_many_tag_counts(self, item_ids = None, tags = None, user = '', session = None):
 		id_match_obj = { '_id' : { '$in': item_ids } } if item_ids else {}
@@ -428,7 +453,7 @@ class TagDB() :
 		new_tag_count_diff = [(tag, num_items - prior_tag_counts.get(tag, 0)) for tag in new_tag_ids]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session) # $inc is atomic, no locking needed
-		# self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
+		self.aci.SetCountDiff(new_tag_count_diff)
 
 	def update_many_items_tags_pull(self, item_ids, tags_to_remove, user = '', session = None):
 		if not tags_to_remove :
@@ -444,7 +469,7 @@ class TagDB() :
 		new_tag_count_diff = [(tag, -prior_tag_counts.get(tag, 0)) for tag in tag_ids_to_remove]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
-		# self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
+		self.aci.SetCountDiff(new_tag_count_diff)
 
 	def update_item_tags_merge(self, item_id, new_tags, user = '', session = None):
 		if not new_tags :
@@ -463,7 +488,7 @@ class TagDB() :
 		new_tag_count_diff = [(tag, 1 - prior_tag_counts.get(tag, 0)) for tag in new_tag_ids]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
-		# self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
+		self.aci.SetCountDiff(new_tag_count_diff)
 
 	def update_item_tags_pull(self, item_id, tags_to_remove, user = '', session = None):
 		if not tags_to_remove :
@@ -476,13 +501,13 @@ class TagDB() :
 		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
 		if item is None :
 			raise UserError('ITEM_NOT_EXIST')
-		self.db.items.update_one({'_id': ObjectId(item_id)},  {
+		self.db.items.update_one({'_id': ObjectId(item_id)}, {
 			'$pullAll': {'tags': tag_ids_to_remove},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		new_tag_count_diff = [(tag, -prior_tag_counts.get(tag, 0)) for tag in tag_ids_to_remove]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
-		# self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
+		self.aci.SetCountDiff(new_tag_count_diff)
 
 	def remove_alias(self, alias_name, user = '', session = None) :
 		tag_obj = self._tag(alias_name, session = session)
@@ -490,6 +515,7 @@ class TagDB() :
 		if rc == 1 and lang_referenced is None :
 			self.db.tags.update_one({'_id': tag_obj['_id']}, {'$pullAll': {'alias': [alias_name]}}, session = session)
 			self.db.tag_alias.delete_one({'tag': alias_name}, session = session)
+			self.aci.DeleteWord(alias_name)
 		else :
 			raise UserError('NOT_ALIAS')
 
