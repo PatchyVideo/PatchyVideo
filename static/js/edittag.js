@@ -292,6 +292,7 @@ function addLanguageAlias(obj) {
 			<span>-----</span>
 			<input style="color: ${getCategoryColor(td_category)};" oninput="onInputChanged(this);" data-tag="${alias_text}" data-tag-id="${tag}" class="multilanguage-tag-textbox" value="${alias_text}" />
 			<button onclick="saveAliasTag(this);" data-tag-id="${tag}" class="multilanguage-tag-save">保存</button>
+			<button onclick="removeAliasTag(this);" data-tag-id="${tag}" class="multilanguage-tag-remove">删除</button>
 			</div>
 			`);
 			input_obj.val("");
