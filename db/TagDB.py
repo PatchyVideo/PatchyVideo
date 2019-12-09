@@ -287,7 +287,7 @@ class TagDB() :
 		return self.db.items.find(tag_query, session = session)
 
 	def retrive_item(self, tag_query_or_item_id, session = None) :
-		if isinstance(tag_query_or_item_id, ObjectId):
+		if isinstance(tag_query_or_item_id, ObjectId) or isinstance(tag_query_or_item_id, str):
 			return self.db.items.find_one({'_id': ObjectId(tag_query_or_item_id)}, session = session)
 		else:
 			return self.db.items.find_one(tag_query_or_item_id, session = session)
@@ -333,6 +333,8 @@ class TagDB() :
 			item_obj = self.db.items.find_one({'_id': ObjectId(tag_query_or_item_id)}, session = session)
 		else:
 			item_obj = self.db.items.find_one(tag_query_or_item_id, session = session)
+		if item_obj is None :
+			raise UserError('ITEM_NOT_EXIST')
 		tag_objs = self.db.tags.find({'id': {'$in': item_obj['tags']}}, session = session)
 		category_tag_map = defaultdict(list)
 		tag_category_map = {}
