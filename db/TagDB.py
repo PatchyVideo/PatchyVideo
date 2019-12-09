@@ -414,7 +414,12 @@ class TagDB() :
 		], session = session)
 
 	def update_many_items_tags_merge(self, item_ids, new_tags, user = '', session = None):
-		new_tag_ids = self.filter_and_translate_tags(new_tags)
+		if not new_tags :
+			return
+		if isinstance(new_tags[0], int) :
+			new_tag_ids = new_tags
+		else :
+			new_tag_ids = self.filter_and_translate_tags(new_tags)
 		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts(item_ids, new_tag_ids, user, session)])
 		self.db.items.update_many({'_id': {'$in': item_ids}}, {
 			'$addToSet': {'tags': {'$each': new_tag_ids}},
@@ -426,7 +431,12 @@ class TagDB() :
 		# self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
 
 	def update_many_items_tags_pull(self, item_ids, tags_to_remove, user = '', session = None):
-		tag_ids_to_remove = self.filter_and_translate_tags(tags_to_remove)
+		if not tags_to_remove :
+			return
+		if isinstance(tags_to_remove[0], int) :
+			tag_ids_to_remove = tags_to_remove
+		else :
+			tag_ids_to_remove = self.filter_and_translate_tags(tags_to_remove)
 		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts(item_ids, tag_ids_to_remove, user, session)])
 		self.db.items.update_many({'_id': {'$in': item_ids}}, {
 			'$pullAll': {'tags': tag_ids_to_remove},
@@ -437,7 +447,12 @@ class TagDB() :
 		# self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
 
 	def update_item_tags_merge(self, item_id, new_tags, user = '', session = None):
-		new_tag_ids = self.filter_and_translate_tags(new_tags)
+		if not new_tags :
+			return
+		if isinstance(new_tags[0], int) :
+			new_tag_ids = new_tags
+		else :
+			new_tag_ids = self.filter_and_translate_tags(new_tags)
 		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts([item_id], new_tag_ids, user, session)])
 		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
 		if item is None :
@@ -451,7 +466,12 @@ class TagDB() :
 		# self.aci.SetTagOrAliasCountDiff(new_tag_count_diff)
 
 	def update_item_tags_pull(self, item_id, tags_to_remove, user = '', session = None):
-		tag_ids_to_remove = self.filter_and_translate_tags(tags_to_remove)
+		if not tags_to_remove :
+			return
+		if isinstance(tags_to_remove[0], int) :
+			tag_ids_to_remove = tags_to_remove
+		else :
+			tag_ids_to_remove = self.filter_and_translate_tags(tags_to_remove)
 		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts([item_id], tag_ids_to_remove, user, session)])
 		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
 		if item is None :
