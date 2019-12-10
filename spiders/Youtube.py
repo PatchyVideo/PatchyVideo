@@ -1,4 +1,3 @@
-
 import json
 from . import Spider
 from utils.jsontools import *
@@ -7,7 +6,7 @@ from utils.html import try_get_xpath
 import requests
 from urllib.parse import parse_qs
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from dateutil.parser import parse
 import aiohttp
 
@@ -32,7 +31,8 @@ class Youtube( Spider ) :
 	SHORT_PATTERN = r''
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.youtube.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.youtube.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
-
+	API_KEY = "AIzaSyD1mnyt3jcTyO5efO8fDy0gYWvXd_V4rVw"
+	
 	def normalize_url( self, link ) :
 		if 'youtube.com' in link:
 			vidid = link[link.rfind('=') + 1:]
@@ -67,54 +67,22 @@ class Youtube( Spider ) :
 				vidid = link[link.rfind('=') + 1:]
 			else:
 				vidid = link[link.rfind('/') + 1:]
+
+		api_url = "https://www.googleapis.com/youtube/v3/videos?id=" + vidid + "&key=" + self.API_KEY + "&part=snippet,contentDetails,statistics,status"
 		
-		thumbnailURL = "https://img.youtube.com/vi/%s/hqdefault.jpg" % vidid
+		apirespond = requests.get(api_url)# 得到api响应
 
-		info_file_link = "https://www.youtube.com/get_video_info?video_id=" + vidid
-		info_file = requests.get(info_file_link, headers = self.HEADERS).text
-		player_response = parse_qs(info_file)['player_response'][0]
-		player_response = json.loads(player_response)
-		videoDetails = player_response['videoDetails']
-		# everything will end on January 19th 2038
+		player_response = apirespond.json()
+		player_response = player_response['items'][0]
+		player_response = player_response['snippet']
+		publishedAt_time = player_response['publishedAt']
+		uploadDate = parse(publishedAt_time).astimezone(timezone.utc)#上传时间 格式：2019-04-27 04:58:45+00:00
 
-		
-		# TODO: this method is incorrect for old videos
-		min_timestamp = int(time.time() * 1e6)
-		if 'streamingData' in player_response:
-			streamingData = player_response['streamingData']
-			if 'adaptiveFormats' in streamingData:
-				for item in streamingData['adaptiveFormats']:
-					try:
-						min_timestamp = min(min_timestamp, int(item['lastModified']))
-					except:
-						pass
-			if 'formats' in streamingData:
-				for item in streamingData['formats']:
-					try:
-						min_timestamp = min(min_timestamp, int(item['lastModified']))
-					except:
-						pass
-		min_timestamp *= 1e-6
-
-		uploadDate1 = datetime.fromtimestamp(min_timestamp)
-		
-		try :
-			to_find = '"dateText":{"simpleText":'
-			pos_start = content.find(to_find)
-			pos_left_quote = content.find('\"', pos_start + len(to_find)) + 1
-			pos_right_quote = content.find('\"', pos_left_quote + 1)
-			uploadDate_str = content[pos_left_quote:pos_right_quote]
-			uploadDate2 = parse(uploadDate_str)
-
-			if abs((uploadDate1 - uploadDate2).total_seconds()) < 3 * 24 * 60 * 60:
-				uploadDate = uploadDate1
-			else:
-				uploadDate = min(uploadDate1, uploadDate2)
-		except:
-			uploadDate = uploadDate1
-
-		title = videoDetails['title']
-		desc = videoDetails['shortDescription']
+		title = player_response['title']#标题
+		desc = player_response['description']#描述
+		thumbnailsurl0 = player_response['thumbnails']
+		thumbnailsurl1 = thumbnailsurl0['medium']
+		thumbnailURL = thumbnailsurl1['url']#缩略图url size：320 180
 
 		return makeResponseSuccess({
 			'thumbnailURL': thumbnailURL,
@@ -125,6 +93,7 @@ class Youtube( Spider ) :
 			"unique_id": "youtube:%s" % vidid
 		})
 		
+
 	async def run_async( self, content, xpath, link ) :
 		if 'youtube.com' in link:
 			vidid = link[link.rfind('=') + 1:]
@@ -134,56 +103,25 @@ class Youtube( Spider ) :
 			else:
 				vidid = link[link.rfind('/') + 1:]
 		
-		thumbnailURL = "https://img.youtube.com/vi/%s/hqdefault.jpg" % vidid
-
-		info_file_link = "https://www.youtube.com/get_video_info?video_id=" + vidid
+		api_url = "https://www.googleapis.com/youtube/v3/videos?id=" + vidid + "&key=" + self.API_KEY + "&part=snippet,contentDetails,statistics,status"
+		
+		
 		async with aiohttp.ClientSession() as session:
-			async with session.get(info_file_link, headers = self.HEADERS_NO_UTF8) as resp:
+			async with session.get(api_url, headers = self.HEADERS_NO_UTF8) as resp:
 				if resp.status == 200 :
-					info_file = await resp.text()
-		player_response = parse_qs(info_file)['player_response'][0]
-		player_response = json.loads(player_response)
-		videoDetails = player_response['videoDetails']
-		# everything will end on January 19th 2038
+					apirespond = await resp.text()
 
-		
-		# TODO: this method is incorrect for old videos
-		min_timestamp = int(time.time() * 1e6)
-		if 'streamingData' in player_response:
-			streamingData = player_response['streamingData']
-			if 'adaptiveFormats' in streamingData:
-				for item in streamingData['adaptiveFormats']:
-					try:
-						min_timestamp = min(min_timestamp, int(item['lastModified']))
-					except:
-						pass
-			if 'formats' in streamingData:
-				for item in streamingData['formats']:
-					try:
-						min_timestamp = min(min_timestamp, int(item['lastModified']))
-					except:
-						pass
-		min_timestamp *= 1e-6
+		player_response = loads(apirespond)
+		player_response = player_response['items'][0]
+		player_response = player_response['snippet']
+		publishedAt_time = player_response['publishedAt']
+		uploadDate = parse(publishedAt_time).astimezone(timezone.utc)
 
-		uploadDate1 = datetime.fromtimestamp(min_timestamp)
-		
-		try :
-			to_find = '"dateText":{"simpleText":'
-			pos_start = content.find(to_find)
-			pos_left_quote = content.find('\"', pos_start + len(to_find)) + 1
-			pos_right_quote = content.find('\"', pos_left_quote + 1)
-			uploadDate_str = content[pos_left_quote:pos_right_quote]
-			uploadDate2 = parse(uploadDate_str)
-
-			if abs((uploadDate1 - uploadDate2).total_seconds()) < 3 * 24 * 60 * 60:
-				uploadDate = uploadDate1
-			else:
-				uploadDate = min(uploadDate1, uploadDate2)
-		except:
-			uploadDate = uploadDate1
-
-		title = videoDetails['title']
-		desc = videoDetails['shortDescription']
+		title = player_response['title']
+		desc = player_response['description']
+		thumbnailsurl0 = player_response['thumbnails']
+		thumbnailsurl1 = thumbnailsurl0['medium']
+		thumbnailURL = thumbnailsurl1['url']
 
 		return makeResponseSuccess({
 			'thumbnailURL': thumbnailURL,

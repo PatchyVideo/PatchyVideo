@@ -76,9 +76,9 @@ add wiki/help page and documents/tagging guide
 #reorder playlist insert/add result after async post
 make autocomplete with fast_io::epoll
 #fix autocomplete unicode bug
-support suffix autocomplete
-!tag rename
-    lack tag rename for non-language tags
+#support suffix autocomplete
+#tag rename
+#    lack tag rename for non-language tags
 #root tag language mark
 user-friendly error messages
 show tag counts on video detail page
@@ -86,7 +86,7 @@ show tag counts on video detail page
 ======================
 offical launch
 ======================
-restructured tag system for full multi language support
+#restructured tag system for full multi language support
 tag group
 tag cooccurrences/related tag when posting video
 tag rule(e.g. adding touhou_mmd will results in mmd tag being added)
