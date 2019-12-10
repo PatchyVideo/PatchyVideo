@@ -26,7 +26,7 @@ if __name__ == '__main__' :
 
 '''
 
-"""
+
 if __name__ == '__main__' :
     with MongoTransaction(client) as s :
         all_tags = [t for t in db.tags.find(session = s())]
@@ -57,4 +57,4 @@ if __name__ == '__main__' :
         for (_id, tags) in video_tag_map.items() :
             db.items.update_one({'_id': ObjectId(_id)}, {'$set': {'tags': tags}}, session = s())
         s.mark_succeed()
-"""        
+        
