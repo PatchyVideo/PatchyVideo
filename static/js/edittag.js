@@ -76,30 +76,24 @@ function add_textcomplete(element) {
 				return 0;
 			},
 			search: function (term, callback) {
-				$.getJSON( "/autocomplete/?q=" + term, function( data ) {
+				$.getJSON( `/autocomplete/?q=${term}`, function( data ) {
 					data = $.map(data, function(ele) {
 						ele['term'] = term;
-						ele['color'] = getCategoryColor(ele['category']);
+						ele['color'] = getCategoryIdColor(ele['cat']);
 						return ele;
 					});
 					callback(data);
 				});
 			},
 			template: function (value) {
-				suffix = value.src.substring(value.term.length);
-				highlighted_term = `<b>${value.term}</b>${suffix}`;
-				if (isEmpty(value.dst)) {
-					return `<span style="color: ${value.color};"><span style="margin-right: 6em;">${highlighted_term}</span></span><span style="float:right;">${value.count}</span>`;
-				} else {
-					return `<span style="color: ${value.color};"><span>${highlighted_term}</span>-><span style="margin-right: 6em;">${value.dst}</span></span><span style="float:right;">${value.count}</span>`;
-				}
+				var term_start_pos = value.tag.search(value.term);
+				prefix = value.tag.substring(0, term_start_pos);
+				suffix = value.tag.substring(term_start_pos + value.term.length);
+				highlighted_term = `${prefix}<b>${value.term}</b>${suffix}`;
+				return `<span style="color: ${value.color};"><span style="margin-right: 6em;">${highlighted_term}</span></span><span style="float:right;">${value.cnt}</span>`;
 			},
 			replace: function (value) {
-				if (isEmpty(value.dst)) {
-					return value.src;
-				} else {
-					return value.dst;
-				}
+				return value.tag;
 			},
 			index: 1
 		}
