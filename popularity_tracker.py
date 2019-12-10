@@ -24,7 +24,6 @@ class PopularityTracker(object) :
 		self._try_restore()
 
 	def _try_restore(self, session = None) :
-		return
 		try :
 			item = db.popular_tags.find_one({}, session = session)
 			self.hitmap = dict.fromkeys(item['hitmap'], 0)
