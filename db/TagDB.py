@@ -85,7 +85,7 @@ class TagDB() :
 		self.aci.AddTag(tags_tuple)
 		self.aci.AddWord(words_tuple)
 	
-	def add_category(self, category, color, user = '', session = None) :
+	def add_category(self, category, color = '#000', user = '', session = None) :
 		cat = self.db.cats.find_one({'name': category}, session = session)
 		if cat is not None:
 			raise UserError("CATEGORY_ALREADY_EXIST")
