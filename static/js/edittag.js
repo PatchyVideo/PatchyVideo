@@ -76,7 +76,7 @@ function add_textcomplete(element) {
 				return 0;
 			},
 			search: function (term, callback) {
-				$.getJSON( `/autocomplete/?q=${term}`, function( data ) {
+				$.getJSON( `https://patchyvideo.com/autocomplete/?q=${term}`, function( data ) {
 					data = $.map(data, function(ele) {
 						ele['term'] = term;
 						ele['color'] = getCategoryIdColor(ele['cat']);
@@ -86,10 +86,10 @@ function add_textcomplete(element) {
 				});
 			},
 			template: function (value) {
-				var term_start_pos = value.tag.search(value.term);
+				var term_start_pos = value.tag.indexOf(value.term);
 				prefix = value.tag.substring(0, term_start_pos);
 				suffix = value.tag.substring(term_start_pos + value.term.length);
-				highlighted_term = `${prefix}<b>${value.term}</b>${suffix}`;
+				highlighted_term = `${prefix}<b><u>${value.term}</u></b>${suffix}`;
 				return `<span style="color: ${value.color};"><span style="margin-right: 6em;">${highlighted_term}</span></span><span style="float:right;">${value.cnt}</span>`;
 			},
 			replace: function (value) {
