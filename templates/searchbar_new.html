@@ -19,7 +19,7 @@
         data2 = [];
         keywords.forEach(element => {
             if (element.startsWith(term)) {
-                data2.push({"src": element, "dst": "", "count": -1, "color": "#0", "term": term});
+                data2.push({"tag": element, "cnt": -1, "color": "#0", "term": term});
             }
         });
         return data2;
@@ -50,38 +50,26 @@
                 return 0;
             },
             search: function (term, callback) {
-                $.getJSON( "/autocomplete/?q=" + term, function( data ) {
-                    data = $.map(data, function(ele) {
-                        ele['term'] = term;
-                        ele['color'] = getCategoryColor(ele['category']);
-                        return ele;
-                    });
+                $.getJSON( `/autocomplete/?q=${term}`, function( data ) {
+					data = $.map(data, function(ele) {
+						ele['term'] = term;
+						ele['color'] = getCategoryIdColor(ele['cat']);
+						return ele;
+					});
                     
                     callback(match_keywords(term).concat(data));
                 });
             },
             template: function (value) {
-                suffix = value.src.substring(value.term.length);
-                highlighted_term = `<b>${value.term}</b>${suffix}`;
-                if (isEmpty(value.dst)) {
-                    if (value.count == -1) {
-                        return `<span style="color: ${value.color};"><span style="margin-right: 6em;">${highlighted_term}</span></span>`;
-                    }
-                    return `<span style="color: ${value.color};"><span style="margin-right: 6em;">${highlighted_term}</span></span><span style="float:right;">${value.count}</span>`;
-                } else {
-                    return `<span style="color: ${value.color};"><span>${highlighted_term}</span>-><span style="margin-right: 6em;">${value.dst}</span></span><span style="float:right;">${value.count}</span>`;
-                }
-            },
-            replace: function (value) {
-                if (isEmpty(value.dst)) {
-                    if (value.src[value.src.length - 1] == ':')
-                        return value.src;
-                    else
-                        return value.src + ' ';
-                } else {
-                    return value.dst + ' ';
-                }
-            },
+				var term_start_pos = value.tag.search(value.term);
+				prefix = value.tag.substring(0, term_start_pos);
+				suffix = value.tag.substring(term_start_pos + value.term.length);
+				highlighted_term = `${prefix}<b>${value.term}</b>${suffix}`;
+				return `<span style="color: ${value.color};"><span style="margin-right: 6em;">${highlighted_term}</span></span><span style="float:right;">${value.cnt}</span>`;
+			},
+			replace: function (value) {
+				return value.tag;
+			},
             index: 1
         }
     ],

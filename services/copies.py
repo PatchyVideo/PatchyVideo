@@ -50,20 +50,19 @@ def breakLink(vid, user):
 
 @usingResource('tags')
 def syncTags(dst, src, user):
-	src_item = tagdb.retrive_item({"_id": ObjectId(src)})
-	if src_item is None:
-		raise UserError("ITEM_NOT_EXIST")
-	src_tags = src_item['tags']
-	with redis_lock.Lock(rdb, "videoEdit:" + src_item["item"]["unique_id"]), MongoTransaction(client) as s:
+	if dst == src :
+		raise UserError('SAME_VIDEO')
+	src_item, src_tags, _, _ = tagdb.retrive_item_with_tag_category_map(src, 'CHS')
+	dst_item = tagdb.retrive_item(dst)
+	if dst_item is None :
+		raise UserError('ITEM_NOT_EXIST')
+	with redis_lock.Lock(rdb, "videoEdit:" + dst_item["item"]["unique_id"]), MongoTransaction(client) as s:
 		tagdb.update_item_tags_merge(ObjectId(dst), src_tags, makeUserMeta(user), s())
 		s.mark_succeed()
 
 @usingResource('tags')
 def broadcastTags(src, user):
-	src_item = tagdb.retrive_item({"_id": ObjectId(src)})
-	if src_item is None:
-		raise UserError("ITEM_NOT_EXIST")
-	src_tags = src_item['tags']
+	src_item, src_tags, _, _ = tagdb.retrive_item_with_tag_category_map(src, 'CHS')
 	with redis_lock.Lock(rdb, "editLink"), MongoTransaction(client) as s :
 		copies = _getAllCopies(src, session = s())
 		for copy in copies:

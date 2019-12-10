@@ -320,7 +320,7 @@ if (typeof jQuery === 'undefined') {
             {
               var match = text.substring(startPos, text.length);
               var utf8length = encodeURI(match).split(/%..|./).length - 1;
-              if (utf8length >= 2) {
+              if (utf8length > 0) {
                 return [strategy, match, match];
               }
             }

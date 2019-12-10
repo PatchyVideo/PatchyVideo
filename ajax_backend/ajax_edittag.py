@@ -11,7 +11,7 @@ from utils.jsontools import *
 
 from spiders import dispatch
 
-from services.editTag import addTag, queryTags, queryCategories, queryTagCategories, removeTag, renameTag, addAlias, removeAlias, addTagLanguage, queryTagsWildcard, queryTagsRegex, updateTagLanguage
+from services.editTag import addTag, queryTags, queryCategories, queryTagCategories, removeTag, renameTagOrAddTagLanguage, renameOrAddAlias, removeAlias
 from config import TagsConfig
 
 @app.route('/tags/query_categories.do', methods = ['POST'])
@@ -51,6 +51,7 @@ def ajax_query_tags(rd, user, data):
     })
     return "json", ret
 
+"""
 @app.route('/tags/query_tags_wildcard.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
@@ -92,6 +93,7 @@ def ajax_query_tags_regex(rd, user, data):
         "page_count": (tag_count - 1) // data.page_size + 1
     })
     return "json", ret
+"""
 
 @app.route('/tags/add_tag.do', methods = ['POST'])
 @loginRequiredJSON
@@ -109,19 +111,25 @@ def ajax_remove_tag(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_rename_tag(rd, user, data):
-    renameTag(user, data.tag, data.new_tag)
+    renameTagOrAddTagLanguage(user, data.tag, data.new_tag, data.language)
+
+@app.route('/tags/rename_alias.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_rename_alias(rd, user, data):
+    renameOrAddAlias(user, data.tag, data.new_tag)
 
 @app.route('/tags/add_alias.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_add_alias(rd, user, data):
-    addAlias(user, data.alias, data.dst_tag)
+    renameOrAddAlias(user, int(data.tag), data.new_tag)
 
 @app.route('/tags/add_tag_language.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_add_tag_language(rd, user, data):
-    addTagLanguage(user, data.alias, data.dst_tag, data.language)
+    renameTagOrAddTagLanguage(user, int(data.tag), data.new_tag, data.language)
 
 @app.route('/tags/remove_alias.do', methods = ['POST'])
 @loginRequiredJSON
@@ -129,8 +137,3 @@ def ajax_add_tag_language(rd, user, data):
 def ajax_remove_alias(rd, user, data):
     removeAlias(user, data.alias)
 
-@app.route('/tags/update_root_tag_language.do', methods = ['POST'])
-@loginRequiredJSON
-@jsonRequest
-def ajax_update_root_tag_language(rd, user, data):
-    updateTagLanguage(user, data.tag, data.language)

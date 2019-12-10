@@ -8,8 +8,8 @@ from spiders import dispatch_no_expand
 from utils.exceptions import UserError
 
 def listVideoQuery(query_str, page_idx, page_size, order = 'latest', user_language = 'CHS'):
-	query_obj, tags = db.compile_query(query_str)
-	updateTagSearch(tags)
+	query_obj, tag_ids = db.compile_query(query_str)
+	updateTagSearch(tag_ids)
 	try :
 		result = db.retrive_items(query_obj)
 		if order == 'latest':

@@ -44,6 +44,7 @@ def _createJsonForPosting(url, tags, dst_copy, dst_playlist, dst_rank, other_cop
 	})
 
 def postVideo(user, url, tags, copy, pid, rank):
+	tags = [tag.strip() for tag in tags]
 	if not url :
 		raise UserError('EMPTY_URL')
 	if len(url) > VideoConfig.MAX_URL_LENGTH :
@@ -60,6 +61,7 @@ def postVideo(user, url, tags, copy, pid, rank):
 	return _postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], user))
 
 def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies):
+	tags = [tag.strip() for tag in tags]
 	if not videos :
 		raise UserError('EMPTY_LIST')
 	if len(videos) > VideoConfig.MAX_BATCH_POST_COUNT :

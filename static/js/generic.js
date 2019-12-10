@@ -112,6 +112,19 @@ function getCategoryColor(category) {
     return _color_map[category];
 }
 
+_color_map_id = {
+    2: '#A0A',
+    5: '#585455',
+    1: '#0A0',
+    3: '#A00',
+    0: '#0073ff',
+    4: '#F80'
+};
+
+function getCategoryIdColor(category_id) {
+    return _color_map_id[category_id];
+}
+
 _LANGUAGE_MAP = {
     "CHS": "简体中文",
 	"CHT": "繁體中文",

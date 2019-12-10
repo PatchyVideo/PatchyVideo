@@ -8,7 +8,7 @@ from utils.interceptors import loginOptional
 from utils.exceptions import UserError
 from utils.tagtools import translateTagsToPreferredLanguage
 
-from services.getVideo import getVideoDetail, getTagCategories, getVideoDetailWithTagObjects
+from services.getVideo import getVideoDetail, getVideoDetailWithTags
 from services.playlist import listPlaylistsForVideo
 
 @app.route('/video')
@@ -16,7 +16,7 @@ from services.playlist import listPlaylistsForVideo
 def pages_videodetail(rd, user):
 	vidid = request.values['id']
 	try:
-		obj, tag_objs = getVideoDetailWithTagObjects(vidid)
+		obj, tags, category_tag_map, tag_category_map = getVideoDetailWithTags(vidid, 'CHS')
 	except UserError:
 		abort(404, "No such video id=%s" % vidid)
 		
@@ -28,9 +28,9 @@ def pages_videodetail(rd, user):
 	rd.upload_date = obj['item']['upload_time'] if 'upload_time' in obj['item'] else ''
 	if not rd.upload_date:
 		rd.upload_date = ''
-	rd.tags = ' '.join(obj['tags'])
-	rd.tags_list = translateTagsToPreferredLanguage(tag_objs, 'CHS')
-	rd.tag_by_category = getTagCategories(rd.tags_list)
+	rd.tags = ' '.join(tags)
+	rd.tags_list = tags
+	rd.tag_by_category = category_tag_map
 	for category in rd.tag_by_category :
 		rd.tag_by_category[category] = list(sorted(rd.tag_by_category[category]))
 	rd.video_id = vidid

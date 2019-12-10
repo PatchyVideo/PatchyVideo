@@ -24,35 +24,35 @@ class AutocompleteInterface() :
 				err_msg = str(e)
 		print('FAILED: %s message=%s' % (func, err_msg), file = sys.stderr)
 
-	def AddTags(self, list_of_tuple_of_tag_category_count) :
-		payload = "%d " % len(list_of_tuple_of_tag_category_count)
-		for (tag, category, count) in list_of_tuple_of_tag_category_count :
-			payload += tag + " " + category + (" %d " % count)
-		self._post("AddTags", "addwords", payload)
+	def AddTag(self, list_of_tuple_of_tagid_count_category) :
+		payload = "%d " % len(list_of_tuple_of_tagid_count_category)
+		for (tagid, count, category) in list_of_tuple_of_tagid_count_category :
+			payload += "%d %d %d " % (tagid, count, category)
+		self._post("AddTag", "addtag", payload)
 
-	def AddAlias(self, list_of_tuple_of_src_dst_type) :
-		payload = "%d " % len(list_of_tuple_of_src_dst_type)
-		for (src, dst, type_) in list_of_tuple_of_src_dst_type :
-			payload += src + " " + dst + " " + ('0' if type_ == 'language' else '1') + " "
-		self._post("AddAlias", "addalias", payload)
+	def AddWord(self, list_of_tuple_of_tagid_word) :
+		payload = "%d " % len(list_of_tuple_of_tagid_word)
+		for (tagid, word) in list_of_tuple_of_tagid_word :
+			payload += "%d %s " % (tagid, word)
+		self._post("AddWord", "addword", payload)
 
-	def SetTagOrAliasCount(self, list_of_tuple_of_tag_count) :
-		payload = "%d " % len(list_of_tuple_of_tag_count)
-		for (tag, count) in list_of_tuple_of_tag_count :
-			payload += tag + (" %d " % count)
-		self._post("SetTagOrAliasCount", "setwords", payload)
+	def SetCount(self, list_of_tuple_of_tagid_count) :
+		payload = "%d " % len(list_of_tuple_of_tagid_count)
+		for (tagid, count) in list_of_tuple_of_tagid_count :
+			payload += "%d %d " % (tagid, count)
+		self._post("SetCount", "setcount", payload)
 
-	def SetTagOrAliasCountDiff(self, list_of_tuple_of_tag_diff) :
-		payload = "%d " % len(list_of_tuple_of_tag_diff)
-		for (tag, diff) in list_of_tuple_of_tag_diff :
-			payload += tag + (" %d " % diff)
-		self._post("SetTagOrAliasCountDiff", "setwordsdiff", payload)
+	def SetCountDiff(self, list_of_tuple_of_tagid_diff) :
+		payload = "%d " % len(list_of_tuple_of_tagid_diff)
+		for (tagid, diff) in list_of_tuple_of_tagid_diff :
+			payload += "%d %d " % (tagid, diff)
+		self._post("SetCountDiff", "setcountdiff", payload)
 
-	def DeleteTagOrAlias(self, tag_or_alias) :
-		payload = tag_or_alias + " "
-		self._post("DeleteTagOrAlias", "delword", payload)
+	def DeleteTag(self, tagid) :
+		payload = "%d " % tagid
+		self._post("DeleteTag", "deltag", payload)
 
-	def DeleteAlias(self, alias) :
-		payload = alias + " "
-		self._post("DeleteAlias", "delalias", payload)
+	def DeleteWord(self, word) :
+		payload = word + " "
+		self._post("DeleteWord", "delword", payload)
 

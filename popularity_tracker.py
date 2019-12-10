@@ -24,6 +24,7 @@ class PopularityTracker(object) :
 		self._try_restore()
 
 	def _try_restore(self, session = None) :
+		return
 		try :
 			item = db.popular_tags.find_one({}, session = session)
 			self.hitmap = dict.fromkeys(item['hitmap'], 0)
@@ -67,8 +68,6 @@ class PopularityTracker(object) :
 		#print('current')
 		#print(current_bin)
 		current_bin_tags = list(current_bin.keys())
-		current_bin_tags = tagdb.filter_tags(current_bin_tags)
-		current_bin_tags = tagdb.translate_tags(current_bin_tags)
 		current_bin = {tag: current_bin[tag] for tag in current_bin_tags}
 		current_hitmap = Counter(current_bin)
 		all_hitmap = all_hitmap + current_hitmap
@@ -96,7 +95,7 @@ import json
 @basePage
 @jsonRequest
 def hit_page(rd, data) :
-	#print('hit', data.hitmap)
+	print('hit', data.hitmap)
 	update_lock.acquire()
 	try:
 		tracker.update_current_bin(data.hitmap)

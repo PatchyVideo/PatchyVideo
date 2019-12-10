@@ -61,14 +61,12 @@ tr:nth-child(even) {
 	visibility: visible;
 }
 
-.other-language {
-	position: absolute;
-	left: 35em;
+.language-prompt-div {
 	color: gray;
 }
 
-.other-language > span {
-	margin-left: 1em;
+.language-prompt-div > span {
+	margin-right: 1em;
 }
 
 .col-1 {
@@ -134,7 +132,7 @@ tr:nth-child(even) {
 	padding: 8px;
 }
 
-.edit-language-div {
+.edit-tag-div {
 	display: none;
 }
 
