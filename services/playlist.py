@@ -66,6 +66,12 @@ def removePlaylist(pid, user) :
 		db.playlists.delete_one({"_id": ObjectId(pid)}, session = s())
 		s.mark_succeed()
 
+def listMyPlaylists(user, page_idx = 0, page_size = 10000, order = 'last_modified') :
+	result = db.playlists.find({'meta.created_by': ObjectId(user['_id'])})
+	if order == 'last_modified' :
+		result = result.sort([("meta.modified_at", -1)])
+	return result.skip(page_idx * page_size).limit(page_size)
+
 def updatePlaylistCover(pid, cover, user) :
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :

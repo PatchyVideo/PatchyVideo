@@ -2,6 +2,7 @@
 import pymongo
 import sys
 
+from bson import ObjectId
 from db import tagdb as db
 from .tagStatistics import getPopularTags, getCommonTags, updateTagSearch
 from spiders import dispatch_no_expand
@@ -44,3 +45,14 @@ def listVideo(page_idx, page_size, order = 'latest', user_language = 'CHS'):
 		result = result.sort([("item.upload_time", 1)])
 	return result.skip(page_idx * page_size).limit(page_size), getPopularTags(user_language)
 
+def listMyVideo(page_idx, page_size, user, order = 'latest'):
+	result = db.retrive_items({'meta.created_by': ObjectId(user['_id'])})
+	if order == 'latest':
+		result = result.sort([("meta.created_at", -1)])
+	if order == 'oldest':
+		result = result.sort([("meta.created_at", 1)])
+	if order == 'video_latest':
+		result = result.sort([("item.upload_time", -1)])
+	if order == 'video_oldest':
+		result = result.sort([("item.upload_time", 1)])
+	return result.skip(page_idx * page_size).limit(page_size)

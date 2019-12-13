@@ -6,12 +6,12 @@ import redis
 from flask import render_template, request, current_app, jsonify, redirect, session
 
 from init import app
-from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
+from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON, loginRequired
 from utils.jsontools import *
 from utils.exceptions import UserError
 
 from spiders import dispatch
-from services.listVideo import listVideo, listVideoQuery
+from services.listVideo import listVideo, listVideoQuery, listMyVideo
 from services.getVideo import getTagCategoryMap
 from config import QueryConfig
 
@@ -46,3 +46,15 @@ def ajax_queryvideo_do(rd, data, user):
 	})
 	return "json", ret
 
+@app.route('/listmyvideo.do', methods = ['POST'])
+@loginRequired
+@jsonRequest
+def ajax_listmyvideo_do(rd, data, user):
+	videos = listMyVideo(data.page - 1, data.page_size, user)
+	video_count = videos.count()
+	ret = makeResponseSuccess({
+		"videos": [i for i in videos],
+		"count": video_count,
+		"page_count": (video_count - 1) // data.page_size + 1,
+	})
+	return "json", ret
