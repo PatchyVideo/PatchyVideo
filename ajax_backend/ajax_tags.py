@@ -16,6 +16,8 @@ from services.tagStatistics import getRelatedTagsExperimental
 @jsonRequest
 def ajax_get_related_tags_do(rd, user, data):
 	max_count = data.max_count if 'max_count' in data.__dict__ and data.max_count is not None else 10
+	start = time.time()
 	ret = getRelatedTagsExperimental('CHS', data.tags, max_count)
-	return "json", makeResponseSuccess(ret)
+	end = time.time()
+	return "json", makeResponseSuccess({'tags': ret, 'time_used_ms': int((end - start) * 1000)})
 
