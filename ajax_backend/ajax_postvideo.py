@@ -13,7 +13,7 @@ from utils.http import post_raw
 from bson.json_util import dumps, loads
 
 from spiders import dispatch
-from services.postVideo import postVideo, postVideoBatch
+from services.postVideo import postVideo, postVideoBatch, listCurrentTasksWithParams, listFailedPosts
 from config import VideoConfig, TagsConfig
 
 @app.route('/postvideo.do', methods = ['POST'])
@@ -36,3 +36,17 @@ def ajax_postvideo_batch_do(rd, user, data):
 	as_copies = data.as_copies if 'as_copies' in data.__dict__ and data.as_copies is not None else False
 	task_ids = postVideoBatch(user, data.videos, data.tags, dst_copy, dst_playlist, dst_rank, as_copies)
 	return "json", makeResponseSuccess({"task_ids": task_ids})
+
+@app.route('/posts/list_pending.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_post_list_pending_do(rd, user, data):
+	result = listCurrentTasksWithParams(user, int(data.page) - 1, int(data.page_size))
+	return "json", makeResponseSuccess(result)
+
+@app.route('/posts/list_failed.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_post_list_failed_do(rd, user, data):
+	result = listFailedPosts(user, int(data.page) - 1, int(data.page_size))
+	return "json", makeResponseSuccess(result)

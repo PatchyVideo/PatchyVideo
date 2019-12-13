@@ -13,6 +13,7 @@ from utils.http import post_raw
 from utils.rwlock import usingResource, modifyingResource
 from utils.exceptions import UserError
 from bson.json_util import dumps, loads
+from bson import ObjectId
 
 from db import tagdb
 from spiders import dispatch
@@ -43,6 +44,35 @@ def _createJsonForPosting(url, tags, dst_copy, dst_playlist, dst_rank, other_cop
 		'playlist_ordered' : playlist_ordered
 	})
 
+def getTaskParamas(task_id) :
+	key = f'task-{task_id}'
+	json_str = rdb.get(key)
+	if json_str :
+		json_obj = loads(json_str)
+		return json_obj['params']
+	else :
+		return None
+
+def listCurrentTasks(user, page = 0, page_size = 100) :
+	key = 'posttasks-' + str(user['_id'])
+	return rdb.lrange(key, page * page_size, (page + 1) * page_size)
+
+def listCurrentTasksWithParams(user, page = 0, page_size = 100) :
+	task_ids = listCurrentTasks(user, page, page_size)
+	ret_map = {}
+	for tid in task_ids :
+		tid = tid.decode('ascii')
+		param = getTaskParamas(tid)
+		if param :
+			ret_map[tid] = param
+	return ret_map
+
+def listFailedPosts(user, page = 0, page_size = 100000) :
+	uid = ObjectId(user['_id'])
+	result = tagdb.db.failed_posts.find({'uid': uid})
+	result = result.skip(page * page_size).limit(page_size)
+	return result
+
 def postVideo(user, url, tags, copy, pid, rank):
 	tags = [tag.strip() for tag in tags]
 	if not url :
@@ -58,7 +88,8 @@ def postVideo(user, url, tags, copy, pid, rank):
 		raise UserError('EMPTY_URL')
 	_verifyTags(tags)
 	print('Posting %s' % cleanURL, file = sys.stderr)
-	return _postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], user))
+	task_id = _postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], user))
+	return task_id
 
 def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies):
 	tags = [tag.strip() for tag in tags]

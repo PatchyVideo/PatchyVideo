@@ -4,6 +4,7 @@ import time
 import asyncio
 import traceback
 import PIL
+import copy
 
 from aiohttp import web
 from aiohttp import ClientSession
@@ -365,8 +366,23 @@ def verifyTags(tags):
 
 async def func_with_write_result(func, task_id, param_json) :
 	ret = await func(param_json)
+	key = 'posttask-' + str(param_json['user']['_id'])
+	rdb.lrem(key, 1, task_id)
+	rdb.delete(f'task-{task_id}')
+	if ret['result'] != 'SUCCEED' :
+		param_json_for_user = copy.deepcopy(param_json)
+		del param_json_for_user['user']
+		del param_json_for_user['playlist_ordered']
+		tagdb.db.failed_posts.insert_one({'uid': ObjectId(param_json['user']['_id']), 'ret': ret, 'post_param': param_json_for_user})
+
+	"""
+	ret = await func(param_json)
 	ret_json = dumps({'finished' : True, 'key': task_id, 'data' : ret})
-	rdb.set(f'task-{task_id}', ret_json, ex = 500)
+	if ret['result'] == 'SUCCEED' :
+		rdb.set(f'task-{task_id}', ret_json, ex = 500)
+	else :
+		rdb.set(f'task-{task_id}', ret_json)
+	"""
 
 async def task_runner(func, queue) :
 	while True :
@@ -378,8 +394,13 @@ async def task_runner(func, queue) :
 
 async def put_task(queue, param_json) :
 	task_id = random_bytes_str(16)
-	ret_json = dumps({'finished' : False, 'key': task_id, 'data' : None})
+	param_json_for_user = copy.deepcopy(param_json)
+	del param_json_for_user['user']
+	del param_json_for_user['playlist_ordered']
+	ret_json = dumps({'finished' : False, 'key': task_id, 'data' : None, 'params': param_json_for_user})
 	rdb.set(f'task-{task_id}', ret_json)
+	key = 'posttasks-' + str(param_json['user']['_id'])
+	rdb.lpush(key, task_id)
 	await queue.put((param_json, task_id))
 	return task_id
 
