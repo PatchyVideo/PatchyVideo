@@ -18,122 +18,122 @@ from config import TagsConfig
 @loginOptional
 @jsonRequest
 def ajax_query_categories(rd, user, data):
-    cats = queryCategories()
-    ret = makeResponseSuccess({
-        "categories": [item for item in cats]
-    })
-    return "json", ret
+	cats = queryCategories()
+	ret = makeResponseSuccess({
+		"categories": [item for item in cats]
+	})
+	return "json", ret
 
 @app.route('/tags/query_tag_categories.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
 def ajax_query_tag_categories(rd, user, data):
-    cats = queryTagCategories(data.tags)
-    ret = makeResponseSuccess({
-        "categorie_map": cats
-    })
-    return "json", ret
+	cats = queryTagCategories(data.tags)
+	ret = makeResponseSuccess({
+		"categorie_map": cats
+	})
+	return "json", ret
 
 @app.route('/tags/query_tags.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
 def ajax_query_tags(rd, user, data):
-    if hasattr(data, 'order') :
-        order = data.order
-    else :
-        order = 'latest'
-    tags = queryTags(data.category, data.page - 1, data.page_size, order)
-    tag_count = tags.count()
-    ret = makeResponseSuccess({
-        "tags": [i for i in tags],
-        "count": tag_count,
-        "page_count": (tag_count - 1) // data.page_size + 1
-    })
-    return "json", ret
+	if hasattr(data, 'order') :
+		order = data.order
+	else :
+		order = 'latest'
+	tags = queryTags(data.category, data.page - 1, data.page_size, order)
+	tag_count = tags.count()
+	ret = makeResponseSuccess({
+		"tags": [i for i in tags],
+		"count": tag_count,
+		"page_count": (tag_count - 1) // data.page_size + 1
+	})
+	return "json", ret
 
 """
 @app.route('/tags/query_tags_wildcard.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
 def ajax_query_tags_wildcard(rd, user, data):
-    if hasattr(data, 'order') :
-        order = data.order
-    else :
-        order = 'latest'
-    if hasattr(data, 'category') :
-        category = data.category
-    else :
-        category = ''
-    tags = queryTagsWildcard(data.query, category, data.page - 1, data.page_size, order)
-    tag_count = tags.count()
-    ret = makeResponseSuccess({
-        "tags": [i for i in tags],
-        "count": tag_count,
-        "page_count": (tag_count - 1) // data.page_size + 1
-    })
-    return "json", ret
+	if hasattr(data, 'order') :
+		order = data.order
+	else :
+		order = 'latest'
+	if hasattr(data, 'category') :
+		category = data.category
+	else :
+		category = ''
+	tags = queryTagsWildcard(data.query, category, data.page - 1, data.page_size, order)
+	tag_count = tags.count()
+	ret = makeResponseSuccess({
+		"tags": [i for i in tags],
+		"count": tag_count,
+		"page_count": (tag_count - 1) // data.page_size + 1
+	})
+	return "json", ret
 
 @app.route('/tags/query_tags_regex.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
 def ajax_query_tags_regex(rd, user, data):
-    if hasattr(data, 'order') :
-        order = data.order
-    else :
-        order = 'latest'
-    if hasattr(data, 'category') :
-        category = data.category
-    else :
-        category = ''
-    tags = queryTagsRegex(data.query, category, data.page - 1, data.page_size, order)
-    tag_count = tags.count()
-    ret = makeResponseSuccess({
-        "tags": [i for i in tags],
-        "count": tag_count,
-        "page_count": (tag_count - 1) // data.page_size + 1
-    })
-    return "json", ret
+	if hasattr(data, 'order') :
+		order = data.order
+	else :
+		order = 'latest'
+	if hasattr(data, 'category') :
+		category = data.category
+	else :
+		category = ''
+	tags = queryTagsRegex(data.query, category, data.page - 1, data.page_size, order)
+	tag_count = tags.count()
+	ret = makeResponseSuccess({
+		"tags": [i for i in tags],
+		"count": tag_count,
+		"page_count": (tag_count - 1) // data.page_size + 1
+	})
+	return "json", ret
 """
 
 @app.route('/tags/add_tag.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_add_tag(rd, user, data):
-    addTag(user, data.tag.strip(), data.category, data.language)
+	addTag(user, data.tag.strip(), data.category, data.language)
 
 @app.route('/tags/remove_tag.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_remove_tag(rd, user, data):
-    removeTag(user, data.tag)
+	removeTag(user, data.tag)
 
 @app.route('/tags/rename_tag.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_rename_tag(rd, user, data):
-    renameTagOrAddTagLanguage(user, data.tag, data.new_tag, data.language)
+	renameTagOrAddTagLanguage(user, data.tag, data.new_tag, data.language)
 
 @app.route('/tags/rename_alias.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_rename_alias(rd, user, data):
-    renameOrAddAlias(user, data.tag, data.new_tag)
+	renameOrAddAlias(user, data.tag, data.new_tag)
 
 @app.route('/tags/add_alias.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_add_alias(rd, user, data):
-    renameOrAddAlias(user, int(data.tag), data.new_tag)
+	renameOrAddAlias(user, int(data.tag), data.new_tag)
 
 @app.route('/tags/add_tag_language.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_add_tag_language(rd, user, data):
-    renameTagOrAddTagLanguage(user, int(data.tag), data.new_tag, data.language)
+	renameTagOrAddTagLanguage(user, int(data.tag), data.new_tag, data.language)
 
 @app.route('/tags/remove_alias.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_remove_alias(rd, user, data):
-    removeAlias(user, data.alias)
+	removeAlias(user, data.alias)
 

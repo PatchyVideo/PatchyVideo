@@ -17,11 +17,11 @@ from config import TagsConfig, VideoConfig
 @loginRequiredJSON
 @jsonRequest
 def ajax_videos_edittags(rd, user, data):
-    editVideoTags(data.video_id, data.tags, user)
+	editVideoTags(data.video_id, data.tags, user)
 
 @app.route('/videos/gettags.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
 def ajax_videos_gettags(rd, user, data):
-    tags = getVideoTags(data.video_id, 'CHS')
-    return "json", makeResponseSuccess(tags)
+	tags = getVideoTags(data.video_id, 'CHS')
+	return "json", makeResponseSuccess(tags)

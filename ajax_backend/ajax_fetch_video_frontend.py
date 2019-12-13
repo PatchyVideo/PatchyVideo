@@ -15,10 +15,10 @@ from spiders.Twitter import Twitter
 @loginRequiredJSON
 @jsonRequest
 def ajax_helper_get_twitter_info(rd, user, data):
-    obj, cleanURL = dispatch(data.url)
-    if obj.NAME != 'twitter' :
-        return makeResponseFailed('NOT_TWITTER')
-    info = obj.get_metadata(obj, cleanURL)
-    if info["status"] != 'SUCCEED' :
-        return makeResponseFailed('FETCH_FAILED')
-    return info
+	obj, cleanURL = dispatch(data.url)
+	if obj.NAME != 'twitter' :
+		return makeResponseFailed('NOT_TWITTER')
+	info = obj.get_metadata(obj, cleanURL)
+	if info["status"] != 'SUCCEED' :
+		return makeResponseFailed('FETCH_FAILED')
+	return info

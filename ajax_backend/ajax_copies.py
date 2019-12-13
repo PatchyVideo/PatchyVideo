@@ -17,16 +17,16 @@ from services.copies import breakLink, syncTags, broadcastTags
 @loginRequiredJSON
 @jsonRequest
 def ajax_breaklink(rd, user, data):
-    breakLink(data.video_id, user)
+	breakLink(data.video_id, user)
 
 @app.route('/videos/synctags.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_synctags(rd, user, data):
-    syncTags(data.dst, data.src, user)
+	syncTags(data.dst, data.src, user)
 
 @app.route('/videos/broadcasttags.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_broadcasttags(rd, user, data):
-    broadcastTags(data.src, user)
+	broadcastTags(data.src, user)

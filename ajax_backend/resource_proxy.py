@@ -1,10 +1,10 @@
 """
 File:
-    resource_proxy.py
+	resource_proxy.py
 Location:
-    /ajax_backend/resource_proxy.py
+	/ajax_backend/resource_proxy.py
 Description:
-    Proxy resources which result in 403 otherwise
+	Proxy resources which result in 403 otherwise
 """
 
 import requests
@@ -18,10 +18,10 @@ from utils.encodings import makeUTF8
 
 @app.route('/proxy', methods = ['GET'])
 def ajax_resource_proxy():
-    if not request.args['url'] or not request.args['header']:
-        return ""
-    url = makeUTF8(request.args['url'])
-    header = makeUTF8(json.loads(request.args['header']))
-    ret = requests.get(url, headers = header)
-    return ret.content
-    
+	if not request.args['url'] or not request.args['header']:
+		return ""
+	url = makeUTF8(request.args['url'])
+	header = makeUTF8(json.loads(request.args['header']))
+	ret = requests.get(url, headers = header)
+	return ret.content
+	

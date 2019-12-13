@@ -19,17 +19,17 @@ from config import TagsConfig, VideoConfig
 @loginOptional
 @jsonRequest
 def ajax_getvideo(rd, user, data):
-    obj, tags = getVideoDetailWithTagObjects(data.vid)
-    copies = []
-    for item in obj['item']['copies'] :
-        ver = getVideoDetail(item)
-        assert ver
-        copies.append(ver)
-    playlists = listPlaylistsForVideo(data.vid)
-    return "json", makeResponseSuccess({
-        "video" : obj,
-        "tags" : tags,
-        "copies" : copies,
-        "playlists" : playlists
-    })
+	obj, tags = getVideoDetailWithTagObjects(data.vid)
+	copies = []
+	for item in obj['item']['copies'] :
+		ver = getVideoDetail(item)
+		assert ver
+		copies.append(ver)
+	playlists = listPlaylistsForVideo(data.vid)
+	return "json", makeResponseSuccess({
+		"video" : obj,
+		"tags" : tags,
+		"copies" : copies,
+		"playlists" : playlists
+	})
 """
