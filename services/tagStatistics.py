@@ -39,7 +39,7 @@ def updateTagSearch(tags) :
 def getRelatedTagsExperimental(user_language, tags, max_count = 10) :
     tag_ids = tagdb.filter_and_translate_tags(tags)
     related_items = tagdb.db.items.aggregate([
-        {'$match': {'tags': {'$in': tag_ids}}},
+        {'$match': {'tags': {'$all': tag_ids}}},
         {'$project': {'tags': 1}}
     ])
     total_counts = Counter(list(itertools.chain(*[item['tags'] for item in related_items])))
