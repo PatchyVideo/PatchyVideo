@@ -340,6 +340,14 @@ class TagDB() :
 			ans[obj['tag']] = obj['tag_obj']['category']
 		return ans
 	
+	def translate_tag_ids_to_user_language_map(self, tag_ids, language, session = None) :
+		tag_objs = self.db.tags.find({'id': {'$in': tag_ids}}, session = session)
+		tagid_to_tag_map = {}
+		for obj in tag_objs :
+			tag_in_user_language = translateTagToPreferredLanguage(obj, language)
+			tagid_to_tag_map[obj['id']] = tag_in_user_language
+		return tagid_to_tag_map
+
 	def translate_tag_ids_to_user_language(self, tag_ids, language, session = None) :
 		tag_objs = self.db.tags.find({'id': {'$in': tag_ids}}, session = session)
 		category_tag_map = defaultdict(list)
