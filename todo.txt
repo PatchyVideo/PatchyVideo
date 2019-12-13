@@ -82,6 +82,7 @@ make autocomplete with fast_io::epoll
 #root tag language mark
 user-friendly error messages
 show tag counts on video detail page
+use common tags when adding video to playlist
 
 ======================
 offical launch
