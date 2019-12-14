@@ -20,6 +20,8 @@ from config import QueryConfig
 @jsonRequest
 def ajax_listvideo_do(rd, data, user):
 	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
+	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
+		raise AttributeError()
 	videos, related_tags = listVideo(data.page - 1, data.page_size, order)
 	tag_category_map = getTagCategoryMap(related_tags)
 	video_count = videos.count()
@@ -38,6 +40,8 @@ def ajax_queryvideo_do(rd, data, user):
 	if len(data.query) > QueryConfig.MAX_QUERY_LENGTH :
 		raise UserError('QUERY_TOO_LONG')
 	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
+	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
+		raise AttributeError()
 	videos, related_tags, video_count = listVideoQuery(data.query, data.page - 1, data.page_size, order)
 	tag_category_map = getTagCategoryMap(related_tags)
 	ret = makeResponseSuccess({
@@ -53,6 +57,8 @@ def ajax_queryvideo_do(rd, data, user):
 @jsonRequest
 def ajax_listmyvideo_do(rd, data, user):
 	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
+	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
+		raise AttributeError()
 	videos = listMyVideo(data.page - 1, data.page_size, user, order)
 	video_count = videos.count()
 	ret = makeResponseSuccess({
