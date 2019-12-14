@@ -11,7 +11,7 @@ from utils.jsontools import *
 
 from spiders import dispatch
 
-from services.editTag import addTag, queryTags, queryCategories, queryTagCategories, removeTag, renameTagOrAddTagLanguage, renameOrAddAlias, removeAlias
+from services.editTag import addTag, queryTags, queryCategories, queryTagCategories, removeTag, renameTagOrAddTagLanguage, renameOrAddAlias, removeAlias, queryTagsWildcard, queryTagsRegex
 from config import TagsConfig
 
 @app.route('/tags/query_categories.do', methods = ['POST'])
@@ -42,6 +42,8 @@ def ajax_query_tags(rd, user, data):
 		order = data.order
 	else :
 		order = 'latest'
+	if order not in ['latest', 'oldest', 'count', 'count_inv'] :
+		raise AttributeError()
 	tags = queryTags(data.category, data.page - 1, data.page_size, order)
 	tag_count = tags.count()
 	ret = makeResponseSuccess({
@@ -51,7 +53,6 @@ def ajax_query_tags(rd, user, data):
 	})
 	return "json", ret
 
-"""
 @app.route('/tags/query_tags_wildcard.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
@@ -60,14 +61,15 @@ def ajax_query_tags_wildcard(rd, user, data):
 		order = data.order
 	else :
 		order = 'latest'
+	if order not in ['latest', 'oldest', 'count', 'count_inv'] :
+		raise AttributeError()
 	if hasattr(data, 'category') :
 		category = data.category
 	else :
 		category = ''
-	tags = queryTagsWildcard(data.query, category, data.page - 1, data.page_size, order)
-	tag_count = tags.count()
+	tags, tag_count = queryTagsWildcard(data.query, category, data.page - 1, data.page_size, order)
 	ret = makeResponseSuccess({
-		"tags": [i for i in tags],
+		"tags": tags,
 		"count": tag_count,
 		"page_count": (tag_count - 1) // data.page_size + 1
 	})
@@ -85,15 +87,13 @@ def ajax_query_tags_regex(rd, user, data):
 		category = data.category
 	else :
 		category = ''
-	tags = queryTagsRegex(data.query, category, data.page - 1, data.page_size, order)
-	tag_count = tags.count()
+	tags, tag_count = queryTagsRegex(data.query, category, data.page - 1, data.page_size, order)
 	ret = makeResponseSuccess({
-		"tags": [i for i in tags],
+		"tags": tags,
 		"count": tag_count,
 		"page_count": (tag_count - 1) // data.page_size + 1
 	})
 	return "json", ret
-"""
 
 @app.route('/tags/add_tag.do', methods = ['POST'])
 @loginRequiredJSON

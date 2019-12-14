@@ -29,35 +29,13 @@ def queryTags(category, page_idx, page_size, order = 'none'):
         result = result.sort([("count", 1)])
     return result.skip(page_idx * page_size).limit(page_size)
 
-"""
-def queryTagsWildcard(query, category, page_idx, page_size, order = 'none'):
-    result = tagdb.find_tags_wildcard(query, category)
-    if isinstance(result, str):
-        return result
-    if order == 'latest':
-        result = result.sort([("meta.created_at", -1)])
-    if order == 'oldest':
-        result = result.sort([("meta.created_at", 1)])
-    if order == 'count':
-        result = result.sort([("count", -1)])
-    elif order == 'count_inv':
-        result = result.sort([("count", 1)])
-    return result.skip(page_idx * page_size).limit(page_size)
+def queryTagsWildcard(query, category, page_idx, page_size, order):
+    result = [i for i in tagdb.find_tags_wildcard(query, category, page_idx, page_size, order)][0]
+    return [i for i in result['result']], result['tags_found'][0]['tags_found']
 
-def queryTagsRegex(query, category, page_idx, page_size, order = 'none'):
-    result = tagdb.find_tags_regex(query, category)
-    if isinstance(result, str):
-        return result
-    if order == 'latest':
-        result = result.sort([("meta.created_at", -1)])
-    elif order == 'oldest':
-        result = result.sort([("meta.created_at", 1)])
-    elif order == 'count':
-        result = result.sort([("count", -1)])
-    elif order == 'count_inv':
-        result = result.sort([("count", 1)])
-    return result.skip(page_idx * page_size).limit(page_size)
-"""
+def queryTagsRegex(query, category, page_idx, page_size, order):
+    result = [i for i in tagdb.find_tags_regex(query, category, page_idx, page_size, order)][0]
+    return [i for i in result['result']], result['tags_found'][0]['tags_found']
 
 def queryCategories():
     return tagdb.list_categories()

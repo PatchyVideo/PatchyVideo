@@ -144,24 +144,49 @@ class TagDB() :
 		self.aci.AddWord([(tag_id, tag)])
 		return tag_id
 
-	"""
-	def find_tags_wildcard(self, query, category) :
+	def find_tags_wildcard(self, query, category, page_idx, page_size, order) :
 		assert isinstance(query, str)
 		query = re.escape(query)
 		query = query.replace('\\*', '.*')
 		query = f'^{query}$'
-		if category :
-			return self.db.tags.find({'type': {'$ne': 'language'}, 'tag': {'$regex': query}, 'category': category})
-		else :
-			return self.db.tags.find({'type': {'$ne': 'language'}, 'tag': {'$regex': query}})
+		return self.find_tags_regex(query, category, page_idx, page_size, order)
 
-	def find_tags_regex(self, query, category) :
+	def find_tags_regex(self, query, category, page_idx, page_size, order) :
 		assert isinstance(query, str)
 		if category :
-			return self.db.tags.find({'type': {'$ne': 'language'}, 'tag': {'$regex': query}, 'category': category})
+			match_obj = {'category': category}
 		else :
-			return self.db.tags.find({'type': {'$ne': 'language'}, 'tag': {'$regex': query}})
-	"""
+			match_obj = {}
+
+		if order == 'latest':
+			sort_obj = {"meta.created_at": -1}
+		if order == 'oldest':
+			sort_obj = {"meta.created_at": 1}
+		if order == 'count':
+			sort_obj = {"count": -1}
+		elif order == 'count_inv':
+			sort_obj = {"count": 1}
+
+		return self.db.tag_alias.aggregate([
+			{'$match': {'tag': {'$regex': query}}},
+			{'$group': {'_id': "$dst"}},
+			{'$lookup': {'localField': '_id', 'foreignField': '_id', 'from': 'tags', 'as': 'tag'}},
+			{'$replaceRoot': {'newRoot': {'$mergeObjects': [{'$arrayElemAt': ["$tag", 0]}, "$$ROOT"]}}},
+			{'$project': {'tag': 0}},
+			{'$match': match_obj},
+			{'$facet':
+			{
+				'result': [
+					{'$sort': sort_obj},
+					{'$skip': page_idx * page_size},
+					{'$limit': page_size}
+				],
+				'tags_found': [
+					{'$count': 'tags_found'}
+				]
+			}
+		}
+		])
 
 	def filter_and_translate_tags(self, tags, session = None) :
 		found = self.db.tag_alias.aggregate([
