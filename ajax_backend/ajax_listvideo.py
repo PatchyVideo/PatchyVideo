@@ -19,7 +19,8 @@ from config import QueryConfig
 @loginOptional
 @jsonRequest
 def ajax_listvideo_do(rd, data, user):
-	videos, related_tags = listVideo(data.page - 1, data.page_size)
+	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
+	videos, related_tags = listVideo(data.page - 1, data.page_size, order)
 	tag_category_map = getTagCategoryMap(related_tags)
 	video_count = videos.count()
 	ret = makeResponseSuccess({
@@ -36,7 +37,8 @@ def ajax_listvideo_do(rd, data, user):
 def ajax_queryvideo_do(rd, data, user):
 	if len(data.query) > QueryConfig.MAX_QUERY_LENGTH :
 		raise UserError('QUERY_TOO_LONG')
-	videos, related_tags, video_count = listVideoQuery(data.query, data.page - 1, data.page_size)
+	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
+	videos, related_tags, video_count = listVideoQuery(data.query, data.page - 1, data.page_size, order)
 	tag_category_map = getTagCategoryMap(related_tags)
 	ret = makeResponseSuccess({
 		"videos": [i for i in videos],
@@ -50,7 +52,8 @@ def ajax_queryvideo_do(rd, data, user):
 @loginRequired
 @jsonRequest
 def ajax_listmyvideo_do(rd, data, user):
-	videos = listMyVideo(data.page - 1, data.page_size, user)
+	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
+	videos = listMyVideo(data.page - 1, data.page_size, user, order)
 	video_count = videos.count()
 	ret = makeResponseSuccess({
 		"videos": [i for i in videos],
