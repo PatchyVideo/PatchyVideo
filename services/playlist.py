@@ -34,7 +34,7 @@ def _check_authorised(pid_or_obj, user, op = 'edit') :
 	if not _is_authorised(pid_or_obj, user, op) :
 		raise UserError('UNAUTHORISED_OPERATION')
 
-def createPlaylist(language, title, desc, cover, user) :
+def createPlaylist(language, title, desc, cover, user, private = False) :
 	if len(title) > PlaylistConfig.MAX_TITLE_LENGTH :
 		raise UserError('TITLE_TOO_LONG')
 	if len(desc) > PlaylistConfig.MAX_DESC_LENGTH :
@@ -45,7 +45,7 @@ def createPlaylist(language, title, desc, cover, user) :
 		raise UserError('EMPTY_TITLE')
 	if not desc :
 		raise UserError('EMPTY_DESC')
-	obj = {"title": {language: title}, "desc": {language: desc}, "views": 0, "videos": 0, "cover": cover, "meta": makeUserMetaObject(user)}
+	obj = {"title": {language: title}, "desc": {language: desc}, "private": private, "views": 0, "videos": 0, "cover": cover, "meta": makeUserMetaObject(user)}
 	pid = db.playlists.insert_one(obj)
 	return str(pid.inserted_id)
 
@@ -70,6 +70,10 @@ def listMyPlaylists(user, page_idx = 0, page_size = 10000, order = 'last_modifie
 	result = db.playlists.find({'meta.created_by': ObjectId(user['_id'])})
 	if order == 'last_modified' :
 		result = result.sort([("meta.modified_at", -1)])
+	if order == 'latest':
+		result = result.sort([("meta.created_at", 1)])
+	if order == 'oldest':
+		result = result.sort([("meta.created_at", -1)])
 	return result.skip(page_idx * page_size).limit(page_size)
 
 def updatePlaylistCover(pid, cover, user) :
@@ -110,7 +114,7 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 		s.mark_succeed()
 		return {'videos': video_page, 'video_count': video_count, 'page': page}
 
-def updatePlaylistInfo(pid, language, title, desc, cover, user) :
+def updatePlaylistInfo(pid, language, title, desc, cover, user, private = False) :
 	if len(title) > PlaylistConfig.MAX_TITLE_LENGTH :
 		raise UserError('TITLE_TOO_LONG')
 	if len(desc) > PlaylistConfig.MAX_DESC_LENGTH :
@@ -127,18 +131,12 @@ def updatePlaylistInfo(pid, language, title, desc, cover, user) :
 		_check_authorised(pid, user)
 		if cover :
 			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {"cover": cover}}, session = s())
-		if user is not None :
-			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-				"title.%s" % language: title,
-				"desc.%s" % language: desc,
-				'meta.modified_by': ObjectId(user['_id']),
-				'meta.modified_at': datetime.now()}}, session = s())
-		else :
-			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-				"title.%s" % language: title,
-				"desc.%s" % language: desc,
-				'meta.modified_by': '',
-				'meta.modified_at': datetime.now()}}, session = s())
+		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
+			"title.%s" % language: title,
+			"desc.%s" % language: desc,
+			"private": private,
+			'meta.modified_by': makeUserMeta(user),
+			'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()
 
 def addVideoToPlaylist(pid, vid, user) :
@@ -159,14 +157,9 @@ def addVideoToPlaylist(pid, vid, user) :
 		tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, makeUserMeta(user), session = s())
 		db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": playlist["videos"], "meta": makeUserMeta(user)}, session = s())
 		db.playlists.update_one({"_id": ObjectId(pid)}, {"$inc": {"videos": 1}}, session = s())
-		if user is not None :
-			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-				'meta.modified_by': ObjectId(user['_id']),
-				'meta.modified_at': datetime.now()}}, session = s())
-		else :
-			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-				'meta.modified_by': '',
-				'meta.modified_at': datetime.now()}}, session = s())
+		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
+			'meta.modified_by': makeUserMeta(user),
+			'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()
 
 def addVideoToPlaylistLockFree(pid, vid, user) :
@@ -187,14 +180,9 @@ def addVideoToPlaylistLockFree(pid, vid, user) :
 		tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, makeUserMeta(user), session = s())
 		db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": playlist["videos"], "meta": makeUserMeta(user)}, session = s())
 		db.playlists.update_one({"_id": ObjectId(pid)}, {"$inc": {"videos": 1}}, session = s())
-		if user is not None :
-			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-				'meta.modified_by': ObjectId(user['_id']),
-				'meta.modified_at': datetime.now()}}, session = s())
-		else :
-			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-				'meta.modified_by': '',
-				'meta.modified_at': datetime.now()}}, session = s())
+		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
+			'meta.modified_by': makeUserMeta(user),
+			'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()
 
 def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
@@ -299,6 +287,9 @@ def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
 	ans_obj = db.playlists.aggregate([
 	{
 		"$match" : query
+	},
+	{
+		"$match" : {'private': False}
 	},
 	{
 		"$lookup" : {
@@ -475,14 +466,9 @@ def removeVideoFromPlaylist(pid, vid, page, page_size, user) :
 			db.playlist_items.update_many({'$and': [{'pid': ObjectId(pid)}, {'rank': {'$gt': entry['rank']}}]}, {'$inc': {'rank': -1}}, session = s())
 			db.playlist_items.delete_one({'_id': entry['_id']}, session = s())
 			db.playlists.update_one({"_id": ObjectId(pid)}, {"$inc": {"videos": -1}}, session = s())
-			if user is not None :
-				db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-					'meta.modified_by': ObjectId(user['_id']),
-					'meta.modified_at': datetime.now()}}, session = s())
-			else :
-				db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-					'meta.modified_by': '',
-					'meta.modified_at': datetime.now()}}, session = s())
+			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
+				'meta.modified_by': makeUserMeta(user),
+				'meta.modified_at': datetime.now()}}, session = s())
 		else :
 			raise UserError('EMPTY_PLAYLIST')
 		video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
@@ -510,14 +496,9 @@ def editPlaylist_MoveUp(pid, vid, page, page_size, user) :
 			exchange_entry = db.playlist_items.find_one({"pid": ObjectId(pid), "rank": entry['rank'] - 1}, session = s())
 			db.playlist_items.update_one({'_id': entry['_id']}, {'$set': {'rank': entry['rank'] - 1}}, session = s())
 			db.playlist_items.update_one({'_id': exchange_entry['_id']}, {'$set': {'rank': entry['rank']}}, session = s())
-			if user is not None :
-				db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-					'meta.modified_by': ObjectId(user['_id']),
-					'meta.modified_at': datetime.now()}}, session = s())
-			else :
-				db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-					'meta.modified_by': '',
-					'meta.modified_at': datetime.now()}}, session = s())
+			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
+				'meta.modified_by': makeUserMeta(user),
+				'meta.modified_at': datetime.now()}}, session = s())
 			video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
 			s.mark_succeed()
 			return {'videos': video_page, 'video_count': video_count, 'page': page}
@@ -539,14 +520,9 @@ def editPlaylist_MoveDown(pid, vid, page, page_size, user) :
 			exchange_entry = db.playlist_items.find_one({"pid": ObjectId(pid), "rank": entry['rank'] + 1}, session = s())
 			db.playlist_items.update_one({'_id': entry['_id']}, {'$set': {'rank': entry['rank'] + 1}}, session = s())
 			db.playlist_items.update_one({'_id': exchange_entry['_id']}, {'$set': {'rank': entry['rank']}}, session = s())
-			if user is not None :
-				db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-					'meta.modified_by': ObjectId(user['_id']),
-					'meta.modified_at': datetime.now()}}, session = s())
-			else :
-				db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-					'meta.modified_by': '',
-					'meta.modified_at': datetime.now()}}, session = s())
+			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
+				'meta.modified_by': makeUserMeta(user),
+				'meta.modified_at': datetime.now()}}, session = s())
 			video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
 			s.mark_succeed()
 			return {'videos': video_page, 'video_count': video_count, 'page': page}
@@ -576,14 +552,9 @@ def insertIntoPlaylist(pid, vid, rank, user) :
 		db.playlists.update_one({"_id": ObjectId(pid)}, {"$inc": {"videos": 1}}, session = s())
 		db.playlist_items.update_many({'$and': [{'pid': ObjectId(pid)}, {'rank': {'$gte': rank}}]}, {'$inc': {'rank': 1}}, session = s())
 		db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": rank, "meta": makeUserMeta(user)}, session = s())
-		if user is not None :
-			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-				'meta.modified_by': ObjectId(user['_id']),
-				'meta.modified_at': datetime.now()}}, session = s())
-		else :
-			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-				'meta.modified_by': '',
-				'meta.modified_at': datetime.now()}}, session = s())
+		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
+			'meta.modified_by': makeUserMeta(user),
+			'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()
 
 def insertIntoPlaylistLockFree(pid, vid, rank, user) :
@@ -609,12 +580,7 @@ def insertIntoPlaylistLockFree(pid, vid, rank, user) :
 		db.playlists.update_one({"_id": ObjectId(pid)}, {"$inc": {"videos": 1}}, session = s())
 		db.playlist_items.update_many({'$and': [{'pid': ObjectId(pid)}, {'rank': {'$gte': rank}}]}, {'$inc': {'rank': 1}}, session = s())
 		db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": rank, "meta": makeUserMeta(user)}, session = s())
-		if user is not None :
-			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-				'meta.modified_by': ObjectId(user['_id']),
-				'meta.modified_at': datetime.now()}}, session = s())
-		else :
-			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-				'meta.modified_by': '',
-				'meta.modified_at': datetime.now()}}, session = s())
+		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
+			'meta.modified_by': makeUserMeta(user),
+			'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()

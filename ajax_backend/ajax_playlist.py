@@ -55,11 +55,12 @@ def ajax_playlist_movedown_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_lists_new_do(rd, user, data):
+	private = data.private if 'private' in data.__dict__ is not None else False
 	if data.pid :
-		updatePlaylistInfo(data.pid, "english", data.title, data.desc, data.cover, user)
+		updatePlaylistInfo(data.pid, "english", data.title, data.desc, data.cover, user, private)
 		return "json", makeResponseSuccess({"pid": data.pid})
 	else :
-		pid = createPlaylist("english", data.title, data.desc, data.cover, user)
+		pid = createPlaylist("english", data.title, data.desc, data.cover, user, private)
 		return "json", makeResponseSuccess({"pid": pid})
 
 @app.route('/lists/myplaylists', methods = ['POST'])
