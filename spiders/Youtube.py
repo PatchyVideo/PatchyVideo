@@ -86,7 +86,7 @@ class Youtube( Spider ) :
 		thumbnailsurl0 = player_response['thumbnails']
 		thumbnailsurl1 = thumbnailsurl0['medium']
 		thumbnailURL = thumbnailsurl1['url']#缩略图url size：320 180
-		utags = player_response['tags']
+		utags = player_response['tags'] if 'tags' in player_response else []
 
 		return makeResponseSuccess({
 			'thumbnailURL': thumbnailURL,
@@ -127,7 +127,7 @@ class Youtube( Spider ) :
 		thumbnailsurl0 = player_response['thumbnails']
 		thumbnailsurl1 = thumbnailsurl0['medium']
 		thumbnailURL = thumbnailsurl1['url']
-		utags = player_response['tags']
+		utags = player_response['tags'] if 'tags' in player_response else []
 
 		return makeResponseSuccess({
 			'thumbnailURL': thumbnailURL,
