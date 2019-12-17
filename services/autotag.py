@@ -7,18 +7,9 @@ from utils.dbtools import MongoTransaction
 import itertools
 
 def _clearOrCreateCollections(session) :
-	try :
-		db.db.create_collection('utag_tag_freq', session = session)
-	except :
-		db.db.utag_tag_freq.delete_many({}, session = session)
-	try :
-		db.db.create_collection('utag_freq', session = session)
-	except :
-		pass
-	try :
-		db.db.create_collection('utag_rules', session = session)
-	except :
-		db.db.utag_rules.delete_many({}, session = session)
+	db.db.utag_tag_freq.delete_many({}, session = session)
+	db.db.utag_freq.delete_many({}, session = session)
+	db.db.utag_rules.delete_many({}, session = session)
 
 def buildTagRulesFromScratch(rule_threshold) :
 	with MongoTransaction(client) as s :
