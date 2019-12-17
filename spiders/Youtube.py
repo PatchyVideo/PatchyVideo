@@ -1,4 +1,5 @@
 import json
+import os
 from . import Spider
 from utils.jsontools import *
 from utils.encodings import makeUTF8
@@ -31,7 +32,7 @@ class Youtube( Spider ) :
 	SHORT_PATTERN = r''
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.youtube.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.youtube.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
-	API_KEY = "AIzaSyD1mnyt3jcTyO5efO8fDy0gYWvXd_V4rVw"
+	API_KEYs = os.getenv('GOOGLE_API_KEYs', "").split(',')
 	
 	def normalize_url( self, link ) :
 		if 'youtube.com' in link:
@@ -68,9 +69,11 @@ class Youtube( Spider ) :
 			else:
 				vidid = link[link.rfind('/') + 1:]
 
-		api_url = "https://www.googleapis.com/youtube/v3/videos?id=" + vidid + "&key=" + self.API_KEY + "&part=snippet,contentDetails,statistics,status"
-		
-		apirespond = requests.get(api_url)# 得到api响应
+		for key in self.API_KEYs :
+			api_url = "https://www.googleapis.com/youtube/v3/videos?id=" + vidid + "&key=" + key + "&part=snippet,contentDetails,statistics,status"
+			apirespond = requests.get(api_url)# 得到api响应
+			if apirespond.status_code == 200 :
+				break
 
 		player_response = apirespond.json()
 		player_response = player_response['items'][0]
@@ -105,13 +108,13 @@ class Youtube( Spider ) :
 			else:
 				vidid = link[link.rfind('/') + 1:]
 		
-		api_url = "https://www.googleapis.com/youtube/v3/videos?id=" + vidid + "&key=" + self.API_KEY + "&part=snippet,contentDetails,statistics,status"
-		
-		
-		async with aiohttp.ClientSession() as session:
-			async with session.get(api_url, headers = self.HEADERS_NO_UTF8) as resp:
-				if resp.status == 200 :
-					apirespond = await resp.text()
+		for key in self.API_KEYs :
+			api_url = "https://www.googleapis.com/youtube/v3/videos?id=" + vidid + "&key=" + key + "&part=snippet,contentDetails,statistics,status"
+			async with aiohttp.ClientSession() as session:
+				async with session.get(api_url, headers = self.HEADERS_NO_UTF8) as resp:
+					if resp.status == 200 :
+						apirespond = await resp.text()
+						break
 
 		player_response = loads(apirespond)
 		player_response = player_response['items'][0]
