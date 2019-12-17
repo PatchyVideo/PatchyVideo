@@ -83,6 +83,7 @@ class Youtube( Spider ) :
 		thumbnailsurl0 = player_response['thumbnails']
 		thumbnailsurl1 = thumbnailsurl0['medium']
 		thumbnailURL = thumbnailsurl1['url']#缩略图url size：320 180
+		utags = player_response['tags']
 
 		return makeResponseSuccess({
 			'thumbnailURL': thumbnailURL,
@@ -90,7 +91,8 @@ class Youtube( Spider ) :
 			'desc' : desc,
 			'site': 'youtube',
             'uploadDate' : uploadDate,
-			"unique_id": "youtube:%s" % vidid
+			"unique_id": "youtube:%s" % vidid,
+			"utags": utags
 		})
 		
 
@@ -122,6 +124,7 @@ class Youtube( Spider ) :
 		thumbnailsurl0 = player_response['thumbnails']
 		thumbnailsurl1 = thumbnailsurl0['medium']
 		thumbnailURL = thumbnailsurl1['url']
+		utags = player_response['tags']
 
 		return makeResponseSuccess({
 			'thumbnailURL': thumbnailURL,
@@ -129,5 +132,6 @@ class Youtube( Spider ) :
 			'desc' : desc,
 			'site': 'youtube',
             'uploadDate' : uploadDate,
-			"unique_id": "youtube:%s" % vidid
+			"unique_id": "youtube:%s" % vidid,
+			"utags": utags
 		})

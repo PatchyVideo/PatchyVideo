@@ -75,7 +75,8 @@ class Twitter( Spider ) :
 			'site': 'twitter',
 			'uploadDate' : uploadDate,
 			"unique_id": "twitter:%s" % item_id,
-			"url_overwrite": f'https://twitter.com/{screen_name}/status/{item_id}'
+			"url_overwrite": f'https://twitter.com/{screen_name}/status/{item_id}',
+			"utags": []
 		})
 		
 	async def unique_id_async( self, link ) :
@@ -116,5 +117,6 @@ class Twitter( Spider ) :
 			'site': 'twitter',
 			'uploadDate' : uploadDate,
 			"unique_id": "twitter:%s" % item_id,
-			"url_overwrite": f'https://twitter.com/{screen_name}/status/{item_id}'
+			"url_overwrite": f'https://twitter.com/{screen_name}/status/{item_id}',
+			"utags": []
 		})

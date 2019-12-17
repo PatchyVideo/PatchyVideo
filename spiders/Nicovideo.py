@@ -51,13 +51,16 @@ class Nicovideo( Spider ) :
 		soup = BeautifulSoup(desc, features = "lxml")
 		desc_textonly = ''.join(soup.findAll(text = True))
 		uploadDate = parse(uploadDate).astimezone(timezone.utc)
+		utags = try_get_xpath(xpath, ['//meta[@property="og:video:tag"]/@content', '//meta[@itemprop="og:video:tag"]/@content', '//meta[@name="og:video:tag"]/@content'])
+		utags = [str(ut) for ut in utags]
 		return makeResponseSuccess({
 			'thumbnailURL': thumbnailURL,
 			'title' : title,
 			'desc' : desc_textonly,
 			'site': 'nicovideo',
 			'uploadDate' : uploadDate,
-			"unique_id": "nicovideo:%s" % vidid
+			"unique_id": "nicovideo:%s" % vidid,
+			"utags": utags
 		})
 		
 	async def unique_id_async( self, link ) :

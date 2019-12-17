@@ -44,9 +44,12 @@ class Acfun( Spider ) :
 			else :
 				thumbnailURL = ''
 		title = xpath.xpath('//h1[@class="title"]/text()')[0]
-		desc = try_get_xpath(xpath, ['//div[@class="J_description"]/text()', '//div[@class="sp1 J_description"]/text()'])[0]
+		desc = try_get_xpath(xpath, ['//div[@class="description-container"]/text()', '//div[@class="J_description"]/text()', '//div[@class="sp1 J_description"]/text()'])[0]
 		desc = re.sub(r'<br\s*?\/?>', '\n', desc)
-		uploadDate = xpath.xpath('//span[@class="time"]/text()')[0]
+		uploadDate = xpath.xpath('//div[@class="publish-time"]/text()')[0]
+		utags = xpath.xpath( '//meta[@name="keywords"]/@content' )[0]
+		utags = list(filter(None, utags.split(',')[1: -4]))
+		print('utags:', utags)
 		try :
 			uploadDate = parse(uploadDate) - timedelta(hours = 8)
 		except :
@@ -62,7 +65,8 @@ class Acfun( Spider ) :
 			'desc' : desc,
 			'site': 'acfun',
 			'uploadDate' : uploadDate,
-			"unique_id": "acfun:%s" % vidid
+			"unique_id": "acfun:%s" % vidid,
+			"utags": utags
 		})
 
 	async def unique_id_async( self, link ) :

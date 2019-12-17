@@ -38,13 +38,16 @@ class Bilibili( Spider ) :
 		title = xpath.xpath( '//h1[@class="video-title"]/@title' )[0]
 		desc = getInnerText(xpath.xpath( '//div[@class="info open"]/node()' ))
 		uploadDate = parse(xpath.xpath( '//meta[@itemprop="uploadDate"]/@content' )[0]) - timedelta(hours = 8) # convert from Beijing time to UTC
+		utags = xpath.xpath( '//meta[@itemprop="keywords"]/@content' )[0]
+		utags = list(filter(None, utags.split(',')[1: -4]))
 		return makeResponseSuccess({
 			'thumbnailURL': thumbnailURL,
 			'title' : title,
 			'desc' : desc,
 			'site': 'bilibili',
 			'uploadDate' : uploadDate,
-			"unique_id": "bilibili:%s" % vidid
+			"unique_id": "bilibili:%s" % vidid,
+			"utags": utags
 		})
 
 	async def unique_id_async( self, link ) :
