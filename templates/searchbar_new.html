@@ -62,7 +62,10 @@
 				var term_start_pos = value.tag.indexOf(value.term);
 				prefix = value.tag.substring(0, term_start_pos);
 				suffix = value.tag.substring(term_start_pos + value.term.length);
-				highlighted_term = `${prefix}<b><u>${value.term}</u></b>${suffix}`;
+                highlighted_term = `${prefix}<b><u>${value.term}</u></b>${suffix}`;
+                if (value.cnt == -1) {
+					return `<span style="color: ${value.color};"><span style="margin-right: 6em;">${highlighted_term}</span></span>`;
+				}
 				return `<span style="color: ${value.color};"><span style="margin-right: 6em;">${highlighted_term}</span></span><span style="float:right;">${value.cnt}</span>`;
 			},
 			replace: function (value) {
