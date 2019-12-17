@@ -41,6 +41,10 @@ def _gif_thumbnails(frames):
 
 # TODO: maybe make save image async?
 
+def _cleanUtags(utags) :
+	utags = [utag.replace(' ', '') for utag in utags]
+	return list(set(utags))
+
 async def _make_video_data(data, copies, playlists, url) :
 	filename = ""
 	for _ in range(3) :
@@ -76,7 +80,22 @@ async def _make_video_data(data, copies, playlists, url) :
 		'copies': copies,
 		'upload_time': data['uploadDate'],
 		'views': -1,
-		'rating': -1.0
+		'rating': -1.0,
+		"utags": _cleanUtags(data['utags']) if 'utags' in data else [],
+	}
+
+def _make_video_data_update(data, url) :
+	return {
+		"url": (data['url_overwrite'] if 'url_overwrite' in data else url),
+		"title": data['title'],
+		"desc": data['desc'],
+		"thumbnail_url": data['thumbnailURL'],
+		'site': data['site'],
+		"unique_id": data['unique_id'],
+		'upload_time': data['uploadDate'],
+		'views': -1,
+		'rating': -1.0,
+		"utags": _cleanUtags(data['utags']) if 'utags' in data else [],
 	}
 
 def _getAllCopies(vid, session, use_unique_id = False) :
@@ -178,7 +197,7 @@ class _PlaylistReorederHelper() :
 _playlist_reorder_helper = _PlaylistReorederHelper()
 
 @usingResourceAsync('tags')
-async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, playlist_ordered, user):
+async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, playlist_ordered, user, update_video_detail = False):
 	parsed = None
 	try :
 		dst_playlist = str(dst_playlist)
@@ -221,23 +240,16 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 				Update existing video
 				"""
 				
-				"""
-				if 'upload_time' not in conflicting_item['item'] or conflicting_item['item']['upload_time'] == '' or conflicting_item['item']['site'] == 'youtube':
-					print('Updating time', file = sys.stderr)
-					upload_time = ret['data']['uploadDate']
+				if update_video_detail and not tags :
+					print('Updating video detail', file = sys.stderr)
+					new_detail = _make_video_data_update(ret["data"], url)
 					with MongoTransaction(client) as s :
-						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item.upload_time': upload_time}}, makeUserMeta(user), session = s())
+						old_item = tagdb.retrive_item(conflicting_item['_id'], session = s())['item']
+						for key in new_detail.keys() :
+							old_item[key] = new_detail[key] # overwrite or add new field
+						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item': old_item}}, makeUserMeta(user), session = s())
 						s.mark_succeed()
-					if not tags :
-						print('SUCCEED', file = sys.stderr)
-						return 'SUCCEED', conflicting_item['_id']
-				"""
-				if conflicting_item['item']['site'] == 'nicovideo':
-					print('Updating desc', file = sys.stderr)
-					desc = ret['data']['desc']
-					with MongoTransaction(client) as s :
-						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item.desc': desc}}, makeUserMeta(user), session = s())
-						s.mark_succeed()
+					return 'SUCCEED', conflicting_item['_id']
 
 				# this video already exist in the database
 				# if the operation is to add a link to other copies and not adding self
@@ -352,8 +364,9 @@ async def postVideoAsyncJSON(param_json) :
 	other_copies = param_json['other_copies']
 	user = param_json['user']
 	playlist_ordered = param_json['playlist_ordered']
+	update_video_detail = param_json['update_video_detail'] if 'update_video_detail' in param_json else False
 	print(f'Posting {url}', file = sys.stderr)
-	ret, ret_obj = await postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, playlist_ordered, user)
+	ret, ret_obj = await postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, playlist_ordered, user, update_video_detail)
 	print(f'Done posting {url}', file = sys.stderr)
 	return {'result' : ret, 'result_obj' : ret_obj}
 
@@ -374,15 +387,6 @@ async def func_with_write_result(func, task_id, param_json) :
 		del param_json_for_user['user']
 		del param_json_for_user['playlist_ordered']
 		tagdb.db.failed_posts.insert_one({'uid': ObjectId(param_json['user']['_id']), 'ret': ret, 'post_param': param_json_for_user})
-
-	"""
-	ret = await func(param_json)
-	ret_json = dumps({'finished' : True, 'key': task_id, 'data' : ret})
-	if ret['result'] == 'SUCCEED' :
-		rdb.set(f'task-{task_id}', ret_json, ex = 500)
-	else :
-		rdb.set(f'task-{task_id}', ret_json)
-	"""
 
 async def task_runner(func, queue) :
 	while True :

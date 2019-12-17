@@ -28,7 +28,7 @@ else :
 def _verifyTags(tags) :
 	tagdb.verify_tags(tags)
 
-def _postTask(json_str) :
+def postTask(json_str) :
 	ret_obj = loads(post_raw(SCRAPER_ADDRESS, json_str.encode('utf-8')).text)
 	return ret_obj['task_id']
 
@@ -88,7 +88,7 @@ def postVideo(user, url, tags, copy, pid, rank):
 		raise UserError('EMPTY_URL')
 	_verifyTags(tags)
 	print('Posting %s' % cleanURL, file = sys.stderr)
-	task_id = _postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], user))
+	task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], user))
 	return task_id
 
 def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies):
@@ -118,7 +118,7 @@ def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies):
 		print('Posting %s' % cleanURL, file = sys.stderr)
 		if obj :
 			next_idx = idx if rank >= 0 else 0
-			task_id = _postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank + next_idx, unique_ids if as_copies else [], user, unique_ids))
+			task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank + next_idx, unique_ids if as_copies else [], user, unique_ids))
 			task_ids.append(task_id)
 		else :
 			pass # ignore for now
