@@ -16,11 +16,12 @@ def buildTagRulesFromScratch(rule_threshold) :
 		_clearOrCreateCollections(s())
 		all_tags = db.db.tags.distinct('id', session = s())
 		all_utags = db.db.items.distinct('item.utags', session = s())
-		db.db.items.aggregate([
+		ret = db.db.items.aggregate([
 			{'$unwind': {'path': '$item.utags'}},
-			{'$group': {'_id': '$item.utags', 'count': {'$sum': 1}}},
-			{'$out': 'utag_freq'}
+			{'$group': {'_id': '$item.utags', 'count': {'$sum': 1}}}
 		], session = s())
+		for r in ret :
+			db.db.utag_freq.insert_one(r, session = s())
 		in_mem_utag_freq = dict([(it['_id'], it['count']) for it in db.db.utag_freq.find({}, session = s())])
 		in_mem_tag_utag_freq = {}
 		for (tag, utag) in itertools.product(all_tags, all_utags) :
