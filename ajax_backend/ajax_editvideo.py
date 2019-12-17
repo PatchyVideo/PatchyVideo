@@ -10,7 +10,7 @@ from utils.jsontools import *
 
 from spiders import dispatch
 
-from services.editVideo import editVideoTags, getVideoTags, refreshVideoDetail
+from services.editVideo import editVideoTags, getVideoTags, refreshVideoDetail, refreshVideoDetailURL
 from config import TagsConfig, VideoConfig
 
 @app.route('/videos/edittags.do', methods = ['POST'])
@@ -31,3 +31,9 @@ def ajax_videos_gettags(rd, user, data):
 @jsonRequest
 def ajax_videos_refresh(rd, user, data):
 	refreshVideoDetail(data.video_id, user)
+
+@app.route('/videos/refresh_url.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_videos_refresh_url(rd, user, data):
+	refreshVideoDetailURL(data.url, user)

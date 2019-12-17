@@ -46,3 +46,17 @@ def refreshVideoDetail(vid, user) :
         'update_video_detail': True
     })
     postTask(json_str)
+
+def refreshVideoDetailURL(url, user) :
+    json_str = dumps({
+        'url' : url,
+        'tags' : [],
+        'dst_copy' : '',
+        'dst_playlist' : '',
+        'dst_rank' : -1,
+        'other_copies' : [],
+        'user' : user,
+        'playlist_ordered' : None,
+        'update_video_detail': True
+    })
+    postTask(json_str)
