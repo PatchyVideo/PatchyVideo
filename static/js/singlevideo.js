@@ -30,6 +30,16 @@ function syncTags(dst, src) {
 	});
 }
 
+function refreshVideo(vid) {
+	postJSON("/videos/refresh.do",
+	{
+		"video_id": vid
+	}, function(result)
+	{
+		location.reload();
+	});
+}
+
 function broadcastTags(src) {
 	postJSON("/videos/broadcasttags.do",
 	{
