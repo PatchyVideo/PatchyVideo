@@ -203,13 +203,14 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 		dst_playlist = str(dst_playlist)
 		dst_rank = -1 if dst_rank is None else dst_rank
 		#tags = tagdb.filter_and_translate_tags(tags)
-		parsed, unique_id = dispatch(url)
+		parsed, url = dispatch(url)
 	except :
 		pass
 	if parsed is None :
 		print('Parse failed for %s' % url, file = sys.stderr)
-		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank)
+		await _playlist_reorder_helper.post_video_failed(url, dst_playlist, playlist_ordered, dst_rank)
 		return "PARSE_FAILED", {}
+	unique_id = await parsed.unique_id_async(self = parsed, link = url)
 	print('Adding %s with copies %s and %s to playlist %s' % (url, dst_copy or '<None>', other_copies or '<None>', dst_playlist or '<None>'), file = sys.stderr)
 	try :
 		ret = await parsed.get_metadata_async(parsed, url)
@@ -222,7 +223,6 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 			url = ret["data"]["url"]
 		else :
 			url = clear_url(url)
-		unique_id = ret["data"]["unique_id"]
 		lock_id = "videoEdit:" + ret["data"]["unique_id"]
 		async with RedisLockAsync(rdb, lock_id) :
 			unique, conflicting_item = verifyUniqueness(ret["data"]["unique_id"])

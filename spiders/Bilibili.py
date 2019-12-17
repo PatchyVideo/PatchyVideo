@@ -51,7 +51,7 @@ class Bilibili( Spider ) :
 		})
 
 	async def unique_id_async( self, link ) :
-		return self.unique_id(link)
+		return self.unique_id(self = self, link = link)
 		
 	async def run_async(self, content, xpath, link) :
 		return self.run(self = self, content = content, xpath = xpath, link = link)

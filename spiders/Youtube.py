@@ -58,7 +58,7 @@ class Youtube( Spider ) :
 		return "youtube:%s" % vidid
 
 	async def unique_id_async( self, link ) :
-		return self.unique_id(link)
+		return self.unique_id(self = self, link = link)
 
 	def run( self, content, xpath, link ) :
 		if 'youtube.com' in link:
