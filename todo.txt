@@ -88,6 +88,7 @@ show tag counts on video detail page
 add ajax interface for updating internal configs(e.g. bilicookie_SESSDATA) for both scraper and main website
 add refresh video detail function
 logging using MongoDB
+check ajax input(e.g. order)
 
 ======================
 offical launch
