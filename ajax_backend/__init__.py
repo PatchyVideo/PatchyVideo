@@ -8,6 +8,7 @@ Description:
     Backend "pages" for handling AJAX requests
 """
 
+from . import ajax_config
 from . import ajax_postvideo
 from . import ajax_listvideo
 from . import ajax_edittag

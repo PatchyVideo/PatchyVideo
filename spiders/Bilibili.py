@@ -5,6 +5,7 @@ from utils.encodings import makeUTF8
 from utils.html import getInnerText
 from dateutil.parser import parse
 from datetime import timedelta
+from services.config import Config
 
 import os
 
@@ -14,11 +15,12 @@ class Bilibili( Spider ) :
 	SHORT_PATTERN = r'^[aA][Vv][\d]+$'
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
-	# temporary solution, replace with redis+admin portal update
-	COOKIE = {
-		'SESSDATA' : os.getenv('bilicookie_SESSDATA', ""),
-		'bili_jct' : os.getenv('bilicookie_bili_jct', "")
-	}
+
+	def get_cookie(self) :
+		return {
+			'SESSDATA' : Config.BILICOOKIE_SESSDATA,
+			'bili_jct' : Config.BILICOOKIE_bili_jct
+		}
 
 	def normalize_url( self, link ) :
 		link = link.lower()

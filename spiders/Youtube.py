@@ -10,6 +10,7 @@ import time
 from datetime import datetime, timezone
 from dateutil.parser import parse
 import aiohttp
+from services.config import Config
 
 def _str(s):
 	status = 'normal'
@@ -69,7 +70,7 @@ class Youtube( Spider ) :
 			else:
 				vidid = link[link.rfind('/') + 1:]
 
-		for key in self.API_KEYs :
+		for key in Config.YOUTUBE_API_KEYS.split(",") :
 			api_url = "https://www.googleapis.com/youtube/v3/videos?id=" + vidid + "&key=" + key + "&part=snippet,contentDetails,statistics,status"
 			apirespond = requests.get(api_url)# 得到api响应
 			if apirespond.status_code == 200 :
@@ -108,7 +109,7 @@ class Youtube( Spider ) :
 			else:
 				vidid = link[link.rfind('/') + 1:]
 		
-		for key in self.API_KEYs :
+		for key in Config.YOUTUBE_API_KEYS.split(",") :
 			api_url = "https://www.googleapis.com/youtube/v3/videos?id=" + vidid + "&key=" + key + "&part=snippet,contentDetails,statistics,status"
 			async with aiohttp.ClientSession() as session:
 				async with session.get(api_url, headers = self.HEADERS_NO_UTF8) as resp:

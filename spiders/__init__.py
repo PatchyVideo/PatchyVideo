@@ -13,7 +13,8 @@ class Spider :
 	def get_metadata( self, link ) :
 		try :
 			link = clear_url(link)
-			page = requests.get( link, headers = self.HEADERS )
+			cookie = self.get_cookie(self = self) if hasattr(self, 'get_cookie') else None
+			page = requests.get( link, headers = self.HEADERS, cookies = cookie )
 			if page.status_code == 200 :
 				tree = html.fromstring( page.text )
 				return self.run( self = self, content = page.text, xpath = tree, link = link )
@@ -29,7 +30,7 @@ class Spider :
 		try :
 			link = clear_url(link)
 			async with aiohttp.ClientSession() as session:
-				cookie = self.COOKIE if hasattr(self, 'COOKIE') else None
+				cookie = self.get_cookie(self = self) if hasattr(self, 'get_cookie') else None
 				async with session.get(link, headers = self.HEADERS_NO_UTF8, cookies = cookie) as resp:
 					if resp.status == 200 :
 						page_content = await resp.text()
