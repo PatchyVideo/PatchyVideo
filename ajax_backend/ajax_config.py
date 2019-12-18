@@ -20,5 +20,5 @@ def ajax_config_setconfig(rd, user, data):
 @jsonRequest
 def ajax_config_getconfig(rd, user, data):
 	raise UserError('UNAUTHORISED_OPERATION')
-	return makeResponseSuccess(Config.__getattr__(data.attr))
+	return makeResponseSuccess(Config.__getattr__(data.attr).decode('utf-8'))
 
