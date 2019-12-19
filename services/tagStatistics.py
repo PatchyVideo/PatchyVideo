@@ -1,7 +1,6 @@
 
 from db import tagdb
 
-import sys
 import json
 import itertools
 from collections import Counter
@@ -43,7 +42,6 @@ def getRelatedTagsExperimental(user_language, tags, max_count = 10) :
         {'$match': {'tags': {'$all': tag_ids}}},
         {'$project': {'tags': 1}}
     ])
-    print(related_items.explain(), file = sys.stderr)
     total_counts = Counter(list(itertools.chain(*[item['tags'] for item in related_items])))
     for tagid in tag_ids :
         del total_counts[tagid]
