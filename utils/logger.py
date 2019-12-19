@@ -15,9 +15,6 @@ def getEventID() :
 def setEventID(event_id) :
     pass
 
-def setEventOp(op, event_id = None) :
-    pass
-
 def log(op = '', level = "MSG", obj = None) :
     pass
 
