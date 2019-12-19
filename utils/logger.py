@@ -49,7 +49,7 @@ def setEventID(event_id) :
 def log(op = '', level = "MSG", obj = None) :
 	event_id = getEventID()
 	event_op = getattr(threadlocal, 'event_op') or op
-	event_user = getattr(threadlocal, 'event_user') or {'profile': {'username': '<anonymous>'}}
+	event_user = getattr(threadlocal, 'event_user') or {'profile': {'username': '<anonymous>'}, '_id': ''}
 
 	doc = {
 		'time': datetime.datetime.now(),
@@ -96,11 +96,3 @@ def _diff(old_tags, new_tags):
 	added_tags = new_tags_set - old_tags_set
 	removed_tags = (new_tags_set ^ old_tags_set) - added_tags
 	return list(added_tags), list(removed_tags)
-
-def log_tag(old_tags, new_tags, vid, op = '') :
-	return
-	event_id = getEventID()
-	event_op = getattr(threadlocal, 'event_op') or op
-	event_user = getattr(threadlocal, 'event_user') or {'profile': {'username': '<anonymous>'}}
-	added, removed = _diff(old_tags, new_tags)
-	print(f"MSG [{event_user['profile']['username']}] [{datetime.datetime.now()}] [{event_op}] {event_id}: video[{vid}] tags +{added} -{removed}", file = sys.stderr)

@@ -1,6 +1,5 @@
 from datetime import datetime
 from utils.exceptions import UserError
-from utils.logger import log_tag
 
 import re
 
