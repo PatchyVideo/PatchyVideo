@@ -297,12 +297,10 @@ def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
 		sort_obj = { "meta.created_at" : -1 }
 	if order == 'views':
 		sort_obj = { "views" : 1 }
+	query = {'$and': [query, {'private': False}]}
 	ans_obj = db.playlists.aggregate([
 	{
 		"$match" : query
-	},
-	{
-		"$match" : {'private': False}
 	},
 	{
 		"$lookup" : {
@@ -317,17 +315,22 @@ def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
 			"path" : "$user_detail"
 		}
 	},
-	{
-		"$sort" : sort_obj
-	},
-	{
-		'$skip' : page_idx * page_size,
-	},
-	{
-		'$limit' : page_size
-	}])
+	{'$facet':
+		{
+			'result': [
+				{'$sort': sort_obj},
+				{'$skip': page_idx * page_size},
+				{'$limit': page_size}
+			],
+			'count': [
+				{'$count': 'count'}
+			]
+		}
+	}
+	])
+	ans_obj = [i for i in ans_obj][0]
 	
-	return ans_obj, db.playlists.find(query).count()
+	return [i for i in ans_obj['result']], ans_obj['count'][0]['count']
 
 def listCommonTagIDs(pid) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
