@@ -27,7 +27,7 @@ from bson import ObjectId
 from services.playlist import addVideoToPlaylist, addVideoToPlaylistLockFree, insertIntoPlaylist, insertIntoPlaylistLockFree
 from config import VideoConfig
 from PIL import Image, ImageSequence
-from utils.logger import log_e, setEventID, setCurrentOp
+from utils.logger import log_e, setEventID
 
 import io
 import json
@@ -46,7 +46,7 @@ def _cleanUtags(utags) :
 	utags = [utag.replace(' ', '') for utag in utags]
 	return list(set(utags))
 
-async def _make_video_data(data, copies, playlists, url, event_id) :
+async def _make_video_data(data, copies, playlists, url, user, event_id) :
 	filename = ""
 	for attemp in range(3) :
 		try :
@@ -66,6 +66,7 @@ async def _make_video_data(data, copies, playlists, url, event_id) :
 							img.thumbnail((320, 200), Image.ANTIALIAS)
 							img.save(_COVER_PATH + filename)
 						log_e(event_id, user, 'download_cover', obj = {'filename': filename})
+						break
 					else :
 						log_e(event_id, user, 'download_cover', 'WARN', {'status_code': resp.status, 'attemp': attemp})
 		except Exception as ex :
@@ -313,7 +314,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 						for uid in other_copies :
 							all_copies += _getAllCopies(uid, session = s(), use_unique_id = True)
 						setEventID(event_id)
-						new_item_id = tagdb.add_item(tags, await _make_video_data(ret["data"], all_copies, playlists, url, event_id), makeUserMeta(user), session = s())
+						new_item_id = tagdb.add_item(tags, await _make_video_data(ret["data"], all_copies, playlists, url, user, event_id), makeUserMeta(user), session = s())
 						all_copies.append(ObjectId(new_item_id))
 						# remove duplicated items
 						all_copies = list(set(all_copies))
@@ -332,7 +333,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 				else :
 					async with MongoTransaction(client) as s :
 						setEventID(event_id)
-						new_item_id = tagdb.add_item(tags, await _make_video_data(ret["data"], [], playlists, url, event_id), makeUserMeta(user), session = s())
+						new_item_id = tagdb.add_item(tags, await _make_video_data(ret["data"], [], playlists, url, user, event_id), makeUserMeta(user), session = s())
 						log_e(event_id, user, 'scraper', level = 'MSG', obj = {'msg': 'New video added to database', 'vid': new_item_id})
 						s.mark_succeed()
 				# if the operation is adding this video to playlist
