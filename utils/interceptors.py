@@ -24,6 +24,7 @@ else :
 	_VERSION_URL = "https://github.com/zyddnys/PatchyVideo/commit/" + os.getenv("VERSION", "")
 
 from utils.logger import beginEvent, setEventUser, log, log_e
+from utils.http import getRealIP
 
 def _handle_return(ret, rd):
 	if isinstance(ret, str):
@@ -59,7 +60,7 @@ def _get_user_obj(sid) :
 def basePage(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs) :
-		beginEvent(func.__name__, request.full_path)
+		beginEvent(func.__name__, getRealIP(request), request.full_path, request.args)
 		rd = Namespace()
 		rd._version = _VERSION
 		rd._version_url = _VERSION_URL
@@ -78,7 +79,7 @@ def basePage(func):
 def loginRequired(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-		beginEvent(func.__name__, request.full_path)
+		beginEvent(func.__name__, getRealIP(request), request.full_path, request.args)
 		path = request.full_path
 		if path[-1] == '?' :
 			path = path[:-1]
@@ -117,7 +118,7 @@ def loginRequired(func):
 def loginRequiredJSON(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-		beginEvent(func.__name__, request.full_path)
+		beginEvent(func.__name__, getRealIP(request), request.full_path, request.args)
 		if 'sid' in session:
 			rd = Namespace()
 			kwargs['user'] = _get_user_obj(session['sid'])
@@ -137,7 +138,7 @@ def loginRequiredJSON(func):
 def loginOptional(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-		beginEvent(func.__name__, request.full_path)
+		beginEvent(func.__name__, getRealIP(request), request.full_path, request.args)
 		rd = Namespace()
 		if 'sid' in session:
 			kwargs['user'] = _get_user_obj(session['sid'])
