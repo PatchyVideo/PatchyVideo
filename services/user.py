@@ -56,8 +56,10 @@ def login(username, password, challenge, login_session_id) :
     if verify_session(login_session_id, 'LOGIN') :
         user_obj = db.users.find_one({'profile.username': username})
         if not user_obj :
+            log(level = 'SEC', obj = {'msg': 'USER_NOT_EXIST'})
             raise UserError('INCORRECT_LOGIN')
         if not verify_password_PBKDF2(password, user_obj['crypto']['salt1'], user_obj['crypto']['password_hashed']) :
+            log(level = 'SEC', obj = {'msg': 'WRONG_PASSWORD'})
             raise UserError('INCORRECT_LOGIN')
         common_user_obj = {
             '_id': user_obj['_id'],
