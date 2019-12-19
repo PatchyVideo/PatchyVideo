@@ -65,11 +65,11 @@ async def _make_video_data(data, copies, playlists, url, event_id) :
 							filename = random_bytes_str(24) + ".png"
 							img.thumbnail((320, 200), Image.ANTIALIAS)
 							img.save(_COVER_PATH + filename)
-						log_e(event_id, 'download_cover', obj = {'filename': filename})
+						log_e(event_id, user, 'download_cover', obj = {'filename': filename})
 					else :
-						log_e(event_id, 'download_cover', 'WARN', {'status_code': resp.status, 'attemp': attemp})
+						log_e(event_id, user, 'download_cover', 'WARN', {'status_code': resp.status, 'attemp': attemp})
 		except Exception as ex :
-			log_e(event_id, 'download_cover', 'WARN', {'ex': ex, 'attemp': attemp})
+			log_e(event_id, user, 'download_cover', 'WARN', {'ex': ex, 'attemp': attemp})
 			continue
 	return {
 		"url": (data['url_overwrite'] if 'url_overwrite' in data else url),
@@ -134,7 +134,7 @@ class _PlaylistReorederHelper() :
 	def __init__(self) :
 		self.playlist_map = {}
 
-	async def _add_to_playlist(self, dst_playlist, event_id) :
+	async def _add_to_playlist(self, dst_playlist, event_id, user_global) :
 		if self.playlist_map[dst_playlist] :
 			dst_rank = self.playlist_map[dst_playlist]['rank']
 			playlist_ordered = self.playlist_map[dst_playlist]['all']
@@ -150,8 +150,7 @@ class _PlaylistReorederHelper() :
 								insertIntoPlaylistLockFree(dst_playlist, video_id, dst_rank + cur_rank, user)
 							cur_rank += 1
 			except Exception as ex :
-				print('****Exception _add_to_playlist! %s' % ex, file = sys.stderr)
-				print(traceback.format_exc(), file = sys.stderr)
+				log_e(event_id, user_global, '_add_to_playlist', 'ERR', {'ex': ex, 'tb': traceback.format_exc()})
 				for unique_id in playlist_ordered :
 					if unique_id in self.playlist_map[dst_playlist]['succeed'] :
 						(video_id, _, user) = self.playlist_map[dst_playlist]['succeed'][unique_id]
@@ -160,7 +159,7 @@ class _PlaylistReorederHelper() :
 						else :
 							insertIntoPlaylistLockFree(dst_playlist, video_id, dst_rank + cur_rank, user)
 						cur_rank += 1
-			print('Total %d out of %d videos added to playlist %s' % (len(self.playlist_map[dst_playlist]['succeed']), len(self.playlist_map[dst_playlist]['all']), dst_playlist), file = sys.stderr)
+			log_e(event_id, user_global, '_add_to_playlist', 'MSG', {'succedd': len(self.playlist_map[dst_playlist]['succeed']), 'all': len(self.playlist_map[dst_playlist]['all']), 'pid': dst_playlist})
 			del self.playlist_map[dst_playlist]
 
 	async def post_video_succeed(self, video_id, unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id) :
@@ -178,9 +177,9 @@ class _PlaylistReorederHelper() :
 				del self.playlist_map[dst_playlist]['failed'][unique_id]
 
 			if len(self.playlist_map[dst_playlist]['succeed']) + len(self.playlist_map[dst_playlist]['failed']) >= len(self.playlist_map[dst_playlist]['all']) :
-				await self._add_to_playlist(dst_playlist, event_id)
+				await self._add_to_playlist(dst_playlist, event_id, user)
 
-	async def post_video_failed(self, unique_id, dst_playlist, playlist_ordered, dst_rank, event_id) :
+	async def post_video_failed(self, unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id) :
 		if unique_id and dst_playlist and playlist_ordered :
 			if dst_playlist not in self.playlist_map :
 				self.playlist_map[dst_playlist] = {}
@@ -195,7 +194,7 @@ class _PlaylistReorederHelper() :
 				del self.playlist_map[dst_playlist]['succeed'][unique_id]
 
 			if len(self.playlist_map[dst_playlist]['succeed']) + len(self.playlist_map[dst_playlist]['failed']) >= len(self.playlist_map[dst_playlist]['all']) :
-				await self._add_to_playlist(dst_playlist, event_id)
+				await self._add_to_playlist(dst_playlist, event_id, user)
 
 _playlist_reorder_helper = _PlaylistReorederHelper()
 
@@ -210,16 +209,16 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 	except :
 		pass
 	if parsed is None :
-		log_e(event_id, 'dispatcher', 'ERR', {'msg': 'PARSE_FAILED', 'url': url})
-		await _playlist_reorder_helper.post_video_failed(url, dst_playlist, playlist_ordered, dst_rank, event_id)
+		log_e(event_id, user, 'dispatcher', 'ERR', {'msg': 'PARSE_FAILED', 'url': url})
+		await _playlist_reorder_helper.post_video_failed(url, dst_playlist, playlist_ordered, dst_rank, user, event_id)
 		return "PARSE_FAILED", {}
 	unique_id = await parsed.unique_id_async(self = parsed, link = url)
-	log_e(event_id, 'scraper', 'MSG', {'url': url, 'dst_copy': dst_copy, 'other_copies': other_copies, 'dst_playlist': dst_playlist})
+	log_e(event_id, user, 'scraper', 'MSG', {'url': url, 'dst_copy': dst_copy, 'other_copies': other_copies, 'dst_playlist': dst_playlist})
 	try :
 		ret = await parsed.get_metadata_async(parsed, url)
 		if ret["status"] == 'FAILED' :
-			log_e(event_id, 'downloader', 'WARN', {'msg': 'FETCH_FAILED', 'ret': ret})
-			await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, event_id)
+			log_e(event_id, user, 'downloader', 'WARN', {'msg': 'FETCH_FAILED', 'ret': ret})
+			await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
 			return "FETCH_FAILED", ret
 		if hasattr(parsed, 'LOCAL_SPIDER') :
 			url = ret["data"]["url"]
@@ -236,14 +235,14 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 				if db.playlists.find_one({'_id': ObjectId(dst_playlist)}) is not None :
 					playlists = [ ObjectId(dst_playlist) ]
 			if not unique:
-				log_e(event_id, 'scraper', level = 'MSG', obj = {'msg': 'ALREADY_EXIST', 'unique_id': ret["data"]["unique_id"]})
+				log_e(event_id, user, 'scraper', level = 'MSG', obj = {'msg': 'ALREADY_EXIST', 'unique_id': ret["data"]["unique_id"]})
 
 				"""
 				Update existing video
 				"""
 				
 				if update_video_detail and not tags :
-					log_e(event_id, 'scraper', level = 'MSG', obj = 'Updating video detail')
+					log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Updating video detail')
 					new_detail = _make_video_data_update(ret["data"], url)
 					with MongoTransaction(client) as s :
 						old_item = tagdb.retrive_item(conflicting_item['_id'], session = s())['item']
@@ -257,9 +256,9 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 				# this video already exist in the database
 				# if the operation is to add a link to other copies and not adding self
 				if (dst_copy and dst_copy != conflicting_item['_id']) or other_copies :
-					log_e(event_id, 'scraper', level = 'MSG', obj = 'Adding to to copies')
+					log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Adding to to copies')
 					async with RedisLockAsync(rdb, 'editLink'), MongoTransaction(client) as s :
-						log_e(event_id, level = 'MSG', obj = 'Adding to to copies, lock acquired')
+						log_e(event_id, user, level = 'MSG', obj = 'Adding to to copies, lock acquired')
 						# find all copies of video dst_copy, self included
 						all_copies = _getAllCopies(dst_copy, session = s())
 						# find all videos linked to source video
@@ -274,17 +273,17 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 							for dst_vid in all_copies :
 								setEventID(event_id)
 								_addThiscopy(dst_vid, all_copies, makeUserMeta(user), session = s())
-							log_e(event_id, 'scraper', level = 'MSG', obj = 'Successfully added to copies')
+							log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Successfully added to copies')
 							s.mark_succeed()
 						else :
 							#if playlist_lock :
 							#    playlist_lock.release()
-							log_e(event_id, 'scraper', level = 'MSG', obj = 'Too many copies')
-							await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, event_id)
+							log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Too many copies')
+							await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
 							return "TOO_MANY_COPIES", {}
 				# if the operation is adding this video to playlist
 				if dst_playlist :
-					log_e(event_id, 'scraper', level = 'MSG', obj = {'msg': 'Adding to playlist at position', 'rank': dst_rank})
+					log_e(event_id, user, 'scraper', level = 'MSG', obj = {'msg': 'Adding to playlist at position', 'rank': dst_rank})
 					if playlist_ordered :
 						await _playlist_reorder_helper.post_video_succeed(conflicting_item['_id'], unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
 					else :
@@ -295,7 +294,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 							insertIntoPlaylist(dst_playlist, conflicting_item['_id'], dst_rank, user)
 				# merge tags
 				async with MongoTransaction(client) as s :
-					log_e(event_id, 'scraper', level = 'MSG', obj = 'Merging tags')
+					log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Merging tags')
 					setEventID(event_id)
 					tagdb.update_item_tags_merge(conflicting_item['_id'], tags, makeUserMeta(user), session = s())
 					s.mark_succeed()
@@ -306,9 +305,9 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 			else :
 				# expand dst_copy to all copies linked to dst_copy
 				if dst_copy or other_copies :
-					log_e(event_id, 'scraper', level = 'MSG', obj = 'Adding to to copies')
+					log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Adding to to copies')
 					async with RedisLockAsync(rdb, 'editLink'), MongoTransaction(client) as s :
-						log_e(event_id, 'scraper', level = 'MSG', obj = 'Adding to to copies, lock acquired')
+						log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Adding to to copies, lock acquired')
 						all_copies = _getAllCopies(dst_copy, session = s())
 						# add videos from other copies
 						for uid in other_copies :
@@ -322,23 +321,23 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 							for dst_vid in all_copies :
 								setEventID(event_id)
 								_addThiscopy(dst_vid, all_copies, makeUserMeta(user), session = s())
-							log_e(event_id, 'scraper', level = 'MSG', obj = 'Successfully added to copies')
+							log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Successfully added to copies')
 							s.mark_succeed()
 						else :
 							#if playlist_lock :
 							#    playlist_lock.release()
-							log_e(event_id, 'scraper', level = 'MSG', obj = 'Too many copies')
-							await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, event_id)
+							log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Too many copies')
+							await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
 							return "TOO_MANY_COPIES", {}
 				else :
 					async with MongoTransaction(client) as s :
 						setEventID(event_id)
 						new_item_id = tagdb.add_item(tags, await _make_video_data(ret["data"], [], playlists, url, event_id), makeUserMeta(user), session = s())
-						log_e(event_id, 'scraper', level = 'MSG', obj = {'msg': 'New video added to database', 'vid': new_item_id})
+						log_e(event_id, user, 'scraper', level = 'MSG', obj = {'msg': 'New video added to database', 'vid': new_item_id})
 						s.mark_succeed()
 				# if the operation is adding this video to playlist
 				if dst_playlist :
-					log_e(event_id, 'scraper', level = 'MSG', obj = {'msg': 'Adding to playlist at position', 'rank': dst_rank})
+					log_e(event_id, user, 'scraper', level = 'MSG', obj = {'msg': 'Adding to playlist at position', 'rank': dst_rank})
 					if playlist_ordered :
 						await _playlist_reorder_helper.post_video_succeed(new_item_id, unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
 					else :
@@ -349,15 +348,15 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 							insertIntoPlaylist(dst_playlist, new_item_id, dst_rank, user)
 				#if playlist_lock :
 				#    playlist_lock.release()
-				log_e(event_id, 'scraper', level = 'MSG', obj = 'Done')
+				log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Done')
 				return 'SUCCEED', new_item_id
 	except UserError as ue :
-		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, event_id)
-		log_e(event_id, 'scraper', level = 'WARN', obj = {'ue': ue})
+		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
+		log_e(event_id, user, 'scraper', level = 'WARN', obj = {'ue': ue})
 		return ue.msg, {"aux": ue.aux, "traceback": traceback.format_exc()}
 	except Exception as ex:
-		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, event_id)
-		log_e(event_id, 'scraper', level = 'ERR', obj = {'ex': ex})
+		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
+		log_e(event_id, user, 'scraper', level = 'ERR', obj = {'ex': ex})
 		try :
 			problematic_lock = RedisLockAsync(rdb, 'editLink')
 			problematic_lock.reset()
@@ -390,7 +389,7 @@ async def func_with_write_result(func, task_id, param_json) :
 	ret = await func(param_json)
 	key = 'posttask-' + str(param_json['user']['_id'])
 	rdb.lrem(key, 1, task_id)
-	log_e(param_json['event_id'], op = 'task_finished', obj = {'task_id': task_id})
+	log_e(param_json['event_id'], param_json['user'], op = 'task_finished', obj = {'task_id': task_id})
 	rdb.delete(f'task-{task_id}')
 	if ret['result'] != 'SUCCEED' :
 		param_json_for_user = copy.deepcopy(param_json)
@@ -412,7 +411,7 @@ async def put_task(queue, param_json) :
 	del param_json_for_user['user']
 	del param_json_for_user['playlist_ordered']
 	del param_json_for_user['event_id']
-	log_e(param_json['event_id'], op = 'put_task', obj = {'task_id': task_id})
+	log_e(param_json['event_id'], param_json['user'], op = 'put_task', obj = {'task_id': task_id})
 	ret_json = dumps({'finished' : False, 'key': task_id, 'data' : None, 'params': param_json_for_user})
 	rdb.set(f'task-{task_id}', ret_json)
 	key = 'posttasks-' + str(param_json['user']['_id'])
