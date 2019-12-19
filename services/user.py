@@ -18,6 +18,7 @@ from utils.exceptions import UserError
 from bson import ObjectId
 import redis_lock
 from config import UserConfig
+from utils.logger import log, log_ne
 
 def query_user_basic_info(uid) :
     obj = db.users.find_one({"_id": ObjectId(uid)})
@@ -33,13 +34,17 @@ def require_session(session_type) :
     # TODO: add challenge code to redis
     sid = binascii.hexlify(bytearray(random_bytes(16))).decode()
     rdb.set(sid, session_type, ex = int(time.time() + UserConfig.SESSION_EXPIRE_TIME))
+    log(obj = {'sid': sid})
     return sid
 
-def logout(sid) :
-    rdb.delete(sid)
+def logout(redis_user_key) :
+    common_user_obj = rdb.get(redis_user_key)
+    log(obj = {'redis_user_key': redis_user_key, 'user': common_user_obj})
+    rdb.delete(redis_user_key)
 
 # we allow the same user to login multiple times and all of his login sessions are valid
 def login(username, password, challenge, login_session_id) :
+    log(obj = {'username': username, 'password': password, 'challenge': challenge, 'login_session_id': login_session_id})
     if len(username) > UserConfig.MAX_USERNAME_LENGTH :
         raise UserError('USERNAME_TOO_LONG')
     if len(username) < UserConfig.MIN_USERNAME_LENGTH :
@@ -66,6 +71,7 @@ def login(username, password, challenge, login_session_id) :
         redis_user_value = dumps(common_user_obj)
         redis_user_key = binascii.hexlify(bytearray(random_bytes(128))).decode()
         rdb.set(redis_user_key, redis_user_value, ex = int(time.time() + UserConfig.LOGIN_EXPIRE_TIME))
+        log(obj = {'redis_user_key': redis_user_key, 'user': common_user_obj})
         return redis_user_key
     raise UserError('INCORRECT_SESSION')
 
@@ -73,6 +79,7 @@ def query_user(uid) :
     return db.users.find_one({'_id': ObjectId(uid)})
 
 def signup(username, password, email, challenge, signup_session_id) :
+    log(obj = {'username': username, 'password': password, 'email': email, 'challenge': challenge, 'signup_session_id': signup_session_id})
     if len(username) > UserConfig.MAX_USERNAME_LENGTH :
         raise UserError('USERNAME_TOO_LONG')
     if len(username) < UserConfig.MIN_USERNAME_LENGTH :
@@ -115,15 +122,19 @@ def signup(username, password, email, challenge, signup_session_id) :
                     'created_at': datetime.now()
                 }
             }
-            return db.users.insert_one(user_obj).inserted_id
+            uid = db.users.insert_one(user_obj).inserted_id
+            log(obj = {'uid': uid, 'profile': user_obj['profile']})
+            return uid
     raise UserError('INCORRECT_SESSION')
 
 def update_desc(redis_user_key, user_id, new_desc) :
+    log(obj = {'redis_user_key': redis_user_key, 'user_id': user_id, 'new_desc': new_desc})
     if len(new_desc) > UserConfig.MAX_DESC_LENGTH :
         raise UserError('DESC_TOO_LONG')
     obj = db.users.find_one({'_id': ObjectId(user_id)})
     if obj is None :
         raise UserError('INCORRECT_LOGIN')
+    log(obj = {'old_desc': obj['profile']['desc']})
     db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'profile.desc': new_desc}})
     common_user_obj = {
             '_id': ObjectId(obj['_id']),

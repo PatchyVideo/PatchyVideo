@@ -12,8 +12,8 @@ from init import rdb
 import redis_lock
 import time
 
-
 from config import TagsConfig
+from utils.logger import log
 
 def queryTags(category, page_idx, page_size, order = 'none'):
 	result = tagdb.list_category_tags(category)
@@ -45,6 +45,7 @@ def queryCategories():
 @modifyingResource('tags')
 def addTag(user, tag, category, language):
 	ret, sanitized_tag = verifyAndSanitizeTagOrAlias(tag)
+	log(obj = {'tag': sanitized_tag, 'cat': category, 'lang': language})
 	if not ret :
 		raise UserError('INVALID_TAG')
 	if len(sanitized_tag) > TagsConfig.MAX_TAG_LENGTH :
@@ -67,6 +68,7 @@ def _is_authorised(tag_or_obj, user, op = 'remove') :
 
 @modifyingResource('tags')
 def removeTag(user, tag) :
+	log(obj = {'tag': tag})
 	with MongoTransaction(client) as s :
 		tag_obj = tagdb.db.tags.find_one({'tag': tag}, session = s())
 		if tag_obj and not _is_authorised(tag_obj, user, 'remove') :
@@ -77,6 +79,7 @@ def removeTag(user, tag) :
 @modifyingResource('tags')
 def renameTagOrAddTagLanguage(user, tag, new_tag, language) :
 	ret, sanitized_tag = verifyAndSanitizeTagOrAlias(new_tag)
+	log(obj = {'old_tag_or_id': tag, 'new_tag': sanitized_tag, 'lang': language})
 	if not ret :
 		raise UserError('INVALID_TAG')
 	if len(sanitized_tag) > TagsConfig.MAX_TAG_LENGTH :
@@ -91,6 +94,7 @@ def renameTagOrAddTagLanguage(user, tag, new_tag, language) :
 @modifyingResource('tags')
 def renameOrAddAlias(user, old_name_or_tag_name, new_name) :
 	ret, sanitized_alias = verifyAndSanitizeTagOrAlias(new_name)
+	log(obj = {'old_name_or_tag_name': old_name_or_tag_name, 'new_name': sanitized_alias})
 	if not ret :
 		raise UserError('INVALID_TAG')
 	if len(sanitized_alias) > TagsConfig.MAX_TAG_LENGTH :
@@ -102,7 +106,9 @@ def renameOrAddAlias(user, old_name_or_tag_name, new_name) :
 @modifyingResource('tags')
 def removeAlias(user, alias) :
 	with MongoTransaction(client) as s :
-		alias_obj = tagdb.db.tags.find_one({'tag': alias}, session = s())
+		alias_obj = tagdb.db.tag_alias.find_one({'tag': alias}, session = s())
+		if alias_obj :
+			log(obj = {'alias': alias, 'dst': alias_obj['dst']})
 		if alias_obj and not _is_authorised(alias_obj, user, 'remove') :
 			raise UserError('UNAUTHORISED_OPERATION')
 		tagdb.remove_alias(alias, makeUserMeta(user), session = s())

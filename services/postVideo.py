@@ -18,6 +18,7 @@ from bson import ObjectId
 from db import tagdb
 from spiders import dispatch
 from config import VideoConfig, TagsConfig
+from utils.logger import log, getEventID
 
 if os.getenv("FLASK_ENV", "development") == "production" :
 	SCRAPER_ADDRESS = 'http://scraper:5003'
@@ -41,7 +42,8 @@ def _createJsonForPosting(url, tags, dst_copy, dst_playlist, dst_rank, other_cop
 		'dst_rank' : dst_rank,
 		'other_copies' : other_copies,
 		'user' : user,
-		'playlist_ordered' : playlist_ordered
+		'playlist_ordered' : playlist_ordered,
+		'event_id': getEventID()
 	})
 
 def getTaskParamas(task_id) :
@@ -74,6 +76,7 @@ def listFailedPosts(user, page = 0, page_size = 100000) :
 	return result
 
 def postVideo(user, url, tags, copy, pid, rank):
+	log(obj = {'url': url, 'tags': tags, 'copy': copy, 'pid': pid, 'rank': rank})
 	tags = [tag.strip() for tag in tags]
 	if not url :
 		raise UserError('EMPTY_URL')
@@ -87,11 +90,12 @@ def postVideo(user, url, tags, copy, pid, rank):
 	if not cleanURL :
 		raise UserError('EMPTY_URL')
 	_verifyTags(tags)
-	print('Posting %s' % cleanURL, file = sys.stderr)
+	log(obj = {'url': cleanURL})
 	task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], user))
 	return task_id
 
 def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies):
+	log(obj = {'urls': videos, 'tags': tags, 'copy': copy, 'pid': pid, 'rank': rank, 'as_copies': as_copies})
 	tags = [tag.strip() for tag in tags]
 	if not videos :
 		raise UserError('EMPTY_LIST')
@@ -115,11 +119,11 @@ def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies):
 	# Here we allow batch post to be partially successful
 	task_ids = []
 	for idx, (obj, cleanURL) in enumerate(cleanURL_objs) :
-		print('Posting %s' % cleanURL, file = sys.stderr)
+		log(obj = {'url': cleanURL})
 		if obj :
 			next_idx = idx if rank >= 0 else 0
 			task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank + next_idx, unique_ids if as_copies else [], user, unique_ids))
 			task_ids.append(task_id)
 		else :
-			pass # ignore for now
+			log('dispatcher', level = 'WARN', obj = {'failed_url': cleanURL})
 	return task_ids

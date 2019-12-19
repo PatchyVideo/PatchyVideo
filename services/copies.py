@@ -12,6 +12,7 @@ from bson import ObjectId
 
 import redis_lock
 from utils.rwlock import usingResource, modifyingResource
+from utils.logger import log
 
 def _getAllCopies(vid_or_obj, session = None) :
 	if not vid_or_obj :
@@ -42,6 +43,7 @@ def _removeThisCopy(dst_vid, this_vid, user, session):
 def breakLink(vid, user):
 	with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
 		nodes = _getAllCopies(vid)
+		log(obj = {'old_clique': nodes, 'node_remove': vid})
 		if nodes :
 			for node in nodes :
 				_removeThisCopy(node, vid, makeUserMeta(user), s())
@@ -53,6 +55,7 @@ def syncTags(dst, src, user):
 	if dst == src :
 		raise UserError('SAME_VIDEO')
 	src_item, src_tags, _, _ = tagdb.retrive_item_with_tag_category_map(src, 'CHS')
+	log(obj = {'src_tags': src_tags, 'src_id': src})
 	dst_item = tagdb.retrive_item(dst)
 	if dst_item is None :
 		raise UserError('ITEM_NOT_EXIST')
@@ -62,14 +65,15 @@ def syncTags(dst, src, user):
 
 @usingResource('tags')
 def broadcastTags(src, user):
-	src_item, src_tags, _, _ = tagdb.retrive_item_with_tag_category_map(src, 'CHS')
+	_, src_tags, _, _ = tagdb.retrive_item_with_tag_category_map(src, 'CHS')
+	log(obj = {'src_tags': src_tags, 'src_id': src})
 	with redis_lock.Lock(rdb, "editLink"), MongoTransaction(client) as s :
 		copies = _getAllCopies(src, session = s())
+		log(obj = {'clique': copies})
 		for copy in copies:
 			if copy != ObjectId(src) : # prevent self updating
 				copy_obj = tagdb.retrive_item({"_id": ObjectId(copy)}, session = s())
-				if copy_obj is None:
-					raise UserError("ITEM_NOT_EXIST")
+				assert copy_obj is not None, 'copy_obj %s not exist' % copy
 				with redis_lock.Lock(rdb, "videoEdit:" + copy_obj["item"]["unique_id"]):
 					tagdb.update_item_tags_merge(ObjectId(copy), src_tags, makeUserMeta(user), s())
 		s.mark_succeed()

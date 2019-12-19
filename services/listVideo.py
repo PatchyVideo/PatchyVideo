@@ -7,11 +7,14 @@ from db import tagdb as db
 from .tagStatistics import getPopularTags, getCommonTags, updateTagSearch
 from spiders import dispatch_no_expand
 from utils.exceptions import UserError
+from utils.logger import log
 
 def listVideoQuery(query_str, page_idx, page_size, order = 'latest', user_language = 'CHS'):
+	log(obj = {'q': query_str, 'page': page_idx, 'page_size': page_size, 'order': order, 'lang': user_language})
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	query_obj, tag_ids = db.compile_query(query_str)
+	log(obj = {'query_obj': query_obj})
 	updateTagSearch(tag_ids)
 	try :
 		result = db.retrive_items(query_obj)
@@ -30,8 +33,7 @@ def listVideoQuery(query_str, page_idx, page_size, order = 'latest', user_langua
 		if '$not' in str(ex) :
 			raise UserError('FAILED_NOT_OP')
 		else :
-			print('Unknown error in query: \"%s\"' % query_str, file = sys.stderr)
-			print(ex, file = sys.stderr)
+			log(level = 'ERR', obj = {'ex': ex})
 			raise UserError('FAILED_UNKNOWN')
 	return videos, getCommonTags(user_language, videos), count
 

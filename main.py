@@ -1,8 +1,8 @@
 
 from init import app
 
-import utils
 import db
+import utils
 import services
 import ajax_backend
 import pages

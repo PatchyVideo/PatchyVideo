@@ -11,9 +11,11 @@ from bson import ObjectId
 import redis_lock
 from config import VideoConfig, TagsConfig
 from bson.json_util import dumps, loads
+from utils.logger import log, getEventID
 
 @usingResource('tags')
 def editVideoTags(vid, tags, user):
+    log(obj = {'tags': tags, 'vid': vid})
     if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
         raise UserError('TAGS_LIMIT_EXCEEDED')
     tagdb.verify_tags(tags)
@@ -31,6 +33,7 @@ def getVideoTags(vid, user_language) :
     return tags
 
 def refreshVideoDetail(vid, user) :
+    log(obj = {'vid': vid})
     item = tagdb.retrive_item(vid)
     if item is None :
         raise UserError('ITEM_NOT_EXIST')
@@ -43,11 +46,13 @@ def refreshVideoDetail(vid, user) :
         'other_copies' : [],
         'user' : user,
         'playlist_ordered' : None,
-        'update_video_detail': True
+        'update_video_detail': True,
+        'event_id': getEventID()
     })
     postTask(json_str)
 
 def refreshVideoDetailURL(url, user) :
+    log(obj = {'url': url})
     json_str = dumps({
         'url' : url,
         'tags' : [],
@@ -57,6 +62,7 @@ def refreshVideoDetailURL(url, user) :
         'other_copies' : [],
         'user' : user,
         'playlist_ordered' : None,
-        'update_video_detail': True
+        'update_video_detail': True,
+        'event_id': getEventID()
     })
     postTask(json_str)
