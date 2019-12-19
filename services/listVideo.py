@@ -1,6 +1,7 @@
 
 import pymongo
 import sys
+import json
 
 from bson import ObjectId
 from db import tagdb as db
@@ -14,7 +15,7 @@ def listVideoQuery(query_str, page_idx, page_size, order = 'latest', user_langua
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	query_obj, tag_ids = db.compile_query(query_str)
-	log(obj = {'query_obj': query_obj})
+	log(obj = {'query': json.dumps(query_obj)})
 	updateTagSearch(tag_ids)
 	try :
 		result = db.retrive_items(query_obj)
