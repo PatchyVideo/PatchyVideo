@@ -44,7 +44,7 @@ def logout(redis_user_key) :
 
 # we allow the same user to login multiple times and all of his login sessions are valid
 def login(username, password, challenge, login_session_id) :
-    log(obj = {'username': username, 'password': password, 'challenge': challenge, 'login_session_id': login_session_id})
+    log(obj = {'username': username, 'challenge': challenge, 'login_session_id': login_session_id})
     if len(username) > UserConfig.MAX_USERNAME_LENGTH :
         raise UserError('USERNAME_TOO_LONG')
     if len(username) < UserConfig.MIN_USERNAME_LENGTH :
@@ -69,7 +69,7 @@ def login(username, password, challenge, login_session_id) :
             'access_control': user_obj['access_control']
         }
         redis_user_value = dumps(common_user_obj)
-        redis_user_key = binascii.hexlify(bytearray(random_bytes(128))).decode()
+        redis_user_key = binascii.hexlify(bytearray(random_bytes(16))).decode()
         rdb.set(redis_user_key, redis_user_value, ex = int(time.time() + UserConfig.LOGIN_EXPIRE_TIME))
         log(obj = {'redis_user_key': redis_user_key, 'user': common_user_obj})
         return redis_user_key
@@ -79,7 +79,7 @@ def query_user(uid) :
     return db.users.find_one({'_id': ObjectId(uid)})
 
 def signup(username, password, email, challenge, signup_session_id) :
-    log(obj = {'username': username, 'password': password, 'email': email, 'challenge': challenge, 'signup_session_id': signup_session_id})
+    log(obj = {'username': username, 'email': email, 'challenge': challenge, 'signup_session_id': signup_session_id})
     if len(username) > UserConfig.MAX_USERNAME_LENGTH :
         raise UserError('USERNAME_TOO_LONG')
     if len(username) < UserConfig.MIN_USERNAME_LENGTH :
