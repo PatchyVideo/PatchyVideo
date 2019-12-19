@@ -28,33 +28,33 @@ def _diff(old_tags, new_tags):
 """
 db.categories:
 {
-    "_id": ...,
-    "color": "#0073ff",
-    "name": "Copyright" // other languages will be handled by the frontend
+	"_id": ...,
+	"color": "#0073ff",
+	"name": "Copyright" // other languages will be handled by the frontend
 }
 
 db.tags:
 {
-    "_id": ...,
-    "category": "Copyright",
-    "count": 114514,
-    "icon": "<filename>",
-    "languages": {
-        "CHS": "东方",
-        "ENG": "touhou",
-        ...
-    },
-    "alias": [
-        "toho",
-        ...
-    ]
+	"_id": ...,
+	"category": "Copyright",
+	"count": 114514,
+	"icon": "<filename>",
+	"languages": {
+		"CHS": "东方",
+		"ENG": "touhou",
+		...
+	},
+	"alias": [
+		"toho",
+		...
+	]
 }
 
 db.tag_alias:
 {
-    "_id": ...,
-    "tag": "东方",
-    "dst": ObjectId("...")
+	"_id": ...,
+	"tag": "东方",
+	"dst": ObjectId("...")
 }
 """
 
@@ -157,6 +157,9 @@ class TagDB() :
 			match_obj = {'category': category}
 		else :
 			match_obj = {}
+			
+		if order not in ['latest', 'oldest', 'count', 'count_inv'] :
+	   		raise UserError('INCORRECT_ORDER')
 
 		if order == 'latest':
 			sort_obj = {"meta.created_at": -1}

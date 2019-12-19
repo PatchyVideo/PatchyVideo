@@ -67,6 +67,8 @@ def removePlaylist(pid, user) :
 		s.mark_succeed()
 
 def listMyPlaylists(user, page_idx = 0, page_size = 10000, order = 'last_modified') :
+	if order not in ['latest', 'oldest', 'last_modified'] :
+		raise UserError('INCORRECT_ORDER')
 	result = db.playlists.find({'meta.created_by': ObjectId(user['_id'])})
 	if order == 'last_modified' :
 		result = result.sort([("meta.modified_at", -1)])

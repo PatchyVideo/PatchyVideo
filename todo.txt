@@ -50,8 +50,8 @@ phase 2
 #all query using GET
 #sort by video upload date
 #batch post as copies
-!<!!HIGH PRIORITY!!> tag alias(as multi-language phase1)
-    lacking UI for tag alias
+#<!!HIGH PRIORITY!!> tag alias(as multi-language phase1)
+#   lacking UI for tag alias
 recover password
 !user access control for backend
 !user access control for frontend HTMLs
@@ -89,7 +89,7 @@ show tag counts on video detail page
 add clearence level for updating configs
 add refresh video detail function
 logging using MongoDB
-check ajax input(e.g. order)
+#check ajax input(e.g. order)
 
 ======================
 offical launch

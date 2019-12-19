@@ -9,6 +9,8 @@ from spiders import dispatch_no_expand
 from utils.exceptions import UserError
 
 def listVideoQuery(query_str, page_idx, page_size, order = 'latest', user_language = 'CHS'):
+	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
+		raise UserError('INCORRECT_ORDER')
 	query_obj, tag_ids = db.compile_query(query_str)
 	updateTagSearch(tag_ids)
 	try :
@@ -34,6 +36,8 @@ def listVideoQuery(query_str, page_idx, page_size, order = 'latest', user_langua
 	return videos, getCommonTags(user_language, videos), count
 
 def listVideo(page_idx, page_size, order = 'latest', user_language = 'CHS'):
+	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
+		raise UserError('INCORRECT_ORDER')
 	result = db.retrive_items({})
 	if order == 'latest':
 		result = result.sort([("meta.created_at", -1)])
@@ -46,6 +50,8 @@ def listVideo(page_idx, page_size, order = 'latest', user_language = 'CHS'):
 	return result.skip(page_idx * page_size).limit(page_size), getPopularTags(user_language)
 
 def listMyVideo(page_idx, page_size, user, order = 'latest'):
+	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
+		raise UserError('INCORRECT_ORDER')
 	result = db.retrive_items({'meta.created_by': ObjectId(user['_id'])})
 	if order == 'latest':
 		result = result.sort([("meta.created_at", -1)])
