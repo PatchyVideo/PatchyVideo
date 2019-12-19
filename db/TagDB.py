@@ -1,5 +1,6 @@
 from datetime import datetime
 from utils.exceptions import UserError
+from utils.logger import log_tag
 
 import re
 
@@ -18,12 +19,6 @@ else:
 	from .AutocompleteInterface import AutocompleteInterface
 	from .TagDB_language import VALID_LANGUAGES, PREFERRED_LANGUAGE_MAP, translateTagToPreferredLanguage
 
-def _diff(old_tags, new_tags):
-	old_tags_set = set(old_tags)
-	new_tags_set = set(new_tags)
-	added_tags = new_tags_set - old_tags_set
-	removed_tags = (new_tags_set ^ old_tags_set) - added_tags
-	return list(added_tags), list(removed_tags)
 
 """
 db.categories:
