@@ -76,6 +76,22 @@ def basePage(func):
 			abort(400)
 	return wrapper
 
+def basePageNoLog(func):
+	@wraps(func)
+	def wrapper(*args, **kwargs) :
+		rd = Namespace()
+		rd._version = _VERSION
+		rd._version_url = _VERSION_URL
+		kwargs['rd'] = rd
+		try:
+			ret = func(*args, **kwargs)
+			return _handle_return(ret, rd)
+		except HTTPException as e:
+			raise e
+		except :
+			abort(400)
+	return wrapper
+
 def loginRequired(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs):

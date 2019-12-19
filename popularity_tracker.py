@@ -1,7 +1,7 @@
 
 from db import db, tagdb, client as dbclient
 from utils.dbtools import MongoTransaction
-from utils.interceptors import jsonRequest, basePage
+from utils.interceptors import jsonRequest, basePageNoLog
 from flask import Flask, request
 from collections import Counter
 from bson import ObjectId
@@ -91,7 +91,7 @@ tracker = PopularityTracker(7 * 24 * 6)
 import json
 
 @app.route("/hit", methods = ["POST"])
-@basePage
+@basePageNoLog
 @jsonRequest
 def hit_page(rd, data) :
 	print('hit', data.hitmap)
@@ -104,7 +104,7 @@ def hit_page(rd, data) :
 	return "data", "your hit:" + json.dumps(data.hitmap)
 
 @app.route("/get")
-@basePage
+@basePageNoLog
 def get_page(rd) :
 	try :
 		count = int(request.values['count'])
