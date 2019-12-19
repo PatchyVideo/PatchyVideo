@@ -23,6 +23,8 @@ else :
 	_VERSION = os.getenv("VERSION", "")[:16]
 	_VERSION_URL = "https://github.com/zyddnys/PatchyVideo/commit/" + os.getenv("VERSION", "")
 
+from utils.logger import beginEvent, setEventUser, log, log_e
+
 def _handle_return(ret, rd):
 	if isinstance(ret, str):
 		s = ret.split(':')
@@ -57,6 +59,7 @@ def _get_user_obj(sid) :
 def basePage(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs) :
+		beginEvent(func.__name__, request.full_path)
 		rd = Namespace()
 		rd._version = _VERSION
 		rd._version_url = _VERSION_URL
@@ -65,16 +68,17 @@ def basePage(func):
 			ret = func(*args, **kwargs)
 			return _handle_return(ret, rd)
 		except HTTPException as e:
+			log('WARN', {'ex': e})
 			raise e
-		except:
-			print('****Exception!', file = sys.stderr)
-			print(traceback.format_exc(), file = sys.stderr)
+		except Exception as ex:
+			log('ERR', {'ex': ex})
 			abort(400)
 	return wrapper
 
 def loginRequired(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs):
+		beginEvent(func.__name__, request.full_path)
 		path = request.full_path
 		if path[-1] == '?' :
 			path = path[:-1]
@@ -85,57 +89,63 @@ def loginRequired(func):
 			rd._version_url = _VERSION_URL
 			kwargs['user'] = _get_user_obj(session['sid'])
 			if kwargs['user'] is None :
+				log('login_check', level = 'SEC', obj = {'action': 'denied', 'path': request.full_path, 'sid': session['sid']})
 				return redirect('/login?redirect_url=' + encoded_url)
 			rd._user = kwargs['user']
+			setEventUser(rd._user)
 			kwargs['rd'] = rd
-			#logger.info('PAGE_U - %s - %s' % (kwargs['rd']._user['profile']['username'], func.__name__))
 			try:
 				ret = func(*args, **kwargs)
 				return _handle_return(ret, rd)
 			except HTTPException as e:
+				log('WARN', {'ex': e})
 				raise e
 			except UserError as ue :
+				log('WARN', {'ue': ue})
 				if 'NOT_EXIST' in ue.msg :
 					abort(404)
 				else :
-					print('****UserError!', file = sys.stderr)
-					print(traceback.format_exc(), file = sys.stderr)
 					abort(400)
-			except:
-				print('****Exception!', file = sys.stderr)
-				print(traceback.format_exc(), file = sys.stderr)
+			except Exception as ex:
+				log('ERR', {'ex': ex})
 				abort(400)
 		else :
+			log('login_check', level = 'SEC', obj = {'action': 'denied', 'path': request.full_path})
 			return redirect('/login?redirect_url=' + encoded_url)
 	return wrapper
 
 def loginRequiredJSON(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs):
+		beginEvent(func.__name__, request.full_path)
 		if 'sid' in session:
 			rd = Namespace()
 			kwargs['user'] = _get_user_obj(session['sid'])
 			if kwargs['user'] is None :
-				#logger.warning('JSON - %s - Access Denied' % func.__name__)
+				log('login_check', level = 'SEC', obj = {'action': 'denied', 'path': request.full_path, 'sid': session['sid']})
 				return jsonResponse(makeResponseError("UNAUTHORISED_OPERATION"))
 			rd._user = kwargs['user']
+			setEventUser(rd._user)
 			kwargs['rd'] = rd
 			ret = func(*args, **kwargs)
 			return _handle_return(ret, rd)
 		else :
-			#logger.warning('JSON - %s - Access Denied' % func.__name__)
+			log('login_check', level = 'SEC', obj = {'action': 'denied', 'path': request.full_path})
 			return jsonResponse(makeResponseError("UNAUTHORISED_OPERATION"))
 	return wrapper
 
 def loginOptional(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs):
+		beginEvent(func.__name__, request.full_path)
 		rd = Namespace()
 		if 'sid' in session:
 			kwargs['user'] = _get_user_obj(session['sid'])
 		else :
 			kwargs['user'] = None
 		rd._user = kwargs['user']
+		if rd._user :
+			setEventUser(rd._user)
 		rd._version = _VERSION
 		rd._version_url = _VERSION_URL
 		kwargs['rd'] = rd
@@ -143,17 +153,16 @@ def loginOptional(func):
 			ret = func(*args, **kwargs)
 			return _handle_return(ret, rd)
 		except HTTPException as e:
+			log('WARN', {'ex': e})
 			raise e
 		except UserError as ue :
+			log('WARN', {'ue': ue})
 			if 'NOT_EXIST' in ue.msg :
 				abort(404)
 			else :
-				print('****UserError!', file = sys.stderr)
-				print(traceback.format_exc(), file = sys.stderr)
 				abort(400)
-		except:
-			print('****Exception!', file = sys.stderr)
-			print(traceback.format_exc(), file = sys.stderr)
+		except Exception as ex :
+			log('ERR', {'ex': ex})
 			abort(400)
 	return wrapper
 
@@ -164,23 +173,21 @@ def jsonRequest(func):
 		if data is None:
 			return jsonResponse(makeResponseFailed("INCORRECT_REQUEST"))
 		kwargs['data'] = Namespace.create_from_dict(data)
-		"""if hasattr(kwargs['rd'], '_user') :
-			logger.info('JSON_U - %s - %s - %s' % (kwargs['rd']._user['profile']['username'], func.__name__, dumps(data)))
-		else :
-			logger.info('JSON_A - %s - %s' % (func.__name__, dumps(kwargs['data'])))"""
 		try:
 			ret = func(*args, **kwargs)
-		except AttributeError:
+		except AttributeError as ex:
+			log('WARN', {'ex': ex})
 			return jsonResponse(makeResponseFailed("INCORRECT_REQUEST"))
-		except ValueError:
+		except ValueError as ex:
+			log('WARN', {'ex': ex})
 			return jsonResponse(makeResponseFailed("INCORRECT_REQUEST"))
 		except HTTPException as e:
 			raise e
 		except UserError as ue:
+			log('WARN', {'ue': ue})
 			return jsonResponse(makeResponseFailed({"reason": ue.msg, "aux": ue.aux}))
-		except:
-			print('****Exception!', file = sys.stderr)
-			print(traceback.format_exc(), file = sys.stderr)
+		except Exception as ex:
+			log('ERR', {'ex': ex})
 			abort(400)
 		if not ret :
 			return "json", makeResponseSuccess({})
