@@ -13,11 +13,6 @@ class ConfigCls(object) :
 	def __getattr__(self, attr) :
 		return rdb.get(f'config-{attr}').decode('utf-8')
 
-	def __setattr__(self, attr, value) :
-		old_val = self.__getattr__(attr)
-		rdb.set(f'config-{attr}', value)
-		log(obj = {'old_val': old_val, 'new_val': value})
-
 	def SetValue(self, attr, value) :
 		old_val = self.__getattr__(attr)
 		rdb.set(f'config-{attr}', value)
@@ -26,7 +21,7 @@ class ConfigCls(object) :
 Config = ConfigCls()
 
 def _config(attr, default = '') :
-	Config.__setattr__(attr, default)
+	setattr(Config, attr, default)
 
 def _config_env(attr, envvar, default = '') :
 	default = os.getenv(envvar, default)
