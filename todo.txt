@@ -94,6 +94,7 @@ add clearence level for updating configs
 use redis to cache commonly used video pages and tag translation
 !autotag support
     ytb/twitter/acfun is not supported
+add robots.txt
 
 ======================
 offical launch
