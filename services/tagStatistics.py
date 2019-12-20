@@ -8,6 +8,7 @@ from collections import Counter
 from utils.interceptors import ignoreError
 from utils.http import post_json, get_page
 from utils.tagtools import translateTagsToPreferredLanguage, getTagObjects
+from utils.logger import log
 from . import TAG_TRACKER_ADDRESS
 
 def getPopularTags(user_language, max_count = 20) :
@@ -37,6 +38,7 @@ def updateTagSearch(tags) :
     post_json(TAG_TRACKER_ADDRESS + "/hit", payload)
 
 def getRelatedTagsExperimental(user_language, tags, max_count = 10) :
+    log(obj = {'tags': tags, 'lang': user_language, 'count': max_count})
     tag_ids = tagdb.filter_and_translate_tags(tags)
     related_items = tagdb.db.items.aggregate([
         {'$match': {'tags': {'$all': tag_ids}}},

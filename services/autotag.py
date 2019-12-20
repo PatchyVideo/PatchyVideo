@@ -3,6 +3,7 @@ from db import tagdb as db
 from db import client
 from db.TagDB_language import translateTagToPreferredLanguage
 from utils.dbtools import MongoTransaction
+from utils.logger import log
 from collections import defaultdict
 
 import itertools
@@ -47,3 +48,8 @@ def buildTagRulesFromScratch(utag_threshold = 5, freq_threshold = 3, rule_thresh
 def inferTagidsFromUtags(utags) :
 	tags = [it['_id'] for it in db.db.utag_rules.aggregate([{'$match': {'utag': {'$in': utags}}}, {'$group':{'_id': '$tag'}}])]
 	return list(set(tags))
+
+def inferTagsFromUtags(utags, user_language) :
+	log(obj = {'utags': utags, 'lang': user_language})
+	tagids = inferTagidsFromUtags(utags)
+	return db.translate_tag_ids_to_user_language(tagids, user_language)[0]
