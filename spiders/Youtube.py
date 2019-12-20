@@ -4,6 +4,7 @@ from . import Spider
 from utils.jsontools import *
 from utils.encodings import makeUTF8
 from utils.html import try_get_xpath
+from utils.logger import log
 import requests
 from urllib.parse import parse_qs
 import time
@@ -76,18 +77,21 @@ class Youtube( Spider ) :
 			if apirespond.status_code == 200 :
 				break
 
-		player_response = apirespond.json()
-		player_response = player_response['items'][0]
-		player_response = player_response['snippet']
-		publishedAt_time = player_response['publishedAt']
-		uploadDate = parse(publishedAt_time).astimezone(timezone.utc)#上传时间 格式：2019-04-27 04:58:45+00:00
+		try :
+			player_response = apirespond.json()
+			player_response = player_response['items'][0]
+			player_response = player_response['snippet']
+			publishedAt_time = player_response['publishedAt']
+			uploadDate = parse(publishedAt_time).astimezone(timezone.utc)#上传时间 格式：2019-04-27 04:58:45+00:00
 
-		title = player_response['title']#标题
-		desc = player_response['description']#描述
-		thumbnailsurl0 = player_response['thumbnails']
-		thumbnailsurl1 = thumbnailsurl0['medium']
-		thumbnailURL = thumbnailsurl1['url']#缩略图url size：320 180
-		utags = player_response['tags'] if 'tags' in player_response else []
+			title = player_response['title']#标题
+			desc = player_response['description']#描述
+			thumbnailsurl0 = player_response['thumbnails']
+			thumbnailsurl1 = thumbnailsurl0['medium']
+			thumbnailURL = thumbnailsurl1['url']#缩略图url size：320 180
+			utags = player_response['tags'] if 'tags' in player_response else []
+		except Exception as ex :
+			log(level = 'ERR', obj = {'ex': ex, 'resp': apirespond})
 
 		return makeResponseSuccess({
 			'thumbnailURL': thumbnailURL,
