@@ -10,6 +10,7 @@ from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 
 from services.tagStatistics import getRelatedTagsExperimental
+from services.autotag import inferTagsFromUtags
 
 @app.route('/tags/get_related_tags.do', methods = ['POST'])
 @loginOptional
@@ -21,3 +22,9 @@ def ajax_get_related_tags_do(rd, user, data):
 	end = time.time()
 	return "json", makeResponseSuccess({'tags': ret, 'time_used_ms': int((end - start) * 1000)})
 
+@app.route('/tags/autotag.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_autotag_do(rd, user, data) :
+	tags = inferTagsFromUtags(data.utags, 'CHS')
+	return "json", makeResponseSuccess({'tags': tags})
