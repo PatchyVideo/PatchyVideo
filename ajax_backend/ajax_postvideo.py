@@ -22,7 +22,7 @@ from config import VideoConfig, TagsConfig
 def ajax_postvideo_do(rd, user, data):
 	dst_copy = data.copy if 'copy' in data.__dict__ else ''
 	dst_playlist = data.pid if 'pid' in data.__dict__ else ''
-	dst_rank = int((data.rank if 'rank' in data.__dict__ else -1) or -1)
+	dst_rank = int(data.rank if 'rank' in data.__dict__ else -1)
 	task_id = postVideo(user, data.url, data.tags, dst_copy, dst_playlist, dst_rank)
 	return "json", makeResponseSuccess({"task_id": task_id})
 
@@ -32,7 +32,7 @@ def ajax_postvideo_do(rd, user, data):
 def ajax_postvideo_batch_do(rd, user, data):
 	dst_copy = data.copy if 'copy' in data.__dict__ and data.copy is not None else ''
 	dst_playlist = data.pid if 'pid' in data.__dict__ and data.pid is not None else ''
-	dst_rank = int(data.rank if 'rank' in data.__dict__ and data.rank is not None else -1)
+	dst_rank = int(data.rank if 'rank' in data.__dict__ else -1)
 	as_copies = data.as_copies if 'as_copies' in data.__dict__ and data.as_copies is not None else False
 	task_ids = postVideoBatch(user, data.videos, data.tags, dst_copy, dst_playlist, dst_rank, as_copies)
 	return "json", makeResponseSuccess({"task_ids": task_ids})
