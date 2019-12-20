@@ -1,4 +1,5 @@
 import json
+import sys
 import os
 from . import Spider
 from utils.jsontools import *
@@ -76,22 +77,21 @@ class Youtube( Spider ) :
 			apirespond = requests.get(api_url)# 得到api响应
 			if apirespond.status_code == 200 :
 				break
+			else :
+				log(op = 'run', level = 'WARN', obj = {'msg': 'FETCH_FAILED', 'key': key, 'resp': apirespond.content, 'url': api_url})
 
-		try :
-			player_response = apirespond.json()
-			player_response = player_response['items'][0]
-			player_response = player_response['snippet']
-			publishedAt_time = player_response['publishedAt']
-			uploadDate = parse(publishedAt_time).astimezone(timezone.utc)#上传时间 格式：2019-04-27 04:58:45+00:00
+		player_response = apirespond.json()
+		player_response = player_response['items'][0]
+		player_response = player_response['snippet']
+		publishedAt_time = player_response['publishedAt']
+		uploadDate = parse(publishedAt_time).astimezone(timezone.utc)#上传时间 格式：2019-04-27 04:58:45+00:00
 
-			title = player_response['title']#标题
-			desc = player_response['description']#描述
-			thumbnailsurl0 = player_response['thumbnails']
-			thumbnailsurl1 = thumbnailsurl0['medium']
-			thumbnailURL = thumbnailsurl1['url']#缩略图url size：320 180
-			utags = player_response['tags'] if 'tags' in player_response else []
-		except Exception as ex :
-			log(level = 'ERR', obj = {'ex': ex, 'resp': apirespond})
+		title = player_response['title']#标题
+		desc = player_response['description']#描述
+		thumbnailsurl0 = player_response['thumbnails']
+		thumbnailsurl1 = thumbnailsurl0['medium']
+		thumbnailURL = thumbnailsurl1['url']#缩略图url size：320 180
+		utags = player_response['tags'] if 'tags' in player_response else []
 
 		return makeResponseSuccess({
 			'thumbnailURL': thumbnailURL,
@@ -120,6 +120,8 @@ class Youtube( Spider ) :
 					if resp.status == 200 :
 						apirespond = await resp.text()
 						break
+					else :
+						log(op = 'run_async', level = 'WARN', obj = {'msg': 'FETCH_FAILED', 'key': key, 'resp': apirespond.content, 'url': api_url})
 
 		player_response = loads(apirespond)
 		player_response = player_response['items'][0]

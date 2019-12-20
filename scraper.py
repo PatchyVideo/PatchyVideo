@@ -27,7 +27,7 @@ from bson import ObjectId
 from services.playlist import addVideoToPlaylist, addVideoToPlaylistLockFree, insertIntoPlaylist, insertIntoPlaylistLockFree
 from config import VideoConfig
 from PIL import Image, ImageSequence
-from utils.logger import log_e, setEventID
+from utils.logger import log_e, setEventUserAndID
 
 import io
 import json
@@ -216,6 +216,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 	unique_id = await parsed.unique_id_async(self = parsed, link = url)
 	log_e(event_id, user, 'scraper', 'MSG', {'url': url, 'dst_copy': dst_copy, 'other_copies': other_copies, 'dst_playlist': dst_playlist})
 	try :
+		setEventUserAndID(user, event_id)
 		ret = await parsed.get_metadata_async(parsed, url)
 		if ret["status"] == 'FAILED' :
 			log_e(event_id, user, 'downloader', 'WARN', {'msg': 'FETCH_FAILED', 'ret': ret})
@@ -249,7 +250,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 						old_item = tagdb.retrive_item(conflicting_item['_id'], session = s())['item']
 						for key in new_detail.keys() :
 							old_item[key] = new_detail[key] # overwrite or add new field
-						setEventID(event_id)
+						setEventUserAndID(user, event_id)
 						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item': old_item}}, makeUserMeta(user), session = s())
 						s.mark_succeed()
 					return 'SUCCEED', conflicting_item['_id']
@@ -272,7 +273,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 						# add this video to all other copies found
 						if len(all_copies) <= VideoConfig.MAX_COPIES :
 							for dst_vid in all_copies :
-								setEventID(event_id)
+								setEventUserAndID(user, event_id)
 								_addThiscopy(dst_vid, all_copies, makeUserMeta(user), session = s())
 							log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Successfully added to copies')
 							s.mark_succeed()
@@ -288,7 +289,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 					if playlist_ordered :
 						await _playlist_reorder_helper.post_video_succeed(conflicting_item['_id'], unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
 					else :
-						setEventID(event_id)
+						setEventUserAndID(user, event_id)
 						if dst_rank == -1 :
 							addVideoToPlaylist(dst_playlist, conflicting_item['_id'], user)
 						else :
@@ -296,7 +297,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 				# merge tags
 				async with MongoTransaction(client) as s :
 					log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Merging tags')
-					setEventID(event_id)
+					setEventUserAndID(user, event_id)
 					tagdb.update_item_tags_merge(conflicting_item['_id'], tags, makeUserMeta(user), session = s())
 					s.mark_succeed()
 				#if playlist_lock :
@@ -313,14 +314,14 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 						# add videos from other copies
 						for uid in other_copies :
 							all_copies += _getAllCopies(uid, session = s(), use_unique_id = True)
-						setEventID(event_id)
+						setEventUserAndID(user, event_id)
 						new_item_id = tagdb.add_item(tags, await _make_video_data(ret["data"], all_copies, playlists, url, user, event_id), makeUserMeta(user), session = s())
 						all_copies.append(ObjectId(new_item_id))
 						# remove duplicated items
 						all_copies = list(set(all_copies))
 						if len(all_copies) <= VideoConfig.MAX_COPIES :
 							for dst_vid in all_copies :
-								setEventID(event_id)
+								setEventUserAndID(user, event_id)
 								_addThiscopy(dst_vid, all_copies, makeUserMeta(user), session = s())
 							log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Successfully added to copies')
 							s.mark_succeed()
@@ -332,7 +333,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 							return "TOO_MANY_COPIES", {}
 				else :
 					async with MongoTransaction(client) as s :
-						setEventID(event_id)
+						setEventUserAndID(user, event_id)
 						new_item_id = tagdb.add_item(tags, await _make_video_data(ret["data"], [], playlists, url, user, event_id), makeUserMeta(user), session = s())
 						log_e(event_id, user, 'scraper', level = 'MSG', obj = {'msg': 'New video added to database', 'vid': new_item_id})
 						s.mark_succeed()
@@ -342,7 +343,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 					if playlist_ordered :
 						await _playlist_reorder_helper.post_video_succeed(new_item_id, unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
 					else :
-						setEventID(event_id)
+						setEventUserAndID(user, event_id)
 						if dst_rank == -1 :
 							addVideoToPlaylist(dst_playlist, new_item_id, user)
 						else :

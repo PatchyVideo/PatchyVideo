@@ -35,6 +35,10 @@ def beginEvent(endpoint, ip, path, args, obj = None) :
 def setEventUser(user) :
 	setattr(threadlocal, 'event_user', user)
 
+def setEventUserAndID(user, event_id) :
+	setattr(threadlocal, 'event_user', user)
+	setattr(threadlocal, 'event_id', event_id)
+
 def getEventID() :
 	if hasattr(threadlocal, 'event_id') :
 		return getattr(threadlocal, 'event_id')
