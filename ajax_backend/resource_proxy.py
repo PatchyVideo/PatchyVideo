@@ -16,10 +16,11 @@ from init import app
 from utils.interceptors import jsonRequest
 from utils.encodings import makeUTF8
 from utils.logger import log, beginEvent
+from utils.http import getRealIP
 
 @app.route('/proxy', methods = ['GET'])
 def ajax_resource_proxy():
-	beginEvent('ajax_resource_proxy', request.full_path, {'args': request.args})
+	beginEvent('ajax_resource_proxy', getRealIP(request), request.full_path, request.args)
 	if not request.args['url'] or not request.args['header']:
 		return ""
 	url = makeUTF8(request.args['url'])
