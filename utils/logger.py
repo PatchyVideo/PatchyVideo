@@ -9,6 +9,7 @@ threadlocal = threading.local()
 from bson import ObjectId
 from utils.crypto import random_bytes_str
 from pymongo import WriteConcern
+from functools import wraps
 
 def beginEvent(endpoint, ip, path, args, obj = None) :
 	setattr(threadlocal, 'event_op', endpoint)
@@ -50,6 +51,18 @@ def setEventOp(op) :
 def setEventID(event_id) :
 	setattr(threadlocal, 'event_id', event_id)
 
+def _ignore_error(func) :
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		try:
+			ret = func(*args, **kwargs)
+			return ret
+		except Exception as ex:
+			print(ex, file = sys.stderr)
+		return None
+	return wrapper
+
+@_ignore_error
 def log(op = '', level = "MSG", obj = None) :
 	event_id = getEventID()
 	event_op = getattr(threadlocal, 'event_op') or op
@@ -68,6 +81,7 @@ def log(op = '', level = "MSG", obj = None) :
 	doc['obj'] = obj
 	db.logs._insert(doc, write_concern = WriteConcern(w = 0))
 
+@_ignore_error
 def log_e(event_id, user, op = '', level = "MSG", obj = None) :
 	doc = {
 		'time': datetime.datetime.now(),
@@ -82,6 +96,7 @@ def log_e(event_id, user, op = '', level = "MSG", obj = None) :
 	doc['obj'] = obj
 	db.logs._insert(doc, write_concern = WriteConcern(w = 0))
 
+@_ignore_error
 def log_ne(op = '', level = "MSG", obj = None) :
 	doc = {
 		'time': datetime.datetime.now(),

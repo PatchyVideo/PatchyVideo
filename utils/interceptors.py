@@ -72,7 +72,7 @@ def basePage(func):
 			log('WARN', {'ex': e})
 			raise e
 		except Exception as ex:
-			log('ERR', {'ex': ex})
+			log('ERR', {'ex': str(ex)})
 			abort(400)
 	return wrapper
 
@@ -118,13 +118,13 @@ def loginRequired(func):
 				log('WARN', {'ex': e})
 				raise e
 			except UserError as ue :
-				log('WARN', {'ue': ue})
+				log('WARN', {'ue': str(ue)})
 				if 'NOT_EXIST' in ue.msg :
 					abort(404)
 				else :
 					abort(400)
 			except Exception as ex:
-				log('ERR', {'ex': ex})
+				log('ERR', {'ex': str(ex)})
 				abort(400)
 		else :
 			log('login_check', level = 'SEC', obj = {'action': 'denied', 'path': request.full_path})
@@ -173,13 +173,13 @@ def loginOptional(func):
 			log('WARN', {'ex': e})
 			raise e
 		except UserError as ue :
-			log('WARN', {'ue': ue})
+			log('WARN', {'ue': str(ue)})
 			if 'NOT_EXIST' in ue.msg :
 				abort(404)
 			else :
 				abort(400)
 		except Exception as ex :
-			log('ERR', {'ex': ex})
+			log('ERR', {'ex': str(ex)})
 			abort(400)
 	return wrapper
 
@@ -193,18 +193,18 @@ def jsonRequest(func):
 		try:
 			ret = func(*args, **kwargs)
 		except AttributeError as ex:
-			log('WARN', {'ex': ex})
+			log('WARN', {'ex': str(ex)})
 			return jsonResponse(makeResponseFailed("INCORRECT_REQUEST"))
 		except ValueError as ex:
-			log('WARN', {'ex': ex})
+			log('WARN', {'ex': str(ex)})
 			return jsonResponse(makeResponseFailed("INCORRECT_REQUEST"))
 		except HTTPException as e:
 			raise e
 		except UserError as ue:
-			log('WARN', {'ue': ue})
+			log('WARN', {'ue': str(ue)})
 			return jsonResponse(makeResponseFailed({"reason": ue.msg, "aux": ue.aux}))
 		except Exception as ex:
-			log('ERR', {'ex': ex})
+			log('ERR', {'ex': str(ex)})
 			abort(400)
 		if not ret :
 			return "json", makeResponseSuccess({})

@@ -71,7 +71,7 @@ def removePlaylist(pid, user) :
 			raise UserError('PLAYLIST_NOT_EXIST')
 		_check_authorised(pid, user, 'remove')
 		all_items = db.playlist_items.find({"pid": ObjectId(pid)}, session = s())
-		log(obj = {'items': all_items})
+		log(obj = {'items': [i for i in all_items]})
 		db.playlist_items.delete_many({"pid": ObjectId(pid)}, session = s())
 		db.playlists.delete_one({"_id": ObjectId(pid)}, session = s())
 		s.mark_succeed()

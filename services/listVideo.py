@@ -34,7 +34,7 @@ def listVideoQuery(query_str, page_idx, page_size, order = 'latest', user_langua
 		if '$not' in str(ex) :
 			raise UserError('FAILED_NOT_OP')
 		else :
-			log(level = 'ERR', obj = {'ex': ex})
+			log(level = 'ERR', obj = {'ex': str(ex)})
 			raise UserError('FAILED_UNKNOWN')
 	return videos, getCommonTags(user_language, videos), count
 

@@ -27,7 +27,7 @@ from bson import ObjectId
 from services.playlist import addVideoToPlaylist, addVideoToPlaylistLockFree, insertIntoPlaylist, insertIntoPlaylistLockFree
 from config import VideoConfig
 from PIL import Image, ImageSequence
-from utils.logger import log_e, setEventUserAndID
+from utils.logger import log_e, setEventUserAndID, setEventOp
 
 import io
 import json
@@ -70,7 +70,7 @@ async def _make_video_data(data, copies, playlists, url, user, event_id) :
 					else :
 						log_e(event_id, user, 'download_cover', 'WARN', {'status_code': resp.status, 'attemp': attemp})
 		except Exception as ex :
-			log_e(event_id, user, 'download_cover', 'WARN', {'ex': ex, 'attemp': attemp})
+			log_e(event_id, user, 'download_cover', 'WARN', {'ex': str(ex), 'attemp': attemp})
 			continue
 	return {
 		"url": (data['url_overwrite'] if 'url_overwrite' in data else url),
@@ -151,7 +151,7 @@ class _PlaylistReorederHelper() :
 								insertIntoPlaylistLockFree(dst_playlist, video_id, dst_rank + cur_rank, user)
 							cur_rank += 1
 			except Exception as ex :
-				log_e(event_id, user_global, '_add_to_playlist', 'ERR', {'ex': ex, 'tb': traceback.format_exc()})
+				log_e(event_id, user_global, '_add_to_playlist', 'ERR', {'ex': str(ex), 'tb': traceback.format_exc()})
 				for unique_id in playlist_ordered :
 					if unique_id in self.playlist_map[dst_playlist]['succeed'] :
 						(video_id, _, user) = self.playlist_map[dst_playlist]['succeed'][unique_id]
@@ -215,6 +215,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 		return "PARSE_FAILED", {}
 	unique_id = await parsed.unique_id_async(self = parsed, link = url)
 	log_e(event_id, user, 'scraper', 'MSG', {'url': url, 'dst_copy': dst_copy, 'other_copies': other_copies, 'dst_playlist': dst_playlist})
+	setEventOp('scraper')
 	try :
 		setEventUserAndID(user, event_id)
 		ret = await parsed.get_metadata_async(parsed, url)
@@ -354,11 +355,11 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 				return 'SUCCEED', new_item_id
 	except UserError as ue :
 		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
-		log_e(event_id, user, 'scraper', level = 'WARN', obj = {'ue': ue})
+		log_e(event_id, user, 'scraper', level = 'WARN', obj = {'ue': str(ue)})
 		return ue.msg, {"aux": ue.aux, "traceback": traceback.format_exc()}
 	except Exception as ex:
 		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
-		log_e(event_id, user, 'scraper', level = 'ERR', obj = {'ex': ex})
+		log_e(event_id, user, 'scraper', level = 'ERR', obj = {'ex': str(ex)})
 		try :
 			problematic_lock = RedisLockAsync(rdb, 'editLink')
 			problematic_lock.reset()
