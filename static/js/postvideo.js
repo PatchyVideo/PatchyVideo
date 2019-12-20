@@ -52,6 +52,15 @@ function buildParsersAndExpanders() {
         thumbnailURL = responseDOM.filter('meta[itemprop="thumbnailUrl"]').attr("content");
         title = responseDOM.find('h1.video-title').attr("title");
         desc = responseDOM.find('div.info.open').text();
+        utags = responseDOM.filter('meta[itemprop="keywords"]').attr("content").split(/,/).filter(function(i){return i}).slice(1, -4);
+        postJSON('/tags/autotag.do', {
+            "utags": utags
+        },
+        function (result) {
+            cur_tags = $("#tags").val();
+            cur_tags += result.data.tags.join('\n') + '\nauto_tagged\n';
+            $("#tags").val(cur_tags);
+        });
         setVideoMetadata(thumbnailURL, title, desc);
     };
     EXPANDERS["^av[\\d]+"] = function(short_link) {
@@ -87,6 +96,22 @@ function buildParsersAndExpanders() {
         if (desc == null) {
             desc = responseDOM.filter('meta[name="description"]').attr("content");
         }
+        utags = responseDOM.filter('meta[property="og:video:tag"]');
+        if (utags == null || utags.length == 0) {
+            utags = responseDOM.filter('meta[itemprop="og:video:tag"]');
+        }
+        utags_array = [];
+        for (var i = 0; i < utags.length; ++i) {
+            utags_array.push($(utags[i]).attr("content"));
+        }
+        postJSON('/tags/autotag.do', {
+            "utags": utags_array
+        },
+        function (result) {
+            cur_tags = $("#tags").val();
+            cur_tags += result.data.tags.join('\n') + '\nauto_tagged\n';
+            $("#tags").val(cur_tags);
+        });
         setVideoMetadata(thumbnailURL, title, desc);
     };
     EXPANDERS["^(s|n)m[\\d]+"] = function(short_link) {

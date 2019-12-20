@@ -92,6 +92,8 @@ add clearence level for updating configs
     need log viewing UI
 #check ajax input(e.g. order)
 use redis to cache commonly used video pages and tag translation
+!autotag support
+    ytb/twitter/acfun is not supported
 
 ======================
 offical launch
