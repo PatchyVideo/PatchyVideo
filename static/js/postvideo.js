@@ -38,6 +38,17 @@ $(document).ready(function(){
 }
 );
 
+function autotag(utags) {
+    postJSON('/tags/autotag.do', {
+        "utags": utags
+    },
+    function (result) {
+        cur_tags = $("#tags").val();
+        cur_tags += result.data.tags.join('\n') + '\nauto_tagged\n';
+        $("#tags").val(cur_tags);
+    });
+}
+
 //////////////////////////////////////////////////////
 //    Functions
 //////////////////////////////////////////////////////
@@ -53,14 +64,7 @@ function buildParsersAndExpanders() {
         title = responseDOM.find('h1.video-title').attr("title");
         desc = responseDOM.find('div.info.open').text();
         utags = responseDOM.filter('meta[itemprop="keywords"]').attr("content").split(/,/).filter(function(i){return i}).slice(1, -4);
-        postJSON('/tags/autotag.do', {
-            "utags": utags
-        },
-        function (result) {
-            cur_tags = $("#tags").val();
-            cur_tags += result.data.tags.join('\n') + '\nauto_tagged\n';
-            $("#tags").val(cur_tags);
-        });
+        autotag(utags);
         setVideoMetadata(thumbnailURL, title, desc);
     };
     EXPANDERS["^av[\\d]+"] = function(short_link) {
@@ -104,21 +108,14 @@ function buildParsersAndExpanders() {
         for (var i = 0; i < utags.length; ++i) {
             utags_array.push($(utags[i]).attr("content"));
         }
-        postJSON('/tags/autotag.do', {
-            "utags": utags_array
-        },
-        function (result) {
-            cur_tags = $("#tags").val();
-            cur_tags += result.data.tags.join('\n') + '\nauto_tagged\n';
-            $("#tags").val(cur_tags);
-        });
+        autotag(utags_array);
         setVideoMetadata(thumbnailURL, title, desc);
     };
     EXPANDERS["^(s|n)m[\\d]+"] = function(short_link) {
         return "https://www.nicovideo.jp/watch/" + short_link;
     };
     PARSERS["^(https:\\/\\/(www\\.|m\\.)?youtube\\.com\\/watch\\?v=[-\\w]+|https:\\/\\/youtu\\.be\\/(watch\\?v=[-\\w]+|[-\\w]+))"] = function(responseDOM, responseURL) {
-        var vidid = "";
+        /*var vidid = "";
         if (responseURL.indexOf("youtube.com") >= 0) {
             var idx = responseURL.lastIndexOf('=');
             vidid = responseURL.substring(idx + 1, responseURL.length);
@@ -153,6 +150,16 @@ function buildParsersAndExpanders() {
                 setStatus("Error fetching video", "red");
                 return;
             }
+        });*/
+        postJSON('/helper/get_ytb_info.do',
+        {
+            url: responseURL
+        }, function(data){
+            setVideoMetadata(data["data"]["thumbnailURL"], data["data"]["title"], data["data"]["desc"]);
+            autotag(data["data"]["utags"]);
+        }, function(data){
+            setVideoMetadata("", "", "");
+            setStatus("Error fetching video", "red");
         });
     };
     PARSERS["^(https:\\/\\/)?(www\\.|mobile\\.)?twitter\\.com\\/[\\w]+\\/status\\/[\\d]+"] = function(responseDOM, responseURL) {

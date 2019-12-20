@@ -22,3 +22,15 @@ def ajax_helper_get_twitter_info(rd, user, data):
 	if info["status"] != 'SUCCEED' :
 		return makeResponseFailed('FETCH_FAILED')
 	return info
+
+@app.route('/helper/get_ytb_info.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_helper_get_ytb_info(rd, user, data):
+	obj, cleanURL = dispatch(data.url)
+	if obj.NAME != 'youtube' :
+		return makeResponseFailed('NOT_YOUTUBE')
+	info = obj.get_metadata(obj, cleanURL)
+	if info["status"] != 'SUCCEED' :
+		return makeResponseFailed('FETCH_FAILED')
+	return info
