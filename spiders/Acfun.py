@@ -49,7 +49,6 @@ class Acfun( Spider ) :
 		uploadDate = xpath.xpath('//div[@class="publish-time"]/text()')[0]
 		utags = xpath.xpath( '//meta[@name="keywords"]/@content' )[0]
 		utags = list(filter(None, utags.split(',')[1: -4]))
-		print('utags:', utags)
 		try :
 			uploadDate = parse(uploadDate) - timedelta(hours = 8)
 		except :

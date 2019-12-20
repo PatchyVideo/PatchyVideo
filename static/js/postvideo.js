@@ -79,8 +79,13 @@ function buildParsersAndExpanders() {
         }
         thumbnailURL = '';
         title = responseDOM.find('h1.title').text();
-        desc = responseDOM.find('div.sp1.J_description').text();
+        desc = responseDOM.filter('div[class="description-container"]').text();
+        if (desc == null) {
+            desc = responseDOM.find('div[class="J_description"]').text();
+        }
         desc = desc.replace(/<br\s*?\/?>/g, '\n');
+        utags = responseDOM.filter('meta[name="keywords"]').attr("content").split(/,/).filter(function(i){return i}).slice(1, -4);
+        autotag(utags);
         setVideoMetadata(thumbnailURL, title, desc);
     };
     EXPANDERS["^ac[\\d]+"] = function(short_link) {

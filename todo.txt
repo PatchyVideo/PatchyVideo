@@ -93,7 +93,7 @@ add clearence level for updating configs
 #check ajax input(e.g. order)
 use redis to cache commonly used video pages and tag translation
 !autotag support
-    ytb/twitter/acfun is not supported
+    twitter is not supported
 add robots.txt
 
 ======================
