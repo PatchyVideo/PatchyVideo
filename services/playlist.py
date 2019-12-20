@@ -329,8 +329,10 @@ def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
 	}
 	])
 	ans_obj = [i for i in ans_obj][0]
-	
-	return [i for i in ans_obj['result']], ans_obj['count'][0]['count']
+	if ans_obj['result'] :
+		return [i for i in ans_obj['result']], ans_obj['count'][0]['count']
+	else :
+		return [], 0
 
 def listCommonTagIDs(pid) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
