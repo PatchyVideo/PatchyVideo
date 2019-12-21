@@ -1,12 +1,12 @@
 
 class UserError(Exception) :
-    def __init__(self, msg, aux = None) :
-        self.msg = msg
-        self.aux = aux
+	def __init__(self, msg, aux = None) :
+		self.msg = msg
+		self.aux = aux
 
 class ScraperError(Exception) :
-    def __init__(self) :
-        pass
+	def __init__(self) :
+		pass
 
 import sys
 from functools import wraps
