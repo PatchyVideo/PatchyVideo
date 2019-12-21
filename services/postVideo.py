@@ -111,19 +111,18 @@ def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies):
 		if not url:
 			continue
 		obj, cleanURL = dispatch(url)
+		# Here we allow batch post to be partially successful
 		if obj is not None :
 			uid = obj.unique_id(obj, cleanURL)
 			if not uid in unique_ids : # remove duplicated items
 				cleanURL_objs.append((obj, cleanURL))
 				unique_ids.append(uid)
-	# Here we allow batch post to be partially successful
+		else :
+			log('dispatcher', level = 'WARN', obj = {'failed_url': url})
 	task_ids = []
 	for idx, (obj, cleanURL) in enumerate(cleanURL_objs) :
 		log(obj = {'url': cleanURL})
-		if obj :
-			next_idx = idx if rank >= 0 else 0
-			task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank + next_idx, unique_ids if as_copies else [], user, unique_ids))
-			task_ids.append(task_id)
-		else :
-			log('dispatcher', level = 'WARN', obj = {'failed_url': cleanURL})
+		next_idx = idx if rank >= 0 else 0
+		task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank + next_idx, unique_ids if as_copies else [], user, unique_ids))
+		task_ids.append(task_id)
 	return task_ids
