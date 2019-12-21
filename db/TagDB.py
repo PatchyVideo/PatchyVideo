@@ -1,5 +1,6 @@
 from datetime import datetime
 from utils.exceptions import UserError
+from collections import deque
 
 import re
 
@@ -67,15 +68,14 @@ class TagDB() :
 		self.aci = AutocompleteInterface()
 	
 	def init_autocomplete(self) :
-		all_tags = self.db.tags.find()
-		all_words = self.db.tag_alias.aggregate([
-			{'$match': {}},
-			{'$lookup': {"from" : "tags", "localField" : "dst", "foreignField" : "_id", "as" : "tag_obj"}},
-			{'$unwind': {'path': '$tag_obj'}},
-			{'$project': {'tag_obj.id': 1, 'tag': 1}}
-		])
+		all_tags = [i for i in self.db.tags.find()]
 		tags_tuple = [(item['id'], item['count'], _CATEGORY_MAP[item['category']]) for item in all_tags]
-		words_tuple = [(item['tag_obj']['id'], item['tag']) for item in all_words]
+		words_tuple = deque([])
+		for tag_obj in all_tags :
+			for (lang, word) in tag_obj['languages'].items() :
+				words_tuple.append((tag_obj['id'], word, lang))
+			for alias in tag_obj['alias'] :
+				words_tuple.append((tag_obj['id'], alias, "NAL"))
 		self.aci.AddTag(tags_tuple)
 		self.aci.AddWord(words_tuple)
 	
@@ -135,7 +135,7 @@ class TagDB() :
 		}, session = session)
 		self.db.cats.update_one({'name': category}, {'$inc': {'count': 1}}, session = session)
 		self.aci.AddTag([(tag_id, 0, _CATEGORY_MAP[category])])
-		self.aci.AddWord([(tag_id, tag)])
+		self.aci.AddWord([(tag_id, tag, language)])
 		return tag_id
 
 	def find_tags_wildcard(self, query, category, page_idx, page_size, order) :
@@ -248,21 +248,21 @@ class TagDB() :
 						}
 					}, session = session)
 					self.aci.DeleteWord(tag_name)
-					self.aci.AddWord([(tag_obj['id'], new_tag_name)])
+					self.aci.AddWord([(tag_obj['id'], new_tag_name, language)])
 				else :
 					self.db.tag_alias.insert_one({
 						'tag': new_tag_name,
 						'dst': tag_obj['_id'],
 						'meta': {'created_by': user, 'created_at': datetime.now()}
 					}, session = session)
-					self.aci.AddWord([(tag_obj['id'], new_tag_name)])
+					self.aci.AddWord([(tag_obj['id'], new_tag_name, language)])
 			else :
 				self.db.tag_alias.insert_one({
 					'tag': new_tag_name,
 					'dst': tag_obj['_id'],
 					'meta': {'created_by': user, 'created_at': datetime.now()}
 				}, session = session)
-				self.aci.AddWord([(tag_obj['id'], new_tag_name)])
+				self.aci.AddWord([(tag_obj['id'], new_tag_name, language)])
 		else :
 			# since tag_alias already exists for new_tag_name, no need to insert new tag_alias
 			# but we need to consider whether or not to delete the old one
@@ -301,7 +301,7 @@ class TagDB() :
 			self.db.tags.update_one({'_id': tag_obj['_id']}, {
 				'$addToSet': {'alias': alias_name},
 			}, session = session)
-			self.aci.AddWord([(tag_obj['id'], alias_name)])
+			self.aci.AddWord([(tag_obj['id'], alias_name, "NAL")])
 		else :
 			rc, lang_referenced = self._get_tag_name_reference_count(old_alias_name, tag_obj)
 			if rc == 1 and lang_referenced is None :
@@ -316,7 +316,7 @@ class TagDB() :
 				self.db.tags.update_one({'_id': tag_obj['_id']}, {'$pullAll': {'alias': [old_alias_name]}}, session = session)
 				self.db.tags.update_one({'_id': tag_obj['_id']}, {'$addToSet': {'alias': alias_name}}, session = session)
 				self.aci.DeleteWord(old_alias_name)
-				self.aci.AddWord([(tag_obj['id'], alias_name)])
+				self.aci.AddWord([(tag_obj['id'], alias_name, "NAL")])
 			else :
 				# add
 				self.db.tag_alias.insert_one({
@@ -327,7 +327,7 @@ class TagDB() :
 				self.db.tags.update_one({'_id': tag_obj['_id']}, {
 					'$addToSet': {'alias': alias_name},
 				}, session = session)
-				self.aci.AddWord([(tag_obj['id'], alias_name)])
+				self.aci.AddWord([(tag_obj['id'], alias_name, "NAL")])
 	
 	def retrive_items(self, tag_query, session = None) :
 		return self.db.items.find(tag_query, session = session)

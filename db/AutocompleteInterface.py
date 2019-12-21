@@ -30,10 +30,10 @@ class AutocompleteInterface() :
 			payload += "%d %d %d " % (tagid, count, category)
 		self._post("AddTag", "addtag", payload)
 
-	def AddWord(self, list_of_tuple_of_tagid_word) :
-		payload = "%d " % len(list_of_tuple_of_tagid_word)
-		for (tagid, word) in list_of_tuple_of_tagid_word :
-			payload += "%d %s " % (tagid, word)
+	def AddWord(self, list_of_tuple_of_tagid_word_lang) :
+		payload = "%d " % len(list_of_tuple_of_tagid_word_lang)
+		for (tagid, word, lang) in list_of_tuple_of_tagid_word_lang :
+			payload += "%d %s %s " % (tagid, word, lang)
 		self._post("AddWord", "addword", payload)
 
 	def SetCount(self, list_of_tuple_of_tagid_count) :
