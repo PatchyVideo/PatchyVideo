@@ -211,14 +211,3 @@ def jsonRequest(func):
 		else :
 			return ret
 	return wrapper
-
-def ignoreError(func):
-	@wraps(func)
-	def wrapper(*args, **kwargs):
-		try:
-			ret = func(*args, **kwargs)
-			return ret
-		except:
-			pass
-		return None
-	return wrapper

@@ -5,7 +5,7 @@ import json
 import itertools
 from collections import Counter
 
-from utils.interceptors import ignoreError
+from utils.exceptions import noexcept
 from utils.http import post_json, get_page
 from utils.tagtools import translateTagsToPreferredLanguage, getTagObjects
 from utils.logger import log
@@ -29,7 +29,7 @@ def getCommonTags(user_language, videos, max_count = 20) :
     tag_ids = [item[0] for item in tag_map]
     return tagdb.translate_tag_ids_to_user_language(tag_ids, user_language)[0]
 
-@ignoreError
+@noexcept
 def updateTagSearch(tags) :
     tag_ids = tagdb.filter_and_translate_tags(tags)
     payload = {
