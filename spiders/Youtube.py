@@ -5,7 +5,7 @@ from . import Spider
 from utils.jsontools import *
 from utils.encodings import makeUTF8
 from utils.html import try_get_xpath
-from utils.logger import log
+from utils.logger import log_ne
 import requests
 from urllib.parse import parse_qs
 import time
@@ -78,7 +78,7 @@ class Youtube( Spider ) :
 			if apirespond.status_code == 200 :
 				break
 			else :
-				log(op = 'run', level = 'WARN', obj = {'msg': 'FETCH_FAILED', 'key': key, 'resp': apirespond.content, 'url': api_url})
+				log_ne(op = 'youtube_run', level = 'WARN', obj = {'msg': 'FETCH_FAILED', 'key': key, 'resp': apirespond.content, 'url': api_url})
 
 		player_response = apirespond.json()
 		player_response = player_response['items'][0]
@@ -121,7 +121,7 @@ class Youtube( Spider ) :
 						apirespond = await resp.text()
 						break
 					else :
-						log(op = 'run_async', level = 'WARN', obj = {'msg': 'FETCH_FAILED', 'key': key, 'resp': apirespond.content, 'url': api_url})
+						log_ne(op = 'youtube_run_async', level = 'WARN', obj = {'msg': 'FETCH_FAILED', 'key': key, 'resp': apirespond.content, 'url': api_url})
 
 		player_response = loads(apirespond)
 		player_response = player_response['items'][0]

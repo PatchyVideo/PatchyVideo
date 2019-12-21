@@ -217,7 +217,6 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 	log_e(event_id, user, 'scraper', 'MSG', {'url': url, 'dst_copy': dst_copy, 'other_copies': other_copies, 'dst_playlist': dst_playlist})
 	setEventOp('scraper')
 	try :
-		setEventUserAndID(user, event_id)
 		ret = await parsed.get_metadata_async(parsed, url)
 		if ret["status"] == 'FAILED' :
 			log_e(event_id, user, 'downloader', 'WARN', {'msg': 'FETCH_FAILED', 'ret': ret})
@@ -315,8 +314,9 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 						# add videos from other copies
 						for uid in other_copies :
 							all_copies += _getAllCopies(uid, session = s(), use_unique_id = True)
+						video_data = await _make_video_data(ret["data"], all_copies, playlists, url, user, event_id)
 						setEventUserAndID(user, event_id)
-						new_item_id = tagdb.add_item(tags, await _make_video_data(ret["data"], all_copies, playlists, url, user, event_id), makeUserMeta(user), session = s())
+						new_item_id = tagdb.add_item(tags, video_data, makeUserMeta(user), session = s())
 						all_copies.append(ObjectId(new_item_id))
 						# remove duplicated items
 						all_copies = list(set(all_copies))
@@ -334,8 +334,9 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 							return "TOO_MANY_COPIES", {}
 				else :
 					async with MongoTransaction(client) as s :
+						video_data = await _make_video_data(ret["data"], [], playlists, url, user, event_id)
 						setEventUserAndID(user, event_id)
-						new_item_id = tagdb.add_item(tags, await _make_video_data(ret["data"], [], playlists, url, user, event_id), makeUserMeta(user), session = s())
+						new_item_id = tagdb.add_item(tags, video_data, makeUserMeta(user), session = s())
 						log_e(event_id, user, 'scraper', level = 'MSG', obj = {'msg': 'New video added to database', 'vid': new_item_id})
 						s.mark_succeed()
 				# if the operation is adding this video to playlist
