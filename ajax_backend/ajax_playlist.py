@@ -72,3 +72,10 @@ def ajax_lists_myplaylists(rd, user, data):
 	order = data.order if 'order' in data.__dict__ is not None and data.order else 'last_modified'
 	result = [item for item in listMyPlaylists(user, page, page_size, order)]
 	return "json", makeResponseSuccess(result)
+
+@app.route('/lists/create_from_copies.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_lists_create_from_copies_do(rd, user, data):
+	pid = createPlaylistFromCopies(data.pid, data.site, user)
+	return "json", makeResponseSuccess(pid)

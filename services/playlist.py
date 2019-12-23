@@ -289,6 +289,37 @@ def listAllPlaylistVideosUnordered(pid) :
 	ans_obj = db.playlist_items.find({"pid": ObjectId(pid)})
 	return [ObjectId(item['vid']) for item in ans_obj], playlist['videos']
 
+def listAllPlaylistVideosOrdered(pid) :
+	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
+	if playlist is None :
+		raise UserError('PLAYLIST_NOT_EXIST')
+	ans_obj = db.playlist_items.aggregate([
+		{
+			'$match': {
+				"pid": ObjectId(pid)
+			}
+		},
+		{
+			'$lookup': {
+				'from': "items",
+				'localField': "vid",
+				'foreignField': "_id",
+				'as': 'item'
+			}
+		},
+		{
+			'$unwind': {
+				'path': '$item'
+			}
+		},
+		{
+			'$sort' : {
+				'rank' : 1
+			}
+		}
+	])
+	return [i for i in ans_obj], playlist['videos'], playlist
+
 def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
 	sort_obj = { "meta.created_at" : 1 }
 	if order == 'latest':
@@ -609,3 +640,20 @@ def insertIntoPlaylistLockFree(pid, vid, rank, user) :
 			'meta.modified_by': makeUserMeta(user),
 			'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()
+
+def createPlaylistFromCopies(pid, site, user) :
+	if site not in ["youtube", "bilibili", "nicovideo", "twitter", "acfun"] :
+		raise UserError("UNSUPPORTED_SITE")
+	videos, _, playlist_obj = listAllPlaylistVideosOrdered(pid)
+	new_pid = createPlaylist('english', playlist_obj['title']['english'] + ' - %s' % site, playlist_obj['desc']['english'], playlist_obj['cover'], user, playlist_obj['private'])
+	with redis_lock.Lock(rdb, 'editLink'), redis_lock.Lock(rdb, "playlistEdit:" + str(new_pid)), MongoTransaction(client) as s :
+		for video in videos :
+			copies = video['item']['item']['copies']
+			for cp in copies :
+				item = tagdb.retrive_item(cp, s())
+				if item['_id'] != video['vid'] and item['item']['site'] == site :
+					addVideoToPlaylistLockFree(new_pid, item['_id'], user)
+					break
+		s.mark_succeed()
+	return new_pid
+
