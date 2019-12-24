@@ -14,6 +14,13 @@ from spiders import dispatch
 from services.user import *
 from config import UserConfig
 
+@app.route('/auth/get_session.do', methods = ['POST'])
+@basePage
+@jsonRequest
+def ajax_auth_get_session_do(rd, data):
+	ret = require_session(data.type)
+	return "json", makeResponseSuccess(ret)
+
 @app.route('/login.do', methods = ['POST'])
 @basePage
 @jsonRequest

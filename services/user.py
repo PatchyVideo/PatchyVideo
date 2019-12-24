@@ -32,6 +32,8 @@ def verify_session(sid, stype) :
 
 def require_session(session_type) :
     # TODO: add challenge code to redis
+    if session_type not in ['LOGIN', 'SIGNUP'] :
+        raise UserError('INCORRECT_SESSION_TYPE')
     sid = binascii.hexlify(bytearray(random_bytes(16))).decode()
     rdb.set(sid, session_type, ex = int(time.time() + UserConfig.SESSION_EXPIRE_TIME))
     log(obj = {'sid': sid})
