@@ -96,7 +96,6 @@ use redis to cache commonly used video pages and tag translation
 !autotag support
     twitter is not supported
 add robots.txt
-replace list with deque for better append performance
 remove unnecessary fileds from ajax results
 
 ======================
