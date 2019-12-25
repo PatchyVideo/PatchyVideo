@@ -12,6 +12,7 @@ from utils.exceptions import UserError
 
 from spiders import dispatch
 from services.listVideo import listVideo, listVideoQuery, listMyVideo
+from services.tagStatistics import getCommonTagsWithCount
 from services.getVideo import getTagCategoryMap
 from config import QueryConfig
 
@@ -61,9 +62,11 @@ def ajax_listmyvideo_do(rd, data, user):
 		raise AttributeError()
 	videos = listMyVideo(data.page - 1, data.page_size, user, order)
 	video_count = videos.count()
+	videos = [i for i in videos]
 	ret = makeResponseSuccess({
-		"videos": [i for i in videos],
+		"videos": videos,
 		"count": video_count,
+		"tags": getCommonTagsWithCount('CHS', videos),
 		"page_count": (video_count - 1) // data.page_size + 1,
 	})
 	return "json", ret

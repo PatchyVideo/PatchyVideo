@@ -382,6 +382,18 @@ class TagDB() :
 			tag_category_map[tag_in_user_language] = obj['category']
 		return tags, category_tag_map, tag_category_map
 
+	def translate_tag_ids_to_user_language_with_count(self, tag_ids, language, session = None) :
+		tag_objs = self.db.tags.find({'id': {'$in': tag_ids}}, session = session)
+		category_tag_map = defaultdict(list)
+		tag_category_map = {}
+		tags = []
+		for obj in tag_objs :
+			tag_in_user_language = translateTagToPreferredLanguage(obj, language)
+			tags.append({'tag': tag_in_user_language, 'count': obj['count']})
+			category_tag_map[obj['category']].append(tag_in_user_language)
+			tag_category_map[tag_in_user_language] = obj['category']
+		return tags, category_tag_map, tag_category_map
+
 	def retrive_item_with_tag_category_map(self, tag_query_or_item_id, language, session = None) :
 		if isinstance(tag_query_or_item_id, ObjectId) or isinstance(tag_query_or_item_id, str):
 			item_obj = self.db.items.find_one({'_id': ObjectId(tag_query_or_item_id)}, session = session)

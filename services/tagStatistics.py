@@ -29,6 +29,14 @@ def getCommonTags(user_language, videos, max_count = 20) :
     tag_ids = [item[0] for item in tag_map]
     return tagdb.translate_tag_ids_to_user_language(tag_ids, user_language)[0]
 
+def getCommonTagsWithCount(user_language, videos, max_count = 20) :
+    if len(videos) <= 0 :
+        return []
+    all_tags = list(itertools.chain(*[vid['tags'] for vid in videos]))
+    tag_map = Counter(all_tags).most_common(n = max_count)
+    tag_ids = [item[0] for item in tag_map]
+    return tagdb.translate_tag_ids_to_user_language_with_count(tag_ids, user_language)[0]
+
 @noexcept
 def updateTagSearch(tags) :
     tag_ids = tagdb.filter_and_translate_tags(tags)
