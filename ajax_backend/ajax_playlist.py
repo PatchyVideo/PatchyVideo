@@ -1,7 +1,7 @@
 
 import time
 
-from flask import render_template, request, jsonify, redirect, session
+from flask import render_template, request, jsonify, redirect, session, abort
 
 from db import tagdb
 from init import app
@@ -94,12 +94,14 @@ def ajax_lists_all_do(rd, user, data):
 def ajax_lists_get_playlist_do(rd, user, data):
 	page_size = int(data.page_size) if 'page_size' in data.__dict__ is not None else 10000
 	page = (int(data.page) - 1) if 'page' in data.__dict__ is not None else 0
+	playlist = getPlaylist(data.pid)
+	if playlist["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) :
+		abort(404)
 	playlist_editable = False
 	if user:
 		videos, video_count, playlist_editable = listPlaylistVideosWithAuthorizationInfo(data.pid, page, page_size, user)
 	else:
 		videos, video_count = listPlaylistVideos(data.pid, page, page_size)
-	playlist = getPlaylist(data.pid)
 	return "json", makeResponseSuccess({
 		"editable": playlist_editable,
 		"playlist": playlist,
