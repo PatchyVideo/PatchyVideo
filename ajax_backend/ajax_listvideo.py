@@ -6,7 +6,7 @@ import redis
 from flask import render_template, request, current_app, jsonify, redirect, session
 
 from init import app
-from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON, loginRequired
+from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 from utils.exceptions import UserError
 
@@ -54,7 +54,7 @@ def ajax_queryvideo_do(rd, data, user):
 	return "json", ret
 
 @app.route('/listmyvideo.do', methods = ['POST'])
-@loginRequired
+@loginRequiredJSON
 @jsonRequest
 def ajax_listmyvideo_do(rd, data, user):
 	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
