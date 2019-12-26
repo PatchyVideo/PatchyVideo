@@ -346,6 +346,13 @@ def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
 			"path" : "$user_detail"
 		}
 	},
+	{
+		"$project": {
+			"user_detail.crypto": 0,
+			"user_detail.access_control": 0,
+			"user_detail.meta": 0
+		}
+	},
 	{'$facet':
 		{
 			'result': [
