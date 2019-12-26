@@ -91,7 +91,7 @@ add clearence level for updating configs
 #add refresh video detail function
 !logging using MongoDB
     need log viewing UI
-#check ajax input(e.g. order)
+check ajax input(e.g. page/page_size)
 use redis to cache commonly used video pages and tag translation
 !autotag support
     twitter is not supported
