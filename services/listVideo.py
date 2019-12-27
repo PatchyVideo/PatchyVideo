@@ -41,7 +41,7 @@ def listVideoQuery(query_str, page_idx, page_size, order = 'latest', user_langua
 def listVideo(page_idx, page_size, order = 'latest', user_language = 'CHS'):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
-	result = db.retrive_items({})
+	result = db.retrive_items({'condemned': False})
 	if order == 'latest':
 		result = result.sort([("meta.created_at", -1)])
 	if order == 'oldest':
