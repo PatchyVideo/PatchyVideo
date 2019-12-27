@@ -97,6 +97,8 @@ use redis to cache commonly used video pages and tag translation
     twitter is not supported
 add robots.txt
 remove unnecessary fileds from ajax results
+!condemn videos
+    lacking UI support
 
 ======================
 offical launch

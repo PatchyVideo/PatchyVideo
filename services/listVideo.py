@@ -18,7 +18,7 @@ def listVideoQuery(query_str, page_idx, page_size, order = 'latest', user_langua
 	log(obj = {'query': json.dumps(query_obj)})
 	updateTagSearch(tag_ids)
 	try :
-		result = db.retrive_items(query_obj)
+		result = db.retrive_items({'$and': [{'condemned': False}, query_obj]})
 		if order == 'latest':
 			result = result.sort([("meta.created_at", -1)])
 		if order == 'oldest':

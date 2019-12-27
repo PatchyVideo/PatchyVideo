@@ -412,9 +412,12 @@ class TagDB() :
 			tag_category_map[tag_in_user_language] = obj['category']
 		return item_obj, tags, category_tag_map, tag_category_map
 
+	def condemn_item(self, item_id, user = '', session = None) :
+		self.update_item_query(item_id, {'$set': {'condemned': True}}, user, session)
+
 	def add_item(self, tags, item, user = '', session = None) :
 		tag_ids = self.filter_and_translate_tags(tags)
-		item_id = self.db.items.insert_one({'tags': tag_ids, 'item': item, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session).inserted_id
+		item_id = self.db.items.insert_one({'condemned': False, 'tags': tag_ids, 'item': item, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session).inserted_id
 		self.db.tags.update_many({'id': {'$in': tag_ids}}, {'$inc': {'count': 1}}, session = session)
 		self.aci.SetCountDiff([(tagid, 1) for tagid in tag_ids])
 		return item_id
