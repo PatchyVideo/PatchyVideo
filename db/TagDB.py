@@ -269,6 +269,9 @@ class TagDB() :
 			if not isinstance(tag_name, int) :
 				rc, lang_referenced = self._get_tag_name_reference_count(tag_name, tag_obj)
 				assert rc > 0
+				if lang_referenced is None :
+					# we have an alias with the same name
+					raise UserError('TAG_ALREADY_EXIST')
 				# delete ONLY IF it is referenced only once AND it is exactly referenced by the given language
 				if rc == 1 and lang_referenced == language and tag_name != new_tag_name :
 					self.db.tag_alias.delete_one({'tag': tag_name}, session = session)
