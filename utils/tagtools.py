@@ -21,7 +21,7 @@ def verifyAndSanitizeTagOrAlias(alias):
 	if len(ts) == 1 :
 		alias = ss[0]
 		if ts[0] == 'TAG':
-			if any(ban in alias for ban in [':', '>', '<', '=', '-', '~', '+', '*', '/', '.', ',', ';', ':', '\"']) : # special symbols
+			if any(ban in alias for ban in [':', '>', '<', '=', '~', '+', '*', '/', '.', ',', ';', ':', '\"']) : # special symbols
 				return False, ''
 			if alias.lower() in ['site', 'date', 'and', 'or', 'not', 'any', 'all', 'notag', 'true', 'false'] : # keywords
 				return False, ''
