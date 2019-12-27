@@ -643,6 +643,11 @@ class TagDB() :
 					return None
 				raise UserError('TAG_NOT_EXIST')
 			return ans
+		else :
+			assert False, 'UNKNOWN_TAG_TYPE'
+
+	def get_tag_object(self, tag, return_none = False, session = None) :
+		return self._tag(tag, return_none, session)
 
 	def _check_language(self, language):
 		if language not in VALID_LANGUAGES :
