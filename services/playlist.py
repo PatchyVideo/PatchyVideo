@@ -13,6 +13,7 @@ from datetime import datetime
 from bson import ObjectId
 from config import PlaylistConfig
 from utils.logger import log
+from services.tcb import filterSingleVideo, filterVideoList
 
 import redis_lock
 
@@ -54,7 +55,7 @@ def createPlaylist(language, title, desc, cover, user, private = False) :
 
 def createPlaylistFromSingleVideo(language, vid, user) :
 	log(obj = {'vid': vid})
-	video_obj = tagdb.retrive_item(ObjectId(vid))
+	video_obj = filterSingleVideo(vid, user)
 	if video_obj is None :
 		raise UserError('VIDEO_NOT_EXIST')
 	new_playlist_id = createPlaylist(language, video_obj['item']['title'], video_obj['item']['desc'], video_obj['item']['cover_image'], user)
@@ -110,7 +111,7 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 		if list_obj is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
 		_check_authorised(pid, user)
-		video_obj = tagdb.retrive_item({"_id": ObjectId(vid)})
+		video_obj = filterSingleVideo(vid, user)
 		if video_obj is None :
 			raise UserError('VIDEO_NOT_EXIST')
 		cover = video_obj['item']['cover_image']
@@ -118,7 +119,7 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
 			'meta.modified_by': makeUserMeta(user),
 			'meta.modified_at': datetime.now()}}, session = s())
-		video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
+		video_page, video_count = listPlaylistVideos(pid, page - 1, page_size, user)
 		s.mark_succeed()
 		return {'videos': video_page, 'video_count': video_count, 'page': page}
 
@@ -238,9 +239,10 @@ def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
 		ret_obj = obj['item']
 		ret_obj['rank'] = obj['rank']
 		ret.append(ret_obj)
+	ret = filterVideoList(ret, user)
 	return ret, playlist['videos'], _is_authorised(playlist, user)
 
-def listPlaylistVideos(pid, page_idx, page_size) :
+def listPlaylistVideos(pid, page_idx, page_size, user) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
 	if playlist is None :
 		raise UserError('PLAYLIST_NOT_EXIST')
@@ -280,6 +282,7 @@ def listPlaylistVideos(pid, page_idx, page_size) :
 		ret_obj = obj['item']
 		ret_obj['rank'] = obj['rank']
 		ret.append(ret_obj)
+	ret = filterVideoList(ret, user)
 	return ret, playlist['videos']
 
 def listAllPlaylistVideosUnordered(pid) :
@@ -530,10 +533,10 @@ def removeVideoFromPlaylist(pid, vid, page, page_size, user) :
 				'meta.modified_at': datetime.now()}}, session = s())
 		else :
 			raise UserError('EMPTY_PLAYLIST')
-		video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
+		video_page, video_count = listPlaylistVideos(pid, page - 1, page_size, user)
 		if len(video_page) == 0 and page > 1 and video_count > 0 :
 			# in case deleting video results in current page becomes empty, show the previous page
-			video_page, video_count = listPlaylistVideos(pid, page - 2, page_size)
+			video_page, video_count = listPlaylistVideos(pid, page - 2, page_size, user)
 			s.mark_succeed()
 			return {'videos': video_page, 'video_count': video_count, 'page': page - 1}
 		s.mark_succeed()
@@ -559,7 +562,7 @@ def editPlaylist_MoveUp(pid, vid, page, page_size, user) :
 			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
 				'meta.modified_by': makeUserMeta(user),
 				'meta.modified_at': datetime.now()}}, session = s())
-			video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
+			video_page, video_count = listPlaylistVideos(pid, page - 1, page_size, user)
 			s.mark_succeed()
 			return {'videos': video_page, 'video_count': video_count, 'page': page}
 		else :
@@ -584,7 +587,7 @@ def editPlaylist_MoveDown(pid, vid, page, page_size, user) :
 			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
 				'meta.modified_by': makeUserMeta(user),
 				'meta.modified_at': datetime.now()}}, session = s())
-			video_page, video_count = listPlaylistVideos(pid, page - 1, page_size)
+			video_page, video_count = listPlaylistVideos(pid, page - 1, page_size, user)
 			s.mark_succeed()
 			return {'videos': video_page, 'video_count': video_count, 'page': page}
 		else :

@@ -101,7 +101,7 @@ def ajax_lists_get_playlist_do(rd, user, data):
 	if user:
 		videos, video_count, playlist_editable = listPlaylistVideosWithAuthorizationInfo(data.pid, page, page_size, user)
 	else:
-		videos, video_count = listPlaylistVideos(data.pid, page, page_size)
+		videos, video_count = listPlaylistVideos(data.pid, page, page_size, user)
 	return "json", makeResponseSuccess({
 		"editable": playlist_editable,
 		"playlist": playlist,

@@ -10,7 +10,8 @@ from utils.jsontools import *
 
 from spiders import dispatch
 
-from services.editVideo import editVideoTags, getVideoTags, refreshVideoDetail, refreshVideoDetailURL, condemnVideo
+from services.editVideo import editVideoTags, getVideoTags, refreshVideoDetail, refreshVideoDetailURL
+from services.tcb import setVideoClearence
 from config import TagsConfig, VideoConfig
 
 @app.route('/videos/edittags.do', methods = ['POST'])
@@ -23,7 +24,7 @@ def ajax_videos_edittags(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_videos_gettags(rd, user, data):
-	tags = getVideoTags(data.video_id, 'CHS')
+	tags = getVideoTags(data.video_id, 'CHS', user)
 	return "json", makeResponseSuccess(tags)
 
 @app.route('/videos/refresh.do', methods = ['POST'])
@@ -38,8 +39,8 @@ def ajax_videos_refresh(rd, user, data):
 def ajax_videos_refresh_url(rd, user, data):
 	refreshVideoDetailURL(data.url, user)
 
-@app.route('/videos/condemn_video.do', methods = ['POST'])
+@app.route('/videos/set_clearence.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
-def ajax_videos_condemn_video(rd, user, data):
-	condemnVideo(data.vid, user)
+def ajax_videos_set_clearence(rd, user, data):
+	setVideoClearence(data.vid, data.clearence, user)

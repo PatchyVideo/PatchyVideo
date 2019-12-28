@@ -5,6 +5,7 @@ from utils.rwlock import usingResource, modifyingResource
 from utils.exceptions import UserError
 from utils.tagtools import translateTagsToPreferredLanguage
 from services.postVideo import postTask
+from services.tcb import filterSingleVideo
 
 from init import rdb
 from bson import ObjectId
@@ -16,6 +17,7 @@ from utils.logger import log, getEventID
 @usingResource('tags')
 def editVideoTags(vid, tags, user):
 	log(obj = {'tags': tags, 'vid': vid})
+	filterSingleVideo(vid, user)
 	if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
 		raise UserError('TAGS_LIMIT_EXCEEDED')
 	tagdb.verify_tags(tags)
@@ -28,12 +30,14 @@ def editVideoTags(vid, tags, user):
 		tagdb.update_item_tags(item, tags, makeUserMeta(user), s())
 		s.mark_succeed()
 
-def getVideoTags(vid, user_language) :
+def getVideoTags(vid, user_language, user) :
+	filterSingleVideo(vid, user)
 	item, tags, category_tag_map, tag_category_map = tagdb.retrive_item_with_tag_category_map(vid, user_language)
 	return tags
 
 def refreshVideoDetail(vid, user) :
 	log(obj = {'vid': vid})
+	filterSingleVideo(vid, user)
 	item = tagdb.retrive_item(vid)
 	if item is None :
 		raise UserError('ITEM_NOT_EXIST')
@@ -67,9 +71,3 @@ def refreshVideoDetailURL(url, user) :
 	})
 	postTask(json_str)
 
-def condemnVideo(vid, user) :
-	if user['access_control']['status'] == 'admin' or 'condemnVideo' in user['access_control']['allowed_ops'] :
-		with MongoTransaction(client) as s :
-			tagdb.condemn_item(vid, user, s())
-	else :
-		raise UserError('UNAUTHORISED_OPERATION')

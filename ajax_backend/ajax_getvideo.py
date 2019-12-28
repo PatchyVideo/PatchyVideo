@@ -22,7 +22,7 @@ from config import TagsConfig, VideoConfig
 def ajax_getvideo(rd, user, data):
 	vidid = data.vid
 	try:
-		obj, tags, category_tag_map, tag_category_map = getVideoDetailWithTags(vidid, 'CHS')
+		obj, tags, category_tag_map, tag_category_map = getVideoDetailWithTags(vidid, 'CHS', user)
 	except UserError:
 		abort(404)
 
@@ -31,9 +31,9 @@ def ajax_getvideo(rd, user, data):
 		tag_by_category[category] = list(sorted(tag_by_category[category]))
 	copies = []
 	for item in obj['item']['copies'] :
-		ver = getVideoDetail(item)
-		assert ver
-		copies.append(ver)
+		ver = getVideoDetail(item, user)
+		if ver :
+			copies.append(ver)
 	playlists = listPlaylistsForVideo(vidid)
 
 	return "json", makeResponseSuccess({

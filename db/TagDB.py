@@ -406,6 +406,8 @@ class TagDB() :
 	def retrive_item_with_tag_category_map(self, tag_query_or_item_id, language, session = None) :
 		if isinstance(tag_query_or_item_id, ObjectId) or isinstance(tag_query_or_item_id, str):
 			item_obj = self.db.items.find_one({'_id': ObjectId(tag_query_or_item_id)}, session = session)
+		elif isinstance(tag_query_or_item_id, dict) :
+			item_obj = tag_query_or_item_id
 		else:
 			item_obj = self.db.items.find_one(tag_query_or_item_id, session = session)
 		if item_obj is None :
@@ -421,12 +423,12 @@ class TagDB() :
 			tag_category_map[tag_in_user_language] = obj['category']
 		return item_obj, tags, category_tag_map, tag_category_map
 
-	def condemn_item(self, item_id, user = '', session = None) :
-		self.update_item_query(item_id, {'$set': {'condemned': True}}, user, session)
+	def set_item_clearence(self, item_id, clearence, user = '', session = None) :
+		self.update_item_query(item_id, {'$set': {'clearence': clearence}}, user, session)
 
-	def add_item(self, tags, item, user = '', session = None) :
+	def add_item(self, tags, item, clearence, user = '', session = None) :
 		tag_ids = self.filter_and_translate_tags(tags)
-		item_id = self.db.items.insert_one({'condemned': False, 'tags': tag_ids, 'item': item, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session).inserted_id
+		item_id = self.db.items.insert_one({'clearence': clearence, 'tags': tag_ids, 'item': item, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session).inserted_id
 		self.db.tags.update_many({'id': {'$in': tag_ids}}, {'$inc': {'count': 1}}, session = session)
 		self.aci.SetCountDiff([(tagid, 1) for tagid in tag_ids])
 		return item_id

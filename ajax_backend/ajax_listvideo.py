@@ -23,11 +23,10 @@ def ajax_listvideo_do(rd, data, user):
 	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, related_tags = listVideo(data.page - 1, data.page_size, order)
+	videos, video_count, related_tags = listVideo(data.page - 1, data.page_size, user, order)
 	tag_category_map = getTagCategoryMap(related_tags)
-	video_count = videos.count()
 	ret = makeResponseSuccess({
-		"videos": [i for i in videos],
+		"videos": videos,
 		"count": video_count,
 		"page_count": (video_count - 1) // data.page_size + 1,
 		"tags": tag_category_map
@@ -43,7 +42,7 @@ def ajax_queryvideo_do(rd, data, user):
 	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, related_tags, video_count = listVideoQuery(data.query, data.page - 1, data.page_size, order)
+	videos, related_tags, video_count = listVideoQuery(data.query, data.page - 1, data.page_size, user, order)
 	tag_category_map = getTagCategoryMap(related_tags)
 	ret = makeResponseSuccess({
 		"videos": [i for i in videos],
@@ -60,9 +59,7 @@ def ajax_listmyvideo_do(rd, data, user):
 	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos = listMyVideo(data.page - 1, data.page_size, user, order)
-	video_count = videos.count()
-	videos = [i for i in videos]
+	videos, video_count = listMyVideo(data.page - 1, data.page_size, user, order)
 	ret = makeResponseSuccess({
 		"videos": videos,
 		"count": video_count,

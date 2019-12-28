@@ -63,7 +63,7 @@ def pages_playlist(pid, rd, user):
 	if user:
 		videos, video_count, rd.playlist_editable = listPlaylistVideosWithAuthorizationInfo(pid, rd.page - 1, rd.page_size, user)
 	else:
-		videos, video_count = listPlaylistVideos(pid, rd.page - 1, rd.page_size)
+		videos, video_count = listPlaylistVideos(pid, rd.page - 1, rd.page_size, None)
 	playlist = getPlaylist(pid)
 	rd.playlist_title = playlist['title']['english']
 	rd.playlist_desc = playlist['desc']['english']

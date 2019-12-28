@@ -16,7 +16,7 @@ from services.playlist import listPlaylistsForVideo
 def pages_videodetail(rd, user):
 	vidid = request.values['id']
 	try:
-		obj, tags, category_tag_map, tag_category_map = getVideoDetailWithTags(vidid, 'CHS')
+		obj, tags, category_tag_map, tag_category_map = getVideoDetailWithTags(vidid, 'CHS', user)
 	except UserError:
 		abort(404, "No such video id=%s" % vidid)
 		
@@ -36,9 +36,9 @@ def pages_videodetail(rd, user):
 	rd.video_id = vidid
 	rd.copies = []
 	for item in obj['item']['copies'] :
-		ver = getVideoDetail(item)
-		assert ver
-		rd.copies.append(ver)
+		ver = getVideoDetail(item, user)
+		if ver :
+			rd.copies.append(ver)
 	rd.playlists = listPlaylistsForVideo(vidid)
 	return "content_singlevideo.html"
 
