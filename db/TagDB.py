@@ -276,6 +276,12 @@ class TagDB() :
 				if rc == 1 and lang_referenced == language and tag_name != new_tag_name :
 					self.db.tag_alias.delete_one({'tag': tag_name}, session = session)
 					self.aci.DeleteWord(tag_name)
+			else :
+				rc, lang_referenced = self._get_tag_name_reference_count(new_tag_name, tag_obj)
+				assert rc > 0
+				if lang_referenced is None :
+					# we have an alias with the same name
+					raise UserError('TAG_ALREADY_EXIST')
 
 		# add or update tag specified by language
 		self.db.tags.update_one({'_id': tag_obj['_id']}, {
