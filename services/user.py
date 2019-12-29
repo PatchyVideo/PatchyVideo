@@ -36,7 +36,7 @@ def require_session(session_type) :
 	if session_type not in ['LOGIN', 'SIGNUP'] :
 		raise UserError('INCORRECT_SESSION_TYPE')
 	sid = binascii.hexlify(bytearray(random_bytes(16))).decode()
-	rdb.set(sid, session_type, ex = int(time.time() + UserConfig.SESSION_EXPIRE_TIME))
+	rdb.set(sid, session_type, ex = UserConfig.SESSION_EXPIRE_TIME)
 	log(obj = {'sid': sid})
 	return sid
 
@@ -64,6 +64,22 @@ def login(username, password, challenge, login_session_id) :
 		if not verify_password_PBKDF2(password, user_obj['crypto']['salt1'], user_obj['crypto']['password_hashed']) :
 			log(level = 'SEC', obj = {'msg': 'WRONG_PASSWORD'})
 			raise UserError('INCORRECT_LOGIN')
+		user_id = str(user_obj['_id'])
+		redis_user_key_lookup_key = f"user-{user_id}"
+		redis_user_key = rdb.get(redis_user_key_lookup_key)
+		logged_in = False
+		if redis_user_key :
+			# user already logged in on some other machines
+			redis_user_obj_json_str = rdb.get(redis_user_key)
+			if redis_user_obj_json_str :
+				logged_in = True
+				# reset expire time
+				rdb.set(redis_user_key, redis_user_obj_json_str, ex = UserConfig.LOGIN_EXPIRE_TIME)
+				rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
+
+		if logged_in :
+			return redis_user_key
+
 		common_user_obj = {
 			'_id': user_obj['_id'],
 			'profile': {
@@ -76,8 +92,8 @@ def login(username, password, challenge, login_session_id) :
 		redis_user_value = dumps(common_user_obj)
 		redis_user_key = binascii.hexlify(bytearray(random_bytes(16))).decode()
 		redis_user_key_lookup_key = f"user-{user_obj['_id']}"
-		rdb.set(redis_user_key, redis_user_value, ex = int(time.time() + UserConfig.LOGIN_EXPIRE_TIME))
-		rdb.set(redis_user_key_lookup_key, redis_user_key, ex = int(time.time() + UserConfig.LOGIN_EXPIRE_TIME))
+		rdb.set(redis_user_key, redis_user_value, ex = UserConfig.LOGIN_EXPIRE_TIME)
+		rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
 		log(obj = {'redis_user_key': redis_user_key, 'user': common_user_obj})
 		return redis_user_key
 	raise UserError('INCORRECT_SESSION')
