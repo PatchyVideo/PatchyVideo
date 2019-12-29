@@ -98,6 +98,7 @@ use redis to cache commonly used video pages and tag translation
 add robots.txt
 remove unnecessary fileds from ajax results
 interface for updating user access control info, remember to update user's access control info in redis db as well
+interface for updating video clearence
 
 ======================
 offical launch
