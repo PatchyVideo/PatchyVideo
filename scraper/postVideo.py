@@ -225,7 +225,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 			log_e(event_id, user, 'downloader', 'WARN', {'msg': 'FETCH_FAILED', 'ret': ret})
 			await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
 			return "FETCH_FAILED", ret
-		if hasattr(parsed, 'LOCAL_SPIDER') :
+		if hasattr(parsed, 'LOCAL_CRAWLER') :
 			url = ret["data"]["url"]
 		else :
 			url = clear_url(url)

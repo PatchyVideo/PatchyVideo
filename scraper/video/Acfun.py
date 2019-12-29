@@ -1,5 +1,5 @@
 
-from . import Spider
+from . import Crawler
 from utils.jsontools import *
 from utils.encodings import makeUTF8
 from utils.html import try_get_xpath
@@ -10,7 +10,7 @@ from datetime import timedelta, datetime
 import re
 import os
 
-class Acfun( Spider ) :
+class Acfun( Crawler ) :
 	NAME = 'acfun'
 	PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?acfun\.cn\/v\/[aA][cC][\d]+'
 	SHORT_PATTERN = r'^[aA][cC][\d]+$'

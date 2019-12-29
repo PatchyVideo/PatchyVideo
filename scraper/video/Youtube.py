@@ -1,7 +1,7 @@
 import json
 import sys
 import os
-from . import Spider
+from . import Crawler
 from utils.jsontools import *
 from utils.encodings import makeUTF8
 from utils.html import try_get_xpath
@@ -29,7 +29,7 @@ def _str(s):
 	return s[:pos]
 		
 
-class Youtube( Spider ) :
+class Youtube( Crawler ) :
 	NAME = 'youtube'
 	PATTERN = r'^((https:\/\/)?(www\.|m\.)?youtube\.com\/watch\?v=[-\w]+|(https:\/\/)?youtu\.be\/(watch\?v=[-\w]+|[-\w]+))'
 	SHORT_PATTERN = r''

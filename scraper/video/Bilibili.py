@@ -1,5 +1,5 @@
 
-from . import Spider
+from . import Crawler
 from utils.jsontools import *
 from utils.encodings import makeUTF8
 from utils.html import getInnerText
@@ -9,7 +9,7 @@ from services.config import Config
 
 import os
 
-class Bilibili( Spider ) :
+class Bilibili( Crawler ) :
 	NAME = 'bilibili'
 	PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?bilibili\.com\/video\/[aA][vV][\d]+'
 	SHORT_PATTERN = r'^[aA][Vv][\d]+$'
