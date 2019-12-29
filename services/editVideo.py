@@ -5,7 +5,7 @@ from utils.rwlock import usingResource, modifyingResource
 from utils.exceptions import UserError
 from utils.tagtools import translateTagsToPreferredLanguage
 from services.postVideo import postTask
-from services.tcb import filterSingleVideo
+from services.tcb import filterSingleVideo, filterOperation
 
 from init import rdb
 from bson import ObjectId
@@ -17,6 +17,7 @@ from utils.logger import log, getEventID
 @usingResource('tags')
 def editVideoTags(vid, tags, user):
 	log(obj = {'tags': tags, 'vid': vid})
+	filterOperation('editVideoTags', user, vid)
 	filterSingleVideo(vid, user)
 	if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
 		raise UserError('TAGS_LIMIT_EXCEEDED')
@@ -37,6 +38,7 @@ def getVideoTags(vid, user_language, user) :
 
 def refreshVideoDetail(vid, user) :
 	log(obj = {'vid': vid})
+	filterOperation('refreshVideoDetail', user, vid)
 	filterSingleVideo(vid, user)
 	item = tagdb.retrive_item(vid)
 	if item is None :
@@ -57,6 +59,7 @@ def refreshVideoDetail(vid, user) :
 
 def refreshVideoDetailURL(url, user) :
 	log(obj = {'url': url})
+	filterOperation('refreshVideoDetailURL', user, vid)
 	json_str = dumps({
 		'url' : url,
 		'tags' : [],

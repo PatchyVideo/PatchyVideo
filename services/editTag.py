@@ -14,6 +14,7 @@ import time
 
 from config import TagsConfig
 from utils.logger import log
+from services.tcb import filterOperation
 
 def queryTags(category, page_idx, page_size, order = 'none'):
 	result = tagdb.list_category_tags(category)
@@ -46,6 +47,7 @@ def queryCategories():
 def addTag(user, tag, category, language):
 	ret, sanitized_tag = verifyAndSanitizeTagOrAlias(tag)
 	log(obj = {'tag': sanitized_tag, 'cat': category, 'lang': language})
+	filterOperation('addTag', user)
 	if not ret :
 		raise UserError('INVALID_TAG')
 	if len(sanitized_tag) > TagsConfig.MAX_TAG_LENGTH :
@@ -57,22 +59,13 @@ def addTag(user, tag, category, language):
 def queryTagCategories(tags) :
 	return tagdb.get_tag_category_map(tags)
 
-def _is_authorised(tag_or_obj, user, op = 'remove') :
-	if isinstance(tag_or_obj, str) :
-		obj = tagdb.db.tags.find_one({'tag': tag_or_obj})
-	else :
-		obj = tag_or_obj
-	creator = str(obj['meta']['created_by'])
-	user_id = str(user['_id'])
-	return creator == user_id or (op + 'Tag' in user['access_control']['allowed_ops']) or user['access_control']['status'] == 'admin'
-
 @modifyingResource('tags')
 def removeTag(user, tag) :
 	log(obj = {'tag': tag})
 	with MongoTransaction(client) as s :
 		tag_obj = tagdb.get_tag_object(tag, session = s())
-		if tag_obj and not _is_authorised(tag_obj, user, 'remove') :
-			raise UserError('UNAUTHORISED_OPERATION')
+		if tag_obj :
+			filterOperation('removeTag', user, tag_obj)
 		tagdb.remove_tag(tag_obj, makeUserMeta(user), session = s())
 		s.mark_succeed()
 
@@ -80,12 +73,13 @@ def removeTag(user, tag) :
 def renameTagOrAddTagLanguage(user, tag, new_tag, language) :
 	ret, sanitized_tag = verifyAndSanitizeTagOrAlias(new_tag)
 	log(obj = {'old_tag_or_id': tag, 'new_tag': sanitized_tag, 'lang': language})
+	filterOperation('renameTagOrAddTagLanguage', user)
 	if not ret :
 		raise UserError('INVALID_TAG')
 	if len(sanitized_tag) > TagsConfig.MAX_TAG_LENGTH :
 		raise UserError('TAG_TOO_LONG')
 	with MongoTransaction(client) as s :
-		#tag_obj = tagdb.db.tags.find_one({'tag': tag}, session = s())
+		#tag_obj = tagdb.db.tag_alias.find_one({'tag': tag}, session = s())
 		#if tag_obj and not _is_authorised(tag_obj, user, 'rename') :
 		#    raise UserError('UNAUTHORISED_OPERATION')
 		tagdb.add_or_rename_tag(tag, sanitized_tag, language, makeUserMeta(user), session = s())
@@ -95,6 +89,7 @@ def renameTagOrAddTagLanguage(user, tag, new_tag, language) :
 def renameOrAddAlias(user, old_name_or_tag_name, new_name) :
 	ret, sanitized_alias = verifyAndSanitizeTagOrAlias(new_name)
 	log(obj = {'old_name_or_tag_name': old_name_or_tag_name, 'new_name': sanitized_alias})
+	filterOperation('renameOrAddAlias', user)
 	if not ret :
 		raise UserError('INVALID_TAG')
 	if len(sanitized_alias) > TagsConfig.MAX_TAG_LENGTH :
@@ -109,8 +104,7 @@ def removeAlias(user, alias) :
 		alias_obj = tagdb.db.tag_alias.find_one({'tag': alias}, session = s())
 		if alias_obj :
 			log(obj = {'alias': alias, 'dst': alias_obj['dst']})
-		if alias_obj and not _is_authorised(alias_obj, user, 'remove') :
-			raise UserError('UNAUTHORISED_OPERATION')
+			filterOperation('removeAlias', user, alias_obj)
 		tagdb.remove_alias(alias, makeUserMeta(user), session = s())
 		s.mark_succeed()
 

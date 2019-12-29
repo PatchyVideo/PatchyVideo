@@ -13,6 +13,7 @@ from bson import ObjectId
 import redis_lock
 from utils.rwlock import usingResource, modifyingResource
 from utils.logger import log
+from services.tcb import filterOperation
 
 def _getAllCopies(vid_or_obj, session = None) :
 	if not vid_or_obj :
@@ -41,6 +42,7 @@ def _removeThisCopy(dst_vid, this_vid, user, session):
 	tagdb.update_item_query(ObjectId(dst_vid), {"$set": {"item.copies": dst_copies}}, user, session)
 
 def breakLink(vid, user):
+	filterOperation('breakLink', user, vid)
 	with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
 		nodes = _getAllCopies(vid)
 		log(obj = {'old_clique': nodes, 'node_remove': vid})
@@ -54,6 +56,7 @@ def breakLink(vid, user):
 def syncTags(dst, src, user):
 	if dst == src :
 		raise UserError('SAME_VIDEO')
+	filterOperation('syncTags', user, (dst, src))
 	src_item, src_tags, _, _ = tagdb.retrive_item_with_tag_category_map(src, 'CHS')
 	log(obj = {'src_tags': src_tags, 'src_id': src})
 	dst_item = tagdb.retrive_item(dst)
@@ -65,6 +68,7 @@ def syncTags(dst, src, user):
 
 @usingResource('tags')
 def broadcastTags(src, user):
+	filterOperation('broadcastTags', user, src)
 	_, src_tags, _, _ = tagdb.retrive_item_with_tag_category_map(src, 'CHS')
 	log(obj = {'src_tags': src_tags, 'src_id': src})
 	with redis_lock.Lock(rdb, "editLink"), MongoTransaction(client) as s :

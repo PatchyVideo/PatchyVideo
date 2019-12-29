@@ -13,7 +13,7 @@ from datetime import datetime
 from bson import ObjectId
 from config import PlaylistConfig
 from utils.logger import log
-from services.tcb import filterSingleVideo, filterVideoList
+from services.tcb import filterSingleVideo, filterVideoList, filterOperation
 
 import redis_lock
 
@@ -32,12 +32,9 @@ def _is_authorised(pid_or_obj, user, op = 'edit') :
 	user_id = str(user['_id'])
 	return creator == user_id or (op + 'Playlist' in user['access_control']['allowed_ops']) or user['access_control']['status'] == 'admin'
 
-def _check_authorised(pid_or_obj, user, op = 'edit') :
-	if not _is_authorised(pid_or_obj, user, op) :
-		raise UserError('UNAUTHORISED_OPERATION')
-
 def createPlaylist(language, title, desc, cover, user, private = False) :
 	log(obj = {'title': title, 'desc': desc, 'cover': cover, 'private': private})
+	filterOperation('createPlaylist', user)
 	if len(title) > PlaylistConfig.MAX_TITLE_LENGTH :
 		raise UserError('TITLE_TOO_LONG')
 	if len(desc) > PlaylistConfig.MAX_DESC_LENGTH :
@@ -55,6 +52,7 @@ def createPlaylist(language, title, desc, cover, user, private = False) :
 
 def createPlaylistFromSingleVideo(language, vid, user) :
 	log(obj = {'vid': vid})
+	filterOperation('createPlaylistFromSingleVideo', user)
 	video_obj = filterSingleVideo(vid, user)
 	if video_obj is None :
 		raise UserError('VIDEO_NOT_EXIST')
@@ -70,7 +68,7 @@ def removePlaylist(pid, user) :
 		log(obj = {'playlist': list_obj})
 		if list_obj is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		_check_authorised(pid, user, 'remove')
+		filterOperation('removePlaylist', user, list_obj)
 		all_items = db.playlist_items.find({"pid": ObjectId(pid)}, session = s())
 		log(obj = {'items': [i for i in all_items]})
 		db.playlist_items.delete_many({"pid": ObjectId(pid)}, session = s())
@@ -96,7 +94,7 @@ def updatePlaylistCover(pid, cover, user) :
 		log(obj = {'playlist': list_obj})
 		if list_obj is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		_check_authorised(pid, user)
+		filterOperation('updatePlaylistCover', user, list_obj)
 		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {"cover": cover}}, session = s())
 		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
 			'meta.modified_by': makeUserMeta(user),
@@ -110,7 +108,7 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 		log(obj = {'playlist': list_obj})
 		if list_obj is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		_check_authorised(pid, user)
+		filterOperation('updatePlaylistCoverVID', user, list_obj)
 		video_obj = filterSingleVideo(vid, user)
 		if video_obj is None :
 			raise UserError('VIDEO_NOT_EXIST')
@@ -140,7 +138,7 @@ def updatePlaylistInfo(pid, language, title, desc, cover, user, private = False)
 		log(obj = {'playlist': list_obj})
 		if list_obj is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		_check_authorised(pid, user)
+		filterOperation('updatePlaylistInfo', user, list_obj)
 		if cover :
 			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {"cover": cover}}, session = s())
 		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
@@ -157,7 +155,7 @@ def addVideoToPlaylist(pid, vid, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		_check_authorised(playlist, user)
+		filterOperation('addVideoToPlaylist', user, playlist)
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
 			raise UserError('VIDEO_NOT_EXIST')
 		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
@@ -181,7 +179,7 @@ def addVideoToPlaylistLockFree(pid, vid, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		_check_authorised(playlist, user)
+		filterOperation('addVideoToPlaylist', user, playlist)
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
 			raise UserError('VIDEO_NOT_EXIST')
 		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
@@ -449,6 +447,7 @@ def listCommonTags(pid, language) :
 @usingResource('tags')
 def updateCommonTags(pid, tags, user) :
 	log(obj = {'pid': pid, 'tags': tags})
+	filterOperation('updateCommonTags', user, pid)
 	with MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
@@ -520,7 +519,7 @@ def removeVideoFromPlaylist(pid, vid, page, page_size, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		_check_authorised(playlist, user)
+		filterOperation('removeVideoFromPlaylist', user, playlist)
 		if playlist["videos"] > 0 :
 			entry = db.playlist_items.find_one({"pid": ObjectId(pid), "vid": ObjectId(vid)}, session = s())
 			if entry is None :
@@ -548,7 +547,7 @@ def editPlaylist_MoveUp(pid, vid, page, page_size, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		_check_authorised(playlist, user)
+		filterOperation('editPlaylist_Reorder', user, playlist)
 		if playlist["videos"] > 0 :
 			entry = db.playlist_items.find_one({"pid": ObjectId(pid), "vid": ObjectId(vid)}, session = s())
 			if entry is None :
@@ -574,7 +573,7 @@ def editPlaylist_MoveDown(pid, vid, page, page_size, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		_check_authorised(playlist, user)
+		filterOperation('editPlaylist_Reorder', user, playlist)
 		if playlist["videos"] > 0 :
 			entry = db.playlist_items.find_one({"pid": ObjectId(pid), "vid": ObjectId(vid)}, session = s())
 			if entry is None :
@@ -599,7 +598,7 @@ def insertIntoPlaylist(pid, vid, rank, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		_check_authorised(playlist, user)
+		filterOperation('insertIntoPlaylist', user, playlist)
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
 			raise UserError('VIDEO_NOT_EXIST')
 		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
@@ -628,7 +627,7 @@ def insertIntoPlaylistLockFree(pid, vid, rank, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		_check_authorised(playlist, user)
+		filterOperation('insertIntoPlaylist', user, playlist)
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
 			raise UserError('VIDEO_NOT_EXIST')
 		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :

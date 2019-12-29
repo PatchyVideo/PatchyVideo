@@ -19,6 +19,7 @@ from db import tagdb
 from spiders import dispatch
 from config import VideoConfig, TagsConfig
 from utils.logger import log, getEventID
+from services.tcb import filterOperation
 
 if os.getenv("FLASK_ENV", "development") == "production" :
 	SCRAPER_ADDRESS = 'http://scraper:5003'
@@ -77,6 +78,7 @@ def listFailedPosts(user, page = 0, page_size = 100000) :
 
 def postVideo(user, url, tags, copy, pid, rank):
 	log(obj = {'url': url, 'tags': tags, 'copy': copy, 'pid': pid, 'rank': rank})
+	filterOperation('postVideo', user)
 	tags = [tag.strip() for tag in tags]
 	if not url :
 		raise UserError('EMPTY_URL')
@@ -96,6 +98,7 @@ def postVideo(user, url, tags, copy, pid, rank):
 
 def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies):
 	log(obj = {'urls': videos, 'tags': tags, 'copy': copy, 'pid': pid, 'rank': rank, 'as_copies': as_copies})
+	filterOperation('postVideoBatch', user)
 	tags = [tag.strip() for tag in tags]
 	if not videos :
 		raise UserError('EMPTY_LIST')
