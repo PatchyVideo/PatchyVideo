@@ -60,14 +60,16 @@ _DEFAULT_OPS = [
 def _check_object_agnostic(op_name, user) :
 	if user['access_control']['access_mode'] == 'blacklist' :
 		if op_name in user['access_control']['denied_ops'] :
-			return False
+			# user is specifically denied of this operation, he is deemed unauthorised even if he is the onwer of an object
+			raise UserError('UNAUTHORISED_OPERATION')
 		user_allowed_ops = list(set(user['access_control']['allowed_ops']) | set(_DEFAULT_OPS))
 		if op_name not in user_allowed_ops :
 			return False
 	else :
 		user_allowed_ops = user['access_control']['allowed_ops']
 		if op_name not in user_allowed_ops :
-			return False
+			# user is in whitelist mode, he can only do things given by allowed_ops
+			raise UserError('UNAUTHORISED_OPERATION')
 	return True
 
 def _check_object_specific(op_name, user, item_obj) :
@@ -78,7 +80,7 @@ def _check_object_specific(op_name, user, item_obj) :
 		pass
 	return False
 
-def filterOperation(op_name, user, item_id = None, raise_error = True) :
+def filterOperation(op_name, user, item_id = None) :
 	if not user :
 		raise UserError('UNAUTHORISED_OPERATION')
 	if user['access_control']['status'] == 'admin' :
