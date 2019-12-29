@@ -72,12 +72,3 @@ def dispatch( url ) :
 			g0 = match_result.group( 0 )
 			return target, target.normalize_url( target, g0 )
 	return None, None
-
-def dispatch_no_expand( url ) :
-	url = url.strip()
-	for [ reg, _, target ] in _dispatch_map :
-		match_result = re.match( reg, url )
-		if match_result :
-			return target, match_result.group( 0 )
-	return None, None
-
