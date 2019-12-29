@@ -406,7 +406,7 @@ def parse_tag(query, tag_translator, group_translator, wildcard_translator):
 		return None, None
 
 def parse_url(query):
-	from spiders import dispatch as dispatch_url_query
+	from scraper.video import dispatch as dispatch_url_query
 	obj, cleanURL = dispatch_url_query(query)
 	if obj is None:
 		return None

@@ -7,7 +7,7 @@ from utils.http import clear_url
 from utils.exceptions import ScraperError
 import aiohttp
 
-class Spider :
+class Crawler :
 	def __init__(self) :
 		pass
 	def get_metadata( self, link ) :
@@ -47,11 +47,11 @@ class Spider :
 		link = clear_url(link)
 		return await self.unique_id_async( self = self, link = link )
 
-_spider_modules = [ 'Patchyvideo', 'Bilibili', 'Youtube', 'Nicovideo', 'Twitter', 'Acfun' ]
+_crawler_modules = [ 'Patchyvideo', 'Bilibili', 'Youtube', 'Nicovideo', 'Twitter', 'Acfun' ]
 
 _dispatch_map = []
 
-for m in _spider_modules :
+for m in _crawler_modules :
 	exec( 'from .%s import %s' % (m,m) )
 	re_exp = eval( 're.compile( %s.PATTERN, re.IGNORECASE )' % m )
 	if eval( '%s.SHORT_PATTERN' % m ) :
@@ -72,21 +72,3 @@ def dispatch( url ) :
 			g0 = match_result.group( 0 )
 			return target, target.normalize_url( target, g0 )
 	return None, None
-
-def dispatch_no_expand( url ) :
-	url = url.strip()
-	for [ reg, _, target ] in _dispatch_map :
-		match_result = re.match( reg, url )
-		if match_result :
-			return target, match_result.group( 0 )
-	return None, None
-
-def test():
-	url='https://youtu.be/5Cj3F-L4tVY'
-	spider, cleanURL=dispatch(url)
-	print(spider.get_metadata(spider,cleanURL))
-
-
-
-
-

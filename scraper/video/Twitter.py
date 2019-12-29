@@ -1,5 +1,5 @@
 
-from . import Spider
+from . import Crawler
 from utils.jsontools import *
 from utils.encodings import makeUTF8
 from utils.html import getInnerText
@@ -11,7 +11,7 @@ import re
 import json
 import aiohttp
 
-class Twitter( Spider ) :
+class Twitter( Crawler ) :
 	NAME = 'twitter'
 	PATTERN = r'^(https:\/\/)?(www\.|mobile\.)?twitter\.com\/[\w]+\/status\/[\d]+'
 	SHORT_PATTERN = r''

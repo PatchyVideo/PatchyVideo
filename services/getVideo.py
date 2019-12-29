@@ -14,4 +14,6 @@ def getVideoDetailWithTags(vid, language, user) :
 def getTagCategoryMap(tags) :
 	return db.get_tag_category_map(tags)
 
+def getVideoDetailNoFilter(vid):
+	return db.retrive_item(vid)
 

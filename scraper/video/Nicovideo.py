@@ -1,7 +1,7 @@
 
 import json
 import re
-from . import Spider
+from . import Crawler
 from utils.jsontools import *
 from utils.encodings import makeUTF8
 from utils.html import try_get_xpath
@@ -11,7 +11,7 @@ from datetime import timezone
 from lxml.etree import tostring
 from bs4 import BeautifulSoup
 
-class Nicovideo( Spider ) :
+class Nicovideo( Crawler ) :
 	NAME = 'nicovideo'
 	PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?nicovideo\.jp\/watch\/(s|n)m[\d]+'
 	SHORT_PATTERN = r'^(s|n)m[\d]+$'

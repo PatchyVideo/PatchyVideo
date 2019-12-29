@@ -12,7 +12,6 @@ from utils.jsontools import *
 from utils.http import post_raw
 from bson.json_util import dumps, loads
 
-from spiders import dispatch
 from services.postVideo import postVideo, postVideoBatch, listCurrentTasksWithParams, listFailedPosts
 from config import VideoConfig, TagsConfig
 

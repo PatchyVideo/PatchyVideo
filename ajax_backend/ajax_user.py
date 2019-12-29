@@ -9,8 +9,6 @@ from init import app
 from utils.interceptors import loginOptional, jsonRequest, basePage, loginRequiredJSON
 from utils.jsontools import *
 
-from spiders import dispatch
-
 from services.user import *
 from config import UserConfig
 

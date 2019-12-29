@@ -8,8 +8,6 @@ from init import app
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 
-from spiders import dispatch
-
 from services.editVideo import editVideoTags, getVideoTags, refreshVideoDetail, refreshVideoDetailURL
 from services.tcb import setVideoClearence
 from config import TagsConfig, VideoConfig

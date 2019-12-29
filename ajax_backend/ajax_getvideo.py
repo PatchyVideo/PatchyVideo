@@ -9,8 +9,6 @@ from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 from utils.exceptions import UserError
 
-from spiders import dispatch
-
 from services.getVideo import getVideoDetail, getVideoDetailWithTags
 from services.playlist import listPlaylistsForVideo
 from config import TagsConfig, VideoConfig
