@@ -391,7 +391,7 @@ def verifyTags(tags):
 
 async def func_with_write_result(func, task_id, param_json) :
 	ret = await func(param_json)
-	key = 'posttask-' + str(param_json['user']['_id'])
+	key = 'posttasks-' + str(param_json['user']['_id'])
 	rdb.lrem(key, 1, task_id)
 	log_e(param_json['event_id'], param_json['user'], op = 'task_finished', obj = {'task_id': task_id})
 	rdb.delete(f'task-{task_id}')
