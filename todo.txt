@@ -102,6 +102,7 @@ remove unnecessary fileds from ajax results
 !interface for updating video clearence
     lacking UI support
 add build_info to playlist, indicates how this playlist is created(new/from video/from playlist) and holds information about build result(succeed/failed) etc.
+async frontend helper, create a new container for this task
 
 ======================
 offical launch
