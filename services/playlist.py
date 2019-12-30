@@ -6,7 +6,6 @@ from utils.dbtools import makeUserMeta, makeUserMetaObject, MongoTransaction
 from utils.rwlock import usingResource, modifyingResource
 from utils.exceptions import UserError
 
-from spiders import dispatch
 from db import tagdb, db, client
 
 from datetime import datetime

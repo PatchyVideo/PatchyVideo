@@ -10,7 +10,6 @@ from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 from utils.exceptions import UserError
 
-from spiders import dispatch
 from services.listVideo import listVideo, listVideoQuery, listMyVideo
 from services.tagStatistics import getCommonTagsWithCount
 from services.getVideo import getTagCategoryMap

@@ -5,7 +5,6 @@ from utils.jsontools import *
 from utils.dbtools import makeUserMeta, MongoTransaction
 from utils.exceptions import UserError
 
-from spiders import dispatch
 from db import tagdb, client
 
 from bson import ObjectId

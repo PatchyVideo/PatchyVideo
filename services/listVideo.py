@@ -6,7 +6,6 @@ import json
 from bson import ObjectId
 from db import tagdb as db
 from .tagStatistics import getPopularTags, getCommonTags, updateTagSearch
-from spiders import dispatch_no_expand
 from utils.exceptions import UserError
 from utils.logger import log
 from services.tcb import filterVideoList

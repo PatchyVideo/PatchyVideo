@@ -9,8 +9,8 @@ from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 from utils.logger import log
 
-from spiders import dispatch
-from spiders.Twitter import Twitter
+from scraper.video import dispatch
+from scraper.video.Twitter import Twitter
 
 @app.route('/helper/get_twitter_info.do', methods = ['POST'])
 @loginRequiredJSON

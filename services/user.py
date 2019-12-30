@@ -9,7 +9,6 @@ from init import app, rdb
 from utils.jsontools import *
 from utils.dbtools import makeUserMeta
 
-from spiders import dispatch
 from db import tagdb, db
 
 from utils.crypto import *

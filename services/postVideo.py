@@ -16,7 +16,7 @@ from bson.json_util import dumps, loads
 from bson import ObjectId
 
 from db import tagdb
-from spiders import dispatch
+from scraper.video import dispatch
 from config import VideoConfig, TagsConfig
 from utils.logger import log, getEventID
 from services.tcb import filterOperation
@@ -31,7 +31,7 @@ def _verifyTags(tags) :
 	tagdb.verify_tags(tags)
 
 def postTask(json_str) :
-	ret_obj = loads(post_raw(SCRAPER_ADDRESS, json_str.encode('utf-8')).text)
+	ret_obj = loads(post_raw(SCRAPER_ADDRESS + "/video", json_str.encode('utf-8')).text)
 	return ret_obj['task_id']
 
 def _createJsonForPosting(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, user, playlist_ordered = None) :

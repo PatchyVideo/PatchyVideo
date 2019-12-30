@@ -9,8 +9,6 @@ from init import app
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 
-from spiders import dispatch
-
 from services.editTag import addTag, queryTags, queryCategories, queryTagCategories, removeTag, renameTagOrAddTagLanguage, renameOrAddAlias, removeAlias, queryTagsWildcard, queryTagsRegex
 from config import TagsConfig
 
