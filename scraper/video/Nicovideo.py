@@ -29,7 +29,7 @@ class Nicovideo( Crawler ) :
 		link = link.lower()
 		return "nicovideo:%s" % link[link.rfind("m") - 1:]
 
-	def run( self, content, xpath, link ) :
+	def run( self, content, xpath, link, update_video_detail ) :
 		link = link.lower()
 		vidid = link[link.rfind("m") - 1:]
 		thumbnailURL = try_get_xpath(xpath, ['//meta[@itemprop="thumbnailUrl"]/@content', '//meta[@name="thumbnail"]/@content'])[0]
@@ -66,5 +66,5 @@ class Nicovideo( Crawler ) :
 	async def unique_id_async( self, link ) :
 		return self.unique_id(self = self, link = link)
 		
-	async def run_async(self, content, xpath, link) :
-		return self.run(self = self, content = content, xpath = xpath, link = link)
+	async def run_async(self, content, xpath, link, update_video_detail) :
+		return self.run(self = self, content = content, xpath = xpath, link = link, update_video_detail = update_video_detail)

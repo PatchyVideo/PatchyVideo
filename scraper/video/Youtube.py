@@ -104,7 +104,7 @@ class Youtube( Crawler ) :
 		})
 		
 
-	async def run_async( self, content, xpath, link ) :
+	async def run_async( self, content, xpath, link, update_video_detail ) :
 		if 'youtube.com' in link:
 			vidid = link[link.rfind('=') + 1:]
 		elif 'youtu.be' in link:

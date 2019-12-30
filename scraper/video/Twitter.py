@@ -82,7 +82,7 @@ class Twitter( Crawler ) :
 	async def unique_id_async( self, link ) :
 		return self.unique_id(self = self, link = link)
 		
-	async def run_async(self, content, xpath, link) :
+	async def run_async(self, content, xpath, link, update_video_detail) :
 		if re.match(r'https?://mobile', link): # normalize mobile URL
 			link = 'https://' + match1(link, r'//mobile\.(.+)')
 		screen_name = r1(r'twitter\.com/([^/]+)', link) or r1(r'data-screen-name="([^"]*)"', content) or \

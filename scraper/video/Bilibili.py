@@ -6,6 +6,7 @@ from utils.html import getInnerText
 from dateutil.parser import parse
 from datetime import timedelta, datetime
 from services.config import Config
+import aiohttp
 
 import os
 
@@ -33,9 +34,39 @@ class Bilibili( Crawler ) :
 		link = link.lower()
 		return 'bilibili:%s' % link[link.rfind("av"):]
 	
-	def run( self, content, xpath, link ) :
+	def run( self, content, xpath, link, update_video_detail ) :
+		raise NotImplementedError()
+
+	async def unique_id_async( self, link ) :
+		return self.unique_id(self = self, link = link)
+		
+	async def run_async(self, content, xpath, link, update_video_detail) :
 		link = link.lower()
 		vidid = link[link.rfind("av"):]
+		if update_video_detail :
+			# use biliplus, try to get metadata from deleted video
+			api_url = f"https://www.biliplus.com/api/view?id={vidid[2:]}"
+			async with aiohttp.ClientSession() as session:
+				async with session.get(api_url) as resp:
+					if resp.status == 200 :
+						apirespond = await resp.text()
+			respond_json = loads(apirespond)
+			if 'code' in respond_json and respond_json['code'] == -404 :
+				raise Exception('Video not found in biliplus, it is gone forever 😭')
+			thumbnailURL = respond_json['pic']
+			title = respond_json['title']
+			desc = respond_json['description']
+			uploadDate = parse(respond_json['created_at']) - timedelta(hours = 8) # convert from Beijing time to UTC
+			utags = respond_json['tag']
+			return makeResponseSuccess({
+				'thumbnailURL': thumbnailURL,
+				'title' : title,
+				'desc' : desc,
+				'site': 'bilibili',
+				'uploadDate' : uploadDate,
+				"unique_id": "bilibili:%s" % vidid,
+				"utags": utags
+			})
 		try :
 			thumbnailURL = xpath.xpath( '//meta[@itemprop="thumbnailUrl"]/@content' )[0]
 			title = xpath.xpath( '//h1[@class="video-title"]/@title' )[0]
@@ -63,9 +94,3 @@ class Bilibili( Crawler ) :
 			"unique_id": "bilibili:%s" % vidid,
 			"utags": utags
 		})
-
-	async def unique_id_async( self, link ) :
-		return self.unique_id(self = self, link = link)
-		
-	async def run_async(self, content, xpath, link) :
-		return self.run(self = self, content = content, xpath = xpath, link = link)

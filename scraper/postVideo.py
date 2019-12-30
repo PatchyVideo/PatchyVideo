@@ -223,7 +223,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 	log_e(event_id, user, 'scraper', 'MSG', {'url': url, 'dst_copy': dst_copy, 'other_copies': other_copies, 'dst_playlist': dst_playlist})
 	setEventOp('scraper')
 	try :
-		ret = await parsed.get_metadata_async(parsed, url)
+		ret = await parsed.get_metadata_async(parsed, url, update_video_detail)
 		if ret["status"] == 'FAILED' :
 			log_e(event_id, user, 'downloader', 'WARN', {'msg': 'FETCH_FAILED', 'ret': ret})
 			await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)

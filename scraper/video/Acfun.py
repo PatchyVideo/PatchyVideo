@@ -31,7 +31,7 @@ class Acfun( Crawler ) :
 		link = link.lower()
 		return 'acfun:%s' % link[link.rfind("ac"):]
 	
-	def run( self, content, xpath, link ) :
+	def run( self, content, xpath, link, update_video_detail ) :
 		link = link.lower()
 		vidid = link[link.rfind("ac"):]
 		thumbnailURL = self.THUMBNAIL_URL.search(content)
@@ -71,5 +71,5 @@ class Acfun( Crawler ) :
 	async def unique_id_async( self, link ) :
 		return self.unique_id(self = self, link = link)
 		
-	async def run_async(self, content, xpath, link) :
-		return self.run(self = self, content = content, xpath = xpath, link = link)
+	async def run_async(self, content, xpath, link, update_video_detail) :
+		return self.run(self = self, content = content, xpath = xpath, link = link, update_video_detail = update_video_detail)

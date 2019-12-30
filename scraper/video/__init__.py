@@ -17,7 +17,7 @@ class Crawler :
 			page = requests.get( link, headers = self.HEADERS, cookies = cookie )
 			if page.status_code == 200 :
 				tree = html.fromstring( page.text )
-				return self.run( self = self, content = page.text, xpath = tree, link = link )
+				return self.run( self = self, content = page.text, xpath = tree, link = link, update_video_detail = False )
 			else :	
 				return makeResponseFailed({'status_code': page.status_code})
 		except Exception as ex :
@@ -26,7 +26,7 @@ class Crawler :
 		link = clear_url(link)
 		return self.unique_id( self = self, link = link )
 
-	async def get_metadata_async( self, link ) :
+	async def get_metadata_async( self, link, update_video_detail = False ) :
 		try :
 			link = clear_url(link)
 			async with aiohttp.ClientSession() as session:
@@ -35,7 +35,7 @@ class Crawler :
 					if resp.status == 200 :
 						page_content = await resp.text()
 						tree = html.fromstring(page_content)
-						return await self.run_async( self = self, content = page_content, xpath = tree, link = link )
+						return await self.run_async( self = self, content = page_content, xpath = tree, link = link, update_video_detail = update_video_detail )
 					else :	
 						return makeResponseFailed({'status_code': resp.status_code})
 		except Exception as ex :
