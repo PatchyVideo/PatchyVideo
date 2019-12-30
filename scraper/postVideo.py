@@ -1,5 +1,5 @@
 
-from .init import routes
+from .init import routes, init_funcs
 
 import os
 import sys
@@ -434,6 +434,9 @@ async def post_video_async(request):
 	task_id = await put_task(_async_queue, rj)
 	return web.json_response({'task_id' : task_id})
 
-# schedule task_runner to run
-task_runner_task = asyncio.create_task(task_runner(postVideoAsyncJSON, _async_queue))
-asyncio.gather(task_runner_task)
+async def init() :
+	# schedule task_runner to run
+	task_runner_task = asyncio.create_task(task_runner(postVideoAsyncJSON, _async_queue))
+	asyncio.gather(task_runner_task)
+
+init_funcs.append(init)

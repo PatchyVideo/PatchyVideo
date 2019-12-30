@@ -10,11 +10,15 @@ from aiohttp import web
 from aiohttp import ClientSession
 
 from scraper import main
-from scraper.init import app, routes
+from scraper.init import app, routes, init_funcs
 
 app.add_routes(routes)
 
 async def start_async_app():
+	# run init functions
+	for f in init_funcs :
+		await f()
+
 	# schedule web server to run
 	runner = web.AppRunner(app)
 	await runner.setup()
