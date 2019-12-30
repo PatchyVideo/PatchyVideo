@@ -32,7 +32,7 @@ def pages_search(rd, user):
 		return 'content_videolist_failed.html'
 	
 	rd.query = request.values['query'] if 'query' in request.values else ""
-	rd.hide_placeholder = bool(request.values['hide_placeholder']) if 'hide_placeholder' in request.values else True
+	rd.hide_placeholder = (int(request.values['hide_placeholder']) != 0) if 'hide_placeholder' in request.values else True
 	#return 'content_videolist.html'
 	if rd.query :
 		if len(rd.query) > QueryConfig.MAX_QUERY_LENGTH:

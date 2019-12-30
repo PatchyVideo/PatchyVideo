@@ -32,7 +32,7 @@ def _renderAnonymousIndex(rd):
 	if not rd.order in ['latest', 'oldest', 'video_latest', 'video_oldest']:
 		abort(400, 'order must be one of latest,oldest,video_latest,video_oldest')
 	rd.query = request.values['query'] if 'query' in request.values else ""
-	rd.hide_placeholder = bool(request.values['hide_placeholder']) if 'hide_placeholder' in request.values else True
+	rd.hide_placeholder = (int(request.values['hide_placeholder']) != 0) if 'hide_placeholder' in request.values else True
 	rd.title = 'PatchyVideo'
 	videos, video_count, tags = listVideo(rd.page - 1, rd.page_size, None, rd.order, hide_placeholder = rd.hide_placeholder)
 	rd.is_hot = '热门'
@@ -58,7 +58,7 @@ def _renderRegisteredIndex(rd, user):
 	if not rd.order in ['latest', 'oldest', 'video_latest', 'video_oldest']:
 		abort(400, 'order must be one of latest,oldest,video_latest,video_oldest')
 	rd.query = request.values['query'] if 'query' in request.values else ""
-	rd.hide_placeholder = bool(request.values['hide_placeholder']) if 'hide_placeholder' in request.values else True
+	rd.hide_placeholder = (int(request.values['hide_placeholder']) != 0) if 'hide_placeholder' in request.values else True
 	rd.title = 'PatchyVideo'
 	rd.is_hot = '热门'
 	videos, video_count, tags = listVideo(rd.page - 1, rd.page_size, user, rd.order, hide_placeholder = rd.hide_placeholder)
