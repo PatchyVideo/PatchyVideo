@@ -49,13 +49,13 @@ def _cleanUtags(utags) :
 	utags = [utag.replace(' ', '') for utag in utags]
 	return list(set(utags))
 
-async def _make_video_data(data, copies, playlists, url, user, event_id) :
+async def _download_thumbnail(url, user, event_id) :
 	filename = ""
-	if data['thumbnailURL'] :
+	if url :
 		for attemp in range(3) :
 			try :
 				async with ClientSession() as session:
-					async with session.get(data['thumbnailURL']) as resp:
+					async with session.get(url) as resp:
 						if resp.status == 200 :
 							img = Image.open(io.BytesIO(await resp.read()))
 							if isinstance(img, PIL.GifImagePlugin.GifImageFile) :
@@ -76,6 +76,10 @@ async def _make_video_data(data, copies, playlists, url, user, event_id) :
 			except Exception as ex :
 				log_e(event_id, user, 'download_cover', 'WARN', {'ex': str(ex), 'attemp': attemp})
 				continue
+	return filename
+
+async def _make_video_data(data, copies, playlists, url, user, event_id) :
+	filename = await _download_thumbnail(data['thumbnailURL'], user, event_id)
 	return {
 		"url": (data['url_overwrite'] if 'url_overwrite' in data else url),
 		"title": data['title'],
@@ -93,8 +97,9 @@ async def _make_video_data(data, copies, playlists, url, user, event_id) :
 		"placeholder": data["placeholder"] if 'placeholder' in data else False
 	}
 
-def _make_video_data_update(data, url) :
-	return {
+async def _make_video_data_update(data, url, user, event_id, thumbnail_url = None) :
+	filename = await _download_thumbnail(thumbnail_url, user, event_id)
+	ret = {
 		"url": (data['url_overwrite'] if 'url_overwrite' in data else url),
 		"title": data['title'],
 		"desc": data['desc'],
@@ -107,6 +112,9 @@ def _make_video_data_update(data, url) :
 		"utags": _cleanUtags(data['utags']) if 'utags' in data else [],
 		"placeholder": data["placeholder"] if 'placeholder' in data else False
 	}
+	if filename :
+		ret['cover_image'] = filename
+	return ret
 
 def _getAllCopies(vid, session, use_unique_id = False) :
 	if not vid :
@@ -251,9 +259,14 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 				
 				if update_video_detail and not tags :
 					log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Updating video detail')
-					new_detail = _make_video_data_update(ret["data"], url)
 					with MongoTransaction(client) as s :
 						old_item = tagdb.retrive_item(conflicting_item['_id'], session = s())['item']
+						if old_item['thumbnail_url'] and old_item['cover_image'] :
+							# old thumbnail exists, no need to download again
+							new_detail = await _make_video_data_update(ret["data"], url, user, event_id)
+						else :
+							# old thumbnail does not exists, add to dict
+							new_detail = await _make_video_data_update(ret["data"], url, user, event_id, ret["data"]["thumbnailURL"])
 						for key in new_detail.keys() :
 							old_item[key] = new_detail[key] # overwrite or add new field
 						setEventUserAndID(user, event_id)
