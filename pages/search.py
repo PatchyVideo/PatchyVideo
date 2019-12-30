@@ -32,13 +32,14 @@ def pages_search(rd, user):
 		return 'content_videolist_failed.html'
 	
 	rd.query = request.values['query'] if 'query' in request.values else ""
+	rd.hide_placeholder = bool(request.values['hide_placeholder']) if 'hide_placeholder' in request.values else True
 	#return 'content_videolist.html'
 	if rd.query :
 		if len(rd.query) > QueryConfig.MAX_QUERY_LENGTH:
 			rd.reason = 'Query too long(max %d characters)' % QueryConfig.MAX_QUERY_LENGTH
 			return 'content_videolist_failed.html'
 		try :
-			videos, related_tags, video_count = listVideoQuery(rd.query, rd.page - 1, rd.page_size, rd.order)
+			videos, related_tags, video_count = listVideoQuery(rd.query, rd.page - 1, rd.page_size, rd.order, hide_placeholder = rd.hide_placeholder)
 		except UserError as ue :
 			if ue.msg == 'INCORRECT_QUERY' :
 				rd.reason = "Syntax error in query"

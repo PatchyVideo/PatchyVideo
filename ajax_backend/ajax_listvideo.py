@@ -20,9 +20,10 @@ from config import QueryConfig
 @jsonRequest
 def ajax_listvideo_do(rd, data, user):
 	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
+	hide_placeholder = data.hide_placeholder if 'hide_placeholder' in data.__dict__ and data.hide_placeholder is not None else True
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, video_count, related_tags = listVideo(data.page - 1, data.page_size, user, order)
+	videos, video_count, related_tags = listVideo(data.page - 1, data.page_size, user, order, hide_placeholder = hide_placeholder)
 	tag_category_map = getTagCategoryMap(related_tags)
 	ret = makeResponseSuccess({
 		"videos": videos,
@@ -39,9 +40,10 @@ def ajax_queryvideo_do(rd, data, user):
 	if len(data.query) > QueryConfig.MAX_QUERY_LENGTH :
 		raise UserError('QUERY_TOO_LONG')
 	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
+	hide_placeholder = data.hide_placeholder if 'hide_placeholder' in data.__dict__ and data.hide_placeholder is not None else True
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, related_tags, video_count = listVideoQuery(data.query, data.page - 1, data.page_size, user, order)
+	videos, related_tags, video_count = listVideoQuery(data.query, data.page - 1, data.page_size, user, order,  hide_placeholder = hide_placeholder)
 	tag_category_map = getTagCategoryMap(related_tags)
 	ret = makeResponseSuccess({
 		"videos": [i for i in videos],

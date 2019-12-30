@@ -13,7 +13,7 @@ from services.tcb import filterVideoList
 def _filterPlaceholder(videos) :
 	return list(filter(lambda x: not ('placeholder' in x['item'] and x['item']['placeholder']), videos))
 
-def listVideoQuery(query_str, page_idx, page_size, user, order = 'latest', user_language = 'CHS'):
+def listVideoQuery(query_str, page_idx, page_size, user, order = 'latest', user_language = 'CHS', hide_placeholder = True):
 	log(obj = {'q': query_str, 'page': page_idx, 'page_size': page_size, 'order': order, 'lang': user_language})
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
@@ -34,7 +34,8 @@ def listVideoQuery(query_str, page_idx, page_size, user, order = 'latest', user_
 		count = ret.count()
 		videos = [item for item in ret]
 		videos = filterVideoList(videos, user)
-		videos = _filterPlaceholder(videos)
+		if hide_placeholder :
+			videos = _filterPlaceholder(videos)
 	except pymongo.errors.OperationFailure as ex:
 		if '$not' in str(ex) :
 			raise UserError('FAILED_NOT_OP')
@@ -43,7 +44,7 @@ def listVideoQuery(query_str, page_idx, page_size, user, order = 'latest', user_
 			raise UserError('FAILED_UNKNOWN')
 	return videos, getCommonTags(user_language, videos), count
 
-def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS'):
+def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS', hide_placeholder = True):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	result = db.retrive_items({})
@@ -59,7 +60,8 @@ def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS'
 	video_count = videos.count()
 	videos = [i for i in videos]
 	videos = filterVideoList(videos, user)
-	videos = _filterPlaceholder(videos)
+	if hide_placeholder :
+		videos = _filterPlaceholder(videos)
 	return videos, video_count, getPopularTags(user_language)
 
 def listMyVideo(page_idx, page_size, user, order = 'latest'):
