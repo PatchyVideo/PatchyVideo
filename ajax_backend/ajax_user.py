@@ -33,6 +33,22 @@ def ajax_signup(rd, data):
 	uid = signup(data.username, data.password, data.email, '', data.session)
 	return "json", makeResponseSuccess({'uid': str(uid)})
 
+@app.route('/user/myprofile.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_user_myprofile(rd, user, data):
+	return "json", makeResponseSuccess(user)
+
+@app.route('/user/profile.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_user_profile(rd, user, data):
+	if data.uid == 'me' and user :
+		return "json", makeResponseSuccess(user)
+	obj = query_user(data.uid)
+	return "json", makeResponseSuccess(obj)
+
+
 @app.route('/user/changedesc.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
