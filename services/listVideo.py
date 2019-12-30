@@ -10,6 +10,9 @@ from utils.exceptions import UserError
 from utils.logger import log
 from services.tcb import filterVideoList
 
+def _filterPlaceholder(videos) :
+	return list(filter(lambda x: not ('placeholder' in x['item'] and x['item']['placeholder']), videos))
+
 def listVideoQuery(query_str, page_idx, page_size, user, order = 'latest', user_language = 'CHS'):
 	log(obj = {'q': query_str, 'page': page_idx, 'page_size': page_size, 'order': order, 'lang': user_language})
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
@@ -31,6 +34,7 @@ def listVideoQuery(query_str, page_idx, page_size, user, order = 'latest', user_
 		count = ret.count()
 		videos = [item for item in ret]
 		videos = filterVideoList(videos, user)
+		videos = _filterPlaceholder(videos)
 	except pymongo.errors.OperationFailure as ex:
 		if '$not' in str(ex) :
 			raise UserError('FAILED_NOT_OP')
@@ -55,6 +59,7 @@ def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS'
 	video_count = videos.count()
 	videos = [i for i in videos]
 	videos = filterVideoList(videos, user)
+	videos = _filterPlaceholder(videos)
 	return videos, video_count, getPopularTags(user_language)
 
 def listMyVideo(page_idx, page_size, user, order = 'latest'):

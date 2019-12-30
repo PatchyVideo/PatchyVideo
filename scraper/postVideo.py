@@ -51,30 +51,31 @@ def _cleanUtags(utags) :
 
 async def _make_video_data(data, copies, playlists, url, user, event_id) :
 	filename = ""
-	for attemp in range(3) :
-		try :
-			async with ClientSession() as session:
-				async with session.get(data['thumbnailURL']) as resp:
-					if resp.status == 200 :
-						img = Image.open(io.BytesIO(await resp.read()))
-						if isinstance(img, PIL.GifImagePlugin.GifImageFile) :
-							filename = random_bytes_str(24) + ".gif"
-							frames = ImageSequence.Iterator(img)
-							frames = _gif_thumbnails(frames)
-							om = next(frames) # Handle first frame separately
-							om.info = img.info # Copy sequence info
-							om.save(_COVER_PATH + filename, save_all = True, append_images = list(frames), loop = 0)
+	if data['thumbnailURL'] :
+		for attemp in range(3) :
+			try :
+				async with ClientSession() as session:
+					async with session.get(data['thumbnailURL']) as resp:
+						if resp.status == 200 :
+							img = Image.open(io.BytesIO(await resp.read()))
+							if isinstance(img, PIL.GifImagePlugin.GifImageFile) :
+								filename = random_bytes_str(24) + ".gif"
+								frames = ImageSequence.Iterator(img)
+								frames = _gif_thumbnails(frames)
+								om = next(frames) # Handle first frame separately
+								om.info = img.info # Copy sequence info
+								om.save(_COVER_PATH + filename, save_all = True, append_images = list(frames), loop = 0)
+							else :
+								filename = random_bytes_str(24) + ".png"
+								img.thumbnail((320, 200), Image.ANTIALIAS)
+								img.save(_COVER_PATH + filename)
+							log_e(event_id, user, 'download_cover', obj = {'filename': filename})
+							break
 						else :
-							filename = random_bytes_str(24) + ".png"
-							img.thumbnail((320, 200), Image.ANTIALIAS)
-							img.save(_COVER_PATH + filename)
-						log_e(event_id, user, 'download_cover', obj = {'filename': filename})
-						break
-					else :
-						log_e(event_id, user, 'download_cover', 'WARN', {'status_code': resp.status, 'attemp': attemp})
-		except Exception as ex :
-			log_e(event_id, user, 'download_cover', 'WARN', {'ex': str(ex), 'attemp': attemp})
-			continue
+							log_e(event_id, user, 'download_cover', 'WARN', {'status_code': resp.status, 'attemp': attemp})
+			except Exception as ex :
+				log_e(event_id, user, 'download_cover', 'WARN', {'ex': str(ex), 'attemp': attemp})
+				continue
 	return {
 		"url": (data['url_overwrite'] if 'url_overwrite' in data else url),
 		"title": data['title'],
@@ -89,6 +90,7 @@ async def _make_video_data(data, copies, playlists, url, user, event_id) :
 		'views': -1,
 		'rating': -1.0,
 		"utags": _cleanUtags(data['utags']) if 'utags' in data else [],
+		"placeholder": data["placeholder"] if 'placeholder' in data else False
 	}
 
 def _make_video_data_update(data, url) :
@@ -103,6 +105,7 @@ def _make_video_data_update(data, url) :
 		'views': -1,
 		'rating': -1.0,
 		"utags": _cleanUtags(data['utags']) if 'utags' in data else [],
+		"placeholder": data["placeholder"] if 'placeholder' in data else False
 	}
 
 def _getAllCopies(vid, session, use_unique_id = False) :

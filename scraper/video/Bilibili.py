@@ -4,7 +4,7 @@ from utils.jsontools import *
 from utils.encodings import makeUTF8
 from utils.html import getInnerText
 from dateutil.parser import parse
-from datetime import timedelta
+from datetime import timedelta, datetime
 from services.config import Config
 
 import os
@@ -36,12 +36,24 @@ class Bilibili( Crawler ) :
 	def run( self, content, xpath, link ) :
 		link = link.lower()
 		vidid = link[link.rfind("av"):]
-		thumbnailURL = xpath.xpath( '//meta[@itemprop="thumbnailUrl"]/@content' )[0]
-		title = xpath.xpath( '//h1[@class="video-title"]/@title' )[0]
-		desc = getInnerText(xpath.xpath( '//div[@class="info open"]/node()' ))
-		uploadDate = parse(xpath.xpath( '//meta[@itemprop="uploadDate"]/@content' )[0]) - timedelta(hours = 8) # convert from Beijing time to UTC
-		utags = xpath.xpath( '//meta[@itemprop="keywords"]/@content' )[0]
-		utags = list(filter(None, utags.split(',')[1: -4]))
+		try :
+			thumbnailURL = xpath.xpath( '//meta[@itemprop="thumbnailUrl"]/@content' )[0]
+			title = xpath.xpath( '//h1[@class="video-title"]/@title' )[0]
+			desc = getInnerText(xpath.xpath( '//div[@class="info open"]/node()' ))
+			uploadDate = parse(xpath.xpath( '//meta[@itemprop="uploadDate"]/@content' )[0]) - timedelta(hours = 8) # convert from Beijing time to UTC
+			utags = xpath.xpath( '//meta[@itemprop="keywords"]/@content' )[0]
+			utags = list(filter(None, utags.split(',')[1: -4]))
+		except :
+			return makeResponseSuccess({
+				'thumbnailURL': '',
+				'title' : '已失效视频',
+				'desc' : '已失效视频',
+				'site': 'bilibili',
+				'uploadDate' : datetime.now(),
+				"unique_id": "bilibili:%s" % vidid,
+				"utags": [],
+				"placeholder": True
+			})
 		return makeResponseSuccess({
 			'thumbnailURL': thumbnailURL,
 			'title' : title,
