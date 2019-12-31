@@ -156,7 +156,7 @@ function buildParsersAndExpanders() {
                 return;
             }
         });*/
-        postJSON('/helper/get_ytb_info.do',
+        postJSON('/helper/get_ytb_info',
         {
             url: responseURL
         }, function(data){
@@ -168,7 +168,7 @@ function buildParsersAndExpanders() {
         });
     };
     PARSERS["^(https:\\/\\/)?(www\\.|mobile\\.)?twitter\\.com\\/[\\w]+\\/status\\/[\\d]+"] = function(responseDOM, responseURL) {
-        postJSON('/helper/get_twitter_info.do',
+        postJSON('/helper/get_twitter_info',
         {
             url: responseURL
         }, function(data){
