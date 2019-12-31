@@ -211,3 +211,12 @@ def jsonRequest(func):
 		else :
 			return ret
 	return wrapper
+
+from aiohttp import web
+
+def asyncJsonRequest(func) :
+	@wraps(func)
+	async def wrapper(*args, **kwargs) :
+		ret = await func(*args, **kwargs)
+		return web.json_response(ret, dumps = dumps)
+	return wrapper
