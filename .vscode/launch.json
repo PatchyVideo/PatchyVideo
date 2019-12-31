@@ -56,7 +56,7 @@
                 "MONGODB_URL": "localhost:27017",
                 "REDISTOGO_URL": "localhost",
                 "REDISTOGO_URL_WORKER": "redis://localhost",
-                "IMAGE_PATH": "../images",
+                "IMAGE_PATH": "/home/zyddnys/pvdata/images",
                 "ENABLE_TRANSACTION": "false",
                 "VERSION": "cf2cb641b84a604eae7fbe9668631e2205e70ddb",
                 "GOOGLE_API_KEYs": "AIzaSyC9veNBmKCVI7CofvXmbt-kOw4jYmQGKzE,AIzaSyD1mnyt3jcTyO5efO8fDy0gYWvXd_V4rVw"
