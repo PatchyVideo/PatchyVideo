@@ -33,6 +33,12 @@ def ajax_signup(rd, data):
 	uid = signup(data.username, data.password, data.email, '', data.session)
 	return "json", makeResponseSuccess({'uid': str(uid)})
 
+@app.route('/user/exists.do', methods = ['POST'])
+@basePage
+@jsonRequest
+def ajax_user_exists(rd, data):
+	return "json", makeResponseSuccess(checkIfUserExists(data.username))
+
 @app.route('/user/myprofile.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest

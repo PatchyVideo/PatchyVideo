@@ -100,6 +100,12 @@ def login(username, password, challenge, login_session_id) :
 def query_user(uid) :
 	return db.users.find_one({'_id': ObjectId(uid)})
 
+def checkIfUserExists(username) :
+	user_obj_find = db.users.find_one({'profile.username': username})
+	if user_obj_find is not None :
+		return True
+	return False
+
 def signup(username, password, email, challenge, signup_session_id) :
 	log(obj = {'username': username, 'email': email, 'challenge': challenge, 'signup_session_id': signup_session_id})
 	if len(username) > UserConfig.MAX_USERNAME_LENGTH :
