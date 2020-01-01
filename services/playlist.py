@@ -60,6 +60,34 @@ def createPlaylistFromSingleVideo(language, vid, user) :
 	addVideoToPlaylist(new_playlist_id, vid, user)
 	return new_playlist_id
 
+from scraper.playlist import dispatch as dispatch_playlist
+from utils.http import post_raw
+from utils.logger import getEventID
+
+import os
+
+if os.getenv("FLASK_ENV", "development") == "production" :
+	SCRAPER_ADDRESS = 'http://scraper:5003'
+else :
+	SCRAPER_ADDRESS = 'http://localhost:5003'
+
+def _postPlaylistTask(url, pid, use_autotag, user) :
+	post_obj = {'use_autotag': use_autotag, 'url': url, 'pid': pid, 'user': user, 'event_id': getEventID()}
+	post_obj_json_str = dumps(post_obj)
+	ret_obj = loads(post_raw(SCRAPER_ADDRESS + "/playlist", post_obj_json_str.encode('utf-8')).text)
+	return ret_obj['task_id']
+
+def createPlaylistFromExistingPlaylist(language, url, user, use_autotag = False) :
+	log(obj = {'url': url})
+	filterOperation('createPlaylistFromExistingPlaylist', user)
+	cralwer, cleanURL = dispatch_playlist(url)
+	if not cralwer :
+		raise UserError('UNSUPPORTED_PLAYLIST_URL')
+	new_playlist_id = createPlaylist(language, str(datetime.now()), str(datetime.now()), '', user)
+	log(obj = {'pid': new_playlist_id})
+	task_id = _postPlaylistTask(cleanURL, new_playlist_id, use_autotag, user)
+	return new_playlist_id, task_id
+
 def removePlaylist(pid, user) :
 	log(obj = {'pid': pid})
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :

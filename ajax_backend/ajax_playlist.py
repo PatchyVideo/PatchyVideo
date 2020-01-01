@@ -116,3 +116,10 @@ def ajax_lists_get_playlist_do(rd, user, data):
 def ajax_lists_create_from_copies_do(rd, user, data):
 	pid = createPlaylistFromCopies(data.pid, data.site, user)
 	return "json", makeResponseSuccess(pid)
+
+@app.route('/lists/create_from_existing_playlists.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_lists_create_from_existing_playlists(rd, user, data):
+	new_playlist_id, task_id = createPlaylistFromExistingPlaylist('english', data.url, user)
+	return "json", makeResponseSuccess({'pid': new_playlist_id, 'task_id': task_id})

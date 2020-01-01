@@ -54,7 +54,7 @@ _DEFAULT_OPS = [
 	'breakLink', 'syncTags', 'broadcastTags',
 	'addTag', 'renameTagOrAddTagLanguage', 'renameOrAddAlias',
 	'editVideoTags', 'refreshVideoDetail', 'refreshVideoDetailURL',
-	'createPlaylist', 'createPlaylistFromSingleVideo', 'updateCommonTags',
+	'createPlaylist', 'createPlaylistFromSingleVideo', 'createPlaylistFromExistingPlaylist', 'updateCommonTags',
 	'postVideo', 'postVideoBatch']
 
 def _check_object_agnostic(op_name, user) :
