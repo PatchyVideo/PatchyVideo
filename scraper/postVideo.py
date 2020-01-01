@@ -417,6 +417,7 @@ async def func_with_write_result(func, task_id, param_json) :
 	if ret['result'] != 'SUCCEED' :
 		param_json_for_user = copy.deepcopy(param_json)
 		del param_json_for_user['user']
+		del param_json_for_user['event_id']
 		del param_json_for_user['playlist_ordered']
 		tagdb.db.failed_posts.insert_one({'uid': ObjectId(param_json['user']['_id']), 'ret': ret, 'post_param': param_json_for_user})
 
