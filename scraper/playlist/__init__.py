@@ -18,6 +18,6 @@ for m in _crawler_modules :
 def dispatch( url ) :
 	url = clear_url(url.strip())
 	for cralwer in _dispatch_map :
-		if cralwer.test(url) :
+		if cralwer.test(self = cralwer, url = url) :
 			return cralwer, cralwer.normalize_url(self = cralwer, url = url)
 	return None, None

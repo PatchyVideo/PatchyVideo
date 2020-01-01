@@ -445,6 +445,9 @@ async def put_task(queue, param_json) :
 
 _async_queue = asyncio.Queue()
 
+async def putVideoTask(video_json_obj) :
+	return await put_task(_async_queue, video_json_obj)
+
 @routes.post("/video")
 async def post_video_async(request):
 	rj = loads(await request.text())

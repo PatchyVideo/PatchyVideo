@@ -20,15 +20,13 @@ from utils.http import post_raw
 
 from .playlist import dispatch
 from .video import dispatch as dispatch_video
+from .postVideo import putVideoTask
 
-
-# TODO: make this async
-def postTask(json_str) :
-	ret_obj = loads(post_raw("127.0.0.1/video", json_str.encode('utf-8')).text)
-	return ret_obj['task_id']
+async def postTask(json_obj) :
+	return await putVideoTask(json_obj)
 
 def _createJsonForPosting(url, dst_playlist, playlist_ordered, use_autotag, user, event_id) :
-	return dumps({
+	return {
 		'url' : url,
 		'tags' : [],
 		'dst_copy' : '',
@@ -38,7 +36,7 @@ def _createJsonForPosting(url, dst_playlist, playlist_ordered, use_autotag, user
 		'user' : user,
 		'playlist_ordered' : playlist_ordered,
 		'event_id': event_id
-	})
+	}
 
 async def _postVideosBatch(videos, pid, use_autotag, user, event_id) :
 	unique_ids = []
@@ -53,13 +51,13 @@ async def _postVideosBatch(videos, pid, use_autotag, user, event_id) :
 				unique_id_urls.append((uid, url))
 	task_ids = []
 	for _, cleanURL in unique_id_urls :
-		task_id = postTask(_createJsonForPosting(cleanURL, pid, unique_ids, use_autotag, user, event_id))
+		task_id = await postTask(_createJsonForPosting(cleanURL, pid, unique_ids, use_autotag, user, event_id))
 		task_ids.append(task_id)
 	return task_ids
-
+	
 async def postPlaylistAsync(url, pid, use_autotag, user, event_id) :
 	crawler, _ = dispatch(url)
-	website_pid = crawler.get_pid(url)
+	website_pid = crawler.get_pid(self = crawler, url = url)
 	log_e(event_id, user, 'postPlaylistAsync', obj = {'website_pid': website_pid, 'pid': pid})
 	videos = []
 	async for single_video_url in crawler.run(self = crawler, website_pid = website_pid) :

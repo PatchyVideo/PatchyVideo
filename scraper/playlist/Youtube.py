@@ -49,7 +49,7 @@ class Youtube() :
 							log_ne(op = 'youtube_playlist_run_async', level = 'WARN', obj = {'msg': 'FETCH_FAILED', 'key': key, 'resp': apirespond.content, 'url': api_url})
 				ret = loads(apirespond)
 				for item in ret['items'] :
-					video_id = item['resourceId']['videoId']
+					video_id = item['snippet']['resourceId']['videoId']
 					yield f"https://www.youtube.com/watch?v={video_id}"
 				if 'nextPageToken' in ret :
 					nextPageToken = ret['nextPageToken']
