@@ -14,7 +14,7 @@ from init import rdb
 from db import tagdb
 from services.playlist import updatePlaylistInfo
 
-from utils.logger import log_e
+from utils.logger import log_e, setEventUserAndID
 from utils.crypto import random_bytes_str
 from utils.exceptions import UserError
 from utils.http import post_raw
@@ -58,15 +58,19 @@ async def _postVideosBatch(videos, pid, use_autotag, user, event_id) :
 	
 async def postPlaylistAsync(url, pid, use_autotag, user, event_id) :
 	crawler, _ = dispatch(url)
+	setEventUserAndID(user, event_id)
 	website_pid = crawler.get_pid(self = crawler, url = url)
 	log_e(event_id, user, 'postPlaylistAsync', obj = {'website_pid': website_pid, 'pid': pid})
 	videos = []
+	setEventUserAndID(user, event_id)
 	async for single_video_url in crawler.run(self = crawler, website_pid = website_pid) :
 		videos.append(single_video_url)
 	log_e(event_id, user, 'postPlaylistAsync', obj = {'video_count': len(videos)})
 	if len(videos) == 0 :
 		raise UserError('EMPTY_PLAYLIST')
+	setEventUserAndID(user, event_id)
 	metadata = await crawler.get_metadata(self = crawler, url = url)
+	setEventUserAndID(user, event_id)
 	updatePlaylistInfo(pid, "english", metadata['title'], metadata['desc'], '', user)
 	task_ids = await _postVideosBatch(videos, pid, use_autotag, user, event_id)
 	return 'SUCCEED', {'task_ids': task_ids}
