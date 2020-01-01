@@ -16,8 +16,9 @@ class Acfun( Crawler ) :
 	SHORT_PATTERN = r'^[aA][cC][\d]+$'
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.acfun.cn/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.acfun.cn/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
-	THUMBNAIL_URL = re.compile(r'https:\/\/imgs\.aixifan\.com\/[\w\-]{8,}')
-	THUMBNAIL_URL_2 = re.compile(r'https:\/\/cdn\.aixifan\.com\/dotnet\/[\/\w]+\.(jpg|png)')
+	THUMBNAIL_URL = re.compile(r'"coverUrl":"([\d\w:\/\-\.]+)\?')
+	#THUMBNAIL_URL = re.compile(r'https:\/\/imgs\.aixifan\.com\/[\w\-]{8,}')
+	THUMBNAIL_URL_2 = re.compile(r'https:\/\/cdn\.aixifan\.com\/dotnet\/[\/\w]+\.(jpg|png|jpeg)')
 	EXTRACT_NUM = re.compile(r'^[\d]+')
 
 	def normalize_url( self, link ) :
@@ -36,7 +37,8 @@ class Acfun( Crawler ) :
 		vidid = link[link.rfind("ac"):]
 		thumbnailURL = self.THUMBNAIL_URL.search(content)
 		if thumbnailURL :
-			thumbnailURL = thumbnailURL[0]
+			thumbnailURL = thumbnailURL.group(1)
+			#thumbnailURL = thumbnailURL[0]
 		else :
 			thumbnailURL = self.THUMBNAIL_URL_2.search(content)
 			if thumbnailURL :
