@@ -7,10 +7,10 @@
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail_Tag_left.css') }}">
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Detail.css') }}">
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/new/Top-navbar.css') }}">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/singlevideo.css') }}">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-	<link rel="icon" href="{{ url_for('static',filename='img/Patchouli_logo.png') }}" type="image/x-icon" />
+    <link rel="icon" href="{{ url_for('static',filename='img/Patchouli_logo.png') }}" type="image/x-icon"/>
 	<script src="{{ url_for('static',filename='js/generic.js') }}"></script>
 	<script src="{{ url_for('static',filename='js/singlevideo.js') }}"></script>
 	<style type="text/css"></style>
@@ -20,240 +20,212 @@
 	</meta>
 	<meta id="video-id" content="{{video_id}}">
 	</meta>
-	<meta id="playlist-pid" content="{% if playlists|length == 1 %}{{playlists[0]._id}}{% endif %}">
-	</meta>
+	<meta id="playlist-pid" content="{% if playlists|length == 1 %}{{playlists[0]._id}}{% endif %}"></meta>
 	{% if _user is not none %}
-	<meta id="user-id" content="1">
-	</meta>
+	<meta id="user-id" content="1"></meta>
 	{% endif %}
 	<title>{{title}} - PatchyVideo</title>
 	<style type="text/css">
 		body {
-			background: none;
+			background:none;
+		}
+		.fa-close{
+        text-decoration: none;
+        outline: none;
+        background: none;
+        border: none;
+        color: #265778;
+        }
+		#addtag{
+		vertical-align: bottom;
 		}
 
-		.fa-close {
-			text-decoration: none;
-			outline: none;
-			background: none;
-			border: none;
-			color: #265778;
+		#btn input{
+
+		height: 50px;
+		background-color: ghostwhite;
+		color: #265778;
+		outline: none;
+		border: 1px solid white;
+		font-size: 20px;
+		position: absolute;
+		left: 40%;
+		top: 50%;
+		}
+		#btn input:hover{
+		background-color: ghostwhite;
 		}
 
-		#addtag {
-			vertical-align: bottom;
-		}
+		#tag{
+		width: 1200px;
+		height: 923px;
+		background:url("/static/img/Patchouli.jpg") no-repeat  ;
 
-		#btn input {
+		background-size: 1200px 923px;
+		box-shadow:  0px 0px 5px crimson;
+		/*  padding: 50px;*/
+		text-align: center;
 
-			height: 50px;
-			background-color: ghostwhite;
-			color: #265778;
-			outline: none;
-			border: 1px solid white;
-			font-size: 20px;
-			position: absolute;
-			left: 40%;
-			top: 50%;
-		}
-
-		#btn input:hover {
-			background-color: ghostwhite;
-		}
-
-		#tag {
-			width: 1200px;
-			height: 923px;
-			background: url("/static/img/Patchouli.jpg") no-repeat;
-
-			background-size: 1200px 923px;
-			box-shadow: 0px 0px 5px crimson;
-			/*  padding: 50px;*/
-			text-align: center;
-
-			display: none;
-			position: absolute;
-			top: -90px;
-			left: -2%;
-			z-index: 100;
+		display: none;
+		position: absolute;
+		top: -90px;
+		left: -2%;
+		z-index: 100;
 
 
 		}
+		.minibox{
 
-		.minibox {
-
-			/*             background-color: rgba(255,255,255,0.5);*/
-			display: none;
-			height: 100%;
-			position: relative;
-			z-index: 0;
-			top: -30px;
+		/*             background-color: rgba(255,255,255,0.5);*/
+		display: none;
+		height: 100%;
+		position: relative;
+		z-index: 0;
+		top:-30px;
 		}
 
 
-		.Taglist {
-			padding-top: 2px;
-			/*        margin-bottom: 20px;*/
-			/*  height: 400px;*/
-			overflow: auto;
-			position: relative;
+		.Taglist{
+		padding-top: 2px;
+		/*        margin-bottom: 20px;*/
+		/*  height: 400px;*/
+		overflow:auto;
+		position: relative;
 		}
-
-		.Taglist li {
-			background-color: rgba(255, 255, 255, 0.5);
-			display: inline-block;
-			zoom: 1;
-			padding: 12px;
-			margin-left: 10px;
-			text-align: center;
-			vertical-align: middle;
-			cursor: pointer;
-			list-style: none;
-			border-radius: 50px;
+		.Taglist li{
+		background-color: rgba(255,255,255,0.5);
+		display: inline-block;
+		zoom: 1;
+		padding: 12px;
+		margin-left: 10px;
+		text-align: center;
+		vertical-align: middle;  cursor: pointer;
+		list-style: none;
+		border-radius: 50px;
 
 		}
-
-		.Taglist p,
-		p>input {
-			display: inline-block;
-			font-size: 18px;
-			line-height: 20px;
-			margin: 0px 0px 0px 0px !important;
+		.Taglist p, p> input{
+		display: inline-block;
+		font-size:18px;
+		line-height: 20px;
+		margin: 0px 0px 0px 0px!important;
+		}.Taglist i{
+		display: inline-block;
 		}
-
-		.Taglist i {
-			display: inline-block;
+		.m_a{
+		color: rgba(255, 255, 255, 0.8);
 		}
-
-		.m_a {
-			color: rgba(255, 255, 255, 0.8);
+		.m_b{
+		color: rgba(255, 255, 255, 0.8);
+		position: absolute;
+		bottom: 18%;
+		left: 38%;
 		}
-
-		.m_b {
-			color: rgba(255, 255, 255, 0.8);
-			position: absolute;
-			bottom: 18%;
-			left: 38%;
+		.m_a div{
+		margin-bottom: 10px;
 		}
-
-		.m_a div {
-			margin-bottom: 10px;
+		.tag_title{
+		position: absolute;
+		bottom: 44%;
+		color: white;
+		left: 42%;
+		font-size: 25px;
+		z-index:-1;
 		}
-
-		.tag_title {
-			position: absolute;
-			bottom: 44%;
-			color: white;
-			left: 42%;
-			font-size: 25px;
-			z-index: -1;
-		}
-
 		/*      .tag_title:nth-child(4){
 		opacity: 0;
 		}*/
-		#save {
-			position: relative;
-			left: 0px;
-			bottom: -800px;
-			color: white;
-			z-index: 999;
+		#save{
+		position: relative;
+		left: 0px;
+		bottom: -800px;
+		color: white;
+		z-index: 999;
 		}
+		#close{
 
-		#close {
-
-			position: relative;
-			/*     right: -50px;
+		position: relative;
+		/*     right: -50px;
 		bottom: 40px;*/
-			right: -570px;
-			top: 20px;
-			color: white;
-			z-index: 999;
+		right: -570px;
+		top: 20px;
+		color: white;
+		z-index: 999;
 		}
 
-		#close:hover,
-		#save:hover {
+		#close:hover,#save:hover{
 
-			color: cornflowerblue;
+		color: cornflowerblue;
+		}
+		.item input{
+            text-decoration: none;
+            outline: none;
+            background: none;
+            border: none;
+        }
+		#ipt{
+		line-height: 26px;
+		height: 250px;
+		width: 300px;
+		font-size: 20px;
+		font-weight: bolder;
+		padding-top: 10px;
+		padding-left: 10px;
+		text-rendering: auto;
+		outline: none;
+		border: none;
+		color:  #265778;
+		letter-spacing: normal;
+		word-spacing: normal;
+		text-transform: none;
+		text-indent: 0px;
+		text-shadow: none;
+		display: inline-block;
+		text-align: start;
+
+		background-color: rgba(255, 255, 255, 0.3);
 		}
 
-		.item input {
-			text-decoration: none;
-			outline: none;
-			background: none;
-			border: none;
+		.minibox:before{
+		content: "";
+		position: absolute;
+		width: 100%;
+		height: 41%;
+		top: 57%;
+		left: 0%;
+		background: url("/static/img/Patchouli.jpg") no-repeat;
+		background-size: 1200px 923px;
+		filter: blur(98px);
+		z-index: -2;
 		}
-
-		#ipt {
-			line-height: 26px;
-			height: 250px;
-			width: 300px;
-			font-size: 20px;
-			font-weight: bolder;
-			padding-top: 10px;
-			padding-left: 10px;
-			text-rendering: auto;
-			outline: none;
-			border: none;
-			color: #265778;
-			letter-spacing: normal;
-			word-spacing: normal;
-			text-transform: none;
-			text-indent: 0px;
-			text-shadow: none;
-			display: inline-block;
-			text-align: start;
-
-			background-color: rgba(255, 255, 255, 0.3);
+		.m_bg:before{
+		content: "";
+		position: absolute;
+		width: 100%;
+		height: 40%;
+		top: 0%;
+		left: 0%;
+		background: url("/static/img/Patchouli.jpg") no-repeat;
+		background-size: 1200px 923px;
+		filter: blur(100px);
+		z-index: -2;
 		}
-
-		.minibox:before {
-			content: "";
-			position: absolute;
-			width: 100%;
-			height: 41%;
-			top: 57%;
-			left: 0%;
-			background: url("/static/img/Patchouli.jpg") no-repeat;
-			background-size: 1200px 923px;
-			filter: blur(98px);
-			z-index: -2;
-		}
-
-		.m_bg:before {
-			content: "";
-			position: absolute;
-			width: 100%;
-			height: 40%;
-			top: 0%;
-			left: 0%;
-			background: url("/static/img/Patchouli.jpg") no-repeat;
-			background-size: 1200px 923px;
-			filter: blur(100px);
-			z-index: -2;
-		}
-
-		.Copyright>li>p {
+		.Copyright > li > p {
 			color: #A0A;
 		}
-
-		.Language>li>p {
+		.Language > li > p {
 			color: #585455;
 		}
-
-		.Character>li>p {
+		.Character > li > p {
 			color: #0A0;
 		}
-
-		.Author>li>p {
+		.Author > li > p {
 			color: #A00;
 		}
-
-		.General>li>p {
+		.General > li > p {
 			color: #0073ff;
 		}
-
-		.Meta>li>p {
+		.Meta > li > p {
 			color: #F80;
 		}
 
@@ -273,33 +245,33 @@
 		.playlist-list-item:hover {
 			background-color: #EEEEEE;
 		}
+
 	</style>
 </head>
 
 <body>
 	<div class="top-navbar w " id="top-navbar">
-		<div class="nav_left">
-			<ul>
-				<li><a href="/">主页</a></li>
-				<li><a href="/lists">播放列表</a></li>
-				<li><a href="/postvideo">发布视频</a></li>
-				<li><a href="/edittag">标签</a></li>
-			</ul>
-		</div>
-		<div class="nav_right">
-			<ul>
-				{% include "searchbar_new.html" %}
-				{% if _user is none %}
-				<li><a href="/login">登录</a></li>
-				<li><a href="/signup">注册</a></li>
-				{% else %}
-				<li><a style="overflow: hidden; width: 130px;"
-						href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
-				<li><a href="/logout">登出</a></li>
-				{% endif %}
-			</ul>
-		</div>
-	</div>
+        <div class="nav_left">
+            <ul>
+                <li><a href="/">主页</a></li>
+                <li><a href="/lists">播放列表</a></li>
+                <li><a href="/postvideo">发布视频</a></li>
+                <li><a href="/edittag">标签</a></li>
+            </ul>
+        </div>
+        <div class="nav_right">
+            <ul>
+                {% include "searchbar_new.html" %}
+                {% if _user is none %}
+                <li><a href="/login">登录</a></li>
+                <li><a href="/signup">注册</a></li>
+                {% else %}
+                <li><a style="overflow: hidden; width: 130px;" href="/users/{{_user['_id']}}">{{_user['profile']['username']}}</a></li>
+                <li><a href="/logout">登出</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
 	<div class="w">
 		<div class="left-navbar ">
 			<div class="left_list">
@@ -371,7 +343,7 @@
 				</h4>
 				<style>
 					.fa-copy:hover {
-						color: olive;
+						color:olive;
 					}
 				</style>
 				{% if upload_date %}
@@ -390,9 +362,9 @@
 				<div class="new_top">
 					<h2>副本</h2>
 					{% if copies|length > 0 %}
-						此视频共有{{copies|length}}个副本.
+					此视频共有{{copies|length}}个副本.
 					{% else %}
-						此视频不存在副本
+					此视频不存在副本
 					{% endif %}
 					{% if _user is not none %}
 						<a href="/postvideo?copy={{video_id}}">[添加副本]</a>
@@ -447,65 +419,42 @@
 			</ul>
 			<div id="tag">
 				<i class="fa fa-close fa-2x" id="close"></i>
+				<i class="fa fa-circle-o fa-3x" id="save"></i>
 				<div class="minibox">
-
 					<div class="m_bg">
-
 					</div>
-					<div class="m_a activeTag">
-
+					<div class="m_a">
 						<ul class="Taglist Copyright">
+		
 						</ul>
 						<ul class="Taglist Language">
+		
 						</ul>
 						<ul class="Taglist Character">
+		
+						</ul>
+						<ul class="Taglist Author">
+		
 						</ul>
 						<ul class="Taglist General">
+		
 						</ul>
 						<ul class="Taglist Meta">
-							<ul class="Taglist Author">
-							</ul>
-
-
-
-
+		
+						</ul>
 					</div>
-
 					<div class="m_b">
-
-						<div id="m_b_box">
-
-							<input id="ipt">
-							<i class="fa fa-plus-square fa-2x" id="add"></i>
-							<!--<input class="fa fa-plus-square" type="button"value="add">-->
-							<!--                <span id="addtag"> <i class="fa fa-plus-square fa-2x"></i></span> -->
-
-
-
-
-						</div>
-						<span class="tag_title">编辑共有标签</span>
-						<span class="tag_title">标签已存在</span>
-						<span class="tag_title">标签不存在</span>
-
-
-					</div>
-					<div class="m_c">
-
 						<div>
-							<span>推荐标签：</span>
-
-							<div class="recTag Taglist">
-
-							</div>
-
+							<textarea id="ipt"></textarea>
+							<!--<input class="fa fa-plus-square" type="button"value="add">-->
+							<span id="addtag"> <i class="fa fa-plus-square fa-2x"></i></span>
 						</div>
-
 					</div>
-
 				</div>
-
-				<i class="fa fa-circle-o fa-3x" id="save"></i>
+				<span class="tag_title">编辑标签</span>
+				<span class="tag_title">标签已存在</span>
+				<span class="tag_title">标签不存在</span>
+		
 			</div>
 		</div>
 	</div>
@@ -517,7 +466,7 @@
 		$('#ipt').textcomplete([
 			{
 				id: 'tags',
-				match: function (text) {
+				match: function(text) {
 					var i = text.length;
 					while (i--) {
 						if (text.charAt(i) == ' ' ||
@@ -532,8 +481,8 @@
 					return 0;
 				},
 				search: function (term, callback) {
-					$.getJSON(`https://patchyvideo.com/autocomplete/?q=${term}`, function (data) {
-						data = $.map(data, function (ele) {
+					$.getJSON( `https://patchyvideo.com/autocomplete/?q=${term}`, function( data ) {
+						data = $.map(data, function(ele) {
 							ele['term'] = term;
 							ele['color'] = getCategoryIdColor(ele['cat']);
 							return ele;
@@ -553,44 +502,41 @@
 				},
 				index: 1
 			}
-		],
+			],
 			{
-				onKeydown: function (e, commands) {
-					if (e.ctrlKey && e.keyCode === 74) { // CTRL-J
-						return commands.KEY_ENTER;
-					}
-				},
-				placement: "matchleft",
-				lineHeightMethod: "clientHeight"
-			});
+			onKeydown: function (e, commands) {
+				if (e.ctrlKey && e.keyCode === 74) { // CTRL-J
+					return commands.KEY_ENTER;
+				}
+			},
+			placement: "matchleft",
+			lineHeightMethod: "clientHeight"
+		});
 	</script>
 	<script>
 
 		$(function () {
-			/*	1.取消标签鼠标点击时可编辑事件          √
-			*   2.默认选中所有已有标签，将所有已有标签的数据存入数组中，根据已有标签生成推荐标签   √
-			*   3.用户单击已有标签时，取消选中点击的标签，根据剩余的已有标签生成推荐标签   √
-			*   4.单击推荐标签，复制值到Input输入框   √
-			*   5.实现添加功能    √
-			*   6.实现保存功能
-			*   获取当前收藏夹的tag数据接口：
-			*     type: "POST",
-				  url: "https://patchyvideo.com/list/getcommontags.do",
-				  data: JSON.stringify({ "pid": $("#playlist-id").attr("content") }),
-			*
-			*   推荐标签生成接口：
-			*  url: "https://patchyvideo.com/tags/get_related_tags.do"
-			*  type: "posts"
-			*  data:{"tags":["东方","xx"]} 数组为已有标签的全部数据
-			*
-			*
-			*
-			* */
+			var input = $("<input>");
+			$('.tag_title:last').stop().animate({ opacity: 0 });
+			$('.tag_title:eq(1)').stop().animate({ opacity: 0 });
 
-			var recArray = [];
-			var tags = getCommonTags();
+			function getAjaxValue(tagsSet) {
+				var s = 0;
+				$.ajax({
+					type: "POST",
+					url: "/tags/query_tag_categories.do",
+					async: false,
+					contentType: 'application/json',
+					data: JSON.stringify({ "tags": Array.from(tagsSet) }),
+					success: function (result) {
+						s = result.data.categorie_map;
+					},
 
-			function getCommonTags() {
+				});
+				return s;
+			};
+
+			function getVideoTags() {
 				var s = 0;
 				$.ajax({
 					type: "POST",
@@ -599,42 +545,18 @@
 					contentType: 'application/json',
 					data: JSON.stringify({ "video_id": $("#video-id").attr("content") }),
 					success: function (result) {
-						console.log(result);
 						s = result.data;
 					},
 				});
 				return s;
 			}
-			function getRecTags(str) {
-				var s = 0;
-				$.ajax({
-					type: "POST",
-					url: "/tags/get_related_tags.do",
-					async: false,
-					contentType: 'application/json',
-					data: JSON.stringify({ "tags": str }),
-					success: function (result) {
-						s = result.data;
-						console.log("getRecTags返回的数据:");
-						console.log(s);
-						console.log("________________________");
-					},
-				});
-				return s;
-			}
-			function getRecArray(m) {
-				for (let i in m.tags) {
-					recArray.push(Object.keys(m.tags[i]));
-				}
 
-			}
-			function updateVideoTags(tags) {
-				console.log("updateVideoTags执行");
-				let v = getTagCategories(tags);
 
-				for (let i in v) {
+			function addVideoTags(tags) {
+				let v = getAjaxValue(tags);
+				for (var i in v) {
 					if ($(`.${v[i]}`).children('div').length == 0) {
-						$(`.${v[i]}`).append(`<li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`);
+						$(`.${v[i]}`).append(`<div>${v[i]}：</div><li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`);
 					}
 					else if ($(`.${v[i]}`).find(`.val_${i}`).length == 0 && $(`.${v[i]}`).length != 0) {
 						$(`.${v[i]}`).append(`<li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`);
@@ -644,120 +566,89 @@
 
 				}
 			}
-			function createRecTag(str) {
-				console.log("执行createRecTag：");
-				console.log(str);
-				for (let i = 0; i < str.length; ++i) {
-					$(".recTag").append(`<li class="item"><p class="val_${str[i]}">${str[i]}</p><i class="fa fa-close"></i></li>`);
+
+			function clearTags() {
+				let uls = $('.Taglist');
+				for (var i = 0; i != uls.length; ++i) {
+					while (uls[i].hasChildNodes()) {
+						uls[i].removeChild(uls[i].lastChild);
+					}
 				}
 			}
 
-			function getTagCategories(str) {
-				/*		console.log(JSON.stringify(str));
-					   var strBeChanged =	"\""+str+"\"".split(/[\s,]/);
-						console.log(strBeChanged);
-						console.log("getTagCategories执行");*/
-				console.log(str);
-				var s = 0;
-
-				$.ajax({
-					type: "POST",
-					url: "/tags/query_tag_categories.do ",
-					async: false,
-					contentType: 'application/json',
-					data: JSON.stringify({ "tags": str }),
-					success: function (result) {
-						console.log("成功了");
-						s = result.data.categorie_map;
-					},
-					error: function (result) {
-						console.log("失败了");
-						console.log(str);
-						return null;
-					}
-
-				});
-				return s;
-			};
-			function unique(arr) {
-				if (!Array.isArray(arr)) {
-					console.log('type error!')
-					return
+			function ifval() {
+				let inputSet = new Set(input.val().split(/[\s,]/));
+				let v = getAjaxValue(inputSet);
+				if (JSON.stringify(v) != '{}') {
+					input.parent().html(input.val());
 				}
-				let res = [],
-					obj = {}
-				for (let i = 0; i < arr.length; i++) {
-					if (!obj[arr[i]]) {
-						res.push(arr[i])
-						obj[arr[i]] = 1
-					} else {
-						obj[arr[i]]++
+
+				if (input.val() == '') {
+					if ($("input").parents('.item').siblings('.item').length == 0) {
+						input.parent().parent().parent().children().remove();
+					}
+					else {
+						input.parent().parent().remove();
 					}
 				}
-				return res
 			}
+			/*$('html').on('dblclick', function () {
 
-
-
-
-			$('html').on('dblclick', function () {
-
-				/* 双击监听已停用
-				  ifval();
-				  */
-
-			})
+				ifval();
+			})*/
 			$('#edit_tags').on('click', function () {
+				clearTags();
+				let tags = getVideoTags();
+				addVideoTags(tags);
 				$('#tag').stop().fadeIn('slow').animate({
 				}, function () {
 					$('.minibox').fadeIn('slow');
+
 				});
 
 			});
 			$('#ipt').mouseenter(function () {
 				$('.tag_title').stop().animate({ opacity: 0 });
-			});
-			$('#ipt').keyup(function () {
-				$('#ipt').attr("value", this.value);
-				console.log(this.value);
-			});
-			$('.m_b').on('click', '#add', function (event) {
-				let v = getTagCategories($('#ipt')[0].value.split(/[\s,]/));
-				console.log(v);
-				console.log("v visited");
-				for (let i in v) {
-					console.log(v[i]);
+			})
+			$('.m_b').on('click', '#addtag', function (event) {
+				let tagsSet = new Set($('#ipt').val().split(/[\s,]/));
+				let v = getAjaxValue(tagsSet);
+				let validTags = new Set(Object.keys(v));
+				let invalidTags = new Set([...tagsSet].filter(x => !validTags.has(x)));
 
-					if ($(`.${v[i]}>li>p`).hasClass(`val_${i}`) === false) { //当分类区域已创建，tag不存在时
-						console.log("分支2：");
-						$(`.${v[i]}`).append(`<li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`);
-						$('#ipt').val('');
+				for (var i in v) {
+					if ($(`.${v[i]}`).children('div').length == 0) { //当第一次创建分类区域，
+						/*
+										$('.m_a').append($('<ul class="Taglist">').addClass(`${v[i]}`).append(`<div>${v[i]}：</div><li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`));
+						*/
+						$(`.${v[i]}`).append(`<div>${v[i]}：</div><li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`);
 					}
-					if ($(`.${v[i]}>li>p`).hasClass(`val_${i}`) === true) {
+
+					else if ($(`.${v[i]}`).find(`.val_${i}`).length == 0 && $(`.${v[i]}`).length != 0) { //当分类区域已创建，tag不存在时
+						$(`.${v[i]}`).append(`<li class="item"><p class="val_${i}">${i}</p><i class="fa fa-close"></i></li>`);
+					}
+					else {
 						$('.tag_title:eq(1)').stop().animate({ opacity: 1 }, 1000, function () {
 							$(this).animate({ opacity: 0 }, 3000)
 						});
-						console.log("分支3");
+						invalidTags.delete(i);
 					}
-					else {
-						/*	$('.tag_title:eq(1)').stop().animate({opacity:1},1000,function () {
-								$(this).animate({opacity:0},3000)
-							});
-							console.log("分支3");*/
-					}
+
 				}
 
-				if (JSON.stringify(v) == '{}') {
+				$("#ipt").val(Array.from(invalidTags).join('\n'));
+
+				if (Array.from(invalidTags).length != 0) {
 
 					$('.tag_title:last').stop().animate({ opacity: 1 }, 1000, function () {
 						$(this).animate({ opacity: 0 }, 3000)
 					});
-					console.log("分支4");
 				}
 				$('.tag_title:first').fadeOut(1000);
-				console.log("结束：");
+
 				event.stopPropagation();
 			});
+			
 			$('.minibox').on('click', '.fa', function () {
 				let ulobj = $(this).parents('ul');
 				let itemlength = $(this).parents('.item').siblings('.item').length;
@@ -770,89 +661,64 @@
 				}
 
 			})
-			$('.m_a').on('click ', 'li', function () {
-				$(this).toggleClass('selected');
-				let p_value = this.querySelector('p').innerText;
-				if ($(this).hasClass('selected')) {
-					console.log(p_value);
-					tags.forEach(function (item, index, arr) {
-						if (item == p_value) {
-							arr.splice(index, 1);
-						}
-					})
-					$('.recTag').empty();
-					recArray = [];
-					getRecArray(getRecTags(tags));
-					createRecTag(recArray);
-					console.log("选中");
+			/*$('.fa').on('click',function () {
 
-				}
-				if (!$(this).hasClass('selected')) {
-					tags.push(p_value);
-					$('.recTag').empty();
-					recArray = [];
-					getRecArray(getRecTags(tags));
-					createRecTag(recArray);
-					console.log("取消选中");
-
-				}
-
-				/*   单击可编辑内容已停用
-					  var li = $(this);
-						var text = $(this).text();
-						li.html("");
-						input.attr("value",text);
-						input.keyup(function(event){
-							var myEvent = event || window.event;
-							var kcode = myEvent.keyCode;
-							if(kcode == 13){
-								ifval();
-							}
-						});
-						li.append(input);
-						//让文本框里边的文章被高亮选中将jquery的对象转换成dom对象
-						var inpuliom = input.get(0);
-						inpuliom.select();*/
+			});*/
+			/*
+			$('.m_a').on('click ', 'p', function () {
+				var li = $(this);
+				var text = $(this).text();
+				li.html("");
+				input.attr("value", text);
+				input.keyup(function (event) {
+					var myEvent = event || window.event;
+					var kcode = myEvent.keyCode;
+					if (kcode == 13) {
+						ifval();
+					}
+				});
+				li.append(input);
+				//让文本框里边的文章被高亮选中将jquery的对象转换成dom对象
+				var inpuliom = input.get(0);
+				inpuliom.select();
 			});
-			$('.m_c').on("click", 'li', function () {
-				console.log(this.innerText);
-				$('#ipt')[0].value = this.innerText;
-				$('#ipt').attr('value', this.innerText);
+			*/
 
-				console.log($('#ipt')[0].value);
-			})
 			$('#tag').on('click', '#close', function () {
 				$('.minibox').hide();
 				$('#tag').animate({
 
 				}, function () {
 					$(this).fadeOut('linear')
-				})
+				});
 			});
-			/*
-			*               第一步：getCommonTags()         从接口处获取该视频页面的原始Tag数据
-			*               第二步：getTagCategories()      将原始Tag数据进行Categories过滤，确认分区
-			*               第三步：addCommonTags()         渲染Tag数据
-			*               第四步：getRecTags(tags)        根据原始Tag数据获取推荐Tag数据，并用recArray数据存储。
-			*               第五步：createRecTag(recArray)  渲染推荐Tag数据
-			* */
 
-			updateVideoTags(tags);
-			{
-				let m = getRecTags(tags);
-				getRecArray(m);
-				createRecTag(recArray);
-				console.log(recArray);
-
-			}
-
-			$('.tag_title:last').stop().animate({ opacity: 0 });
-			$('.tag_title:eq(1)').stop().animate({ opacity: 0 });
+			$('#save').click(function () {
+				var tags = [];
+				for(let i = 0; i != $('.m_a ul').length; ++i){
+					let key = $($('.m_a ul')[i]).children('div').text();
+					let items = $($('.m_a ul')[i]).children('li.item');
+					for (let j = 0; j != items.length; ++j) {
+						let value = items[j].innerText;
+						if (key != ''){
+							tags.push(value);
+						}
+					}
+				}
+				postJSON("/videos/edittags.do",{
+					"video_id": $("#video-id").attr("content"),
+					"tags": tags
+				}, function(result){
+					location.reload();
+				});
+				$('.minibox').hide();
+				$('#tag').animate({}, function () {
+					$(this).fadeOut('linear')
+				});
+			})
 
 
 		})
-
-
 	</script>
 </body>
 
