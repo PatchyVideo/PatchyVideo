@@ -2,6 +2,7 @@
 import aiohttp
 from urllib.parse import urlparse, parse_qs
 from bson.json_util import loads
+from datetime import datetime
 
 from services.config import Config
 from utils.logger import log_ne
@@ -29,6 +30,12 @@ class Youtube() :
 		querys = parse_qs(ret.query)
 		pid = querys['list'][0]
 		return pid
+
+	async def get_metadata(self, url = None) :
+		return {
+			"desc": "Playlist created from " + url + "\nCreated at " + str(datetime.now()),
+			"title": "Youtube playlist"
+			}
 
 	async def run(self, url = None, website_pid = None) :
 		if url and not website_pid :

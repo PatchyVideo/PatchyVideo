@@ -12,6 +12,7 @@ from bson import ObjectId
 
 from init import rdb
 from db import tagdb
+from services.playlist import updatePlaylistInfo
 
 from utils.logger import log_e
 from utils.crypto import random_bytes_str
@@ -65,6 +66,8 @@ async def postPlaylistAsync(url, pid, use_autotag, user, event_id) :
 	log_e(event_id, user, 'postPlaylistAsync', obj = {'video_count': len(videos)})
 	if len(videos) == 0 :
 		raise UserError('EMPTY_PLAYLIST')
+	metadata = await crawler.get_metadata(self = crawler, url = url)
+	updatePlaylistInfo(pid, "english", metadata['title'], metadata['desc'], '', user)
 	task_ids = await _postVideosBatch(videos, pid, use_autotag, user, event_id)
 	return 'SUCCEED', {'task_ids': task_ids}
 
