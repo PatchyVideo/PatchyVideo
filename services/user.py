@@ -207,6 +207,9 @@ def _updateUserRedisValue(user_id, updater) :
 			redis_user_obj = updater(redis_user_obj)
 			rdb.set(redis_user_key, dumps(redis_user_obj), ex = redis_user_key_ttl)
 
+def whoAmI(user) :
+	return user['access_control']['status']
+
 def updateUserRole(user_id, role, user) :
 	filterOperation('updateUserRole', user, user_id)
 	old_user_obj = db.users.find_one({'_id': ObjectId(user_id)})

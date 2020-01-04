@@ -67,6 +67,12 @@ def ajax_user_changedesc(rd, user, data):
 def ajax_user_changepass(rd, user, data):
 	update_password(user['_id'], data.old_pass, data.new_pass)
 
+@app.route('/user/whoami', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_user_whoami(rd, user, data):
+	return "json", makeResponseSuccess(whoAmI(user))
+
 @app.route('/user/admin/updaterole.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
