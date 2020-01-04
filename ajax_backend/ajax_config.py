@@ -21,5 +21,12 @@ def ajax_config_setconfig(rd, user, data):
 @jsonRequest
 def ajax_config_getconfig(rd, user, data):
 	filterOperation('getConfig', user, data.attr)
-	return makeResponseSuccess(Config.__getattr__(data.attr).decode('utf-8'))
+	return makeResponseSuccess(Config.__getattr__(data.attr))
+
+@app.route('/config/listconfig.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_config_listconfig(rd, user, data):
+	filterOperation('listConfig', user, data.attr)
+	return makeResponseSuccess(Config.ListAttrs())
 

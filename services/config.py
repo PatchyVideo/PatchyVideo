@@ -20,6 +20,12 @@ class ConfigCls(object) :
 	def __setattr__(self, attr, value) :
 		self.SetValue(attr, value)
 
+	def ListAttrs(self) :
+		ret = {}
+		for k in self.__dict__.keys() :
+			ret[k] = self.__getattr__(k)
+		return ret
+
 	def SetValue(self, attr, value) :
 		old_val = self.__getattr__(attr)
 		rdb.set(f'config-{attr}', value)
