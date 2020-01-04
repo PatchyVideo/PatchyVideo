@@ -53,7 +53,7 @@ phase 2
 #<!!HIGH PRIORITY!!> tag alias(as multi-language phase1)
 #   lacking UI for tag alias
 recover password
-!user access control for backend
+#user access control for backend
 !user access control for frontend HTMLs
 #log error, don't want others to see filenames in error response
 #change background image to include more patchouli
@@ -93,8 +93,6 @@ add clearence level for updating configs
     need log viewing UI
 check ajax input(e.g. page/page_size)
 use redis to cache commonly used video pages and tag translation
-!autotag support
-    twitter is not supported
 add robots.txt
 remove unnecessary fileds from ajax results
 !interface for updating user access control info, remember to update user's access control info in redis db as well
@@ -109,9 +107,14 @@ offical launch
 ======================
 #restructured tag system for full multi language support
 tag group
-tag cooccurrences/related tag when posting video
+!autotag support
+    twitter is not supported
+!tag cooccurrences/related tag when posting video
+    current algorithm is expensive
 tag rule(e.g. adding touhou_mmd will results in mmd tag being added)
-batch post from existing playlist
+!batch post from existing playlist
+    lacking UI and only support youtube
+playlist tree structure
 full text search
 mobile phone UI
 full multi-language support(CHS/CHT/JPN/ENG)
