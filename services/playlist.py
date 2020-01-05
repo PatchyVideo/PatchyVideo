@@ -112,7 +112,8 @@ def listMyPlaylists(user, page_idx = 0, page_size = 10000, order = 'last_modifie
 		result = result.sort([("meta.created_at", 1)])
 	if order == 'oldest':
 		result = result.sort([("meta.created_at", -1)])
-	return result.skip(page_idx * page_size).limit(page_size)
+	result = result.skip(page_idx * page_size).limit(page_size)
+	return result, result.count()
 
 def updatePlaylistCover(pid, cover, user) :
 	log(obj = {'pid': pid, 'cover': cover})
