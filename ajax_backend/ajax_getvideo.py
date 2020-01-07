@@ -32,7 +32,7 @@ def ajax_getvideo(rd, user, data):
 		ver = getVideoDetail(item, user)
 		if ver :
 			copies.append(ver)
-	playlists = listPlaylistsForVideo(vidid)
+	playlists = listPlaylistsForVideo(user, vidid)
 
 	return "json", makeResponseSuccess({
 		"video" : obj,

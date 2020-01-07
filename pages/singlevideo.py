@@ -39,7 +39,7 @@ def pages_videodetail(rd, user):
 		ver = getVideoDetail(item, user)
 		if ver :
 			rd.copies.append(ver)
-	rd.playlists = listPlaylistsForVideo(vidid)
+	rd.playlists = listPlaylistsForVideo(user, vidid)
 	return "content_singlevideo.html"
 
 

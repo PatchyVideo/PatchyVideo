@@ -12,7 +12,7 @@ from datetime import datetime
 from bson import ObjectId
 from config import PlaylistConfig
 from utils.logger import log
-from services.tcb import filterSingleVideo, filterVideoList, filterOperation
+from services.tcb import filterSingleVideo, filterVideoList, filterOperation, isObjectAgnosticOperationPermitted
 
 import redis_lock
 
@@ -100,6 +100,8 @@ def removePlaylist(pid, user) :
 		log(obj = {'items': [i for i in all_items]})
 		db.playlist_items.delete_many({"pid": ObjectId(pid)}, session = s())
 		db.playlists.delete_one({"_id": ObjectId(pid)}, session = s())
+		from services.playlistFolder import deletePlaylist
+		deletePlaylist(pid, session = s())
 		s.mark_succeed()
 
 def listMyPlaylists(user, page_idx = 0, page_size = 10000, order = 'last_modified') :
@@ -229,6 +231,8 @@ def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
 	if playlist is None :
 		raise UserError('PLAYLIST_NOT_EXIST')
+	if playlist['private'] :
+		filterOperation('viewPrivatePlaylist', user, playlist)
 	ans_obj = db.playlist_items.aggregate([
 		{
 			'$match': {
@@ -272,6 +276,8 @@ def listPlaylistVideos(pid, page_idx, page_size, user) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
 	if playlist is None :
 		raise UserError('PLAYLIST_NOT_EXIST')
+	if playlist['private'] :
+		filterOperation('viewPrivatePlaylist', user, playlist)
 	ans_obj = db.playlist_items.aggregate([
 		{
 			'$match': {
@@ -318,10 +324,12 @@ def listAllPlaylistVideosUnordered(pid) :
 	ans_obj = db.playlist_items.find({"pid": ObjectId(pid)})
 	return [ObjectId(item['vid']) for item in ans_obj], playlist['videos']
 
-def listAllPlaylistVideosOrdered(pid) :
+def listAllPlaylistVideosOrdered(pid, user) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
 	if playlist is None :
 		raise UserError('PLAYLIST_NOT_EXIST')
+	if playlist['private'] :
+		filterOperation('viewPrivatePlaylist', user, playlist)
 	ans_obj = db.playlist_items.aggregate([
 		{
 			'$match': {
@@ -349,7 +357,7 @@ def listAllPlaylistVideosOrdered(pid) :
 	])
 	return [i for i in ans_obj], playlist['videos'], playlist
 
-def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
+def listPlaylists(user, page_idx, page_size, query = {}, order = 'latest') :
 	sort_obj = { "meta.created_at" : 1 }
 	if order == 'latest':
 		sort_obj = { "meta.created_at" : 1 }
@@ -357,7 +365,11 @@ def listPlaylists(page_idx, page_size, query = {}, order = 'latest') :
 		sort_obj = { "meta.created_at" : -1 }
 	if order == 'views':
 		sort_obj = { "views" : 1 }
-	query = {'$and': [query, {'private': False}]}
+	if isObjectAgnosticOperationPermitted('viewPrivatePlaylist', user) :
+		auth_obj = {}
+	else :
+		auth_obj = {'$or': [{'private': False}, {'meta.created_by': user['_id'] if user else ''}]}
+	query = {'$and': [query, auth_obj]}
 	ans_obj = db.playlists.aggregate([
 	{
 		"$match" : query
@@ -496,10 +508,14 @@ def updateCommonTags(pid, tags, user) :
 			tagdb.update_many_items_tags_merge(all_video_ids, tags_added, makeUserMeta(user), session = s())
 		s.mark_succeed()
 
-def listPlaylistsForVideo(vid) :
+def listPlaylistsForVideo(user, vid) :
 	video = tagdb.retrive_item({'_id': ObjectId(vid)})
 	if video is None :
 		raise UserError('VIDEO_NOT_EXIST')
+	if isObjectAgnosticOperationPermitted('viewPrivatePlaylist', user) :
+		auth_obj = {}
+	else :
+		auth_obj = {'$or': [{'playlist.private': False}, {'playlist.meta.created_by': user['_id'] if user else ''}]}
 	result = db.playlist_items.aggregate([
 		{
 			'$match': {
@@ -511,7 +527,8 @@ def listPlaylistsForVideo(vid) :
 				},
 				{
 					'vid': video['_id']
-				}]
+				}
+				]
 			}
 		},
 		{
@@ -526,6 +543,9 @@ def listPlaylistsForVideo(vid) :
 			'$unwind': {
 				'path': '$playlist'
 			}
+		},
+		{
+			'$match': auth_obj
 		}
 	])
 	ans = []
@@ -681,7 +701,7 @@ def insertIntoPlaylistLockFree(pid, vid, rank, user) :
 def createPlaylistFromCopies(pid, site, user) :
 	if site not in ["youtube", "bilibili", "nicovideo", "twitter", "acfun"] :
 		raise UserError("UNSUPPORTED_SITE")
-	videos, _, playlist_obj = listAllPlaylistVideosOrdered(pid)
+	videos, _, playlist_obj = listAllPlaylistVideosOrdered(pid, user)
 	new_pid = createPlaylist('english', playlist_obj['title']['english'] + ' - %s' % site, playlist_obj['desc']['english'], playlist_obj['cover'], user, playlist_obj['private'])
 	with redis_lock.Lock(rdb, 'editLink'), redis_lock.Lock(rdb, "playlistEdit:" + str(new_pid)), MongoTransaction(client) as s :
 		for video in videos :

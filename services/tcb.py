@@ -55,13 +55,17 @@ _DEFAULT_OPS = [
 	'addTag', 'renameTagOrAddTagLanguage', 'renameOrAddAlias',
 	'editVideoTags', 'refreshVideoDetail', 'refreshVideoDetailURL',
 	'createPlaylist', 'createPlaylistFromSingleVideo', 'createPlaylistFromExistingPlaylist', 'updateCommonTags',
-	'postVideo', 'postVideoBatch']
+	'postVideo', 'postVideoBatch',
+	'createFolder', 'deleteFolder', 'addPlaylistsToFolder', 'removePlaylistsFromFolder', 'listFolder']
 
-def _check_object_agnostic(op_name, user) :
+def _check_object_agnostic(op_name, user, raise_exception = True) :
 	if user['access_control']['access_mode'] == 'blacklist' :
 		if op_name in user['access_control']['denied_ops'] :
 			# user is specifically denied of this operation, he is deemed unauthorised even if he is the onwer of an object
-			raise UserError('UNAUTHORISED_OPERATION')
+			if raise_exception :
+				raise UserError('UNAUTHORISED_OPERATION')
+			else :
+				return False
 		user_allowed_ops = list(set(user['access_control']['allowed_ops']) | set(_DEFAULT_OPS))
 		if op_name not in user_allowed_ops :
 			return False
@@ -69,27 +73,45 @@ def _check_object_agnostic(op_name, user) :
 		user_allowed_ops = user['access_control']['allowed_ops']
 		if op_name not in user_allowed_ops :
 			# user is in whitelist mode, he can only do things given by allowed_ops
-			raise UserError('UNAUTHORISED_OPERATION')
+			if raise_exception :
+				raise UserError('UNAUTHORISED_OPERATION')
+			else :
+				return False
 	return True
 
 def _check_object_specific(op_name, user, item_obj) :
 	if isinstance(item_obj, dict) :
 		if str(item_obj['meta']['created_by']) == str(user['_id']) :
 			return True
+		if 'privateEdit' in item_obj and not item_obj['privateEdit'] :
+			return True
 	elif isinstance(item_obj, str) or isinstance(item_obj, ObjectId) :
 		pass
 	return False
 
-def filterOperation(op_name, user, item_id = None) :
+def isObjectAgnosticOperationPermitted(op_name, user) :
+	if user is None :
+		return False
+	if user['access_control']['status'] == 'admin' :
+		return True
+	return _check_object_agnostic(op_name, user)
+
+def filterOperation(op_name, user, item_id = None, raise_exception = True) :
 	if not user :
-		raise UserError('UNAUTHORISED_OPERATION')
+		if raise_exception :
+			raise UserError('UNAUTHORISED_OPERATION')
+		else :
+			return False
 	if user['access_control']['status'] == 'admin' :
 		return True
 
 	if _check_object_agnostic(op_name, user) or _check_object_specific(op_name, user, item_id) :
 		return True
 
-	raise UserError('UNAUTHORISED_OPERATION')
+	if raise_exception :
+		raise UserError('UNAUTHORISED_OPERATION')
+	else :
+		return False
 
 def setVideoClearence(vid, clearence, user) :
 	if clearence >= 0 and clearence <= 3 :

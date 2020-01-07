@@ -121,6 +121,8 @@ def loginRequired(func):
 				log('WARN', {'ue': str(ue)})
 				if 'NOT_EXIST' in ue.msg :
 					abort(404)
+				elif ue.msg == 'UNAUTHORISED_OPERATION' :
+					abort(403)
 				else :
 					abort(400)
 			except Exception as ex:
@@ -176,6 +178,8 @@ def loginOptional(func):
 			log('WARN', {'ue': str(ue)})
 			if 'NOT_EXIST' in ue.msg :
 				abort(404)
+			elif ue.msg == 'UNAUTHORISED_OPERATION' :
+				abort(403)
 			else :
 				abort(400)
 		except Exception as ex :
