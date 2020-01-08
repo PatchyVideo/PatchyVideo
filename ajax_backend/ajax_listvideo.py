@@ -10,7 +10,7 @@ from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 from utils.exceptions import UserError
 
-from services.listVideo import listVideo, listVideoQuery, listMyVideo
+from services.listVideo import listVideo, listVideoQuery, listMyVideo, listYourVideo
 from services.tagStatistics import getCommonTagsWithCount
 from services.getVideo import getTagCategoryMap
 from config import QueryConfig
@@ -61,6 +61,22 @@ def ajax_listmyvideo_do(rd, data, user):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
 	videos, video_count = listMyVideo(data.page - 1, data.page_size, user, order)
+	ret = makeResponseSuccess({
+		"videos": videos,
+		"count": video_count,
+		"tags": getCommonTagsWithCount('CHS', videos),
+		"page_count": (video_count - 1) // data.page_size + 1,
+	})
+	return "json", ret
+
+@app.route('/listyourvideo.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_listyourvideo_do(rd, data, user):
+	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
+	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
+		raise AttributeError()
+	videos, video_count = listYourVideo(data.uid, data.page - 1, data.page_size, user, order)
 	ret = makeResponseSuccess({
 		"videos": videos,
 		"count": video_count,

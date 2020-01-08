@@ -81,3 +81,21 @@ def listMyVideo(page_idx, page_size, user, order = 'latest'):
 	videos = [i for i in videos]
 	videos = filterVideoList(videos, user)
 	return videos, video_count
+
+def listYourVideo(uid, page_idx, page_size, user, order = 'latest'):
+	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
+		raise UserError('INCORRECT_ORDER')
+	result = db.retrive_items({'meta.created_by': ObjectId(uid)})
+	if order == 'latest':
+		result = result.sort([("meta.created_at", -1)])
+	if order == 'oldest':
+		result = result.sort([("meta.created_at", 1)])
+	if order == 'video_latest':
+		result = result.sort([("item.upload_time", -1)])
+	if order == 'video_oldest':
+		result = result.sort([("item.upload_time", 1)])
+	videos = result.skip(page_idx * page_size).limit(page_size)
+	video_count = videos.count()
+	videos = [i for i in videos]
+	videos = filterVideoList(videos, user)
+	return videos, video_count

@@ -117,6 +117,19 @@ def listMyPlaylists(user, page_idx = 0, page_size = 10000, order = 'last_modifie
 	result = result.skip(page_idx * page_size).limit(page_size)
 	return result, result.count()
 
+def listYourPlaylists(user, uid, page_idx = 0, page_size = 10000, order = 'last_modified') :
+	if order not in ['latest', 'oldest', 'last_modified'] :
+		raise UserError('INCORRECT_ORDER')
+	result = db.playlists.find({'$and': [{'meta.created_by': ObjectId(uid)}, {'private': False}]})
+	if order == 'last_modified' :
+		result = result.sort([("meta.modified_at", -1)])
+	if order == 'latest':
+		result = result.sort([("meta.created_at", 1)])
+	if order == 'oldest':
+		result = result.sort([("meta.created_at", -1)])
+	result = result.skip(page_idx * page_size).limit(page_size)
+	return result, result.count()
+
 def updatePlaylistCover(pid, cover, user) :
 	log(obj = {'pid': pid, 'cover': cover})
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :

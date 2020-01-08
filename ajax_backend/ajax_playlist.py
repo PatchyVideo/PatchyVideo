@@ -78,6 +78,21 @@ def ajax_lists_myplaylists(rd, user, data):
 		"page_count": (playlists_count - 1) // page_size + 1
 		})
 
+@app.route('/lists/yourplaylists', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_lists_yourplaylists(rd, user, data):
+	page_size = int(data.page_size) if 'page_size' in data.__dict__ is not None else 10000
+	page = (int(data.page) - 1) if 'page' in data.__dict__ is not None else 0
+	order = data.order if 'order' in data.__dict__ is not None and data.order else 'last_modified'
+	playlists, playlists_count = listYourPlaylists(user, data.uid, page, page_size, order)
+	result = [item for item in playlists]
+	return "json", makeResponseSuccess({
+		"playlists": result,
+		"count": playlists_count,
+		"page_count": (playlists_count - 1) // page_size + 1
+		})
+
 @app.route('/lists/all.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
