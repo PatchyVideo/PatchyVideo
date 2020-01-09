@@ -62,6 +62,7 @@ import re
 import redis_lock
 
 from bson import ObjectId
+from datetime import datetime
 
 def _verifyPath(path) :
 	if path :
@@ -76,6 +77,9 @@ def _verifyFolderName(name) :
 
 def _joinPath(a, b) :
 	return a + b + "/"
+
+def _parentPath(p) :
+	return p[: p[: -1].rfind('/') + 1], p[p[: -1].rfind('/') + 1: -1]
 
 def _findFolder(user, path, raise_exception = True) :
 	user_id = makeUserMeta(user)
@@ -144,8 +148,6 @@ def deleteFolder(user, path) :
 		s.mark_succeed()
 
 def deleteFolders(user, paths) :
-	filterOperation('deleteFolders', user, paths)
-
 	for path in paths :
 		deleteFolder(user, path)
 	
@@ -153,8 +155,35 @@ def copyFolder(user, dst_root, path) :
 	pass
 def moveFolder(user, dst_root, path) :
 	pass
+
 def renameFolder(user, path, new_name) :
-	pass
+	_verifyPath(path)
+	_verifyFolderName(new_name)
+	if path == "/" :
+		raise UserError('INVALID_PATH')
+
+	with redis_lock.Lock(rdb, f"folderEdit:{str(makeUserMeta(user))}:{path}"), MongoTransaction(client) as s :
+		folder_obj = _findFolder(user, path)
+		filterOperation('renameFolder', user, folder_obj)
+
+		parent_path, cur_folder = _parentPath(path)
+		if '\\' in cur_folder :
+			raise UserError('INVALID_PATH')
+		parent_path_escaped = re.escape(parent_path)
+		cur_folder_esacped = re.escape(cur_folder)
+		query_regex = f'^{parent_path_escaped}{cur_folder_esacped}\\/.*'
+		replace_regex = re.compile(f'^({parent_path_escaped})({cur_folder_esacped})(\\/.*)')
+		paths = db.playlist_folders.find({'user': makeUserMeta(user), 'path': {'$regex': query_regex}}, session = s())
+		db.playlist_folders.update_one({'user': makeUserMeta(user), 'path': {'$regex': f'^{parent_path_escaped}{cur_folder_esacped}\\/$'}}, {'$set': {'name': new_name}}, session = s())
+		for p in paths :
+			new_path = replace_regex.sub(rf'\1{new_name}\3', p['path'])
+			db.playlist_folders.update_one({'_id': p['_id']}, {'$set': {'path': new_path}}, session = s())
+		db.playlist_folders.update_one({'user': makeUserMeta(user), 'path': {'$regex': query_regex}}, {'$set': {
+			'meta.modified_by': makeUserMeta(user),
+			'meta.modified_at': datetime.now()
+		}}, session = s())
+		s.mark_succeed()
+
 def changeFolderAccess(user, path, privateView, privateEdit, recursive = True) :
 	_verifyPath(path)
 
@@ -166,7 +195,7 @@ def changeFolderAccess(user, path, privateView, privateEdit, recursive = True) :
 		if recursive :
 			query_regex = f'^{path_escaped}.*'
 		else :
-			query_regex = f'^{path_escaped}[^\\/]*\\/$'
+			query_regex = f'^{path_escaped}$'
 		db.playlist_folders.update_many(
 		{
 			'user': makeUserMeta(user),
@@ -178,6 +207,11 @@ def changeFolderAccess(user, path, privateView, privateEdit, recursive = True) :
 				'privateEdit': privateEdit
 			}
 		}, session = s())
+		db.playlist_folders.update_one({'_id': folder_obj['_id']}, {'$set': {
+			'meta.modified_by': makeUserMeta(user),
+			'meta.modified_at': datetime.now()
+		}}, session = s())
+		s.mark_succeed()
 
 def addPlaylistsToFolder(user, path, playlists) :
 	_verifyPath(path)
@@ -206,6 +240,11 @@ def addPlaylistsToFolder(user, path, playlists) :
 				'meta': makeUserMetaObject(user)
 			}
 			db.playlist_folders.insert_one(playlist_obj, session = s())
+
+		db.playlist_folders.update_one({'_id': folder_obj['_id']}, {'$set': {
+			'meta.modified_by': makeUserMeta(user),
+			'meta.modified_at': datetime.now()
+		}}, session = s())
 		s.mark_succeed()
 
 
@@ -222,6 +261,10 @@ def removePlaylistsFromFolder(user, path, playlists) :
 			query_regex = f'^{path_escaped}.*'
 			db.playlist_folders.delete_one({'user': makeUserMeta(user), 'path': {'$regex': query_regex}}, session = s())
 
+		db.playlist_folders.update_one({'_id': folder_obj['_id']}, {'$set': {
+			'meta.modified_by': makeUserMeta(user),
+			'meta.modified_at': datetime.now()
+		}}, session = s())
 		s.mark_succeed()
 
 def listFolder(viewing_user, user, path) :
