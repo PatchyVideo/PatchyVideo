@@ -5,6 +5,7 @@ from flask import render_template, request, jsonify, redirect, session, abort
 
 from db import tagdb
 from init import app
+from utils import getDefaultJSON
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.tagtools import translateTagsToPreferredLanguage, getTagObjects
 from services.playlist import *
@@ -55,7 +56,7 @@ def ajax_playlist_movedown_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_lists_new_do(rd, user, data):
-	private = data.private if 'private' in data.__dict__ is not None else False
+	private = getDefaultJSON(data, 'private', False)
 	if data.pid :
 		updatePlaylistInfo(data.pid, "english", data.title, data.desc, data.cover, user, private)
 		return "json", makeResponseSuccess({"pid": data.pid})
@@ -67,9 +68,9 @@ def ajax_lists_new_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_lists_myplaylists(rd, user, data):
-	page_size = int(data.page_size) if 'page_size' in data.__dict__ is not None else 10000
-	page = (int(data.page) - 1) if 'page' in data.__dict__ is not None else 0
-	order = data.order if 'order' in data.__dict__ is not None and data.order else 'last_modified'
+	page_size = getDefaultJSON(data, 'page_size', 20)
+	page = getDefaultJSON(data, 'page', 1) - 1
+	order = getDefaultJSON(data, 'order', 'last_modified')
 	playlists, playlists_count = listMyPlaylists(user, page, page_size, order)
 	result = [item for item in playlists]
 	return "json", makeResponseSuccess({
@@ -82,9 +83,9 @@ def ajax_lists_myplaylists(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_lists_yourplaylists(rd, user, data):
-	page_size = int(data.page_size) if 'page_size' in data.__dict__ is not None else 10000
-	page = (int(data.page) - 1) if 'page' in data.__dict__ is not None else 0
-	order = data.order if 'order' in data.__dict__ is not None and data.order else 'last_modified'
+	page_size = getDefaultJSON(data, 'page_size', 20)
+	page = getDefaultJSON(data, 'page', 1) - 1
+	order = getDefaultJSON(data, 'order', 'last_modified')
 	playlists, playlists_count = listYourPlaylists(user, data.uid, page, page_size, order)
 	result = [item for item in playlists]
 	return "json", makeResponseSuccess({
@@ -97,9 +98,9 @@ def ajax_lists_yourplaylists(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_lists_all_do(rd, user, data):
-	page_size = int(data.page_size) if 'page_size' in data.__dict__ is not None else 10000
-	page = (int(data.page) - 1) if 'page' in data.__dict__ is not None else 0
-	order = data.order if 'order' in data.__dict__ is not None and data.order else 'last_modified'
+	page_size = getDefaultJSON(data, 'page_size', 20)
+	page = getDefaultJSON(data, 'page', 1) - 1
+	order = getDefaultJSON(data, 'order', 'last_modified')
 	playlists, playlists_count = listPlaylists(user, page, page_size, {}, order)
 	result = [item for item in playlists]
 	return "json", makeResponseSuccess({
@@ -112,8 +113,8 @@ def ajax_lists_all_do(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_lists_get_playlist_do(rd, user, data):
-	page_size = int(data.page_size) if 'page_size' in data.__dict__ is not None else 10000
-	page = (int(data.page) - 1) if 'page' in data.__dict__ is not None else 0
+	page_size = getDefaultJSON(data, 'page_size', 20)
+	page = getDefaultJSON(data, 'page', 1) - 1
 	playlist = getPlaylist(data.pid)
 	if playlist["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) :
 		abort(404)

@@ -7,6 +7,7 @@ import redis
 from flask import render_template, request, current_app, jsonify, redirect, session
 
 from init import app, rdb
+from utils import getDefaultJSON
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 from utils.http import post_raw
@@ -19,9 +20,9 @@ from config import VideoConfig, TagsConfig
 @loginRequiredJSON
 @jsonRequest
 def ajax_postvideo_do(rd, user, data):
-	dst_copy = data.copy if 'copy' in data.__dict__ and data.copy is not None else ''
-	dst_playlist = data.pid if 'pid' in data.__dict__ and data.pid is not None else ''
-	dst_rank = int(data.rank if 'rank' in data.__dict__ and data.rank is not None else -1)
+	dst_copy = getDefaultJSON(data, 'copy', '')
+	dst_playlist = getDefaultJSON(data, 'pid', '')
+	dst_rank = getDefaultJSON(data, 'rank', -1)
 	task_id = postVideo(user, data.url, data.tags, dst_copy, dst_playlist, dst_rank)
 	return "json", makeResponseSuccess({"task_id": task_id})
 
@@ -29,10 +30,10 @@ def ajax_postvideo_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_postvideo_batch_do(rd, user, data):
-	dst_copy = data.copy if 'copy' in data.__dict__ and data.copy is not None else ''
-	dst_playlist = data.pid if 'pid' in data.__dict__ and data.pid is not None else ''
-	dst_rank = int(data.rank if 'rank' in data.__dict__ and data.rank is not None else -1)
-	as_copies = data.as_copies if 'as_copies' in data.__dict__ and data.as_copies is not None else False
+	dst_copy = getDefaultJSON(data, 'copy', '')
+	dst_playlist = getDefaultJSON(data, 'pid', '')
+	dst_rank = getDefaultJSON(data, 'rank', -1)
+	as_copies = getDefaultJSON(data, 'as_copies', False)
 	task_ids = postVideoBatch(user, data.videos, data.tags, dst_copy, dst_playlist, dst_rank, as_copies)
 	return "json", makeResponseSuccess({"task_ids": task_ids})
 
@@ -47,5 +48,7 @@ def ajax_post_list_pending_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_post_list_failed_do(rd, user, data):
-	result = listFailedPosts(user, int(data.page) - 1, int(data.page_size))
+	page_size = getDefaultJSON(data, 'page_size', 20)
+	page = getDefaultJSON(data, 'page', 1) - 1
+	result = listFailedPosts(user, page, page_size)
 	return "json", makeResponseSuccess(result)

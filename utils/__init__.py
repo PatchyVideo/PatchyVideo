@@ -15,5 +15,10 @@ class Namespace():
         ret.__dict__.update(d)
         return ret
 
-
+def getDefaultJSON(data, name, default_value) :
+    if hasattr(data, name) :
+        val = getattr(data, name)
+        if val is not None :
+            return type(default_value)(val)
+    return default_value
 

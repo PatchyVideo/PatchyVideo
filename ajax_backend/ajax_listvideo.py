@@ -6,6 +6,7 @@ import redis
 from flask import render_template, request, current_app, jsonify, redirect, session
 
 from init import app
+from utils import getDefaultJSON
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 from utils.exceptions import UserError
@@ -19,8 +20,8 @@ from config import QueryConfig
 @loginOptional
 @jsonRequest
 def ajax_listvideo_do(rd, data, user):
-	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
-	hide_placeholder = data.hide_placeholder if 'hide_placeholder' in data.__dict__ and data.hide_placeholder is not None else True
+	order = getDefaultJSON(data, 'order', 'latest')
+	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
 	videos, video_count, related_tags = listVideo(data.page - 1, data.page_size, user, order, hide_placeholder = hide_placeholder)
@@ -39,8 +40,8 @@ def ajax_listvideo_do(rd, data, user):
 def ajax_queryvideo_do(rd, data, user):
 	if len(data.query) > QueryConfig.MAX_QUERY_LENGTH :
 		raise UserError('QUERY_TOO_LONG')
-	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
-	hide_placeholder = data.hide_placeholder if 'hide_placeholder' in data.__dict__ and data.hide_placeholder is not None else True
+	order = getDefaultJSON(data, 'order', 'latest')
+	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
 	videos, related_tags, video_count = listVideoQuery(data.query, data.page - 1, data.page_size, user, order,  hide_placeholder = hide_placeholder)
@@ -57,7 +58,7 @@ def ajax_queryvideo_do(rd, data, user):
 @loginRequiredJSON
 @jsonRequest
 def ajax_listmyvideo_do(rd, data, user):
-	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
+	order = getDefaultJSON(data, 'order', 'latest')
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
 	videos, video_count = listMyVideo(data.page - 1, data.page_size, user, order)
@@ -73,7 +74,7 @@ def ajax_listmyvideo_do(rd, data, user):
 @loginOptional
 @jsonRequest
 def ajax_listyourvideo_do(rd, data, user):
-	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
+	order = getDefaultJSON(data, 'order', 'latest')
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
 	videos, video_count = listYourVideo(data.uid, data.page - 1, data.page_size, user, order)

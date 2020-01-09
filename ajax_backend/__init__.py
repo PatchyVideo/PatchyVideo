@@ -19,5 +19,6 @@ from . import ajax_user
 from . import ajax_fetch_video_frontend
 from . import ajax_getvideo
 from . import ajax_tags
+from . import ajax_playlist_folder
 from . import resource_proxy
 

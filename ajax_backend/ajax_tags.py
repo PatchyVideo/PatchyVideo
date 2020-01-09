@@ -6,6 +6,7 @@ import redis
 from flask import render_template, request, current_app, jsonify, redirect, session
 
 from init import app
+from utils import getDefaultJSON
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 
@@ -16,7 +17,7 @@ from services.autotag import inferTagsFromUtags
 @loginOptional
 @jsonRequest
 def ajax_get_related_tags_do(rd, user, data):
-	max_count = data.max_count if 'max_count' in data.__dict__ and data.max_count is not None else 10
+	max_count = getDefaultJSON(data, 'max_count', 10)
 	start = time.time()
 	ret = getRelatedTagsExperimental('CHS', data.tags, max_count)
 	end = time.time()
