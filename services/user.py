@@ -106,6 +106,14 @@ def query_user(uid) :
 		raise UserError('USER_NOT_EXIST')
 	return obj
 
+def queryUsername(username) :
+	user_obj_find = db.users.find_one({'profile.username': username})
+	if user_obj_find is None :
+		raise UserError('USER_NOT_EXIST')
+	del user_obj_find['access_control']
+	del user_obj_find['crypto']
+	return user_obj_find
+
 def checkIfUserExists(username) :
 	user_obj_find = db.users.find_one({'profile.username': username})
 	if user_obj_find is not None :
