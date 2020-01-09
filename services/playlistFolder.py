@@ -155,8 +155,29 @@ def moveFolder(user, dst_root, path) :
 	pass
 def renameFolder(user, path, new_name) :
 	pass
-def changeFolderAccess(user, path, privateView, privateEdit, recursive) :
-	pass
+def changeFolderAccess(user, path, privateView, privateEdit, recursive = True) :
+	_verifyPath(path)
+
+	with redis_lock.Lock(rdb, f"folderEdit:{str(makeUserMeta(user))}:{path}"), MongoTransaction(client) as s :
+		folder_obj = _findFolder(user, path)
+		filterOperation('changeFolderAccess', user, folder_obj)
+
+		path_escaped = re.escape(path)
+		if recursive :
+			query_regex = f'^{path_escaped}.*'
+		else :
+			query_regex = f'^{path_escaped}[^\\/]*\\/$'
+		db.playlist_folders.update_many(
+		{
+			'user': makeUserMeta(user),
+			'path': {'$regex': query_regex}
+		},
+		{
+			'$set': {
+				'privateView': privateView,
+				'privateEdit': privateEdit
+			}
+		}, session = s())
 
 def addPlaylistsToFolder(user, path, playlists) :
 	_verifyPath(path)
@@ -169,7 +190,7 @@ def addPlaylistsToFolder(user, path, playlists) :
 			playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 			if playlist is None :
 				continue # skip non-exist playlist
-			if playlist['private'] and str(playlist['meta']['created_by']) != str(makeUserMeta(user)) :
+			if playlist['private'] and not filterOperation('viewPrivatePlaylist', user, playlist, raise_exception = False) :
 				continue # skip other's private playlist
 			playlist_path = path + "\\" + str(playlist['_id']) + "\\/"
 			if _findFolder(user, playlist_path, raise_exception = False) :
