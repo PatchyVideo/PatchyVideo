@@ -98,9 +98,12 @@ def login(username, password, challenge, login_session_id) :
 	raise UserError('INCORRECT_SESSION')
 
 def query_user(uid) :
-	obj = db.users.find_one({'_id': ObjectId(uid)})
-	del obj['access_control']
-	del obj['crypto']
+	try :
+		obj = db.users.find_one({'_id': ObjectId(uid)})
+		del obj['access_control']
+		del obj['crypto']
+	except :
+		raise UserError('USER_NOT_EXIST')
 	return obj
 
 def checkIfUserExists(username) :
