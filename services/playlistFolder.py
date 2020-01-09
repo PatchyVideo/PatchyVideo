@@ -82,7 +82,12 @@ def _parentPath(p) :
 	return p[: p[: -1].rfind('/') + 1], p[p[: -1].rfind('/') + 1: -1]
 
 def _findFolder(user, path, raise_exception = True) :
-	user_id = makeUserMeta(user)
+	if isinstance(user, str) :
+		user_id = user
+	elif isinstance(user, dict) :
+		user_id = makeUserMeta(user)
+	else :
+		assert False
 	obj = db.playlist_folders.find_one({'user': user_id, 'path': path})
 	if obj is None :
 		if path == '/' :
@@ -270,13 +275,15 @@ def removePlaylistsFromFolder(user, path, playlists) :
 def listFolder(viewing_user, user, path) :
 	_verifyPath(path)
 	folder_obj = _findFolder(user, path)
+	if isinstance(user, dict) :
+		user = ObjectId(user['_id'])
 	if folder_obj['privateView'] :
 		filterOperation('listFolder', viewing_user, folder_obj)
 
 	path_escaped = re.escape(path)
 	query_regex = f'^{path_escaped}[^\\/]*\\/$'
 	ret = db.playlist_folders.aggregate([
-		{'$match': {'user': makeUserMeta(user), 'path': {'$regex': query_regex}}},
+		{'$match': {'user': user, 'path': {'$regex': query_regex}}},
 		{'$lookup': {'from': 'playlists', 'localField': 'playlist', 'foreignField': '_id', 'as': 'playlist_object'}},
 		{'$unwind': {'path': '$playlist_object', 'preserveNullAndEmptyArrays': True}},
 		{'$sort': {'path': 1}}
@@ -286,13 +293,13 @@ def listFolder(viewing_user, user, path) :
 	
 	for item in items :
 		assert not (('playlist_object' in item) ^ item['leaf'])
-		if item['privateView'] and (viewing_user is None or (str(user['_id']) != str(viewing_user['_id']) and viewing_user['status'] != 'admin')) :
+		if item['privateView'] and (viewing_user is None or (str(user) != str(viewing_user['_id']) and viewing_user['status'] != 'admin')) :
 			continue
 		if 'playlist_object' in item : # playlist item (leaf)
 			if item['playlist_object'] is None : # leaf playlist does not exist, do not display
 				# TODO: maybe just display it is gone, not deleting it
 				with MongoTransaction(client) as s :
-					db.playlist_folders.delete_one({'user': makeUserMeta(user), 'path': item['path']}, session = s())
+					db.playlist_folders.delete_one({'user': user, 'path': item['path']}, session = s())
 					s.mark_succeed()
 			elif item['playlist_object']['private'] : # playlist is private
 				if filterOperation('viewPrivatePlaylist', viewing_user, item['playlist_object'], raise_exception = False) :
