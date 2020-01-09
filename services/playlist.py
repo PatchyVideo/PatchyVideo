@@ -151,7 +151,7 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 		log(obj = {'playlist': list_obj})
 		if list_obj is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('updatePlaylistCoverVID', user, list_obj)
+		filterOperation('updatePlaylistCover', user, list_obj)
 		video_obj = filterSingleVideo(vid, user)
 		if video_obj is None :
 			raise UserError('VIDEO_NOT_EXIST')
@@ -426,10 +426,12 @@ def listPlaylists(user, page_idx, page_size, query = {}, order = 'latest') :
 	else :
 		return [], 0
 
-def listCommonTagIDs(pid) :
+def listCommonTagIDs(pid, user) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
 	if playlist is None :
 		raise UserError('PLAYLIST_NOT_EXIST')
+	if playlist['private'] :
+		filterOperation('viewPrivatePlaylist', user, playlist)
 	result = db.playlist_items.aggregate([
 	{
 		"$match" : {
@@ -494,8 +496,8 @@ def listCommonTagIDs(pid) :
 		return []
 
 @usingResource('tags')
-def listCommonTags(pid, language) :
-	return tagdb.translate_tag_ids_to_user_language(listCommonTagIDs(pid), language)[0]
+def listCommonTags(user, pid, language) :
+	return tagdb.translate_tag_ids_to_user_language(listCommonTagIDs(pid, user), language)[0]
 
 @usingResource('tags')
 def updateCommonTags(pid, tags, user) :
@@ -504,9 +506,9 @@ def updateCommonTags(pid, tags, user) :
 	with MongoTransaction(client) as s :
 		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		# user is editing video tags, not the playlist itself, no need to lock playlist or check for authorization
+		# user is editing video tags, not the playlist itself, no need to lock playlist
 		tags = tagdb.filter_and_translate_tags(tags, s())
-		old_tags = listCommonTagIDs(pid)
+		old_tags = listCommonTagIDs(pid, user)
 		log(obj = {'old_tags': old_tags})
 		old_tags_set = set(old_tags)
 		new_tags_set = set(tags)

@@ -50,13 +50,14 @@ def filterSingleVideo(vid, user, raise_error = True) :
 		else :
 			return None
 
+# Your default privileges, which is your starting rights
 _DEFAULT_OPS = [
 	'breakLink', 'syncTags', 'broadcastTags',
 	'addTag', 'renameTagOrAddTagLanguage', 'renameOrAddAlias',
 	'editVideoTags', 'refreshVideoDetail', 'refreshVideoDetailURL',
-	'createPlaylist', 'createPlaylistFromSingleVideo', 'createPlaylistFromExistingPlaylist', 'updateCommonTags',
+	'createPlaylist', 'createPlaylistFromSingleVideo', 'createPlaylistFromExistingPlaylist',
 	'postVideo', 'postVideoBatch',
-	'createFolder', 'deleteFolder', 'addPlaylistsToFolder', 'removePlaylistsFromFolder', 'listFolder']
+	'createFolder', 'listFolder']
 
 def _check_object_agnostic(op_name, user, raise_exception = True) :
 	if user['access_control']['access_mode'] == 'blacklist' :
@@ -97,6 +98,9 @@ def isObjectAgnosticOperationPermitted(op_name, user) :
 	return _check_object_agnostic(op_name, user)
 
 def filterOperation(op_name, user, item_id = None, raise_exception = True) :
+	"""
+	If you are not the creator of item_id, then unless op_name is part of your rights, you will be denied
+	"""
 	if not user :
 		if raise_exception :
 			raise UserError('UNAUTHORISED_OPERATION')

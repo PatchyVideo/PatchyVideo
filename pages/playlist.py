@@ -82,7 +82,7 @@ def pages_playlist(pid, rd, user):
 def pages_playlist_addvideo(pid, rd, user):
 	rd.copy = ''
 	rd.pid = pid
-	rd.default_tags = '\n'.join(listCommonTags(pid, 'CHS'))
+	rd.default_tags = '\n'.join(listCommonTags(user, pid, 'CHS'))
 	return "postvideo.html"
 
 @app.route('/list/<pid>/del', methods = ['GET'])
@@ -97,7 +97,7 @@ def pages_playlist_insertvideo(pid, rd, user):
 	rd.copy = ''
 	rd.pid = pid
 	rd.rank = -1
-	rd.default_tags = '\n'.join(listCommonTags(pid, 'CHS'))
+	rd.default_tags = '\n'.join(listCommonTags(user, pid, 'CHS'))
 	if 'rank' in request.values:
 		try:
 			rd.rank = int(request.values['rank'])
