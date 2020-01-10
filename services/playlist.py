@@ -502,10 +502,11 @@ def listCommonTags(user, pid, language) :
 @usingResource('tags')
 def updateCommonTags(pid, tags, user) :
 	log(obj = {'pid': pid, 'tags': tags})
-	filterOperation('updateCommonTags', user, pid)
 	with MongoTransaction(client) as s :
-		if db.playlists.find_one({'_id': ObjectId(pid)}) is None :
+		playlist_obj = db.playlists.find_one({'_id': ObjectId(pid)})
+		if playlist_obj is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
+		filterOperation('updateCommonTags', user, playlist_obj)
 		# user is editing video tags, not the playlist itself, no need to lock playlist
 		tags = tagdb.filter_and_translate_tags(tags, s())
 		old_tags = listCommonTagIDs(pid, user)
