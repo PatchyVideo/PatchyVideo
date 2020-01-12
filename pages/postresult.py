@@ -6,7 +6,6 @@ from flask import render_template, request, jsonify, redirect, session
 
 from init import app, rdb
 from utils.interceptors import basePage
-from services.listVideo import listVideo, listVideoQuery
 from utils.html import buildPageSelector
 from bson.json_util import dumps, loads
 

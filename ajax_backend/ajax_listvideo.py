@@ -44,7 +44,7 @@ def ajax_queryvideo_do(rd, data, user):
 	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, related_tags, video_count = listVideoQuery(data.query, data.page - 1, data.page_size, user, order,  hide_placeholder = hide_placeholder)
+	videos, related_tags, video_count = listVideoQuery(user, data.query, data.page - 1, data.page_size, order,  hide_placeholder = hide_placeholder)
 	tag_category_map = getTagCategoryMap(related_tags)
 	ret = makeResponseSuccess({
 		"videos": [i for i in videos],
