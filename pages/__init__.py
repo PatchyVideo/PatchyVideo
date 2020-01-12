@@ -17,3 +17,4 @@ from . import search
 from . import playlists_list
 from . import playlist
 from . import postresult
+from . import ipfs
