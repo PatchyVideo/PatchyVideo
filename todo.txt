@@ -101,6 +101,7 @@ remove unnecessary fileds from ajax results
     lacking UI support
 add view pending post playlist job interface
 #async frontend helper, create a new container for this task
+add index for placeholder and folder
 
 ======================
 offical launch
