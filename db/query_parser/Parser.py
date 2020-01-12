@@ -188,6 +188,13 @@ def _prepare_attributes(name, value):
 			return { 'tags' : { '$not' : { '$size' : 0 } } }
 		else :
 			return {}
+	elif name == 'placeholder':
+		if value == 'true' :
+			return { 'item.placeholder' : True }
+		elif value == 'false' :
+			return { 'item.placeholder' : False }
+		else :
+			return {}
 	return {}
 
 def _getk(node, idx):
