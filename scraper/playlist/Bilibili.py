@@ -60,7 +60,12 @@ class Bilibili() :
 			remaining_count = media_count
 			for video_obj in resp_obj['data']['medias'] :
 				avid = self.EXTRACT_AVID.search(video_obj['short_link']).group(1)
-				yield f"https://www.bilibili.com/video/{avid}"
+				overrides =  {"desc": video_obj['intro']}
+				try :
+					overrides["title"] = f"【已失效视频】{video_obj['pages'][0]['title']}"
+				except :
+					pass
+				yield f"https://www.bilibili.com/video/{avid}", overrides
 				remaining_count -= 1
 			page = 2
 			while remaining_count > 0 :
@@ -71,7 +76,12 @@ class Bilibili() :
 					return
 				for video_obj in resp_obj['data']['medias'] :
 					avid = self.EXTRACT_AVID.search(video_obj['short_link']).group(1)
-					yield f"https://www.bilibili.com/video/{avid}"
+					overrides =  {"desc": video_obj['intro']}
+					try :
+						overrides["title"] = f"【已失效视频】{video_obj['pages'][0]['title']}"
+					except :
+						pass
+					yield f"https://www.bilibili.com/video/{avid}", overrides
 					remaining_count -= 1
 				page += 1
 

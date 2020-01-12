@@ -83,7 +83,7 @@ def createPlaylistFromExistingPlaylist(language, url, user, use_autotag = False)
 	cralwer, cleanURL = dispatch_playlist(url)
 	if not cralwer :
 		raise UserError('UNSUPPORTED_PLAYLIST_URL')
-	new_playlist_id = createPlaylist(language, str(datetime.now()), str(datetime.now()), '', user)
+	new_playlist_id = createPlaylist(language, "创建中...", str(datetime.now()), '', user)
 	log(obj = {'pid': new_playlist_id})
 	task_id = _postPlaylistTask(cleanURL, new_playlist_id, use_autotag, user)
 	return new_playlist_id, task_id

@@ -26,7 +26,7 @@ from .postVideo import putVideoTask
 async def postTask(json_obj) :
 	return await putVideoTask(json_obj)
 
-def _createJsonForPosting(url, dst_playlist, playlist_ordered, use_autotag, user, event_id) :
+def _createJsonForPosting(url, dst_playlist, playlist_ordered, use_autotag, user, event_id, field_overrides = None) :
 	return {
 		'url' : url,
 		'tags' : [],
@@ -36,23 +36,28 @@ def _createJsonForPosting(url, dst_playlist, playlist_ordered, use_autotag, user
 		'other_copies' : [],
 		'user' : user,
 		'playlist_ordered' : playlist_ordered,
-		'event_id': event_id
+		'event_id': event_id,
+		'field_overrides': field_overrides
 	}
 
 async def _postVideosBatch(videos, pid, use_autotag, user, event_id) :
 	unique_ids = []
 	unique_id_urls = []
 	for url in videos :
+		if isinstance(url, tuple) :
+			url, overrides = url
+		else :
+			overrides = None
 		obj, cleanURL = dispatch_video(url)
 		# Here we allow batch post to be partially successful
 		if obj is not None :
 			uid = obj.unique_id(obj, cleanURL)
 			if not uid in unique_ids : # remove duplicated items
 				unique_ids.append(uid)
-				unique_id_urls.append((uid, url))
+				unique_id_urls.append((uid, url, overrides))
 	task_ids = []
-	for _, cleanURL in unique_id_urls :
-		task_id = await postTask(_createJsonForPosting(cleanURL, pid, unique_ids, use_autotag, user, event_id))
+	for _, cleanURL, overrides in unique_id_urls :
+		task_id = await postTask(_createJsonForPosting(cleanURL, pid, unique_ids, use_autotag, user, event_id, overrides))
 		task_ids.append(task_id)
 	return task_ids
 	
@@ -65,6 +70,8 @@ async def postPlaylistAsync(url, pid, use_autotag, user, event_id) :
 	setEventUserAndID(user, event_id)
 	async for single_video_url in crawler.run(self = crawler, website_pid = website_pid) :
 		videos.append(single_video_url)
+	setEventUserAndID(user, event_id)
+	task_ids = await _postVideosBatch(videos, pid, use_autotag, user, event_id)
 	log_e(event_id, user, 'postPlaylistAsync', obj = {'video_count': len(videos)})
 	if len(videos) == 0 :
 		raise UserError('EMPTY_PLAYLIST')
@@ -72,7 +79,6 @@ async def postPlaylistAsync(url, pid, use_autotag, user, event_id) :
 	metadata = await crawler.get_metadata(self = crawler, url = url)
 	setEventUserAndID(user, event_id)
 	updatePlaylistInfo(pid, "english", metadata['title'], metadata['desc'], '', user)
-	task_ids = await _postVideosBatch(videos, pid, use_autotag, user, event_id)
 	return 'SUCCEED', {'task_ids': task_ids}
 
 async def postPlaylistAsyncNoexcept(url, pid, use_autotag, user, event_id) :

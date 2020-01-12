@@ -214,7 +214,7 @@ class _PlaylistReorederHelper() :
 _playlist_reorder_helper = _PlaylistReorederHelper()
 
 @usingResourceAsync('tags')
-async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, playlist_ordered, user, update_video_detail, event_id):
+async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, playlist_ordered, user, update_video_detail, event_id, field_override = None):
 	parsed = None
 	try :
 		dst_playlist = str(dst_playlist)
@@ -241,6 +241,9 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 		else :
 			url = clear_url(url)
 		lock_id = "videoEdit:" + ret["data"]["unique_id"]
+		if 'placeholder' in ret['data'] and ret['data']["placeholder"] and field_override :
+			for key in field_override :
+				ret['data'][key] = field_override[key]
 		async with RedisLockAsync(rdb, lock_id) :
 			unique, conflicting_item = verifyUniqueness(ret["data"]["unique_id"])
 			playlists = []
@@ -397,8 +400,9 @@ async def postVideoAsyncJSON(param_json) :
 	user = param_json['user']
 	playlist_ordered = param_json['playlist_ordered']
 	event_id = param_json['event_id']
+	field_overrides = param_json['field_overrides'] if 'field_overrides' in param_json else None
 	update_video_detail = param_json['update_video_detail'] if 'update_video_detail' in param_json else False
-	ret, ret_obj = await postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, playlist_ordered, user, update_video_detail, event_id)
+	ret, ret_obj = await postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, playlist_ordered, user, update_video_detail, event_id, field_overrides)
 	return {'result' : ret, 'result_obj' : ret_obj}
 
 def verifyUniqueness(postingId):
@@ -419,6 +423,7 @@ async def func_with_write_result(func, task_id, param_json) :
 		del param_json_for_user['user']
 		del param_json_for_user['event_id']
 		del param_json_for_user['playlist_ordered']
+		del param_json_for_user['field_overrides']
 		tagdb.db.failed_posts.insert_one({'uid': ObjectId(param_json['user']['_id']), 'ret': ret, 'post_param': param_json_for_user})
 
 async def task_runner(func, queue) :
@@ -435,6 +440,7 @@ async def put_task(queue, param_json) :
 	del param_json_for_user['user']
 	del param_json_for_user['playlist_ordered']
 	del param_json_for_user['event_id']
+	del param_json_for_user['field_overrides']
 	log_e(param_json['event_id'], param_json['user'], op = 'put_task', obj = {'task_id': task_id})
 	ret_json = dumps({'finished' : False, 'key': task_id, 'data' : None, 'params': param_json_for_user})
 	rdb.set(f'task-{task_id}', ret_json)

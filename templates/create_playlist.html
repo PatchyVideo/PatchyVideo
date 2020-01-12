@@ -32,6 +32,22 @@
             color: white;
             background-color: #5E5E5E;
         }
+
+        .tab-button {
+            width: 50%;
+            padding: 8px;
+            border: none;
+        }
+        .tab-active {
+            background-color: inherit;
+            border-bottom-width: 2px;
+            border-bottom-style: solid;
+            border-bottom-left-radius: 2px;
+            border-bottom-right-radius: 2px;
+            border-bottom-color: blue;
+            color: blue;
+        }
+
     </style>
     <meta id="copy" content="{{copy}}"></meta>
     <meta id="pid" content="{{pid}}"></meta>
@@ -66,9 +82,19 @@
 
         <div class="content">
             <div class="central-form" style="top: 0px;">
-                <input class="central-element width" type="text" name="playlist-title" id="playlist-title" placeholder="标题" value="{{title}}"/>
-                <!-- <p><h2>TODO: Playlist cover image upload here</h2></p> -->
-                <textarea name="playlist-desc" id="playlist-desc" class="central-element width" placeholder="描述" style="height: 300px;">{{desc}}</textarea>
+                <div class="no-whitespace">
+                    <button id="tab-button-new" class="tab-button tab-active" onclick="javascript:gotoTab('new');">全新</button>
+                    <button id="tab-button-existing" class="tab-button" onclick="javascript:gotoTab('existing');">现有</button>
+                </div>
+                <div id="tab-new" class="tab-element">
+                    <input class="central-element width" type="text" name="playlist-title" id="playlist-title" placeholder="标题" value="{{title}}"/>
+                    <!-- <p><h2>TODO: Playlist cover image upload here</h2></p> -->
+                    <textarea name="playlist-desc" id="playlist-desc" class="central-element width" placeholder="描述" style="height: 300px;">{{desc}}</textarea>
+                </div>
+                <div id="tab-existing" style="display: none;" class="tab-element">
+                    <input class="central-element width" type="text" name="playlist-url" id="playlist-url" placeholder="地址" value=""/>
+                    <!-- <p><h2>TODO: Playlist cover image upload here</h2></p> -->
+                </div>
                 <p class="central-element width" id="status" style="text-align: center;">就绪</p>
                 <button class="central-element narrow bottom-element create-button" id="create-playlist-button">创建</button>
             </div>
