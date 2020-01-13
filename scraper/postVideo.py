@@ -423,7 +423,8 @@ async def func_with_write_result(func, task_id, param_json) :
 		del param_json_for_user['user']
 		del param_json_for_user['event_id']
 		del param_json_for_user['playlist_ordered']
-		del param_json_for_user['field_overrides']
+		if 'field_overrides' in param_json_for_user :
+			del param_json_for_user['field_overrides']
 		tagdb.db.failed_posts.insert_one({'uid': ObjectId(param_json['user']['_id']), 'ret': ret, 'post_param': param_json_for_user})
 
 async def task_runner(func, queue) :
@@ -440,7 +441,8 @@ async def put_task(queue, param_json) :
 	del param_json_for_user['user']
 	del param_json_for_user['playlist_ordered']
 	del param_json_for_user['event_id']
-	del param_json_for_user['field_overrides']
+	if 'field_overrides' in param_json_for_user :
+		del param_json_for_user['field_overrides']
 	log_e(param_json['event_id'], param_json['user'], op = 'put_task', obj = {'task_id': task_id})
 	ret_json = dumps({'finished' : False, 'key': task_id, 'data' : None, 'params': param_json_for_user})
 	rdb.set(f'task-{task_id}', ret_json)
