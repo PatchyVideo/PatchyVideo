@@ -5,7 +5,7 @@
 	<title>幻想之物</title>
 </head>
 <body>
-	<p>...一切皆遁入幻想...</p>
+	<p>...所见所闻皆遁入幻想...</p>
 	<h1>设计思路</h1>
 	<ul>
 		<li>東方视频备份站</li>
@@ -17,12 +17,46 @@
 
 	<h1>示例视频</h1>
 	<!-- TODO: 使用数据库获取名单 -->
-	<a href="https://ipfs.globalupload.io/QmcAmXANyKjCfRoy9HAHA2tK4c3ujHH2yekwZwNTD6gTDh">bad apple!!</a>
+	<p>实验性播放器</p>
+	<video src="https://ipfs.globalupload.io/QmcAmXANyKjCfRoy9HAHA2tK4c3ujHH2yekwZwNTD6gTDh"
+		id="player"
+		controls
+		loop
+		width="50%">
+		<p>您的浏览器不支持"video"标签</p>
+	</video>
+	<script>
+		// Video Change Functions 
+		const player = document.getElementById("player")
+		player.autoplay = "true"
+		const badapple = "https://ipfs.globalupload.io/QmcAmXANyKjCfRoy9HAHA2tK4c3ujHH2yekwZwNTD6gTDh"
+		const lanlanlu = "https://ipfs.globalupload.io/QmT2LT2D513dTe1bNuBogfDCpZakaEuPquJmozYx6X6Gmq"
+		const erxiaojie = "https://ipfs.globalupload.io/QmNdrzSXnYyiTJGS3tj3SswhpJLpjhmNbTLm15hWR7kLdE"
+
+		function changeSrc() {
+			player.autoplay = "true"
+			player.src = lanlanlu
+		}
+	</script>
 	<p />
-	<a href="https://ipfs.globalupload.io/QmT2LT2D513dTe1bNuBogfDCpZakaEuPquJmozYx6X6Gmq">最终鬼畜蓝蓝路</a>
+	<button onclick="changeSrc()">视频切换测试，点击下列文字即可切换</button>
 	<p />
-	<a href="https://ipfs.globalupload.io/QmNdrzSXnYyiTJGS3tj3SswhpJLpjhmNbTLm15hWR7kLdE">最终鬼畜二小姐</a>
+	<a id="badapple">bad apple!!</a>
 	<p />
+	<a id="lanlanlu">最终鬼畜蓝蓝路</a>
+	<p />
+	<a>最终鬼畜二小姐</a>
+	<p />
+	<script>
+		const videop = document.getElementsByTagName("a")
+		// console.log(videop)
+		// const lambda = (name) => { player.src = name } // Bug here
+		videop[0].onclick = ()=>{ player.src = badapple }
+		videop[1].onclick = ()=>{ player.src = lanlanlu}
+		videop[2].onclick = ()=>{ player.src = erxiaojie}
+	</script>
+
+
 	<h1>图片测试</h1>
 	<!-- TODO: 也可采用数据库检索hash值 -->
 	<img src="https://ipfs.globalupload.io/QmQH2mFR9mwv5PM1toYech1uXSr5k8Tdu2qQ6XEaVy9QtL">
