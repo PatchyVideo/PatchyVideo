@@ -162,6 +162,8 @@ def _prepare_attributes(name, value):
 			query = 'nicovideo'
 		elif value in ['twitter']:
 			query = 'twitter'
+		elif value in ['ipfs']:
+			query = 'ipfs'
 		return { 'item.site': query }
 	elif name == 'date':
 		if value[:2] == '<=' :
