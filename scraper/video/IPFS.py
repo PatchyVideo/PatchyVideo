@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 
 class IPFS( Crawler ) :
 	NAME = 'ipfs'
-	PATTERN = r'^https:\/\/ipfs\.globalupload\.io\/[a-zA-Z0-9]+'
+	PATTERN = r'^https:\/\/(ipfs\.globalupload\.io|gateway\.ipfs\.io\/ipfs|video\.dtube\.top\/ipfs)\/[a-zA-Z0-9]+'
 	SHORT_PATTERN = r''
 
 	def normalize_url( self, link ) :
