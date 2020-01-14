@@ -25,6 +25,8 @@ def pages_videodetail(rd, user):
 	rd.title = obj['item']['title']
 	rd.desc = obj['item']['desc']
 	rd.link = obj['item']['url']
+	rd.video_site = obj['item']['site']
+	rd.video_unique_id = obj['item']['unique_id']
 	rd.upload_date = obj['item']['upload_time'] if 'upload_time' in obj['item'] else ''
 	if not rd.upload_date:
 		rd.upload_date = ''
