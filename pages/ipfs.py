@@ -5,4 +5,4 @@ from utils.interceptors import loginOptional
 @app.route('/ipfs', methods = ['GET'])
 @loginOptional
 def pages_ipfs(rd, user):
-	return "render", "fantasy.html"
+	return "render", "IPFS/fantasy.html"
