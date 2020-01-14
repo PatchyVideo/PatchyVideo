@@ -15,7 +15,7 @@ class Patchyvideo( Crawler ) :
 	def normalize_url( self, link ) :
 		return link
 
-	def unique_id( self, link ) :
+	def get_unique_id( self, link ) :
 		vidid = link[link.rfind("=") + 1:]
 		vidobj = getVideoDetailNoFilter(vidid)
 		if vidobj is None :
@@ -29,14 +29,14 @@ class Patchyvideo( Crawler ) :
 			return makeResponseFailed({})
 		return makeResponseSuccess(vidobj['item'])
 		
-	async def get_metadata_async( self, link ) :
+	async def get_metadata_async( self, link, update_video_detail = False ) :
 		vidid = link[link.rfind("=") + 1:]
 		vidobj = getVideoDetailNoFilter(vidid)
 		if vidobj is None :
 			return makeResponseFailed({})
 		return makeResponseSuccess(vidobj['item'])
 
-	async def unique_id_async( self, link ) :
+	async def get_unique_id_async( self, link ) :
 		return self.unique_id(link)
 		
 

@@ -47,7 +47,7 @@ class Crawler :
 		link = clear_url(link)
 		return await self.unique_id_async( self = self, link = link )
 
-_crawler_modules = [ 'Patchyvideo', 'Bilibili', 'Youtube', 'Nicovideo', 'Twitter', 'Acfun' ]
+_crawler_modules = [ 'Patchyvideo', 'Bilibili', 'Youtube', 'Nicovideo', 'Twitter', 'Acfun', 'IPFS' ]
 
 _dispatch_map = []
 

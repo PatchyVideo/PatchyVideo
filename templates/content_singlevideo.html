@@ -351,7 +351,19 @@
 				<h5 style="text-align: center;">{{upload_date}} UTC</h5>
 				{% endif %}
 				<div class="re_video">
-					<img src="/images/covers/{{cover_image}}" width="320px" alt="{{title}}" title="{{title}}">
+					{% if ipfs_video %}
+					<video src="https://ipfs.globalupload.io/{{ipfs_hash}}"
+						id="player"
+						controls
+						loop
+						width="50%" style="display: block;
+						vertical-align: middle;
+						margin: 20px auto;">
+						<p>Please use a modern browser</p>
+					</video>
+					{% else %}
+						<img src="/images/covers/{{cover_image}}" width="320px" alt="{{title}}" title="{{title}}">
+					{% endif %}
 					<p id="desc-area">{{desc}}</p>
 				</div>
 			</div>
