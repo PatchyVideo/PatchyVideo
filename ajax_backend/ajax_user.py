@@ -67,6 +67,12 @@ def ajax_user_profile_username(rd, user, data):
 def ajax_user_changedesc(rd, user, data):
 	update_desc(session['sid'], user['_id'], data.desc)
 
+@app.route('/user/changephoto.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_user_changephoto(rd, user, data):
+	update_userphoto(session['sid'], user['_id'], data.file_key)
+
 @app.route('/user/changepass.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest

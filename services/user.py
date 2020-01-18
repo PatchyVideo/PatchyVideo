@@ -169,6 +169,27 @@ def signup(username, password, email, challenge, signup_session_id) :
 			return uid
 	raise UserError('INCORRECT_SESSION')
 
+def update_userphoto(redis_user_key, user_id, file_key) :
+	log(obj = {'redis_user_key': redis_user_key, 'user_id': user_id, 'file_key': file_key})
+	photo_file = None
+	if file_key.startswith("upload-image-") :
+		filename = rdb.get(file_key)
+		if filename :
+			photo_file = filename.decode('ascii')
+	if photo_file is None :
+		raise UserError('NO_PHOTO')
+	obj = db.users.find_one({'_id': ObjectId(user_id)})
+	if obj is None :
+		raise UserError('INCORRECT_LOGIN')
+	log(obj = {'old_photo_file': obj['profile']['image'], 'photo_file': photo_file})
+	db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'profile.image': photo_file}})
+
+	def updater(obj) :
+		obj['profile']['image'] = photo_file
+		return obj
+
+	_updateUserRedisValue(user_id, updater)
+
 def update_desc(redis_user_key, user_id, new_desc) :
 	log(obj = {'redis_user_key': redis_user_key, 'user_id': user_id, 'new_desc': new_desc})
 	if len(new_desc) > UserConfig.MAX_DESC_LENGTH :
@@ -178,17 +199,12 @@ def update_desc(redis_user_key, user_id, new_desc) :
 		raise UserError('INCORRECT_LOGIN')
 	log(obj = {'old_desc': obj['profile']['desc']})
 	db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'profile.desc': new_desc}})
-	common_user_obj = {
-			'_id': ObjectId(obj['_id']),
-			'profile': {
-				'username': obj['profile']['username'],
-				'image': obj['profile']['image'],
-				'desc': new_desc
-			},
-			'access_control': obj['access_control']
-		}
-	redis_user_value = dumps(common_user_obj)
-	rdb.set(redis_user_key, redis_user_value, ex = int(time.time() + UserConfig.LOGIN_EXPIRE_TIME))
+
+	def updater(obj) :
+		obj['profile']['desc'] = new_desc
+		return obj
+
+	_updateUserRedisValue(user_id, updater)
 
 def update_password(user_id, old_pass, new_pass) :
 	if len(old_pass) > UserConfig.MAX_PASSWORD_LENGTH or len(old_pass) < UserConfig.MIN_PASSWORD_LENGTH:

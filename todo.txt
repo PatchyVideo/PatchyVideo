@@ -129,7 +129,7 @@ phase 3
 IPFS support
 make everything async, don't want to waste time on spin locks
 user subscript to playlists
-user photo storing
+#user photo storing
 custom thumbnail for playlist
 user subscriptions
 danmaku
