@@ -12,6 +12,8 @@ from utils.interceptors import asyncJsonRequest
 from utils.crypto import random_bytes_str
 from bson.json_util import dumps
 
+from config import UploadConfig
+
 import PIL
 from PIL import Image, ImageSequence
 import io
@@ -28,7 +30,7 @@ def _gif_thumbnails(frames, resolution = (320, 200)):
 		yield thumbnail
 
 @routes.post("/upload_image.do")
-async def store_mp3_handler(request):
+async def upload_image(request):
 	data = await request.post()
 	try :
 		file_field = data['file']
@@ -44,6 +46,8 @@ async def store_mp3_handler(request):
 		content = file_field.file.read()
 	except :
 		return web.json_response(makeResponseFailed('INCORRECT_REQUEST'), dumps = dumps)
+	if len(content) > UploadConfig.MAX_UPLOAD_SIZE :
+		return web.json_response(makeResponseFailed('FILE_TOO_LARGE'), dumps = dumps)
 	try :
 		img = Image.open(io.BytesIO(content))
 		if img is None :
@@ -63,4 +67,5 @@ async def store_mp3_handler(request):
 		img.save(dst + filename)
 	file_key = "upload-image-" + random_bytes_str(16)
 	rdb.set(file_key, filename)
+	log('fe_upload_image', obj = {'filename': filename, 'file_key': file_key, 'size': len(content)})
 	return web.json_response(makeResponseSuccess({'file_key': file_key}), dumps = dumps)

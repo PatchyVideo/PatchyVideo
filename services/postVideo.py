@@ -108,6 +108,10 @@ def postVideoIPFS_new(user, url, tags, copy, pid, rank, desc, title, cover_file_
 		raise UserError('URL_TOO_LONG')
 	if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
 		raise UserError('TAGS_LIMIT_EXCEEDED')
+	if len(title) > VideoConfig.MAX_TITLE_LENGTH :
+		raise UserError('TITLE_TOO_LONG')
+	if len(desc) > VideoConfig.MAX_DESC_LENGTH :
+		raise UserError('DESC_TOO_LONG')
 	cover_file = None
 	if cover_file_key.startswith("upload-image-") :
 		filename = rdb.get(cover_file_key)

@@ -28,6 +28,8 @@ class VideoConfig:
     MAX_URL_LENGTH = 1000
     MAX_BATCH_POST_COUNT = 1000
     MAX_COPIES = 20
+    MAX_TITLE_LENGTH = 100
+    MAX_DESC_LENGTH = 5000
 
 """
 Querys
@@ -53,3 +55,9 @@ Display
 """
 class DisplayConfig:
     MAX_ITEM_PER_PAGE = 500
+
+"""
+Upload
+"""
+class UploadConfig:
+    MAX_UPLOAD_SIZE = 1024 * 1024 * 10 # 10MB
