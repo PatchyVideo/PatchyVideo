@@ -102,6 +102,7 @@ remove unnecessary fileds from ajax results
 add view pending post playlist job interface
 #async frontend helper, create a new container for this task
 add index for placeholder and folder
+image upload for cover/user-id photo
 
 ======================
 offical launch
@@ -124,6 +125,7 @@ full multi-language support(CHS/CHT/JPN/ENG)
 ======================
 phase 3
 ======================
+IPFS support
 make everything async, don't want to waste time on spin locks
 user subscript to playlists
 user photo storing
