@@ -15,6 +15,15 @@
 		<li>了解IPFS 技术可更好地使用本站功能</li>
 	</ul>
 
+	<h1>暂行标准</h1>
+	<ul>
+		<li>限东方Project相关视频</li>
+		<li>转载视频推荐搬运至B站</li>
+		<li>外网作者同意搬运至B站，B站屑审核削除的视频 （可能需要重新和作者取得搬运权限）</li>
+		<li>在B站因政策原因打码、遮挡，影响观看体验而想保留原版备份的视频</li>
+		<li>不接收明确标有 R-18\R-18G 的视频</li>
+	</ul>
+
 	<h1>示例视频</h1>
 	<a href="./ipfs/IPFS_player.html">实验性播放页</a>
 	<p>实验性播放器</p>
@@ -29,18 +38,26 @@
 	<script>
 		// Video Change Functions 
 		const player = document.getElementById("player")
-		player.autoplay = "true"
+		// player.autoplay = "true"
 		const badapple = "https://ipfs.globalupload.io/QmcAmXANyKjCfRoy9HAHA2tK4c3ujHH2yekwZwNTD6gTDh"
 		const lanlanlu = "https://ipfs.globalupload.io/QmT2LT2D513dTe1bNuBogfDCpZakaEuPquJmozYx6X6Gmq"
 		const erxiaojie = "https://ipfs.globalupload.io/QmNdrzSXnYyiTJGS3tj3SswhpJLpjhmNbTLm15hWR7kLdE"
 
+		var count = 0
 		function changeSrc() {
-			player.autoplay = "true"
-			player.src = lanlanlu
+			count++
+			if(count == 0) {
+				const b = document.getElementById("button")
+				b.innerText = "不要点我！(╯‵□′)╯︵┻━┻  点击下列文字！"
+			}else if(count == 10){
+				alert("have fun!")
+			}else{
+				// count++;
+			}
 		}
 	</script>
 	<p />
-	<button onclick="changeSrc()">视频切换测试，点击下列文字即可切换</button>
+	<button id="button" onclick="changeSrc()">视频切换测试，点击下列文字即可切换</button>
 	<p />
 	<a id="badapple">bad apple!!</a>
 	<p />
