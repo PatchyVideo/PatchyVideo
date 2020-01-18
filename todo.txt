@@ -121,6 +121,7 @@ playlist tree structure
 full text search
 mobile phone UI
 full multi-language support(CHS/CHT/JPN/ENG)
+automatically identify insufficient tags, show this message on both video upload and video detail page
 + phase 2
 
 ======================
