@@ -34,7 +34,7 @@ def postTask(json_str) :
 	ret_obj = loads(post_raw(SCRAPER_ADDRESS + "/video", json_str.encode('utf-8')).text)
 	return ret_obj['task_id']
 
-def _createJsonForPosting(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, user, playlist_ordered = None) :
+def _createJsonForPosting(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, user, playlist_ordered = None, field_overrides = None) :
 	return dumps({
 		'url' : url,
 		'tags' : tags,
@@ -44,7 +44,8 @@ def _createJsonForPosting(url, tags, dst_copy, dst_playlist, dst_rank, other_cop
 		'other_copies' : other_copies,
 		'user' : user,
 		'playlist_ordered' : playlist_ordered,
-		'event_id': getEventID()
+		'event_id': getEventID(),
+		'field_overrides': field_overrides
 	})
 
 def getTaskParamas(task_id) :
@@ -94,6 +95,36 @@ def postVideo(user, url, tags, copy, pid, rank):
 	_verifyTags(tags)
 	log(obj = {'url': cleanURL})
 	task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], user))
+	return task_id
+
+def postVideoIPFS_new(user, url, tags, copy, pid, rank, desc, title, cover_file_key):
+	log(obj = {'url': url, 'tags': tags, 'copy': copy, 'pid': pid, 'rank': rank})
+	filterOperation('postVideo', user)
+	tags = [tag.strip() for tag in tags]
+	# TODO: check title and desc clength
+	if not url :
+		raise UserError('EMPTY_URL')
+	if len(url) > VideoConfig.MAX_URL_LENGTH :
+		raise UserError('URL_TOO_LONG')
+	if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
+		raise UserError('TAGS_LIMIT_EXCEEDED')
+	cover_file = None
+	if cover_file_key.startswith("upload-image-") :
+		filename = rdb.get(cover_file_key)
+		if filename :
+			cover_file = filename.decode('ascii')
+	if cover_file is None :
+		raise UserError('NO_COVER')
+	obj, cleanURL = dispatch(url)
+	if obj is None:
+		raise UserError('UNSUPPORTED_WEBSITE')
+	if not cleanURL :
+		raise UserError('EMPTY_URL')
+	if obj.NAME != 'ipfs' :
+		raise UserError('NOT_IPFS')
+	_verifyTags(tags)
+	log(obj = {'url': cleanURL})
+	task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], user, field_overrides = {'title': title, 'desc': desc, 'cover_image_override': cover_file}))
 	return task_id
 
 def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies):

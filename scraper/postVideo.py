@@ -79,7 +79,10 @@ async def _download_thumbnail(url, user, event_id) :
 	return filename
 
 async def _make_video_data(data, copies, playlists, url, user, event_id) :
-	filename = await _download_thumbnail(data['thumbnailURL'], user, event_id)
+	if 'cover_image_override' in data and data['cover_image_override'] :
+		filename = data['cover_image_override']
+	else :
+		filename = await _download_thumbnail(data['thumbnailURL'], user, event_id)
 	return {
 		"url": (data['url_overwrite'] if 'url_overwrite' in data else url),
 		"title": data['title'],
@@ -98,7 +101,10 @@ async def _make_video_data(data, copies, playlists, url, user, event_id) :
 	}
 
 async def _make_video_data_update(data, url, user, event_id, thumbnail_url = None) :
-	filename = await _download_thumbnail(thumbnail_url, user, event_id)
+	if 'cover_image_override' in data and data['cover_image_override'] :
+		filename = data['cover_image_override']
+	else :
+		filename = await _download_thumbnail(thumbnail_url, user, event_id)
 	ret = {
 		"url": (data['url_overwrite'] if 'url_overwrite' in data else url),
 		"title": data['title'],
@@ -241,7 +247,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 		else :
 			url = clear_url(url)
 		lock_id = "videoEdit:" + ret["data"]["unique_id"]
-		if 'placeholder' in ret['data'] and ret['data']["placeholder"] and field_override :
+		if field_override :
 			for key in field_override :
 				ret['data'][key] = field_override[key]
 		async with RedisLockAsync(rdb, lock_id) :
