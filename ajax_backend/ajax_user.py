@@ -79,6 +79,12 @@ def ajax_user_changephoto(rd, user, data):
 def ajax_user_changepass(rd, user, data):
 	update_password(user['_id'], data.old_pass, data.new_pass)
 
+@app.route('/user/resetpass.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_user_resetpass(rd, user, data):
+	reset_password(user['_id'], data.reset_key, data.new_pass)
+
 @app.route('/user/whoami', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest

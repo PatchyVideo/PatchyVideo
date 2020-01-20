@@ -180,7 +180,7 @@ def update_userphoto(redis_user_key, user_id, file_key) :
 		raise UserError('NO_PHOTO')
 	obj = db.users.find_one({'_id': ObjectId(user_id)})
 	if obj is None :
-		raise UserError('INCORRECT_LOGIN')
+		raise UserError('USER_NOT_EXIST')
 	log(obj = {'old_photo_file': obj['profile']['image'], 'photo_file': photo_file})
 	db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'profile.image': photo_file}})
 
@@ -196,7 +196,7 @@ def update_desc(redis_user_key, user_id, new_desc) :
 		raise UserError('DESC_TOO_LONG')
 	obj = db.users.find_one({'_id': ObjectId(user_id)})
 	if obj is None :
-		raise UserError('INCORRECT_LOGIN')
+		raise UserError('USER_NOT_EXIST')
 	log(obj = {'old_desc': obj['profile']['desc']})
 	db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'profile.desc': new_desc}})
 
@@ -213,9 +213,26 @@ def update_password(user_id, old_pass, new_pass) :
 		raise UserError('PASSWORD_LENGTH')
 	obj = db.users.find_one({'_id': ObjectId(user_id)})
 	if obj is None :
-		raise UserError('INCORRECT_LOGIN')
+		raise UserError('USER_NOT_EXIST')
 	if not verify_password_PBKDF2(old_pass, obj['crypto']['salt1'], obj['crypto']['password_hashed']) :
-		raise UserError('INCORRECT_LOGIN')
+		raise UserError('INCORRECT_PASSWORD')
+	crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = update_crypto_PBKDF2(old_pass, new_pass, obj['crypto']['salt2'], obj['crypto']['master_key_encryptyed'])
+	crypto = {
+		'crypto_method': crypto_method,
+		'password_hashed': password_hashed,
+		'salt1': salt1,
+		'salt2': salt2,
+		'master_key_encryptyed': master_key_encryptyed
+	}
+	db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'crypto': crypto}})
+
+def reset_password(user_id, reset_key, new_pass) :
+	if len(new_pass) > UserConfig.MAX_PASSWORD_LENGTH or len(new_pass) < UserConfig.MIN_PASSWORD_LENGTH:
+		raise UserError('PASSWORD_LENGTH')
+	obj = db.users.find_one({'_id': ObjectId(user_id)})
+	if obj is None :
+		raise UserError('USER_NOT_EXIST')
+	# TODO: verify reset_key
 	crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = update_crypto_PBKDF2(old_pass, new_pass, obj['crypto']['salt2'], obj['crypto']['master_key_encryptyed'])
 	crypto = {
 		'crypto_method': crypto_method,
