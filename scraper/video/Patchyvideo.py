@@ -30,6 +30,8 @@ class Patchyvideo( Crawler ) :
 		return makeResponseSuccess(vidobj['item'])
 		
 	async def get_metadata_async( self, link, update_video_detail = False ) :
+		import asyncio
+		await asyncio.sleep(30)
 		vidid = link[link.rfind("=") + 1:]
 		vidobj = getVideoDetailNoFilter(vidid)
 		if vidobj is None :
