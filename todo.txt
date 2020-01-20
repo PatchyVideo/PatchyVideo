@@ -57,9 +57,9 @@ recover password
 !user access control for frontend HTMLs
 #log error, don't want others to see filenames in error response
 #change background image to include more patchouli
-better user profile page
-!user sees his playlists
-!user sees his uploads
+#better user profile page
+#user sees his playlists
+#user sees his uploads
 !user sees his pending/failed uploads
     backend done, need UI
 #create playlist from a single video

@@ -75,7 +75,7 @@ def listFailedPosts(user, page = 0, page_size = 100000) :
 	uid = ObjectId(user['_id'])
 	result = tagdb.db.failed_posts.find({'uid': uid})
 	result = result.skip(page * page_size).limit(page_size)
-	return result
+	return result, result.count()
 
 def postVideo(user, url, tags, copy, pid, rank):
 	log(obj = {'url': url, 'tags': tags, 'copy': copy, 'pid': pid, 'rank': rank})

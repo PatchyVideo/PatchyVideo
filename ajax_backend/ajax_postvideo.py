@@ -69,5 +69,10 @@ def ajax_post_list_pending_do(rd, user, data):
 def ajax_post_list_failed_do(rd, user, data):
 	page_size = getDefaultJSON(data, 'page_size', 20)
 	page = getDefaultJSON(data, 'page', 1) - 1
-	result = listFailedPosts(user, page, page_size)
-	return "json", makeResponseSuccess(result)
+	result, counts = listFailedPosts(user, page, page_size)
+	return "json", makeResponseSuccess({
+		"posts": result,
+		"count": counts,
+		"page": page + 1,
+		"page_count": (counts - 1) // page_size + 1,
+	})
