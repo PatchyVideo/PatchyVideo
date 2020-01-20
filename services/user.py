@@ -227,6 +227,7 @@ def update_password(user_id, old_pass, new_pass) :
 	db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'crypto': crypto}})
 
 def reset_password(user_id, reset_key, new_pass) :
+	raise UserError("NOT_IMPLEMENTED")
 	if len(new_pass) > UserConfig.MAX_PASSWORD_LENGTH or len(new_pass) < UserConfig.MIN_PASSWORD_LENGTH:
 		raise UserError('PASSWORD_LENGTH')
 	obj = db.users.find_one({'_id': ObjectId(user_id)})
