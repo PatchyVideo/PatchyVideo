@@ -48,7 +48,7 @@ class UserConfig:
     MAX_DESC_LENGTH = 10000
     MAX_EMAIL_LENGTH = 150
     SESSION_EXPIRE_TIME = 30 * 60
-    LOGIN_EXPIRE_TIME = 24 * 60 * 60
+    LOGIN_EXPIRE_TIME = 7 * 24 * 60 * 60
 
 """
 Display
