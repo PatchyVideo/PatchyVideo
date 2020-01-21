@@ -25,7 +25,7 @@ def send_noreply(dst, title, text) :
 	# Send the mail
 
 	server = smtplib.SMTP(SERVER)
-	server.sendmail(FROM, TO, message)
+	server.sendmail(FROM, TO, message.encode('utf-8'))
 	server.quit()
 
 if __name__ == '__main__' :
