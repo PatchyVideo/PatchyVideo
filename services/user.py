@@ -19,6 +19,7 @@ import redis_lock
 from config import UserConfig
 from utils.logger import log, log_ne
 from services.tcb import filterOperation
+from services.emailSender import send_noreply
 
 def query_user_basic_info(uid) :
 	obj = db.users.find_one({"_id": ObjectId(uid)})
@@ -139,6 +140,10 @@ def signup(username, password, email, challenge, signup_session_id) :
 			user_obj_find = db.users.find_one({'profile.username': username})
 			if user_obj_find is not None :
 				raise UserError('USER_EXIST')
+			if email :
+				user_obj_email = db.users.find_one({'profile.email': email})
+				if user_obj_email is not None :
+					raise UserError('EMAIL_EXIST')
 			user_obj = {
 				'profile': {
 					'username': username,
@@ -206,6 +211,22 @@ def update_desc(redis_user_key, user_id, new_desc) :
 
 	_updateUserRedisValue(user_id, updater)
 
+def update_email(redis_user_key, user_id, new_email) :
+	log(obj = {'redis_user_key': redis_user_key, 'user_id': user_id, 'new_email': new_email})
+	if len(new_email) > UserConfig.MAX_EMAIL_LENGTH or not re.match(r"[^@]+@[^@]+\.[^@]+", new_email):
+		raise UserError('INCORRECT_EMAIL')
+	obj = db.users.find_one({'_id': ObjectId(user_id)})
+	if obj is None :
+		raise UserError('USER_NOT_EXIST')
+	log(obj = {'old_email': obj['profile']['email']})
+	db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'profile.email': new_email}})
+
+	def updater(obj) :
+		obj['profile']['email'] = new_email
+		return obj
+
+	_updateUserRedisValue(user_id, updater)
+
 def update_password(user_id, old_pass, new_pass) :
 	if len(old_pass) > UserConfig.MAX_PASSWORD_LENGTH or len(old_pass) < UserConfig.MIN_PASSWORD_LENGTH:
 		raise UserError('PASSWORD_LENGTH')
@@ -226,15 +247,26 @@ def update_password(user_id, old_pass, new_pass) :
 	}
 	db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'crypto': crypto}})
 
-def reset_password(user_id, reset_key, new_pass) :
-	raise UserError("NOT_IMPLEMENTED")
+def request_password_reset(email, user_language) :
+	user_obj = db.users.find_one({'profile.email': email})
+	if user_obj is None :
+		raise UserError('EMAIL_NOT_EXIST')
+	reset_key = random_bytes_str(16)
+	rdb.set('passreset-' + reset_key, email)
+	send_noreply(email, '找回密码', '点击下方的链接重置密码:\n%s%s' % ('https://patchyvideo.com/users/resetpass?key=', reset_key))
+
+def reset_password(reset_key, new_pass) :
 	if len(new_pass) > UserConfig.MAX_PASSWORD_LENGTH or len(new_pass) < UserConfig.MIN_PASSWORD_LENGTH:
 		raise UserError('PASSWORD_LENGTH')
-	obj = db.users.find_one({'_id': ObjectId(user_id)})
-	if obj is None :
-		raise UserError('USER_NOT_EXIST')
-	# TODO: verify reset_key
-	crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = update_crypto_PBKDF2(old_pass, new_pass, obj['crypto']['salt2'], obj['crypto']['master_key_encryptyed'])
+	reset_key_content = rdb.get('passreset' + reset_key)
+	try :
+		email = reset_key_content.decode('ascii')
+		assert len(email) > 0
+		obj = db.users.find_one({'profile.email': email})
+		assert obj is not None
+	except :
+		raise UserError('INCORRECT_KEY')
+	crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = update_crypto_PBKDF2(None, new_pass, obj['crypto']['salt2'], obj['crypto']['master_key_encryptyed'])
 	crypto = {
 		'crypto_method': crypto_method,
 		'password_hashed': password_hashed,
@@ -242,7 +274,7 @@ def reset_password(user_id, reset_key, new_pass) :
 		'salt2': salt2,
 		'master_key_encryptyed': master_key_encryptyed
 	}
-	db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'crypto': crypto}})
+	db.users.update_one({'_id': obj['_id']}, {'$set': {'crypto': crypto}})
 
 def _updateUserRedisValue(user_id, updater) :
 	redis_user_key_lookup_key = f"user-{str(user_id)}"

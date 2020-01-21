@@ -52,7 +52,8 @@ phase 2
 #batch post as copies
 #<!!HIGH PRIORITY!!> tag alias(as multi-language phase1)
 #   lacking UI for tag alias
-recover password
+!recover password
+    lacking UI support
 #user access control for backend
 !user access control for frontend HTMLs
 #log error, don't want others to see filenames in error response

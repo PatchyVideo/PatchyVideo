@@ -72,11 +72,19 @@ def verify_password_PBKDF2(password, salt1, password_hashed) :
     return password_hashed_calc == password_hashed
 
 def update_crypto_PBKDF2(old_password, new_password, salt2, master_key_encrypted) :
+    if old_password is None :
+        return update_crypto_PBKDF2_password_only(new_password, salt2, master_key_encrypted)
     ret, master_key = AES_Decrypt(old_password, master_key_encrypted, salt2)
     salt1 = random_bytes(16)
     salt2 = random_bytes(16)
     password_hashed = PBKDF2(new_password, salt1).read(32)
     master_key_encrypted = AES_Encrypt(new_password, master_key, salt2)
+    return 'PBKDF2', password_hashed, salt1, salt2, master_key_encrypted
+
+def update_crypto_PBKDF2_password_only(new_password, salt2, master_key_encrypted) :
+    salt1 = random_bytes(16)
+    salt2 = random_bytes(16)
+    password_hashed = PBKDF2(new_password, salt1).read(32)
     return 'PBKDF2', password_hashed, salt1, salt2, master_key_encrypted
 
 if __name__ == "__main__":

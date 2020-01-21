@@ -73,17 +73,29 @@ def ajax_user_changedesc(rd, user, data):
 def ajax_user_changephoto(rd, user, data):
 	update_userphoto(session['sid'], user['_id'], data.file_key)
 
+@app.route('/user/changeemail.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_user_changeemail(rd, user, data):
+	update_email(session['sid'], user['_id'], data.new_email)
+
 @app.route('/user/changepass.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_user_changepass(rd, user, data):
 	update_password(user['_id'], data.old_pass, data.new_pass)
 
+@app.route('/user/request_resetpass.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_user_request_resetpass(rd, user, data):
+	request_password_reset(data.email, 'CHS')
+
 @app.route('/user/resetpass.do', methods = ['POST'])
-@loginRequiredJSON
+@loginOptional
 @jsonRequest
 def ajax_user_resetpass(rd, user, data):
-	reset_password(user['_id'], data.reset_key, data.new_pass)
+	reset_password(data.reset_key, data.new_pass)
 
 @app.route('/user/whoami', methods = ['POST'])
 @loginRequiredJSON
