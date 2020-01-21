@@ -17,3 +17,4 @@ flask-restplus
 request
 python-dateutil
 aiohttp
+smtplib
