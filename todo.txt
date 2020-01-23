@@ -116,8 +116,7 @@ tag group
 !tag cooccurrences/related tag when posting video
     current algorithm is expensive
 tag rule(e.g. adding touhou_mmd will results in mmd tag being added)
-!batch post from existing playlist
-    lacking UI and only support youtube
+#batch post from existing playlist
 playlist tree structure
 full text search
 mobile phone UI

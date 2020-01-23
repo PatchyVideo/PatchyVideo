@@ -49,7 +49,14 @@ def _cleanUtags(utags) :
 	utags = [utag.replace(' ', '') for utag in utags]
 	return list(set(utags))
 
+_DOWNLOADING_TASKS = 0
+
 async def _download_thumbnail(url, user, event_id) :
+	global _DOWNLOADING_TASKS
+	while _DOWNLOADING_TASKS > 10 :
+		await asyncio.sleep(0.5)
+	_DOWNLOADING_TASKS += 1
+	print('Downloding for %s, tasks = %d' % (url, _DOWNLOADING_TASKS))
 	filename = ""
 	if url :
 		for attemp in range(3) :
@@ -76,6 +83,8 @@ async def _download_thumbnail(url, user, event_id) :
 			except Exception as ex :
 				log_e(event_id, user, 'download_cover', 'WARN', {'ex': str(ex), 'attemp': attemp})
 				continue
+	_DOWNLOADING_TASKS -= 1
+	print('Downloding for %s finished, tasks = %d' % (url, _DOWNLOADING_TASKS))
 	return filename
 
 async def _make_video_data(data, copies, playlists, url, user, event_id) :

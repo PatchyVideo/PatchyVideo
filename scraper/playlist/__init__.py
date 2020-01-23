@@ -7,7 +7,7 @@ from utils.http import clear_url
 from utils.exceptions import ScraperError
 import aiohttp
 
-_crawler_modules = [ 'Youtube', 'Bilibili' ]
+_crawler_modules = [ 'Youtube', 'Bilibili', 'Nicovideo' ]
 
 _dispatch_map = []
 

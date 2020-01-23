@@ -41,7 +41,7 @@ class Bilibili() :
 				if resp.status == 200 :
 					apirespond = await resp.text()
 				else :
-					log_ne(op = 'bilibili_playlist_run_async', level = 'WARN', obj = {'msg': 'FETCH_FAILED', 'fid': fid, 'uid': uid, 'palylist_url': url, 'resp': apirespond.content, 'url': api_url})
+					log_ne(op = 'bilibili_playlist_run_async', level = 'WARN', obj = {'msg': 'FETCH_FAILED', 'fid': fid, 'uid': uid, 'playlist_url': url, 'resp': apirespond.content, 'url': api_url})
 					raise Exception('failed to fetch playlist')
 		resp_obj = loads(apirespond)
 		return {

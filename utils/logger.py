@@ -1,6 +1,7 @@
 
 from db import db
 
+#import sys
 import datetime
 import threading
 threadlocal = threading.local() 
@@ -68,6 +69,7 @@ def log(op = '', level = "MSG", obj = None) :
 		del obj['msg']
 	doc['obj'] = obj
 	db.logs._insert(doc, write_concern = WriteConcern(w = 0))
+	#print(doc, file = sys.stderr)
 
 @noexcept
 def log_e(event_id, user, op = '', level = "MSG", obj = None) :
@@ -83,6 +85,7 @@ def log_e(event_id, user, op = '', level = "MSG", obj = None) :
 		del obj['msg']
 	doc['obj'] = obj
 	db.logs._insert(doc, write_concern = WriteConcern(w = 0))
+	#print(doc, file = sys.stderr)
 
 @noexcept
 def log_ne(op = '', level = "MSG", obj = None) :
@@ -96,6 +99,7 @@ def log_ne(op = '', level = "MSG", obj = None) :
 		del obj['msg']
 	doc['obj'] = obj
 	db.logs._insert(doc, write_concern = WriteConcern(w = 0))
+	#print(doc, file = sys.stderr)
 
 def _diff(old_tags, new_tags):
 	old_tags_set = set(old_tags)
