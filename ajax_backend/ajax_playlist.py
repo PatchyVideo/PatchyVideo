@@ -57,7 +57,7 @@ def ajax_playlist_movedown_do(rd, user, data):
 @jsonRequest
 def ajax_lists_new_do(rd, user, data):
 	private = getDefaultJSON(data, 'private', False)
-	if data.pid :
+	if hasattr(data, 'pid') and data.pid :
 		updatePlaylistInfo(data.pid, "english", data.title, data.desc, data.cover, user, private)
 		return "json", makeResponseSuccess({"pid": data.pid})
 	else :
