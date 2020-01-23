@@ -373,11 +373,11 @@ def listAllPlaylistVideosOrdered(pid, user) :
 def listPlaylists(user, page_idx, page_size, query = {}, order = 'latest') :
 	sort_obj = { "meta.created_at" : 1 }
 	if order == 'latest':
-		sort_obj = { "meta.created_at" : 1 }
-	if order == 'last_modified':
-		sort_obj = { "meta.modified_at" : 1 }
-	if order == 'oldest':
 		sort_obj = { "meta.created_at" : -1 }
+	if order == 'last_modified':
+		sort_obj = { "meta.modified_at" : -1 }
+	if order == 'oldest':
+		sort_obj = { "meta.created_at" : 1 }
 	if order == 'views':
 		sort_obj = { "views" : 1 }
 	if isObjectAgnosticOperationPermitted('viewPrivatePlaylist', user) :
