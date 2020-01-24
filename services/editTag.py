@@ -60,6 +60,16 @@ def queryTagCategories(tags) :
 	return tagdb.get_tag_category_map(tags)
 
 @modifyingResource('tags')
+def transferCategory(user, tag, new_cat) :
+	log(obj = {'tag': tag, 'new_cat': new_cat})
+	with MongoTransaction(client) as s :
+		tag_obj = tagdb.get_tag_object(tag, session = s())
+		if tag_obj :
+			filterOperation('transferCategory', user, tag_obj)
+		tagdb.transfer_category(tag_obj, new_cat, makeUserMeta(user), session = s())
+		s.mark_succeed()
+
+@modifyingResource('tags')
 def removeTag(user, tag) :
 	log(obj = {'tag': tag})
 	with MongoTransaction(client) as s :

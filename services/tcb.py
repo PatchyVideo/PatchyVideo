@@ -53,7 +53,7 @@ def filterSingleVideo(vid, user, raise_error = True) :
 # Your default privileges, which is your starting rights
 _DEFAULT_OPS = [
 	'breakLink', 'syncTags', 'broadcastTags',
-	'addTag', 'renameTagOrAddTagLanguage', 'renameOrAddAlias',
+	'addTag', 'renameTagOrAddTagLanguage', 'renameOrAddAlias', 'transferCategory',
 	'editVideoTags', 'refreshVideoDetail', 'refreshVideoDetailURL',
 	'createPlaylist', 'createPlaylistFromSingleVideo', 'createPlaylistFromExistingPlaylist',
 	'postVideo', 'postVideoBatch',

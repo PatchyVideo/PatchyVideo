@@ -9,7 +9,7 @@ from init import app
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 
-from services.editTag import addTag, queryTags, queryCategories, queryTagCategories, removeTag, renameTagOrAddTagLanguage, renameOrAddAlias, removeAlias, queryTagsWildcard, queryTagsRegex
+from services.editTag import *
 from config import TagsConfig
 
 @app.route('/tags/query_categories.do', methods = ['POST'])
@@ -104,6 +104,12 @@ def ajax_add_tag(rd, user, data):
 @jsonRequest
 def ajax_remove_tag(rd, user, data):
 	removeTag(user, data.tag)
+
+@app.route('/tags/transfer_category.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_transfer_category(rd, user, data):
+	transferCategory(user, data.tag, data.category)
 
 @app.route('/tags/rename_tag.do', methods = ['POST'])
 @loginRequiredJSON
