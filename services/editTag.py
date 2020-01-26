@@ -74,6 +74,7 @@ def removeTag(user, tag) :
 	log(obj = {'tag': tag})
 	with MongoTransaction(client) as s :
 		tag_obj = tagdb.get_tag_object(tag, session = s())
+		log(obj = {'tag_obj': tag_obj})
 		if tag_obj :
 			filterOperation('removeTag', user, tag_obj)
 		tagdb.remove_tag(tag_obj, makeUserMeta(user), session = s())
