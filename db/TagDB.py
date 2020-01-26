@@ -94,6 +94,7 @@ class TagDB() :
 		return ans
 
 	def transfer_category(self, tag, new_category, user = '', session = None) :
+		raise UserError("NOT_IMPLEMENTED")
 		cat = self._check_category(new_category, session)
 		tag_obj = self._tag(tag, session = session)
 		self.db.tags.update_one({'_id': tag_obj['_id']}, {'$set': {'category': new_category, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
