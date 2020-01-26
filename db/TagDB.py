@@ -142,8 +142,8 @@ class TagDB() :
 	def find_tags_wildcard(self, query, category, page_idx, page_size, order) :
 		assert isinstance(query, str)
 		query = re.escape(query)
-		query = query.replace('\\*', '.*')
-		query = f'^{query}$'
+		#query = query.replace('\\*', '.*')
+		query = f'^.*{query}.*$'
 		return self.find_tags_regex(query, category, page_idx, page_size, order)
 
 	def find_tags_regex(self, query, category, page_idx, page_size, order) :
