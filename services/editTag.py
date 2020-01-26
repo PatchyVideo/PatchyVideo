@@ -33,12 +33,20 @@ def queryTags(category, page_idx, page_size, order = 'none'):
 	return result.skip(page_idx * page_size).limit(page_size)
 
 def queryTagsWildcard(query, category, page_idx, page_size, order):
-	result = [i for i in tagdb.find_tags_wildcard(query, category, page_idx, page_size, order)][0]
-	return [i for i in result['result']], result['tags_found'][0]['tags_found']
+	ret = tagdb.find_tags_wildcard(query, category, page_idx, page_size, order)
+	result = [i for i in ret][0]
+	if result['tags_found'] :
+		return [i for i in result['result']], result['tags_found'][0]['tags_found']
+	else :
+		return [], 0
 
 def queryTagsRegex(query, category, page_idx, page_size, order):
-	result = [i for i in tagdb.find_tags_regex(query, category, page_idx, page_size, order)][0]
-	return [i for i in result['result']], result['tags_found'][0]['tags_found']
+	ret = tagdb.find_tags_regex(query, category, page_idx, page_size, order)
+	result = [i for i in ret][0]
+	if result['tags_found'] :
+		return [i for i in result['result']], result['tags_found'][0]['tags_found']
+	else :
+		return [], 0
 
 def queryCategories():
 	return tagdb.list_categories()
