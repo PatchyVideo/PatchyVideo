@@ -91,7 +91,7 @@ def _lex( query ) :
 			ss.append( tag )
 		return ''
 	for ch in query :
-		if ch == ' ' :
+		if ch in [' ', '\n', '\r', '\v', '\f', '\t'] :
 			if state == 'normal' or state == 'pre()' :
 				tag = add_symbol(tag)
 			elif state == 'in()' :

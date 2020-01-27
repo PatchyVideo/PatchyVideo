@@ -59,7 +59,7 @@ def refreshVideoDetail(vid, user) :
 
 def refreshVideoDetailURL(url, user) :
 	log(obj = {'url': url})
-	filterOperation('refreshVideoDetailURL', user, vid)
+	filterOperation('refreshVideoDetailURL', user, url)
 	json_str = dumps({
 		'url' : url,
 		'tags' : [],
