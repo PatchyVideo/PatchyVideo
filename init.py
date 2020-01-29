@@ -1,7 +1,7 @@
 
 import os
 
-from flask import Flask
+from flask import Flask, session
 from flask_sslify import SSLify
 app = Flask('PatchyVideo')
 if os.getenv("FLASK_ENV", "development") == "production" :
@@ -43,3 +43,11 @@ else :
                         format = '%(asctime)-15s %(message)s')
 logger = logging.getLogger('logger')
 """
+
+from datetime import timedelta
+from config import UserConfig
+
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
+    app.permanent_session_lifetime = timedelta(seconds = UserConfig.LOGIN_EXPIRE_TIME)
