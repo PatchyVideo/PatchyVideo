@@ -48,6 +48,12 @@ class AutocompleteInterface() :
 			payload += "%d %d " % (tagid, diff)
 		self._post("SetCountDiff", "setcountdiff", payload)
 
+	def SetCat(self, list_of_tuple_of_tagid_cat) :
+		payload = "%d " % len(list_of_tuple_of_tagid_cat)
+		for (tagid, cat) in list_of_tuple_of_tagid_cat :
+			payload += "%d %d " % (tagid, cat)
+		self._post("SetCat", "setcat", payload)
+
 	def DeleteTag(self, tagid) :
 		payload = "%d " % tagid
 		self._post("DeleteTag", "deltag", payload)

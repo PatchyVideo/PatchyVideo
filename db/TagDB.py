@@ -94,12 +94,12 @@ class TagDB() :
 		return ans
 
 	def transfer_category(self, tag, new_category, user = '', session = None) :
-		raise UserError("NOT_IMPLEMENTED")
 		cat = self._check_category(new_category, session)
 		tag_obj = self._tag(tag, session = session)
 		self.db.tags.update_one({'_id': tag_obj['_id']}, {'$set': {'category': new_category, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		self.db.cats.update_one({'name': cat['name']}, {'$inc': {'count': -1}}, session = session)
 		self.db.cats.update_one({'name': new_category}, {'$inc': {'count': 1}}, session = session)
+		self.aci.SetCat([(tag_obj['id'], _CATEGORY_MAP[cat])])
 
 	def _get_free_tag_id(self, session) :
 		obj = self.db.free_tags.find_one()
