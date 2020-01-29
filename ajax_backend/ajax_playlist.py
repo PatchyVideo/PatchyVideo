@@ -1,5 +1,6 @@
 
 import time
+import re
 
 from flask import render_template, request, jsonify, redirect, session, abort
 
@@ -102,6 +103,32 @@ def ajax_lists_all_do(rd, user, data):
 	page = getDefaultJSON(data, 'page', 1) - 1
 	order = getDefaultJSON(data, 'order', 'last_modified')
 	playlists, playlists_count = listPlaylists(user, page, page_size, {}, order)
+	result = [item for item in playlists]
+	return "json", makeResponseSuccess({
+		"playlists": result,
+		"count": playlists_count,
+		"page_count": (playlists_count - 1) // page_size + 1
+		})
+
+@app.route('/lists/search.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_lists_search_do(rd, user, data):
+	page_size = getDefaultJSON(data, 'page_size', 20)
+	page = getDefaultJSON(data, 'page', 1) - 1
+	order = getDefaultJSON(data, 'order', 'last_modified')
+	query = getDefaultJSON(data, 'query', '')
+	# TODO: temporary solution, full text search index needed
+	if query :
+		keywords = query.split()
+		keywords = [re.escape(q) for q in keywords]
+		#search_regex = ''.join(['(?=.*%s)' % q for q in keywords])
+		search_regex = '|'.join(keywords)
+		search_regex = f'({search_regex})'
+		query_obj = {'$or':[{'title.english': {'$regex': search_regex}}, {'desc.english': {'$regex': search_regex}}]}
+	else :
+		query_obj = {}
+	playlists, playlists_count = listPlaylists(user, page, page_size, query_obj, order)
 	result = [item for item in playlists]
 	return "json", makeResponseSuccess({
 		"playlists": result,
