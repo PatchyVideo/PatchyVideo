@@ -191,6 +191,7 @@ class _PlaylistReorederHelper() :
 						cur_rank += 1
 			log_e(event_id, user_global, '_add_to_playlist', 'MSG', {'succedd': len(self.playlist_map[dst_playlist]['succeed']), 'all': len(self.playlist_map[dst_playlist]['all']), 'pid': dst_playlist})
 			del self.playlist_map[dst_playlist]
+			rdb.set(f'playlist-batch-post-event-{dst_playlist}', b'done')
 
 	async def post_video_succeed(self, video_id, unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id) :
 		if video_id and unique_id and dst_playlist and playlist_ordered :

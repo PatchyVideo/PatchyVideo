@@ -77,6 +77,11 @@ async def postPlaylistAsync(url, pid, use_autotag, user, event_id) :
 		raise UserError('EMPTY_PLAYLIST')
 	setEventUserAndID(user, event_id)
 	metadata = await crawler.get_metadata(self = crawler, url = url)
+	for _ in range(2 * 60 * 60) :
+		val = rdb.get(f'playlist-batch-post-event-{pid}')
+		if val == b'done' :
+			break
+		await asyncio.sleep(0.5)
 	setEventUserAndID(user, event_id)
 	updatePlaylistInfo(pid, "english", metadata['title'], metadata['desc'], '', user)
 	return 'SUCCEED', {'task_ids': task_ids}
