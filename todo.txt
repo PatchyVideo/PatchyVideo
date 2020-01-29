@@ -118,7 +118,6 @@ tag group
 tag rule(e.g. adding touhou_mmd will results in mmd tag being added)
 #batch post from existing playlist
 playlist tree structure
-full text search
 mobile phone UI
 full multi-language support(CHS/CHT/JPN/ENG)
 automatically identify insufficient tags, show this message on both video upload and video detail page
@@ -142,3 +141,4 @@ jsproxy for sites
 video tagging histroy
 autotag using browser plugins(use tensorflow.js to recognize characters)
 autotag with simple NLP
+full text search
