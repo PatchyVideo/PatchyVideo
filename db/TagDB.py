@@ -99,7 +99,7 @@ class TagDB() :
 		self.db.tags.update_one({'_id': tag_obj['_id']}, {'$set': {'category': new_category, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		self.db.cats.update_one({'name': cat['name']}, {'$inc': {'count': -1}}, session = session)
 		self.db.cats.update_one({'name': new_category}, {'$inc': {'count': 1}}, session = session)
-		self.aci.SetCat([(tag_obj['id'], _CATEGORY_MAP[cat])])
+		self.aci.SetCat([(tag_obj['id'], _CATEGORY_MAP[new_category])])
 
 	def _get_free_tag_id(self, session) :
 		obj = self.db.free_tags.find_one()
