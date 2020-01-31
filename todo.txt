@@ -126,6 +126,9 @@ automatically identify insufficient tags, show this message on both video upload
 ======================
 phase 3
 ======================
+use microservice architecture
+user change video title/desc
+mark playlist as outdated, so its creator can update it
 IPFS support
 make everything async, don't want to waste time on spin locks
 user subscript to playlists
