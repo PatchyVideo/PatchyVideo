@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>IPFS 视频播放页</title>
+    <title>IPFS 视频播放页</title>
+    <script src="https://cdn.jsdelivr.net/npm/ipfs/dist/index.js"></script>
 </head>
 <body>
-    <h1>TODO:</h1>
+    <h1>实验性 内嵌js-ipfs播放页</h1>
+    <h2>TODO: </h2>
     <ul>
         <li>"/ipfs/av....." 自动解析到本页面</li>
         <li>根据av号查到hash，填入video src中</li>
@@ -12,8 +14,40 @@
         <li>  —— liuAbin</li>
     </ul>
 
-    <video src="https://ipfs.globalupload.io/QmcAmXANyKjCfRoy9HAHA2tK4c3ujHH2yekwZwNTD6gTDh">
+    <div id="nodes">IPFS服务初始化中...</div>
+    <video id="player" controls
+        src="https://ipfs.globalupload.io/QmcAmXANyKjCfRoy9HAHA2tK4c3ujHH2yekwZwNTD6gTDh">
         您的浏览器八成是IE
     </video>
+
+    <script>
+        var nodeShow     
+
+        window.onload = ()=>{
+            nodeShow = document.getElementById("nodes")
+        }
+
+        //// IPFS Settings ////
+        const ipfs = new Ipfs({
+            repo: '/ipfs'
+        })
+
+        const Interval = 5 * 1000;
+        ipfs.once('ready', () => {
+            console.log("ipfs node ready.");
+            if (nodeShow) {
+                nodeShow.innerHTML = "IPFS 服务已启动，正在连接..."
+            }
+            setInterval(() => {
+                ipfs.swarm.peers((err, peerInfos) => {
+                    if (err) {
+                        throw err;
+                    }
+                    // console.log(peerInfos.length+" ipfs node(s) connect.");
+                    nodeShow.innerHTML = peerInfos.length + " IPFS 节点已连接"
+                })
+            }, Interval);
+        });
+    </script>
 </body>
 </html>
