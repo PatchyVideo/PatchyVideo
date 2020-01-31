@@ -165,6 +165,13 @@ def ajax_lists_create_from_copies_do(rd, user, data):
 	pid = createPlaylistFromCopies(data.pid, data.site, user)
 	return "json", makeResponseSuccess(pid)
 
+@app.route('/lists/create_from_video.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_lists_create_from_video_do(rd, user, data):
+	pid = createPlaylistFromSingleVideo('english', data.vid, user)
+	return "json", makeResponseSuccess(pid)
+
 @app.route('/lists/create_from_existing_playlists.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
