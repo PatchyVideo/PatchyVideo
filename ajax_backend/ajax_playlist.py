@@ -177,7 +177,7 @@ def ajax_lists_get_playlist_metadata_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_lists_update_playlist_metadata_do(rd, user, data):
-	updatePlaylistInfo(data.pid, 'english', data.title, data.desc, None, user)
+	updatePlaylistInfo(data.pid, 'english', data.title, data.desc, None, user, data.private)
 
 @app.route('/lists/del_playlist.do', methods = ['POST'])
 @loginRequiredJSON
