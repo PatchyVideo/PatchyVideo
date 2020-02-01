@@ -173,6 +173,12 @@ def ajax_lists_get_playlist_metadata_do(rd, user, data):
 		"playlist": playlist
 		})
 
+@app.route('/lists/update_playlist_metadata.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_lists_update_playlist_metadata_do(rd, user, data):
+	updatePlaylistInfo(data.pid, 'english', data.title, data.desc, None, user)
+
 @app.route('/lists/del_playlist.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
