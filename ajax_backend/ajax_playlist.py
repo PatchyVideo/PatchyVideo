@@ -158,6 +158,27 @@ def ajax_lists_get_playlist_do(rd, user, data):
 		"page_count": (video_count - 1) // page_size + 1
 		})
 
+@app.route('/lists/get_playlist_metadata.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_lists_get_playlist_metadata_do(rd, user, data):
+	playlist = getPlaylist(data.pid)
+	if playlist["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) :
+		abort(404)
+	playlist_editable = False
+	if user:
+		playlist_editable = isAuthorised(playlist, user)
+	return "json", makeResponseSuccess({
+		"editable": playlist_editable,
+		"playlist": playlist
+		})
+
+@app.route('/lists/del_playlist.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_lists_del_playlist_do(rd, user, data):
+	removePlaylist(data.pid, user)
+
 @app.route('/lists/create_from_copies.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest

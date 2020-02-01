@@ -31,6 +31,9 @@ def _is_authorised(pid_or_obj, user, op = 'edit') :
 	user_id = str(user['_id'])
 	return creator == user_id or (op + 'Playlist' in user['access_control']['allowed_ops']) or user['access_control']['status'] == 'admin'
 
+def isAuthorised(playlist, user) :
+	return _is_authorised(playlist, user)
+
 def createPlaylist(language, title, desc, cover, user, private = False) :
 	log(obj = {'title': title, 'desc': desc, 'cover': cover, 'private': private})
 	filterOperation('createPlaylist', user)
