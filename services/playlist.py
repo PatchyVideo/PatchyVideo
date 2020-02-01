@@ -173,7 +173,7 @@ def updatePlaylistInfo(pid, language, title, desc, cover, user, private = False)
 		raise UserError('TITLE_TOO_LONG')
 	if len(desc) > PlaylistConfig.MAX_DESC_LENGTH :
 		raise UserError('DESC_TOO_LONG')
-	if len(cover) > PlaylistConfig.MAX_COVER_URL_LENGTH :
+	if cover and len(cover) > PlaylistConfig.MAX_COVER_URL_LENGTH :
 		raise UserError('URL_TOO_LONG')
 	if not title :
 		raise UserError('EMPTY_TITLE')
