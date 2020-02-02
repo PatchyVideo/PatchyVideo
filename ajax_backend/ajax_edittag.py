@@ -141,3 +141,8 @@ def ajax_add_tag_language(rd, user, data):
 def ajax_remove_alias(rd, user, data):
 	removeAlias(user, data.alias)
 
+@app.route('/tags/merge_tag.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_merge_tag(rd, user, data):
+	mergeTag(user, data.tag_dst, data.tag_src)

@@ -216,6 +216,46 @@ class TagDB() :
 		self.db.free_tags.insert_one({'id': tagid})
 		self.aci.DeleteTag(tagid)
 
+	def merge_tag(self, tag_name_or_tag_obj_dst, tag_name_or_tag_obj_src, user = '', session = None) :
+		tag_obj_dst = self._tag(tag_name_or_tag_obj_dst, session = session)
+		tag_obj_src = self._tag(tag_name_or_tag_obj_src, session = session)
+		if tag_obj_src['id'] == tag_obj_dst['id'] :
+			raise UserError('SAME_TAG')
+
+		self.db.items.update_many({'tags': {'$in': [tag_obj_src['id']]}}, {
+			'$addToSet': {'tags': tag_obj_dst['id']},
+			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+
+		tmp_func = self.aci.DeleteTag
+		self.aci.DeleteTag = lambda x: x
+		self.remove_tag(tag_obj_src, user, session = session)
+		self.aci.DeleteTag = tmp_func
+
+		new_langs = []
+		addtional_alias = []
+		for (k, v) in tag_obj_src['languages'].items() :
+			if k not in tag_obj_dst['languages'] :
+				new_langs.append((k, v))
+			else :
+				addtional_alias.append(v)
+		for (k, v) in new_langs :
+			tag_obj_dst['languages'][k] = v
+			self.db.tag_alias.insert_one({
+				'tag': v,
+				'dst': tag_obj_dst['_id'],
+				'meta': {'created_by': user, 'created_at': datetime.now()}
+			}, session = session)
+		for alias in tag_obj_src['alias'] + addtional_alias :
+			tag_obj_dst['alias'].append(alias)
+			self.db.tag_alias.insert_one({
+				'tag': alias,
+				'dst': tag_obj_dst['_id'],
+				'meta': {'created_by': user, 'created_at': datetime.now()}
+			}, session = session)
+
+		self.db.tags.replace_one({'_id': tag_obj_dst['_id']}, tag_obj_dst, session = session)
+		self.aci.DeleteTag(tag_obj_src['id'])
+
 	def _get_tag_name_reference_count(self, tag_name, tag_obj) :
 		ans = 0
 		lang = None

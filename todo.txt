@@ -105,6 +105,8 @@ add view pending post playlist job interface
 add index for placeholder and folder
 #image upload for cover/user-id photo
 #check user input for IPFS upload and image upload
+!merge tag
+    lacking UI
 
 ======================
 offical launch
