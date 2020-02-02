@@ -125,6 +125,7 @@ def setVideoClearence(vid, clearence, user) :
 		with MongoTransaction(client) as s :
 			print('!!!!!MongoTransaction(client)!!!!!', file = sys.stdout)
 			print(s(), file = sys.stdout)
-			tagdb.set_item_clearence(vid, clearence, user, session = s())
+			#tagdb.set_item_clearence(vid, clearence, user, session = s())
+			tagdb.db.items.update_one({"_id": ObjectId(vid)}, {'$set': {'clearence': clearence}}, session = s())
 	else :
 		raise UserError('INCORRECT_CLEARENCE')
