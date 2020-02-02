@@ -118,9 +118,13 @@ def filterOperation(op_name, user, item_id = None, raise_exception = True) :
 		return False
 
 def setVideoClearence(vid, clearence, user) :
+	import sys
+	print('!!!!!setVideoClearence!!!!!', file = sys.stdout)
 	if clearence >= 0 and clearence <= 3 :
 		filterOperation('setVideoClearence', user, vid)
 		with MongoTransaction(client) as s :
+			print('!!!!!MongoTransaction(client)!!!!!', file = sys.stdout)
+			print(s(), file = sys.stdout)
 			tagdb.set_item_clearence(vid, clearence, user, session = s())
 	else :
 		raise UserError('INCORRECT_CLEARENCE')
