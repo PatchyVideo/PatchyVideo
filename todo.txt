@@ -72,7 +72,6 @@ beautiful http error page
 #unify naming convention for status code AND use exception to replace status code
 #unify JSON return as status code, not error message
 add multi-language framework
-deployment mode using GCI
 #use reader-writer lock to protect tag rename/deletion
 add wiki/help page and documents/tagging guide
 #<!!HIGH PRIORITY!!> replace redis queue which is slow and does not support multiple workers/coroutines
