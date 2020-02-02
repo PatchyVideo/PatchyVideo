@@ -465,7 +465,7 @@ class TagDB() :
 		return item_obj, tags, category_tag_map, tag_category_map
 
 	def set_item_clearence(self, item_id, clearence, user = '', session = None) :
-		self.update_item_query(item_id, {'$set': {'clearence': clearence}}, user, session)
+		self.update_item_query(item_id, {'$set': {'clearence': clearence}}, user, session = session)
 
 	def add_item(self, tags, item, clearence, user = '', session = None) :
 		tag_ids = self.filter_and_translate_tags(tags)
