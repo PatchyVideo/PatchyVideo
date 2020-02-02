@@ -589,7 +589,7 @@
 						{% endif %}
                   <div class="video-thumbnail">
                       {% if vid.item.cover_image|length == 0 %}
-                      <img src="/proxy?url={{vid.item.thumbnail_url}}&amp;header=%7B%22User-Agent%22:%22Mozilla/5.0%20(X11;%20Ubuntu;%20Linu%E2%80%A6)%20Gecko/20100101%20Firefox/65.0%22%7D"
+                      <img src="/helper/proxy?url={{vid.item.thumbnail_url}}&amp;header=%7B%22User-Agent%22:%22Mozilla/5.0%20(X11;%20Ubuntu;%20Linu%E2%80%A6)%20Gecko/20100101%20Firefox/65.0%22%7D"
                            width="160px" height="100px">
                       {% else %}
                       <img src="/images/covers/{{vid.item.cover_image}}" width="160px" height="100px">

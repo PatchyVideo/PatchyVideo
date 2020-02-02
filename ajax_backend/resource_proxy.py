@@ -1,12 +1,4 @@
 """
-File:
-	resource_proxy.py
-Location:
-	/ajax_backend/resource_proxy.py
-Description:
-	Proxy resources which result in 403 otherwise
-"""
-
 import requests
 import json
 
@@ -30,3 +22,4 @@ def ajax_resource_proxy():
 	log(obj = {'content_length': len(content), 'status_code': ret.status_code})
 	return content
 	
+"""
