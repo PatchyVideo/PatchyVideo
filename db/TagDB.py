@@ -465,8 +465,6 @@ class TagDB() :
 		return item_obj, tags, category_tag_map, tag_category_map
 
 	def set_item_clearence(self, item_id, clearence, user = '', session = None) :
-		import sys
-		print('!!!!!set_item_clearence!!!!!', file = sys.stdout)
 		self.update_item_query(item_id, {'$set': {'clearence': clearence}}, user, session = session)
 
 	def add_item(self, tags, item, clearence, user = '', session = None) :
@@ -490,8 +488,6 @@ class TagDB() :
 		self.db.items.update_one({'_id': ObjectId(item_id)}, {'$set': {'item': item, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 
 	def update_item_query(self, item_id_or_item_object, query, user = '', session = None):
-		import sys
-		print('!!!!!update_item_query!!!!!', file = sys.stdout)
 		"""
 		Your update query MUST NOT modify tags
 		"""
@@ -501,10 +497,6 @@ class TagDB() :
 				raise UserError('ITEM_NOT_EXIST')
 		else:
 			item = item_id_or_item_object
-		print('!!!!!got item!!!!!', file = sys.stdout)
-		print(item, file = sys.stdout)
-		print('!!!!!query!!!!!', file = sys.stdout)
-		print(query, file = sys.stdout)
 		self.db.items.update_one({'_id': ObjectId(item['_id'])}, query, session = session)
 		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 
