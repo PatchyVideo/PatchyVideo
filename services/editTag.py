@@ -130,7 +130,7 @@ def removeAlias(user, alias) :
 @modifyingResource('tags')
 def mergeTag(user, tags_dst, tag_src) :
 	log(obj = {'tags_dst': tags_dst, 'tag_src': tag_src})
-	#filterOperation('mergeTag', user) # only admin can do this
+	filterOperation('mergeTag', user) # only admin can do this
 	with MongoTransaction(client) as s :
 		tagdb.merge_tag(tags_dst, tag_src, makeUserMeta(user), session = s())
 		s.mark_succeed()
