@@ -27,9 +27,9 @@ def queryTags(category, page_idx, page_size, order = 'none'):
 	if order == 'oldest':
 		result = result.sort([("meta.created_at", 1)])
 	if order == 'count':
-		result = result.sort([("count", -1)])
-	elif order == 'count_inv':
 		result = result.sort([("count", 1)])
+	elif order == 'count_inv':
+		result = result.sort([("count", -1)])
 	return result.skip(page_idx * page_size).limit(page_size)
 
 def queryTagsWildcard(query, category, page_idx, page_size, order):

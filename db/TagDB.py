@@ -161,9 +161,9 @@ class TagDB() :
 		if order == 'oldest':
 			sort_obj = {"meta.created_at": 1}
 		if order == 'count':
-			sort_obj = {"count": -1}
-		elif order == 'count_inv':
 			sort_obj = {"count": 1}
+		elif order == 'count_inv':
+			sort_obj = {"count": -1}
 
 		return self.db.tag_alias.aggregate([
 			{'$match': {'tag': {'$regex': query}}},
