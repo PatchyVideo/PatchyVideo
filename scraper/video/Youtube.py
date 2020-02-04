@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from dateutil.parser import parse
 import aiohttp
 from services.config import Config
+import random
 
 def _str(s):
 	status = 'normal'
@@ -113,7 +114,9 @@ class Youtube( Crawler ) :
 			else:
 				vidid = link[link.rfind('/') + 1:]
 		
-		for key in Config.YOUTUBE_API_KEYS.split(",") :
+		keys = Config.YOUTUBE_API_KEYS.split(",")
+		while keys :
+			key = random.choice(keys)
 			api_url = "https://www.googleapis.com/youtube/v3/videos?id=" + vidid + "&key=" + key + "&part=snippet,contentDetails,statistics,status"
 			async with aiohttp.ClientSession() as session:
 				async with session.get(api_url, headers = self.HEADERS_NO_UTF8) as resp:
@@ -122,6 +125,7 @@ class Youtube( Crawler ) :
 						break
 					else :
 						log_ne(op = 'youtube_run_async', level = 'WARN', obj = {'msg': 'FETCH_FAILED', 'key': key, 'resp': apirespond.content, 'url': api_url})
+			keys.remove(key)
 
 		player_response = loads(apirespond)
 		player_response = player_response['items'][0]
