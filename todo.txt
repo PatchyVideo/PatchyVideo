@@ -97,15 +97,19 @@ add robots.txt
 remove unnecessary fileds from ajax results
 !interface for updating user access control info, remember to update user's access control info in redis db as well
     lacking UI support
-!interface for updating video clearence
-    lacking UI support
+#interface for updating video clearence
+#    lacking UI support
 add view pending post playlist job interface
 #async frontend helper, create a new container for this task
 add index for placeholder and folder
+!playlist tree structure(folder)
+    need UI
 #image upload for cover/user-id photo
 #check user input for IPFS upload and image upload
 !merge tag
     lacking UI
+nico.ms support vue
+add video to playlist from video detail page
 
 ======================
 offical launch
@@ -118,7 +122,6 @@ tag group
     current algorithm is expensive
 tag rule(e.g. adding touhou_mmd will results in mmd tag being added)
 #batch post from existing playlist
-playlist tree structure
 mobile phone UI
 full multi-language support(CHS/CHT/JPN/ENG)
 automatically identify insufficient tags, show this message on both video upload and video detail page
