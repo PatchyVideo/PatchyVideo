@@ -15,17 +15,17 @@ from bs4 import BeautifulSoup
 
 class IPFS( Crawler ) :
 	NAME = 'ipfs'
-	PATTERN = r'^https:\/\/(ipfs\.globalupload\.io|gateway\.ipfs\.io\/ipfs|video\.dtube\.top\/ipfs|cloudflare-ipfs\.com\/ipfs)\/[a-zA-Z0-9]+'
+	PATTERN = r'^ipfs:[a-zA-Z0-9]+'
 	SHORT_PATTERN = r''
 
 	def normalize_url( self, link ) :
-		return f"https://ipfs.globalupload.io/" + link[link.rfind("/") + 1:]
+		return f"ipfs:" + link[link.rfind(":") + 1:]
 
 	def unique_id( self, link ) :
-		return "ipfs:%s" % link[link.rfind("/") + 1:]
+		return "ipfs:%s" % link[link.rfind(":") + 1:]
 
 	def get_metadata( self, link ) :
-		ipfs_hash = link[link.rfind("/") + 1:]
+		ipfs_hash = link[link.rfind(":") + 1:]
 		return makeResponseSuccess({
 			'thumbnailURL': '',
 			'title' : '【NO TITLE】',
