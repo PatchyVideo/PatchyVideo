@@ -41,6 +41,15 @@ POST /be/postvideo_ipfs.do
 日志查看
 ==================================
 该页面列出网站的日志
+注意日期均为UTC时间
+
+原始日志
+POST /admin/viewlogs.do
+{"page":1,"page_size":100,"date_from":日志查看起始日期（可选）,"date_to":日志查看终止日期（可选）,"order":"latest或oldest"}
+
+整合后的日志
+POST /admin/viewlogs_aggregated.do
+{"page":1,"page_size":100,"date_from":日志查看起始日期（可选）,"date_to":日志查看终止日期（可选）,"order":"latest或oldest"}
 
 ==================================
 网站参数设置

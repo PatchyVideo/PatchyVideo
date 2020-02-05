@@ -7,9 +7,9 @@ def viewLogs(page_idx, page_size, date_from = None, date_to = None, order = 'lat
 	if order not in ['latest', 'oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	if order == 'latest':
-		sort_obj = {"time" : 1}
+		sort_obj = ("time", -1)
 	if order == 'oldest':
-		sort_obj = {"time" : -1}
+		sort_obj = ("time", 1)
 	if date_from and date_to :
 		date_obj = {'time': {'$gte': date_from, '$lt': date_to + timedelta(days = 1)}}
 	elif date_from :
@@ -18,11 +18,36 @@ def viewLogs(page_idx, page_size, date_from = None, date_to = None, order = 'lat
 		date_obj = {'time': {'$lt': date_to + timedelta(days = 1)}}
 	else :
 		date_obj = {}
+	return [i for i in db.logs.find(date_obj).sort([sort_obj]).skip(page_idx * page_size).limit(page_size)]
+
+def viewLogsAggregated(page_idx, page_size, date_from = None, date_to = None, order = 'latest') :
+	if order not in ['latest', 'oldest'] :
+		raise UserError('INCORRECT_ORDER')
+	if order == 'latest':
+		sort_obj = {"time": -1}
+	if order == 'oldest':
+		sort_obj = {"time": 1}
+	if date_from and date_to :
+		date_obj = {'time': {'$gte': date_from, '$lt': date_to + timedelta(days = 1)}}
+	elif date_from :
+		date_obj = {'time': {'$gte': date_from}}
+	elif date_to :
+		date_obj = {'time': {'$lt': date_to + timedelta(days = 1)}}
+	else :
+		date_obj = {}
+	#TODO: replace this with periodically aggregate logs to a new collection
 	ret = db.logs.aggregate([
 		{'$match': date_obj},
-		{'$lookup': {'from': 'logs', 'let': {'event_id': '$_id'}, 'pipeline':[{'$match': {'$expr': {'$eq': ["$id", "$$event_id"]}}}, sort_obj], 'as': 'subevents'}},
 		{'$sort': sort_obj},
-		{'$skip': page_idx * page_size},
+		#{'$skip': page_idx * page_size},
+		{'$limit': page_size * 20},
+		{'$lookup': {'from': 'logs', 'let': {'event_id': '$_id', 'time': '$time'}, 'pipeline':[
+			{'$match': date_obj},
+			{'$sort': sort_obj},
+			#{'$skip': page_idx * page_size},
+			{'$limit': page_size * 20},
+			{'$match': {'$expr': {'$eq': ["$id", "$$event_id"]}}},
+			], 'as': 'subevents'}},
 		{'$limit': page_size}
 	])
-	return ret
+	return [i for i in ret]
