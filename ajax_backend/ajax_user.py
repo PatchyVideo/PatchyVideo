@@ -6,6 +6,7 @@ import redis
 from flask import render_template, request, current_app, jsonify, redirect, session
 
 from init import app
+from utils import getDefaultJSON
 from utils.interceptors import loginOptional, jsonRequest, basePage, loginRequiredJSON
 from utils.jsontools import *
 
@@ -148,3 +149,19 @@ def ajax_user_update_allowedops(rd, user, data):
 @jsonRequest
 def ajax_user_update_deniedops(rd, user, data):
 	updateUserDeniedOps(user['_id'], data.ops, user)
+
+@app.route('/user/list_users.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_user_list_users(rd, user, data):
+	page_idx = getDefaultJSON(data, 'page', 1) - 1
+	page_size = getDefaultJSON(data, 'page_size', 20)
+	query = getDefaultJSON(data, 'query', '')
+	order = getDefaultJSON(data, 'order', 'latest')
+	users, count = listUsers(user, page_idx, page_size, query, order)
+	ret = makeResponseSuccess({
+		"users": users,
+		"count": count,
+		"page_count": (count - 1) // page_size + 1
+	})
+	return "json", ret

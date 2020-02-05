@@ -363,3 +363,25 @@ def updateUserDeniedOps(user_id, denied_ops, user) :
 		return obj
 	
 	_updateUserRedisValue(user_id, updater)
+
+def listUsers(user, page_idx, page_size, query = None, order = 'latest') :
+	filterOperation('listUsers', user)
+	if order not in ['latest', 'oldest'] :
+		raise UserError('INCORRECT_ORDER')
+	if query :
+		query = re.escape(query)
+		query = f'^.*{query}.*$'
+		query_obj = {'profile.username': {'$regex': query}}
+	else :
+		query_obj = {}
+	result = db.users.find(query_obj)
+	if order == 'latest':
+		result = result.sort([("meta.created_at", -1)])
+	if order == 'oldest':
+		result = result.sort([("meta.created_at", 1)])
+	items = result.skip(page_idx * page_size).limit(page_size)
+	count = items.count()
+	items = [i for i in items]
+	for i in range(len(items)) :
+		del items[i]["crypto"]
+	return items, count
