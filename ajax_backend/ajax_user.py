@@ -26,6 +26,14 @@ def ajax_login(rd, data):
 	sid = login(data.username, data.password, '', data.session)
 	session['sid'] = sid
 
+@app.route('/logout.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_logout(rd, user, data) :
+    if user is not None:
+        logout(session['sid'])
+        del session['sid']
+
 @app.route('/signup.do', methods = ['POST'])
 @basePage
 @jsonRequest
