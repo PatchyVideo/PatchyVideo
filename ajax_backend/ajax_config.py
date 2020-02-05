@@ -14,7 +14,7 @@ from services.tcb import filterOperation
 @jsonRequest
 def ajax_config_setconfig(rd, user, data):
 	filterOperation('setConfig', user, data.attr)
-	Config.__setattr__(data.attr, data.data)
+	Config.SetValue(data.attr, data.data)
 
 @app.route('/config/getconfig.do', methods = ['POST'])
 @loginRequiredJSON
@@ -27,6 +27,6 @@ def ajax_config_getconfig(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_config_listconfig(rd, user, data):
-	filterOperation('listConfig', user, data.attr)
+	filterOperation('listConfig', user)
 	return makeResponseSuccess(Config.ListAttrs())
 
