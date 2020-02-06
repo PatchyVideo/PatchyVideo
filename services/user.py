@@ -103,6 +103,7 @@ def query_user(uid) :
 		obj = db.users.find_one({'_id': ObjectId(uid)})
 		del obj['access_control']
 		del obj['crypto']
+		del obj['profile']['email']
 	except :
 		raise UserError('USER_NOT_EXIST')
 	return obj
@@ -113,6 +114,7 @@ def queryUsername(username) :
 		raise UserError('USER_NOT_EXIST')
 	del user_obj_find['access_control']
 	del user_obj_find['crypto']
+	del user_obj_find['profile']['email']
 	return user_obj_find
 
 def checkIfUserExists(username) :

@@ -409,7 +409,8 @@ def listPlaylists(user, page_idx, page_size, query = {}, order = 'latest') :
 		"$project": {
 			"user_detail.crypto": 0,
 			"user_detail.access_control": 0,
-			"user_detail.meta": 0
+			"user_detail.meta": 0,
+			"user_detail.profile.email": 0
 		}
 	},
 	{'$facet':
