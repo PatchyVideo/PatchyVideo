@@ -1,3 +1,4 @@
+"""
 import time
 
 import redis
@@ -41,3 +42,4 @@ def ajax_helper_get_ytb_info(rd, user, data):
 		log(obj = {'msg': 'FETCH_FAILED', 'info': info})
 		return makeResponseFailed('FETCH_FAILED')
 	return info
+"""
