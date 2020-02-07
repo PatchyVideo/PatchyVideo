@@ -43,6 +43,8 @@ def createPlaylist(language, title, desc, cover, user, private = False) :
 		raise UserError('DESC_TOO_LONG')
 	if len(cover) > PlaylistConfig.MAX_COVER_URL_LENGTH :
 		raise UserError('URL_TOO_LONG')
+	if not cover :
+		cover = 'default-cover.jpg'
 	if not title :
 		raise UserError('EMPTY_TITLE')
 	if not desc :
