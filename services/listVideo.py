@@ -9,6 +9,7 @@ from .tagStatistics import getPopularTags, getCommonTags, updateTagSearch
 from utils.exceptions import UserError
 from utils.logger import log
 from services.tcb import filterVideoList
+from bson.json_util import dumps
 
 def _filterPlaceholder(videos) :
 	return list(filter(lambda x: not ('placeholder' in x['item'] and x['item']['placeholder']), videos))
@@ -18,7 +19,7 @@ def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	query_obj, tag_ids = db.compile_query(query_str)
-	log(obj = {'query': json.dumps(query_obj)})
+	log(obj = {'query': dumps(query_obj)})
 	updateTagSearch(tag_ids)
 	try :
 		result = db.retrive_items(query_obj)
