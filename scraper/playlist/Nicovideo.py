@@ -46,6 +46,8 @@ class Nicovideo() :
 		meta_json_str, = ret.groups()
 		meta_json_str = meta_json_str.replace('\t', ' ')
 		meta_json = yaml.safe_load(meta_json_str)
+		if not meta_json["description"] :
+			meta_json["description"] = f'Playlist from from {url}\nat {str(datetime.now())}'
 		return {
 			"desc": meta_json["description"],
 			"title": meta_json["name"]
