@@ -258,7 +258,6 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 			url = clear_url(url)
 		lock_id = "videoEdit:" + ret["data"]["unique_id"]
 		use_override = False
-		import pdb; pdb.set_trace()
 		if field_override and '__condition' in field_override :
 			condition = field_override['__condition']
 			del field_override['__condition']
