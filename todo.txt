@@ -99,7 +99,7 @@ remove unnecessary fileds from ajax results
     lacking UI support
 #interface for updating video clearence
 #    lacking UI support
-add view pending post playlist job interface
+#add view pending post playlist job interface
 #async frontend helper, create a new container for this task
 add index for placeholder and folder
 !playlist tree structure(folder)
@@ -108,8 +108,8 @@ add index for placeholder and folder
 #check user input for IPFS upload and image upload
 !merge tag
     lacking UI
-nico.ms support vue
-add video to playlist from video detail page
+#nico.ms support vue
+#add video to playlist from video detail page
 
 ======================
 offical launch
