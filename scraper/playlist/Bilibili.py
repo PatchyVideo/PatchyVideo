@@ -65,6 +65,7 @@ class Bilibili() :
 					overrides["title"] = f"【已失效视频】{video_obj['pages'][0]['title']}"
 				except :
 					pass
+				overrides["__condition"] = 'placeholder'
 				yield f"https://www.bilibili.com/video/{avid}", overrides
 				remaining_count -= 1
 			page = 2
@@ -81,6 +82,7 @@ class Bilibili() :
 						overrides["title"] = f"【已失效视频】{video_obj['pages'][0]['title']}"
 					except :
 						pass
+					overrides["__condition"] = 'placeholder'
 					yield f"https://www.bilibili.com/video/{avid}", overrides
 					remaining_count -= 1
 				page += 1

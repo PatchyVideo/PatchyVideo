@@ -128,7 +128,7 @@ def postVideoIPFS_new(user, url, tags, copy, pid, rank, desc, title, cover_file_
 		raise UserError('NOT_IPFS')
 	_verifyTags(tags)
 	log(obj = {'url': cleanURL})
-	task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], user, field_overrides = {'title': title, 'desc': desc, 'cover_image_override': cover_file}))
+	task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], user, field_overrides = {'title': title, 'desc': desc, 'cover_image_override': cover_file, '__condition': 'any'}))
 	return task_id
 
 def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies):

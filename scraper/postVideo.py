@@ -257,7 +257,16 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 		else :
 			url = clear_url(url)
 		lock_id = "videoEdit:" + ret["data"]["unique_id"]
-		if field_override :
+		use_override = False
+		import pdb; pdb.set_trace()
+		if field_override and '__condition' in field_override :
+			condition = field_override['__condition']
+			del field_override['__condition']
+			if condition == 'any' :
+				use_override = True
+			elif condition == 'placeholder' and 'placeholder' in ret["data"] and ret["data"]['placeholder'] :
+				use_override = True
+		if use_override :
 			for key in field_override :
 				ret['data'][key] = field_override[key]
 		async with RedisLockAsync(rdb, lock_id) :
