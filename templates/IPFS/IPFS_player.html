@@ -3,6 +3,7 @@
 <head>
     <title>IPFS 视频播放页</title>
     <script src="https://cdn.jsdelivr.net/npm/ipfs/dist/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/videostream@3.2.1/dist/index.js"></script>
 </head>
 <body>
     <h1>实验性 内嵌js-ipfs播放页</h1>
@@ -15,16 +16,38 @@
     </ul>
 
     <div id="nodes">IPFS服务初始化中...</div>
-    <video id="player" controls
-        src="https://ipfs.globalupload.io/QmcAmXANyKjCfRoy9HAHA2tK4c3ujHH2yekwZwNTD6gTDh">
+    <video id="player" controls>
         您的浏览器八成是IE
     </video>
 
     <script>
+        //// This is a function to simplify the js
+        //// Need: Ipfs node init
+        function genIpfsVideo(ipfsnode, hash, element) {
+            let stream
+            let vs = new videostream({
+                createReadStream: function createReadStream(opts) {
+                    const { start, end } = opts
+                    stream = ipfsnode.catReadableStream(hash, {
+                        offset: start,
+                        length: end && end - start
+                    })
+                    stream.on('error', (err) => { console.log(err) })
+                    return stream
+                }
+            }, element)
+
+            return vs
+        }
+    </script>
+    <script>
         var nodeShow     
+        var player
+        var vs
 
         window.onload = ()=>{
             nodeShow = document.getElementById("nodes")
+            player = document.getElementById("player")
         }
 
         //// IPFS Settings ////
@@ -32,7 +55,7 @@
             repo: '/ipfs'
         })
 
-        const Interval = 5 * 1000;
+        const Interval = 3 * 1000;
         ipfs.once('ready', () => {
             console.log("ipfs node ready.");
             if (nodeShow) {
@@ -47,6 +70,8 @@
                     nodeShow.innerHTML = peerInfos.length + " IPFS 节点已连接"
                 })
             }, Interval);
+
+            vs = genIpfsVideo(ipfs, 'QmcAmXANyKjCfRoy9HAHA2tK4c3ujHH2yekwZwNTD6gTDh', player);
         });
     </script>
 </body>
