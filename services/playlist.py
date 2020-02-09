@@ -109,10 +109,10 @@ def removePlaylist(pid, user) :
 		deletePlaylist(pid, session = s())
 		s.mark_succeed()
 
-def listMyPlaylists(user, page_idx = 0, page_size = 10000, order = 'last_modified') :
+def listMyPlaylists(user, page_idx = 0, page_size = 10000, query_obj = {}, order = 'last_modified') :
 	if order not in ['latest', 'oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')
-	result = db.playlists.find({'meta.created_by': ObjectId(user['_id'])})
+	result = db.playlists.find({'$and': [{'meta.created_by': ObjectId(user['_id'])}, query_obj]})
 	if order == 'last_modified' :
 		result = result.sort([("meta.modified_at", -1)])
 	if order == 'latest':
@@ -122,10 +122,14 @@ def listMyPlaylists(user, page_idx = 0, page_size = 10000, order = 'last_modifie
 	result = result.skip(page_idx * page_size).limit(page_size)
 	return result, result.count()
 
-def listYourPlaylists(user, uid, page_idx = 0, page_size = 10000, order = 'last_modified') :
+def listYourPlaylists(user, uid, page_idx = 0, page_size = 10000, query_obj = {}, order = 'last_modified') :
 	if order not in ['latest', 'oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')
-	result = db.playlists.find({'$and': [{'meta.created_by': ObjectId(uid)}, {'private': False}]})
+	if isObjectAgnosticOperationPermitted('viewPrivatePlaylist', user) :
+		auth_obj = {}
+	else :
+		auth_obj = {'private': False}
+	result = db.playlists.find({'$and': [{'meta.created_by': ObjectId(uid)}, auth_obj, query_obj]})
 	if order == 'last_modified' :
 		result = result.sort([("meta.modified_at", -1)])
 	if order == 'latest':

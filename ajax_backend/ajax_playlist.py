@@ -12,6 +12,19 @@ from utils.tagtools import translateTagsToPreferredLanguage, getTagObjects
 from services.playlist import *
 from utils.html import buildPageSelector
 
+def _buildQueryObj(query) :
+	# TODO: temporary solution, full text search index needed
+	if query :
+		keywords = query.split()
+		keywords = [re.escape(q) for q in keywords]
+		#search_regex = ''.join(['(?=.*%s)' % q for q in keywords])
+		search_regex = '|'.join(keywords)
+		search_regex = f'({search_regex})'
+		query_obj = {'$or':[{'title.english': {'$regex': search_regex}}, {'desc.english': {'$regex': search_regex}}]}
+	else :
+		query_obj = {}
+	return query_obj
+
 @app.route('/list/getcommontags.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
@@ -72,7 +85,9 @@ def ajax_lists_myplaylists(rd, user, data):
 	page_size = getDefaultJSON(data, 'page_size', 20)
 	page = getDefaultJSON(data, 'page', 1) - 1
 	order = getDefaultJSON(data, 'order', 'last_modified')
-	playlists, playlists_count = listMyPlaylists(user, page, page_size, order)
+	query = getDefaultJSON(data, 'query', '')
+	query_obj = _buildQueryObj(query)
+	playlists, playlists_count = listMyPlaylists(user, page, page_size, query_obj, order)
 	result = [item for item in playlists]
 	return "json", makeResponseSuccess({
 		"playlists": result,
@@ -87,7 +102,9 @@ def ajax_lists_yourplaylists(rd, user, data):
 	page_size = getDefaultJSON(data, 'page_size', 20)
 	page = getDefaultJSON(data, 'page', 1) - 1
 	order = getDefaultJSON(data, 'order', 'last_modified')
-	playlists, playlists_count = listYourPlaylists(user, data.uid, page, page_size, order)
+	query = getDefaultJSON(data, 'query', '')
+	query_obj = _buildQueryObj(query)
+	playlists, playlists_count = listYourPlaylists(user, data.uid, page, page_size, query_obj, order)
 	result = [item for item in playlists]
 	return "json", makeResponseSuccess({
 		"playlists": result,
@@ -118,16 +135,7 @@ def ajax_lists_search_do(rd, user, data):
 	page = getDefaultJSON(data, 'page', 1) - 1
 	order = getDefaultJSON(data, 'order', 'last_modified')
 	query = getDefaultJSON(data, 'query', '')
-	# TODO: temporary solution, full text search index needed
-	if query :
-		keywords = query.split()
-		keywords = [re.escape(q) for q in keywords]
-		#search_regex = ''.join(['(?=.*%s)' % q for q in keywords])
-		search_regex = '|'.join(keywords)
-		search_regex = f'({search_regex})'
-		query_obj = {'$or':[{'title.english': {'$regex': search_regex}}, {'desc.english': {'$regex': search_regex}}]}
-	else :
-		query_obj = {}
+	query_obj = _buildQueryObj(query)
 	playlists, playlists_count = listPlaylists(user, page, page_size, query_obj, order)
 	result = [item for item in playlists]
 	return "json", makeResponseSuccess({
