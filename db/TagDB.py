@@ -536,7 +536,7 @@ class TagDB() :
 		], session = session)
 
 	def update_many_items_tags_merge(self, item_ids, new_tags, user = '', session = None):
-		if not new_tags :
+		if not new_tags or not item_ids :
 			return
 		if isinstance(new_tags[0], int) :
 			new_tag_ids = new_tags
@@ -553,7 +553,7 @@ class TagDB() :
 		self.aci.SetCountDiff(new_tag_count_diff)
 
 	def update_many_items_tags_pull(self, item_ids, tags_to_remove, user = '', session = None):
-		if not tags_to_remove :
+		if not tags_to_remove or not item_ids :
 			return
 		if isinstance(tags_to_remove[0], int) :
 			tag_ids_to_remove = tags_to_remove
