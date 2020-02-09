@@ -12,7 +12,7 @@ import os
 
 class Bilibili( Crawler ) :
 	NAME = 'bilibili'
-	PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?(bilibili\.com|b23\.tv)\/video\/[aA][vV][\d]+'
+	PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?(bilibili\.com\/video\/[aA][vV][\d]+|b23\.tv\/[aA][vV][\d]+)'
 	SHORT_PATTERN = r'^[aA][Vv][\d]+$'
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
