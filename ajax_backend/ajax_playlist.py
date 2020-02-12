@@ -106,7 +106,7 @@ def ajax_lists_myplaylists_vid(rd, user, data):
 	order = getDefaultJSON(data, 'order', 'last_modified')
 	query = getDefaultJSON(data, 'query', '')
 	query_obj = _buildQueryObj(query)
-	playlists, playlists_count = listMyPlaylistsAgainstSingleVideo(user,data.vid,  page, page_size, query_obj, order)
+	playlists, playlists_count = listMyPlaylistsAgainstSingleVideo(user, data.vid, page, page_size, query_obj, order)
 	return "json", makeResponseSuccess({
 		"playlists": playlists,
 		"count": playlists_count,
