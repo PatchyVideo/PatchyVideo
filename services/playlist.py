@@ -122,6 +122,26 @@ def listMyPlaylists(user, page_idx = 0, page_size = 10000, query_obj = {}, order
 	result = result.skip(page_idx * page_size).limit(page_size)
 	return result, result.count()
 
+def listMyPlaylistsAgainstSingleVideo(user, vid, page_idx = 0, page_size = 10000, query_obj = {}, order = 'last_modified') :
+	if order not in ['latest', 'oldest', 'last_modified'] :
+		raise UserError('INCORRECT_ORDER')
+	result = db.playlists.find({'$and': [{'meta.created_by': ObjectId(user['_id'])}, query_obj]})
+	if order == 'last_modified' :
+		result = result.sort([("meta.modified_at", -1)])
+	if order == 'latest':
+		result = result.sort([("meta.created_at", -1)])
+	if order == 'oldest':
+		result = result.sort([("meta.created_at", 1)])
+	result = result.skip(page_idx * page_size).limit(page_size)
+	count = result.count()
+	result = [i for i in result]
+	result_dict = {str(x['_id']): x for x in result}
+	pids = [i['_id'] for i in result]
+	video_items = db.playlist_items.find({'$and': [{'pid': {'$in': pids}}, {'vid': ObjectId(vid)}]})
+	for item in video_items :
+		result_dict[str(item['pid'])]['exist'] = True
+	return result_dict.values(), count
+
 def listYourPlaylists(user, uid, page_idx = 0, page_size = 10000, query_obj = {}, order = 'last_modified') :
 	if order not in ['latest', 'oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')

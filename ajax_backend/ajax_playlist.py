@@ -97,6 +97,22 @@ def ajax_lists_myplaylists(rd, user, data):
 		"page_count": (playlists_count - 1) // page_size + 1
 		})
 
+@app.route('/lists/myplaylists_vid', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_lists_myplaylists_vid(rd, user, data):
+	page_size = getDefaultJSON(data, 'page_size', 20)
+	page = getDefaultJSON(data, 'page', 1) - 1
+	order = getDefaultJSON(data, 'order', 'last_modified')
+	query = getDefaultJSON(data, 'query', '')
+	query_obj = _buildQueryObj(query)
+	playlists, playlists_count = listMyPlaylistsAgainstSingleVideo(user,data.vid,  page, page_size, query_obj, order)
+	return "json", makeResponseSuccess({
+		"playlists": playlists,
+		"count": playlists_count,
+		"page_count": (playlists_count - 1) // page_size + 1
+		})
+
 @app.route('/lists/yourplaylists', methods = ['POST'])
 @loginOptional
 @jsonRequest
