@@ -78,7 +78,7 @@ def login(username, password, challenge, login_session_id) :
 				rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
 
 		if logged_in :
-			return redis_user_key
+			return redis_user_key, user_obj['profile']
 
 		common_user_obj = {
 			'_id': user_obj['_id'],
@@ -95,7 +95,7 @@ def login(username, password, challenge, login_session_id) :
 		rdb.set(redis_user_key, redis_user_value, ex = UserConfig.LOGIN_EXPIRE_TIME)
 		rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
 		log(obj = {'redis_user_key': redis_user_key, 'user': common_user_obj})
-		return redis_user_key
+		return redis_user_key, common_user_obj['profile']
 	raise UserError('INCORRECT_SESSION')
 
 def query_user(uid) :

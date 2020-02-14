@@ -24,8 +24,9 @@ def ajax_auth_get_session_do(rd, data):
 @basePage
 @jsonRequest
 def ajax_login(rd, data):
-	sid = login(data.username, data.password, '', data.session)
+	sid, obj = login(data.username, data.password, '', data.session)
 	session['sid'] = sid
+	return "json", makeResponseSuccess(obj)
 
 @app.route('/logout.do', methods = ['POST'])
 @loginOptional
