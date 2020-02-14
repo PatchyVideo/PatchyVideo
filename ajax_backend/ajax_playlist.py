@@ -169,7 +169,7 @@ def ajax_lists_get_playlist_do(rd, user, data):
 	page_size = getDefaultJSON(data, 'page_size', 20)
 	page = getDefaultJSON(data, 'page', 1) - 1
 	playlist = getPlaylist(data.pid)
-	if playlist["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) :
+	if playlist["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) and user['access_control']['status'] != 'admin' :
 		abort(404)
 	playlist_editable = False
 	if user:
