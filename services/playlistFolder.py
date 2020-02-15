@@ -83,9 +83,11 @@ def _parentPath(p) :
 
 def _findFolder(user, path, raise_exception = True) :
 	if isinstance(user, str) :
-		user_id = user
+		user_id = ObjectId(user)
 	elif isinstance(user, dict) :
 		user_id = makeUserMeta(user)
+	elif isinstance(user, ObjectId) :
+		user_id = user
 	else :
 		assert False
 	obj = db.playlist_folders.find_one({'user': user_id, 'path': path})
@@ -93,14 +95,13 @@ def _findFolder(user, path, raise_exception = True) :
 		if path == '/' :
 			with MongoTransaction(client) as s :
 				obj = {
-					'user': makeUserMeta(user),
+					'user': user_id,
 					'leaf': False,
 					'playlist': None,
 					'name': "",
 					'path': "/",
 					'privateView': False,
-					'privateEdit': True,
-					'meta': makeUserMetaObject(user)
+					'privateEdit': True
 				}
 				db.playlist_folders.insert_one(obj, session = s())
 				s.mark_succeed()
@@ -174,20 +175,24 @@ def renameFolder(user, path, new_name) :
 		parent_path, cur_folder = _parentPath(path)
 		if '\\' in cur_folder :
 			raise UserError('INVALID_PATH')
+		if db.playlist_folders.find_one({'user': makeUserMeta(user), 'path': parent_path + new_name + '/'}) :
+			raise UserError('FOLDER_ALREADY_EXIST')
 		parent_path_escaped = re.escape(parent_path)
 		cur_folder_esacped = re.escape(cur_folder)
 		query_regex = f'^{parent_path_escaped}{cur_folder_esacped}\\/.*'
 		replace_regex = re.compile(f'^({parent_path_escaped})({cur_folder_esacped})(\\/.*)')
 		paths = db.playlist_folders.find({'user': makeUserMeta(user), 'path': {'$regex': query_regex}}, session = s())
 		db.playlist_folders.update_one({'user': makeUserMeta(user), 'path': {'$regex': f'^{parent_path_escaped}{cur_folder_esacped}\\/$'}}, {'$set': {'name': new_name}}, session = s())
+		new_name_escaped = re.escape(new_name)
 		for p in paths :
-			new_path = replace_regex.sub(rf'\1{new_name}\3', p['path'])
+			new_path = replace_regex.sub(rf'\g<1>{new_name}\g<3>', p['path'])
 			db.playlist_folders.update_one({'_id': p['_id']}, {'$set': {'path': new_path}}, session = s())
 		db.playlist_folders.update_one({'user': makeUserMeta(user), 'path': {'$regex': query_regex}}, {'$set': {
 			'meta.modified_by': makeUserMeta(user),
 			'meta.modified_at': datetime.now()
 		}}, session = s())
 		s.mark_succeed()
+		return parent_path + new_name + '/'
 
 def changeFolderAccess(user, path, privateView, privateEdit, recursive = True) :
 	_verifyPath(path)
@@ -277,6 +282,8 @@ def listFolder(viewing_user, user, path) :
 	folder_obj = _findFolder(user, path)
 	if isinstance(user, dict) :
 		user = ObjectId(user['_id'])
+	elif isinstance(user, str) :
+		user = ObjectId(user)
 	if folder_obj['privateView'] :
 		filterOperation('listFolder', viewing_user, folder_obj)
 
@@ -311,7 +318,7 @@ def listFolder(viewing_user, user, path) :
 				ans.append(item)
 		else : # subfolder item
 			ans.append(item)
-	return ans
+	return {'cur': folder_obj, 'children': ans}
 
 def test() :
 	pass

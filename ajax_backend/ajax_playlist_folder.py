@@ -31,7 +31,8 @@ def ajax_folder_delete_many(rd, data, user) :
 @loginRequiredJSON
 @jsonRequest
 def ajax_folder_rename(rd, data, user) :
-	renameFolder(user, data.path, data.new_name)
+	new_path = renameFolder(user, data.path, data.new_name)
+	return "json", makeResponseSuccess(new_path)
 
 @app.route('/folder/change_access', methods = ['POST'])
 @loginRequiredJSON
@@ -61,6 +62,8 @@ def ajax_folder_view(rd, data, user) :
 		if hasattr(data, 'uid') :
 			uid = data.uid
 		else :
+			uid = user['_id']
+		if uid == 'me' :
 			uid = user['_id']
 		return "json", makeResponseSuccess(listFolder(user, uid, data.path))
 
