@@ -93,6 +93,17 @@ def createPlaylistFromExistingPlaylist(language, url, user, use_autotag = False)
 	task_id = _postPlaylistTask(cleanURL, new_playlist_id, use_autotag, user)
 	return new_playlist_id, task_id
 
+def extendPlaylistFromExistingPlaylist(language, pid, url, user, use_autotag = False) :
+	log(obj = {'url': url, 'pid': pid})
+	filterOperation('extendPlaylistFromExistingPlaylist', user)
+	if not db.playlists.find_one({'_id': ObjectId(pid)}) :
+		raise UserError('PLAYLIST_NOT_EXIST')
+	cralwer, cleanURL = dispatch_playlist(url)
+	if not cralwer :
+		raise UserError('UNSUPPORTED_PLAYLIST_URL')
+	task_id = _postPlaylistTask(cleanURL, pid, use_autotag, user)
+	return task_id
+
 def removePlaylist(pid, user) :
 	log(obj = {'pid': pid})
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :

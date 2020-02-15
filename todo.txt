@@ -110,6 +110,8 @@ add index for placeholder and folder
     lacking UI
 #nico.ms support vue
 #add video to playlist from video detail page
+create video copy from desc automatically
+#extend playlist with playlist
 
 ======================
 offical launch
@@ -125,6 +127,7 @@ tag rule(e.g. adding touhou_mmd will results in mmd tag being added)
 mobile phone UI
 full multi-language support(CHS/CHT/JPN/ENG)
 automatically identify insufficient tags, show this message on both video upload and video detail page
+request videos for backup
 + phase 2
 
 ======================
