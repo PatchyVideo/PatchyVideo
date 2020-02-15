@@ -112,7 +112,7 @@ add index for placeholder and folder
 #add video to playlist from video detail page
 create video copy from desc automatically
 #extend playlist with playlist
-post playlist optimization: once locked, no longer need to check for playlist existence and correctness for every video
+#post playlist optimization: once locked, no longer need to check for playlist existence and correctness for every video
 
 ======================
 offical launch

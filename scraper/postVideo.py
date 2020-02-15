@@ -28,9 +28,11 @@ from db import tagdb, db, client
 from bson import ObjectId
 
 from services.playlist import addVideoToPlaylist, addVideoToPlaylistLockFree, insertIntoPlaylist, insertIntoPlaylistLockFree
+from services.tcb import filterOperation
 from config import VideoConfig
 from PIL import Image, ImageSequence
 from utils.logger import log_e, setEventUserAndID, setEventOp
+from config import PlaylistConfig
 
 import io
 import json
@@ -168,27 +170,50 @@ class _PlaylistReorederHelper() :
 		if self.playlist_map[dst_playlist] :
 			dst_rank = self.playlist_map[dst_playlist]['rank']
 			playlist_ordered = self.playlist_map[dst_playlist]['all']
-			cur_rank = 0
 			try :
-				async with RedisLockAsync(rdb, "playlistEdit:" + dst_playlist) :
+				# fast method
+				async with RedisLockAsync(rdb, "playlistEdit:" + dst_playlist), MongoTransaction(client) as s :
+					cur_rank = 0
+					playlist = db.playlists.find_one({'_id': ObjectId(dst_playlist)})
+					if playlist is None :
+						raise UserError('PLAYLIST_NOT_EXIST')
+					if playlist["videos"] + len(self.playlist_map[dst_playlist]['succeed']) > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
+						raise UserError('VIDEO_LIMIT_EXCEEDED')
+					playlist_videos = playlist['videos']
 					for unique_id in playlist_ordered :
 						if unique_id in self.playlist_map[dst_playlist]['succeed'] :
 							(video_id, _, user) = self.playlist_map[dst_playlist]['succeed'][unique_id]
 							if dst_rank == -1 :
-								addVideoToPlaylistLockFree(dst_playlist, video_id, user)
+								if filterOperation('addVideoToPlaylist', user, playlist, False) :
+									if addVideoToPlaylistLockFree(dst_playlist, video_id, user, playlist_videos, session = s()) :
+										playlist_videos += 1
 							else :
-								insertIntoPlaylistLockFree(dst_playlist, video_id, dst_rank + cur_rank, user)
-							cur_rank += 1
-			except Exception as ex :
+								if filterOperation('insertIntoPlaylist', user, playlist, False) :
+									if insertIntoPlaylistLockFree(dst_playlist, video_id, dst_rank + cur_rank, user, session = s()) :
+										cur_rank += 1
+					s.mark_succeed()
+			except UserError as ue :
+				# UserError, rereaise to upper level
 				log_e(event_id, user_global, '_add_to_playlist', 'ERR', {'ex': str(ex), 'tb': traceback.format_exc()})
+				del self.playlist_map[dst_playlist]
+				rdb.set(f'playlist-batch-post-event-{dst_playlist}', b'done')
+				raise ue
+			except Exception as ex :
+				# if anything goes wrong, fallback to slow method
+				log_e(event_id, user_global, '_add_to_playlist', 'ERR', {'ex': str(ex), 'tb': traceback.format_exc()})
+				cur_rank = 0
 				for unique_id in playlist_ordered :
 					if unique_id in self.playlist_map[dst_playlist]['succeed'] :
 						(video_id, _, user) = self.playlist_map[dst_playlist]['succeed'][unique_id]
-						if dst_rank == -1 :
-							addVideoToPlaylistLockFree(dst_playlist, video_id, user)
-						else :
-							insertIntoPlaylistLockFree(dst_playlist, video_id, dst_rank + cur_rank, user)
-						cur_rank += 1
+						# ignore error, add next video
+						try :
+							if dst_rank == -1 :
+								addVideoToPlaylist(dst_playlist, video_id, user)
+							else :
+								insertIntoPlaylist(dst_playlist, video_id, dst_rank + cur_rank, user)
+							cur_rank += 1
+						except :
+							pass
 			log_e(event_id, user_global, '_add_to_playlist', 'MSG', {'succedd': len(self.playlist_map[dst_playlist]['succeed']), 'all': len(self.playlist_map[dst_playlist]['all']), 'pid': dst_playlist})
 			del self.playlist_map[dst_playlist]
 			rdb.set(f'playlist-batch-post-event-{dst_playlist}', b'done')

@@ -256,29 +256,24 @@ def addVideoToPlaylist(pid, vid, user) :
 			'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()
 
-def addVideoToPlaylistLockFree(pid, vid, user) :
+def addVideoToPlaylistLockFree(pid, vid, user, rank, session) :
 	log(obj = {'pid': pid, 'vid': vid})
-	with MongoTransaction(client) as s :
-		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
-		if playlist is None :
-			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('addVideoToPlaylist', user, playlist)
-		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
-			raise UserError('VIDEO_NOT_EXIST')
-		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
-			raise UserError('VIDEO_LIMIT_EXCEEDED')
-		if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = s()) is not None :
-			raise UserError('VIDEO_ALREADY_EXIST', vid)
-		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
-		playlists.append(ObjectId(pid))
-		playlists = list(set(playlists))
-		tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, makeUserMeta(user), session = s())
-		db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": int(playlist["videos"]), "meta": makeUserMeta(user)}, session = s())
-		db.playlists.update_one({"_id": ObjectId(pid)}, {"$inc": {"videos": int(1)}}, session = s())
-		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-			'meta.modified_by': makeUserMeta(user),
-			'meta.modified_at': datetime.now()}}, session = s())
-		s.mark_succeed()
+	if tagdb.retrive_item({'_id': ObjectId(vid)}, session = session) is None :
+		#raise UserError('VIDEO_NOT_EXIST')
+		return False
+	if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = session) is not None :
+		#raise UserError('VIDEO_ALREADY_EXIST', vid)
+		return False
+	playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = session)['item']['series']
+	playlists.append(ObjectId(pid))
+	playlists = list(set(playlists))
+	tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, makeUserMeta(user), session = session)
+	db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": int(rank), "meta": makeUserMeta(user)}, session = session)
+	db.playlists.update_one({"_id": ObjectId(pid)}, {"$inc": {"videos": int(1)}}, session = session)
+	db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
+		'meta.modified_by': makeUserMeta(user),
+		'meta.modified_at': datetime.now()}}, session = session)
+	return True
 
 def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
 	playlist = db.playlists.find_one({'_id': ObjectId(pid)})
@@ -730,34 +725,25 @@ def insertIntoPlaylist(pid, vid, rank, user) :
 			'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()
 
-def insertIntoPlaylistLockFree(pid, vid, rank, user) :
+def insertIntoPlaylistLockFree(pid, vid, rank, user, session) :
 	log(obj = {'pid': pid, 'vid': vid, 'rank': rank})
-	with MongoTransaction(client) as s :
-		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
-		if playlist is None :
-			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('insertIntoPlaylist', user, playlist)
-		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
-			raise UserError('VIDEO_NOT_EXIST')
-		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
-			raise UserError('VIDEO_LIMIT_EXCEEDED')
-		if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = s()) is not None :
-			raise UserError('VIDEO_ALREADY_EXIST', vid)
-		if rank < 0 :
-			raise UserError('OUT_OF_RANGE')
-		if rank > playlist['videos'] :
-			rank = int(playlist['videos'])
-		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
-		playlists.append(ObjectId(pid))
-		playlists = list(set(playlists))
-		tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, makeUserMeta(user), session = s())
-		db.playlists.update_one({"_id": ObjectId(pid)}, {"$inc": {"videos": int(1)}}, session = s())
-		db.playlist_items.update_many({'$and': [{'pid': ObjectId(pid)}, {'rank': {'$gte': rank}}]}, {'$inc': {'rank': int(1)}}, session = s())
-		db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": int(rank), "meta": makeUserMeta(user)}, session = s())
-		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
-			'meta.modified_by': makeUserMeta(user),
-			'meta.modified_at': datetime.now()}}, session = s())
-		s.mark_succeed()
+	if tagdb.retrive_item({'_id': ObjectId(vid)}, session = session) is None :
+		#raise UserError('VIDEO_NOT_EXIST')
+		return False
+	if db.playlist_items.find_one({'$and': [{'pid': ObjectId(pid)}, {'vid': ObjectId(vid)}]}, session = session) is not None :
+		#raise UserError('VIDEO_ALREADY_EXIST', vid)
+		return False
+	playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = session)['item']['series']
+	playlists.append(ObjectId(pid))
+	playlists = list(set(playlists))
+	tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, makeUserMeta(user), session = session)
+	db.playlists.update_one({"_id": ObjectId(pid)}, {"$inc": {"videos": int(1)}}, session = session)
+	db.playlist_items.update_many({'$and': [{'pid': ObjectId(pid)}, {'rank': {'$gte': rank}}]}, {'$inc': {'rank': int(1)}}, session = session)
+	db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": int(rank), "meta": makeUserMeta(user)}, session = session)
+	db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
+		'meta.modified_by': makeUserMeta(user),
+		'meta.modified_at': datetime.now()}}, session = session)
+	return True
 
 def inversePlaylistOrder(pid, user) :
 	log(obj = {'pid': pid})
