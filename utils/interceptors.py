@@ -69,10 +69,10 @@ def basePage(func):
 			ret = func(*args, **kwargs)
 			return _handle_return(ret, rd)
 		except HTTPException as e:
-			log('WARN', obj = {'ex': e})
+			log(level = 'WARN', obj = {'ex': e})
 			raise e
 		except Exception as ex:
-			log('ERR', obj = {'ex': str(ex)})
+			log(level = 'ERR', obj = {'ex': str(ex)})
 			abort(400)
 	return wrapper
 
@@ -115,10 +115,10 @@ def loginRequired(func):
 				ret = func(*args, **kwargs)
 				return _handle_return(ret, rd)
 			except HTTPException as e:
-				log('WARN', obj = {'ex': e})
+				log(level = 'WARN', obj = {'ex': e})
 				raise e
 			except UserError as ue :
-				log('WARN', obj = {'ue': str(ue)})
+				log(level = 'WARN', obj = {'ue': str(ue)})
 				if 'NOT_EXIST' in ue.msg :
 					abort(404)
 				elif ue.msg == 'UNAUTHORISED_OPERATION' :
@@ -126,7 +126,7 @@ def loginRequired(func):
 				else :
 					abort(400)
 			except Exception as ex:
-				log('ERR', obj = {'ex': str(ex)})
+				log(level = 'ERR', obj = {'ex': str(ex)})
 				abort(400)
 		else :
 			log('login_check', level = 'SEC', obj = {'action': 'denied', 'path': request.full_path})
@@ -172,10 +172,10 @@ def loginOptional(func):
 			ret = func(*args, **kwargs)
 			return _handle_return(ret, rd)
 		except HTTPException as e:
-			log('WARN', obj = {'ex': e})
+			log(level = 'WARN', obj = {'ex': e})
 			raise e
 		except UserError as ue :
-			log('WARN', obj = {'ue': str(ue)})
+			log(level = 'WARN', obj = {'ue': str(ue)})
 			if 'NOT_EXIST' in ue.msg :
 				abort(404)
 			elif ue.msg == 'UNAUTHORISED_OPERATION' :
@@ -183,7 +183,7 @@ def loginOptional(func):
 			else :
 				abort(400)
 		except Exception as ex :
-			log('ERR', obj = {'ex': str(ex)})
+			log(level = 'ERR', obj = {'ex': str(ex)})
 			abort(400)
 	return wrapper
 
@@ -197,18 +197,18 @@ def jsonRequest(func):
 		try:
 			ret = func(*args, **kwargs)
 		except AttributeError as ex:
-			log('WARN', obj = {'ex': str(ex)})
+			log(level = 'WARN', obj = {'ex': str(ex)})
 			return jsonResponse(makeResponseFailed("INCORRECT_REQUEST"))
 		except ValueError as ex:
-			log('WARN', obj = {'ex': str(ex)})
+			log(level = 'WARN', obj = {'ex': str(ex)})
 			return jsonResponse(makeResponseFailed("INCORRECT_REQUEST"))
 		except HTTPException as e:
 			raise e
 		except UserError as ue:
-			log('WARN', obj = {'ue': str(ue)})
+			log(level = 'WARN', obj = {'ue': str(ue)})
 			return jsonResponse(makeResponseFailed({"reason": ue.msg, "aux": ue.aux}))
 		except Exception as ex:
-			log('ERR', obj = {'ex': str(ex)})
+			log(level = 'ERR', obj = {'ex': str(ex)})
 			abort(400)
 		if not ret :
 			return "json", makeResponseSuccess({})
