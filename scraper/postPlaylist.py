@@ -61,7 +61,7 @@ async def _postVideosBatch(videos, pid, use_autotag, user, event_id) :
 		task_ids.append(task_id)
 	return task_ids
 	
-async def postPlaylistAsync(url, pid, use_autotag, user, event_id) :
+async def postPlaylistAsync(url, pid, use_autotag, user, event_id, extend) :
 	crawler, _ = dispatch(url)
 	setEventUserAndID(user, event_id)
 	website_pid = crawler.get_pid(self = crawler, url = url)
@@ -76,19 +76,20 @@ async def postPlaylistAsync(url, pid, use_autotag, user, event_id) :
 	if len(videos) == 0 :
 		raise UserError('EMPTY_PLAYLIST')
 	setEventUserAndID(user, event_id)
-	metadata = await crawler.get_metadata(self = crawler, url = url)
-	for _ in range(2 * 60 * 60) :
-		val = rdb.get(f'playlist-batch-post-event-{pid}')
-		if val == b'done' :
-			break
-		await asyncio.sleep(0.5)
-	setEventUserAndID(user, event_id)
-	updatePlaylistInfo(pid, "english", metadata['title'], metadata['desc'], '', user)
+	if not extend :
+		metadata = await crawler.get_metadata(self = crawler, url = url)
+		for _ in range(2 * 60 * 60) :
+			val = rdb.get(f'playlist-batch-post-event-{pid}')
+			if val == b'done' :
+				break
+			await asyncio.sleep(0.5)
+		setEventUserAndID(user, event_id)
+		updatePlaylistInfo(pid, "english", metadata['title'], metadata['desc'], '', user)
 	return 'SUCCEED', {'task_ids': task_ids}
 
-async def postPlaylistAsyncNoexcept(url, pid, use_autotag, user, event_id) :
+async def postPlaylistAsyncNoexcept(url, pid, use_autotag, user, event_id, extend) :
 	try :
-		return await postPlaylistAsync(url, pid, use_autotag, user, event_id)
+		return await postPlaylistAsync(url, pid, use_autotag, user, event_id, extend)
 	except UserError as ue :
 		log_e(event_id, user, 'scraper', level = 'WARN', obj = {'ue': str(ue)})
 		return ue.msg, {"aux": ue.aux, "traceback": traceback.format_exc()}
@@ -102,7 +103,8 @@ async def postPlaylistAsyncJSON(param_json) :
 	pid = param_json['pid']
 	user = param_json['user']
 	event_id = param_json['event_id']
-	ret, ret_obj = await postPlaylistAsyncNoexcept(url, pid, use_autotag, user, event_id)
+	extend = param_json['extend']
+	ret, ret_obj = await postPlaylistAsyncNoexcept(url, pid, use_autotag, user, event_id, extend)
 	return {'result' : ret, 'result_obj' : ret_obj}
 
 async def func_with_write_result(func, task_id, param_json) :

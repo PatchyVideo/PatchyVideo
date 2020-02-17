@@ -76,8 +76,8 @@ def createPlaylistFromSingleVideo(language, vid, user) :
 	addVideoToPlaylist(new_playlist_id, vid, user)
 	return new_playlist_id
 
-def _postPlaylistTask(url, pid, use_autotag, user) :
-	post_obj = {'use_autotag': use_autotag, 'url': url, 'pid': pid, 'user': user, 'event_id': getEventID()}
+def _postPlaylistTask(url, pid, use_autotag, user, extend = False) :
+	post_obj = {'use_autotag': use_autotag, 'url': url, 'pid': pid, 'user': user, 'event_id': getEventID(), 'extend': extend}
 	post_obj_json_str = dumps(post_obj)
 	ret_obj = loads(post_raw(SCRAPER_ADDRESS + "/playlist", post_obj_json_str.encode('utf-8')).text)
 	return ret_obj['task_id']
@@ -101,7 +101,7 @@ def extendPlaylistFromExistingPlaylist(language, pid, url, user, use_autotag = F
 	cralwer, cleanURL = dispatch_playlist(url)
 	if not cralwer :
 		raise UserError('UNSUPPORTED_PLAYLIST_URL')
-	task_id = _postPlaylistTask(cleanURL, pid, use_autotag, user)
+	task_id = _postPlaylistTask(cleanURL, pid, use_autotag, user, extend = True)
 	return task_id
 
 def removePlaylist(pid, user) :
