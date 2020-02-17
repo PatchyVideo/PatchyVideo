@@ -187,6 +187,8 @@ class TagDB() :
 		])
 
 	def filter_and_translate_tags(self, tags, session = None) :
+		if not tags :
+			return []
 		found = self.db.tag_alias.aggregate([
 			{'$match': {'tag': {'$in': tags}}},
 			{'$lookup': {"from" : "tags", "localField" : "dst", "foreignField" : "_id", "as" : "tag_obj"}},
