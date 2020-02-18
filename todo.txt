@@ -67,7 +67,7 @@ phase 2
 !create playlist from current playlist but with videos from other site in "copies" field
     lacking UI support
 #search playlist
-beautiful http error page
+#beautiful http error page
 #add interactive admin shell
 #unify naming convention for status code AND use exception to replace status code
 #unify JSON return as status code, not error message
@@ -83,7 +83,7 @@ add wiki/help page and documents/tagging guide
 #tag rename
 #    lack tag rename for non-language tags
 #root tag language mark
-user-friendly error messages
+#user-friendly error messages
 show tag counts on video detail page
 #use common tags when adding video to playlist
 #add ajax interface for updating internal configs(e.g. bilicookie_SESSDATA) for both scraper and main website
@@ -91,7 +91,7 @@ add clearence level for updating configs
 #add refresh video detail function
 !logging using MongoDB
     need log viewing UI
-check ajax input(e.g. page/page_size)
+#check ajax input(e.g. page/page_size)
 use redis to cache commonly used video pages and tag translation
 add robots.txt
 remove unnecessary fileds from ajax results
@@ -102,8 +102,8 @@ remove unnecessary fileds from ajax results
 #add view pending post playlist job interface
 #async frontend helper, create a new container for this task
 add index for placeholder and folder
-!playlist tree structure(folder)
-    need UI
+#playlist tree structure(folder)
+#    need UI
 #image upload for cover/user-id photo
 #check user input for IPFS upload and image upload
 !merge tag
