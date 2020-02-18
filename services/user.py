@@ -196,6 +196,7 @@ def update_userphoto(redis_user_key, user_id, file_key) :
 		return obj
 
 	_updateUserRedisValue(user_id, updater)
+	return photo_file
 
 def update_desc(redis_user_key, user_id, new_desc) :
 	log(obj = {'redis_user_key': redis_user_key, 'user_id': user_id, 'new_desc': new_desc})

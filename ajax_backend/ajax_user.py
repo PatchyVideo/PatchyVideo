@@ -81,7 +81,8 @@ def ajax_user_changedesc(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_user_changephoto(rd, user, data):
-	update_userphoto(session['sid'], user['_id'], data.file_key)
+	photo_file = update_userphoto(session['sid'], user['_id'], data.file_key)
+	return "json", makeResponseSuccess(photo_file)
 
 @app.route('/user/changeemail.do', methods = ['POST'])
 @loginRequiredJSON

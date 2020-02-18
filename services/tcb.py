@@ -55,7 +55,7 @@ _DEFAULT_OPS = [
 	'breakLink', 'syncTags', 'broadcastTags',
 	'addTag', 'renameTagOrAddTagLanguage', 'renameOrAddAlias', 'transferCategory',
 	'editVideoTags', 'refreshVideoDetail', 'refreshVideoDetailURL',
-	'createPlaylist', 'createPlaylistFromSingleVideo', 'createPlaylistFromExistingPlaylist',
+	'createPlaylist', 'createPlaylistFromSingleVideo', 'createPlaylistFromExistingPlaylist', 'extendPlaylistFromExistingPlaylist',
 	'postVideo', 'postVideoBatch',
 	'createFolder', 'listFolder']
 
