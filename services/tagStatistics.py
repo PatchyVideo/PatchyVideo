@@ -49,6 +49,7 @@ def getRelatedTagsExperimental(user_language, tags, exclude = [], max_count = 10
     log(obj = {'tags': tags, 'lang': user_language, 'count': max_count})
     tag_ids = tagdb.filter_and_translate_tags(tags)
     exclude_tag_ids = tagdb.filter_and_translate_tags(exclude)
+    exclude_tag_ids = list(set(exclude_tag_ids) - set(tag_ids))
     related_items = tagdb.db.items.aggregate([
         {'$match': {'$and': [{'tags': {'$all': tag_ids}}, {'tags': {'$nin': exclude_tag_ids}}]}},
         {'$project': {'tags': 1}}
