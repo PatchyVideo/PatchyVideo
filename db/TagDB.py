@@ -710,3 +710,25 @@ class TagDB() :
 			raise UserError('CATEGORY_NOT_EXIST')
 		return cat
 
+	def add_tag_rule(self, match_query_str, tags_to_add = [], tags_to_remove = [], session = None) :
+		pass # return rule id
+
+	def update_tag_rule(self, rule_id, match_query_str, tags_to_add = [], tags_to_remove = [], session = None) :
+		pass
+
+	def remove_tag_rule(self, rule_id, session = None) :
+		pass
+
+	def add_tag_action(self, match_query_str, action_func, action_data, session = None) :
+		# action_func(item_id, loads(action_data_json_str))
+		pass # return action id
+
+	def update_tag_action(self, action_id, match_query_str, action_func, action_data, session = None) :
+		pass
+
+	def remove_tag_action(self, action_id, session = None) :
+		pass
+
+	
+	def mine_pattern_FPTree(self) :
+		pass
