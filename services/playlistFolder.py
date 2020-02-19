@@ -101,7 +101,11 @@ def _findFolder(user, path, raise_exception = True) :
 					'name': "",
 					'path': "/",
 					'privateView': False,
-					'privateEdit': True
+					'privateEdit': True,
+					'meta': {
+						'created_by': user_id,
+						'created_at': datetime.utcnow()
+					}
 				}
 				db.playlist_folders.insert_one(obj, session = s())
 				s.mark_succeed()
