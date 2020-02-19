@@ -719,11 +719,11 @@ class TagDB() :
 	def remove_tag_rule(self, rule_id, session = None) :
 		pass
 
-	def add_tag_action(self, match_query_str, action_func, action_data, session = None) :
+	def add_tag_action(self, match_query_str, action_func, invalid_action = None, action_data = None, session = None) :
 		# action_func(item_id, loads(action_data_json_str))
 		pass # return action id
 
-	def update_tag_action(self, action_id, match_query_str, action_func, action_data, session = None) :
+	def update_tag_action(self, action_id, match_query_str, action_func = None, action_data = None, session = None) :
 		pass
 
 	def remove_tag_action(self, action_id, session = None) :
