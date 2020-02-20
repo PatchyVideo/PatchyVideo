@@ -55,7 +55,7 @@ _DOWNLOADING_TASKS = 0
 
 async def _download_thumbnail(url, user, event_id) :
 	global _DOWNLOADING_TASKS
-	while _DOWNLOADING_TASKS > 10 :
+	while _DOWNLOADING_TASKS > 5 :
 		await asyncio.sleep(0.5)
 	_DOWNLOADING_TASKS += 1
 	print('Downloding for %s, tasks = %d' % (url, _DOWNLOADING_TASKS))
@@ -322,7 +322,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 						for key in new_detail.keys() :
 							old_item[key] = new_detail[key] # overwrite or add new field
 						setEventUserAndID(user, event_id)
-						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item': old_item}}, makeUserMeta(user), session = s())
+						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item': old_item}}, ['title', 'desc'], makeUserMeta(user), session = s())
 						s.mark_succeed()
 					return 'SUCCEED', conflicting_item['_id']
 
@@ -387,7 +387,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 							all_copies += _getAllCopies(uid, session = s(), use_unique_id = True)
 						video_data = await _make_video_data(ret["data"], all_copies, playlists, url, user, event_id)
 						setEventUserAndID(user, event_id)
-						new_item_id = tagdb.add_item(tags, video_data, 3, makeUserMeta(user), session = s())
+						new_item_id = tagdb.add_item(tags, video_data, 3, ['title', 'desc'], makeUserMeta(user), session = s())
 						all_copies.append(ObjectId(new_item_id))
 						# remove duplicated items
 						all_copies = list(set(all_copies))
@@ -407,7 +407,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 					async with MongoTransaction(client) as s :
 						video_data = await _make_video_data(ret["data"], [], playlists, url, user, event_id)
 						setEventUserAndID(user, event_id)
-						new_item_id = tagdb.add_item(tags, video_data, 3, makeUserMeta(user), session = s())
+						new_item_id = tagdb.add_item(tags, video_data, 3, ['title', 'desc'], makeUserMeta(user), session = s())
 						log_e(event_id, user, 'scraper', level = 'MSG', obj = {'msg': 'New video added to database', 'vid': new_item_id})
 						s.mark_succeed()
 				# if the operation is adding this video to playlist
