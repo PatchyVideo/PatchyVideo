@@ -53,6 +53,7 @@ def getRelatedTagsExperimental(user_language, tags, exclude = [], max_count = 10
 		{'$match': {'tags': {'$all': tag_ids}}},
 		{'$project': {'tags': 1}},
 		{'$unwind': {'path': '$tags'}},
+		{'$match': {'tags': {'$lt': 0x80000000}}},
 		{'$group': {'_id': '$tags', 'count': {'$sum': 1}}},
 		{'$match': {'_id': {'$nin': exclude_tag_ids}}},
 		{'$sort': {'count': -1}},

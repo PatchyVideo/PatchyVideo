@@ -101,7 +101,7 @@ remove unnecessary fileds from ajax results
 #    lacking UI support
 #add view pending post playlist job interface
 #async frontend helper, create a new container for this task
-add index for placeholder and folder
+#add index for placeholder and folder
 #playlist tree structure(folder)
 #    need UI
 #image upload for cover/user-id photo
@@ -129,6 +129,7 @@ mobile phone UI
 full multi-language support(CHS/CHT/JPN/ENG)
 automatically identify insufficient tags, show this message on both video upload and video detail page
 request videos for backup
+expand NOT operator
 + phase 2
 
 ======================
@@ -152,4 +153,4 @@ jsproxy for sites
 video tagging histroy
 autotag using browser plugins(use tensorflow.js to recognize characters)
 autotag with simple NLP
-full text search
+#full text search

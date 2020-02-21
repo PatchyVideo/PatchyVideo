@@ -1,11 +1,11 @@
 
 import requests
-import json
 from urllib.parse import urlparse
+from bson.json_util import dumps, loads
 
 def post_json(url, json_obj_or_string) :
     if not isinstance(json_obj_or_string, str) :
-        payload = json.dumps(json_obj_or_string)
+        payload = dumps(json_obj_or_string)
     else :
         payload = json_obj_or_string
     headers = {'content-type': 'application/json'}

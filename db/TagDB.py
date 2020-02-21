@@ -1,6 +1,7 @@
 from datetime import datetime
 from utils.exceptions import UserError
 from collections import deque
+from bson.json_util import dumps
 
 import re
 
@@ -18,6 +19,8 @@ else:
 	from collections import defaultdict
 	from .AutocompleteInterface import AutocompleteInterface
 	from .TagDB_language import VALID_LANGUAGES, PREFERRED_LANGUAGE_MAP, translateTagToPreferredLanguage
+	from .index.search_parser import parse_search
+	from .index.index_builder import build_index, remove_index
 
 
 """
@@ -197,6 +200,12 @@ class TagDB() :
 		], session = session)
 		return list(set([item['tag_obj']['id'] for item in found]))
 
+	def _translate_text_search(self, text) :
+		if '*' in text : # tag wildcard
+			return text
+		serach_obj, serach_type = parse_search(text)
+		return ')' + dumps({'obj': serach_obj, 'type': serach_type})
+
 	def translate_tags(self, tags, session = None) :
 		tag_alias_objs = self.db.tag_alias.aggregate([
 			{'$match': {'tag': {'$in': tags}}},
@@ -206,7 +215,7 @@ class TagDB() :
 		tag_map = {}
 		for item in tag_alias_objs:
 			tag_map[item['tag']] = item['tag_obj']['id']
-		return [tag_map[tag] if tag in tag_map else tag for tag in tags]
+		return [tag_map[tag] if tag in tag_map else self._translate_text_search(tag) for tag in tags]
 
 	def remove_tag(self, tag_name_or_tag_obj, user = '', session = None) :
 		tag_obj = self._tag(tag_name_or_tag_obj, session = session)
@@ -469,9 +478,11 @@ class TagDB() :
 	def set_item_clearence(self, item_id, clearence, user = '', session = None) :
 		self.update_item_query(item_id, {'$set': {'clearence': clearence}}, user, session = session)
 
-	def add_item(self, tags, item, clearence, user = '', session = None) :
+	def add_item(self, tags, item, clearence, fields_to_index = [], user = '', session = None) :
 		tag_ids = self.filter_and_translate_tags(tags)
-		item_id = self.db.items.insert_one({'clearence': clearence, 'tags': tag_ids, 'item': item, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session).inserted_id
+		field_texts = [item[field] for field in fields_to_index]
+		word_ids = build_index(field_texts, session = session)
+		item_id = self.db.items.insert_one({'clearence': clearence, 'tags': tag_ids + word_ids, 'item': item, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session).inserted_id
 		self.db.tags.update_many({'id': {'$in': tag_ids}}, {'$inc': {'count': 1}}, session = session)
 		self.aci.SetCountDiff([(tagid, 1) for tagid in tag_ids])
 		return item_id
@@ -489,7 +500,7 @@ class TagDB() :
 			raise UserError('ITEM_NOT_EXIST')
 		self.db.items.update_one({'_id': ObjectId(item_id)}, {'$set': {'item': item, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 
-	def update_item_query(self, item_id_or_item_object, query, user = '', session = None):
+	def update_item_query(self, item_id_or_item_object, query, fields_to_index = [], user = '', session = None):
 		"""
 		Your update query MUST NOT modify tags
 		"""
@@ -499,6 +510,20 @@ class TagDB() :
 				raise UserError('ITEM_NOT_EXIST')
 		else:
 			item = item_id_or_item_object
+		if '$set' in query and 'item' in query['$set'] :
+			all_reindex = True
+			for field in fields_to_index :
+				if field not in query['$set']['item'] :
+					all_reindex = False
+					break
+			if all_reindex :
+				field_texts = [query['$set']['item'][field] for field in fields_to_index]
+				tag_ids = list(filter(lambda x: x < 0x80000000, item['tags']))
+				word_ids = list(filter(lambda x: x >= 0x80000000, item['tags']))
+				remove_index(word_ids, session = session)
+				new_word_ids = build_index(field_texts, session = session)
+				self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': tag_ids + new_word_ids}}, session = session)
+				
 		self.db.items.update_one({'_id': ObjectId(item['_id'])}, query, session = session)
 		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 
@@ -510,9 +535,11 @@ class TagDB() :
 				raise UserError('ITEM_NOT_EXIST')
 		else:
 			item = item_id_or_item_object
-		self.db.tags.update_many({'id': {'$in': item['tags']}}, {'$inc': {'count': -1}}, session = session)
+		index_tags = list(filter(lambda x: x >= 0x80000000, item['tags']))
+		real_tags = list(filter(lambda x: x < 0x80000000, item['tags']))
+		self.db.tags.update_many({'id': {'$in': real_tags}}, {'$inc': {'count': -1}}, session = session)
 		self.db.tags.update_many({'id': {'$in': new_tag_ids}}, {'$inc': {'count': 1}}, session = session)
-		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': new_tag_ids, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': new_tag_ids + index_tags, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		self.aci.SetCountDiff([(t, -1) for t in item['tags']])
 		self.aci.SetCountDiff([(t, 1) for t in new_tag_ids])
 

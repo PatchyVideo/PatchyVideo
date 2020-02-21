@@ -3,6 +3,7 @@ import sys
 
 from .SLR import Parser
 from anytree import Node, RenderTree
+from bson.json_util import loads
 
 """
 <query> ::= <and-query>
@@ -203,7 +204,7 @@ def _getk(node, idx):
 	return node.children[idx].name.split()[0]
 
 def _getv(node, idx):
-	return node.children[idx].name.split()[1]
+	return ''.join(node.children[idx].name.split()[1:])
 
 def _cd(t) :
 	return list(set(t))
@@ -229,17 +230,21 @@ def _prepare_tag_list(node, groups, tag_translator, wildcard_translator):
 			try:
 				return 'complex-query', _prepare_attributes(_getv(node, 0), _getv(node, 2))
 			except:
-				return 'complex-query', {}
+				return 'any-tags', {'$tags': {'$in': []}}
 	else:
 		tag = _getv(node, 0)
-		if '*' in tag :
-			in_tags = _cd(wildcard_translator(tag))
-			if len(in_tags) == 1 :
-				return 'single-tag', { 'tags' : _int(in_tags[0]) }
-			else :
-				return 'any-tags', { 'tags' : { '$in' : _int(in_tags) } }
+		if tag[0] == ')' :
+			query_obj = loads(tag[1: ])
+			return query_obj['type'], query_obj['obj']
 		else :
-			return 'single-tag', { 'tags' : _int(tag) }
+			if '*' in tag :
+				in_tags = _cd(wildcard_translator(tag))
+				if len(in_tags) == 1 :
+					return 'single-tag', { 'tags' : _int(in_tags[0]) }
+				else :
+					return 'any-tags', { 'tags' : { '$in' : _int(in_tags) } }
+			else :
+				return 'single-tag', { 'tags' : _int(tag) }
 
 # parse syntax tree into query structure with some simple optimizations
 # TODO: handle none tag
@@ -385,6 +390,9 @@ def _parse_tree(node, groups, tag_translator, wildcard_translator, any_node = Fa
 			else:
 				return 'complex-query', { '$or' : [ treel, treer ] }
 
+def _expand_not(tree) :
+	return tree
+
 def parse_tag(query, tag_translator, group_translator, wildcard_translator):
 	try :
 		ts, ss = _lex(query)
@@ -410,6 +418,7 @@ def parse_tag(query, tag_translator, group_translator, wildcard_translator):
 		return None, None
 	try:
 		_, ans = _parse_tree(tree, group_map, tag_translator, wildcard_translator)
+		ans = _expand_not(ans)
 		return ans, tags
 	except:
 		return None, None
