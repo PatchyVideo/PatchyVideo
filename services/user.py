@@ -214,6 +214,25 @@ def update_desc(redis_user_key, user_id, new_desc) :
 
 	_updateUserRedisValue(user_id, updater)
 
+def update_username(redis_user_key, user_id, new_name) :
+	log(obj = {'redis_user_key': redis_user_key, 'user_id': user_id, 'new_name': new_name})
+	if len(new_name) > UserConfig.MAX_USERNAME_LENGTH or len(new_name) < UserConfig.MIN_USERNAME_LENGTH :
+		raise UserError('NAME_LENGTH')
+	user_obj_find = db.users.find_one({'profile.username': new_name})
+	if user_obj_find is not None :
+		raise UserError('USER_ALREADY_EXIST')
+	obj = db.users.find_one({'_id': ObjectId(user_id)})
+	if obj is None :
+		raise UserError('USER_NOT_EXIST')
+	log(obj = {'old_name': obj['profile']['username']})
+	db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'profile.username': new_name}})
+
+	def updater(obj) :
+		obj['profile']['username'] = new_name
+		return obj
+
+	_updateUserRedisValue(user_id, updater)
+
 def update_email(redis_user_key, user_id, new_email) :
 	log(obj = {'redis_user_key': redis_user_key, 'user_id': user_id, 'new_email': new_email})
 	if len(new_email) > UserConfig.MAX_EMAIL_LENGTH or not re.match(r"[^@]+@[^@]+\.[^@]+", new_email):
