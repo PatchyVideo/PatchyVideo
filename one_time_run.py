@@ -61,14 +61,14 @@ if __name__ == '__main__' :
 
 if __name__ == '__main__' :
     from db.index.index_builder import build_index
-    with MongoTransaction(client) as s :
-        db.items.update_many({}, {'$pull': {'tags': {'$gte': 0x80000000}}}, session = s())
-        db.index_words.delete_many({}, session = s())
-        s.mark_succeed()
+    #with MongoTransaction(client) as s :
+    db.items.update_many({}, {'$pull': {'tags': {'$gte': 0x80000000}}}, session = s())
+    db.index_words.delete_many({}, session = s())
+    #    s.mark_succeed()
     cursor = db.items.find(no_cursor_timeout = True).batch_size(100)
-    with MongoTransaction(client) as s :
-        for item in cursor :
-            print(item['item']['title'])
-            word_ids = build_index([item['item']['desc'], item['item']['title']], session = s())
-            db.items.update_one({'_id': item['_id']}, {'$set': {'tags': item['tags'] + word_ids}})
-        s.mark_succeed()
+    #with MongoTransaction(client) as s :
+    for item in cursor :
+        print(item['item']['title'])
+        word_ids = build_index([item['item']['desc'], item['item']['title']], session = s())
+        db.items.update_one({'_id': item['_id']}, {'$set': {'tags': item['tags'] + word_ids}})
+    #    s.mark_succeed()
