@@ -1,7 +1,10 @@
-# VUE前端
+# VUE前端/VUE Frontend
 [点这里](https://github.com/suwadaimyojin/patchyvideo-vue)
 # 中文部署教程
 [点这里](./项目的本地部署.docx)
+# 其他微服务/Microservices
+1. [分词器/Text Segmentor](https://github.com/zyddnys/PatchyVideo-textseg)
+2. [自动补全/Auto-complete](https://github.com/zyddnys/PatchyVideo-autocomplete)
 # Running locally for developers
 1. Install docker
 2. Install VSCode
