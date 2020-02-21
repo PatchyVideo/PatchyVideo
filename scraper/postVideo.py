@@ -33,6 +33,7 @@ from config import VideoConfig
 from PIL import Image, ImageSequence
 from utils.logger import log_e, setEventUserAndID, setEventOp
 from config import PlaylistConfig
+from datetime import datetime
 
 import io
 import json
@@ -474,7 +475,7 @@ async def func_with_write_result(func, task_id, param_json) :
 		del param_json_for_user['playlist_ordered']
 		if 'field_overrides' in param_json_for_user :
 			del param_json_for_user['field_overrides']
-		tagdb.db.failed_posts.insert_one({'uid': ObjectId(param_json['user']['_id']), 'ret': ret, 'post_param': param_json_for_user})
+		tagdb.db.failed_posts.insert_one({'uid': ObjectId(param_json['user']['_id']), 'ret': ret['result_obj'], 'post_param': param_json_for_user, 'time': datetime.now()})
 
 async def task_runner(func, queue) :
 	while True :
