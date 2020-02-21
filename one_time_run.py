@@ -59,6 +59,20 @@ if __name__ == '__main__' :
         s.mark_succeed()
 """
 
+
+if __name__ == '__main__' :
+    cursor = db.items.find(no_cursor_timeout = True).batch_size(100)
+    for item in cursor :
+        db.tag_histroy.insert_one({
+			'vid': item['_id'],
+			'user': item['meta']['created_by'],
+			'tags': [],
+			'add': list(filter(lambda x: x < 0x80000000, item['tags'])),
+			'del': [],
+			'time': item['meta']['created_at']
+		})
+
+
 if __name__ == '__main__' :
     from db.index.index_builder import build_index
     #with MongoTransaction(client) as s :
@@ -72,3 +86,4 @@ if __name__ == '__main__' :
         word_ids = build_index([item['item']['desc'], item['item']['title']])
         db.items.update_one({'_id': item['_id']}, {'$set': {'tags': item['tags'] + word_ids}})
     #    s.mark_succeed()
+

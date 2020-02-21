@@ -54,6 +54,17 @@ db.tag_alias:
 	"tag": "东方",
 	"dst": ObjectId("...")
 }
+
+db.tag_histroy:
+{
+	"_id": ...
+	"vid": ObjectId("..."),
+	"time": ...,
+	"user": ObjectId("..."),
+	"add": [...],
+	"del": [...],
+	"tags: [...]
+}
 """
 
 _CATEGORY_MAP = {
@@ -64,6 +75,13 @@ _CATEGORY_MAP = {
 	'Meta': 4,
 	'Language': 5
 }
+
+def _diff(old_tags, new_tags):
+	old_tags_set = set(old_tags)
+	new_tags_set = set(new_tags)
+	added_tags = new_tags_set - old_tags_set
+	removed_tags = (new_tags_set ^ old_tags_set) - added_tags
+	return list(added_tags), list(removed_tags)
 
 class TagDB() :
 	def __init__(self, db) :
@@ -225,6 +243,12 @@ class TagDB() :
 		self.db.tag_alias.delete_many({'dst': tag_obj['_id']}, session = session)
 		self.db.tags.delete_one({'_id': tag_obj['_id']}, session = session)
 		self.db.cats.update_one({'name': tag_obj['category']}, {'$inc': {'count': -1}}, session = session)
+		self.db.items.aggregate([
+			{'$match': {'tags': {'$in': [tagid]}}},
+			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
+			{'$addFields': {'del': [tagid], 'add': [], 'time': datetime.now(), 'user': user}},
+			{'$merge': {'into': 'tag_histroy'}}
+		], session = session)
 		self.db.items.update_many({'tags': {'$in': [tagid]}}, {'$pull': {'tags': tagid}}, session = session)
 		self.db.free_tags.insert_one({'id': tagid})
 		self.aci.DeleteTag(tagid)
@@ -486,6 +510,14 @@ class TagDB() :
 		word_ids = build_index(field_texts, session = session)
 		item_id = self.db.items.insert_one({'clearence': clearence, 'tags': tag_ids + word_ids, 'item': item, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session).inserted_id
 		self.db.tags.update_many({'id': {'$in': tag_ids}}, {'$inc': {'count': 1}}, session = session)
+		self.db.tag_histroy.insert_one({
+			'vid': ObjectId(item_id),
+			'user': user,
+			'tags': [],
+			'add': tag_ids,
+			'del': [],
+			'time': datetime.now()
+		}, session = session)
 		self.aci.SetCountDiff([(tagid, 1) for tagid in tag_ids])
 		return item_id
 
@@ -529,6 +561,17 @@ class TagDB() :
 		self.db.items.update_one({'_id': ObjectId(item['_id'])}, query, session = session)
 		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 
+	def _log_tag_update(self, user, vid : ObjectId, old_tags, new_tags, session = None) :
+		added, removed = _diff(old_tags, new_tags)
+		self.db.tag_histroy.insert_one({
+			'vid': vid,
+			'user': user,
+			'tags': old_tags,
+			'add': added,
+			'del': removed,
+			'time': datetime.now()
+		}, session = session)
+
 	def update_item_tags(self, item_id_or_item_object, new_tags, user = '', session = None):
 		new_tag_ids = self.filter_and_translate_tags(new_tags)
 		if isinstance(item_id_or_item_object, ObjectId) or isinstance(item_id_or_item_object, str):
@@ -539,6 +582,8 @@ class TagDB() :
 			item = item_id_or_item_object
 		index_tags = list(filter(lambda x: x >= 0x80000000, item['tags']))
 		real_tags = list(filter(lambda x: x < 0x80000000, item['tags']))
+		new_tag_ids = self._trigger_tag_rule_and_action(user, item_id_or_item_object['_id'], real_tags, new_tag_ids, session = session)
+		self._log_tag_update(user, item_id_or_item_object['_id'], real_tags, new_tag_ids, session = session)
 		self.db.tags.update_many({'id': {'$in': real_tags}}, {'$inc': {'count': -1}}, session = session)
 		self.db.tags.update_many({'id': {'$in': new_tag_ids}}, {'$inc': {'count': 1}}, session = session)
 		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': new_tag_ids + index_tags, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
@@ -553,7 +598,7 @@ class TagDB() :
 			"$match" : id_match_obj
 		},
 		{
-			"$project" : { "tags" : 1 }
+			"$project" : {'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}
 		},
 		{
 			"$unwind" : { "path" : "$tags" }
@@ -574,6 +619,14 @@ class TagDB() :
 		else :
 			new_tag_ids = self.filter_and_translate_tags(new_tags)
 		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts(item_ids, new_tag_ids, user, session)])
+		# TODO: trigger tag rule and action
+		self.db.items.aggregate([
+			{'$match': {'_id': {'$in': item_ids}}},
+			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
+			{'$project': {'vid': 1, 'tags': 1, 'add': {'$setDifference': [new_tag_ids, '$tags']}}},
+			{'$addFields': {'del': [], 'time': datetime.now(), 'user': user}},
+			{'$merge': {'into': 'tag_histroy'}}
+		], session = session)
 		self.db.items.update_many({'_id': {'$in': item_ids}}, {
 			'$addToSet': {'tags': {'$each': new_tag_ids}},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
@@ -591,6 +644,14 @@ class TagDB() :
 		else :
 			tag_ids_to_remove = self.filter_and_translate_tags(tags_to_remove)
 		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts(item_ids, tag_ids_to_remove, user, session)])
+		# TODO: trigger tag rule and action
+		self.db.items.aggregate([
+			{'$match': {'_id': {'$in': item_ids}}},
+			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
+			{'$project': {'vid': 1, 'tags': 1, 'del': {'$setIntersection': [tag_ids_to_remove, '$tags']}}},
+			{'$addFields': {'add': [], 'time': datetime.now(), 'user': user}},
+			{'$merge': {'into': 'tag_histroy'}}
+		], session = session)
 		self.db.items.update_many({'_id': {'$in': item_ids}}, {
 			'$pullAll': {'tags': tag_ids_to_remove},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
@@ -606,14 +667,18 @@ class TagDB() :
 			new_tag_ids = new_tags
 		else :
 			new_tag_ids = self.filter_and_translate_tags(new_tags)
-		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts([item_id], new_tag_ids, user, session)])
 		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
 		if item is None :
 			raise UserError('ITEM_NOT_EXIST')
+		old_tag_ids = list(filter(lambda x: x < 0x80000000, item['tags']))
+		merged_tag_ids = list(set(old_tag_ids) | set(new_tag_ids))
+		merged_tag_ids = self._trigger_tag_rule_and_action(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
+		self._log_tag_update(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
 		self.db.items.update_one({'_id': ObjectId(item_id)}, {
 			'$addToSet': {'tags': {'$each': new_tag_ids}},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
-		new_tag_count_diff = [(tag, 1 - prior_tag_counts.get(tag, 0)) for tag in new_tag_ids]
+		tags_added, _ = _diff(old_tag_ids, merged_tag_ids)
+		new_tag_count_diff = [(tagid, 1) for tagid in tags_added]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
 		self.aci.SetCountDiff(new_tag_count_diff)
@@ -625,14 +690,18 @@ class TagDB() :
 			tag_ids_to_remove = tags_to_remove
 		else :
 			tag_ids_to_remove = self.filter_and_translate_tags(tags_to_remove)
-		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts([item_id], tag_ids_to_remove, user, session)])
 		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
 		if item is None :
 			raise UserError('ITEM_NOT_EXIST')
+		old_tag_ids = list(filter(lambda x: x < 0x80000000, item['tags']))
+		merged_tag_ids = list(set(old_tag_ids) - set(tags_to_remove))
+		merged_tag_ids = self._trigger_tag_rule_and_action(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
+		self._log_tag_update(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
 		self.db.items.update_one({'_id': ObjectId(item_id)}, {
 			'$pullAll': {'tags': tag_ids_to_remove},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
-		new_tag_count_diff = [(tag, -prior_tag_counts.get(tag, 0)) for tag in tag_ids_to_remove]
+		_, tags_removed = _diff(old_tag_ids, merged_tag_ids)
+		new_tag_count_diff = [(tagid, -1) for tagid in tags_removed]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
 		self.aci.SetCountDiff(new_tag_count_diff)
@@ -738,6 +807,9 @@ class TagDB() :
 		if cat is None:
 			raise UserError('CATEGORY_NOT_EXIST')
 		return cat
+
+	def _trigger_tag_rule_and_action(self, user, vid : ObjectId, old_tags, new_tags, session = None) :
+		return new_tags
 
 	def add_tag_rule(self, match_query_str, tags_to_add = [], tags_to_remove = [], session = None) :
 		pass # return rule id

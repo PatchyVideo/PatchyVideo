@@ -1,7 +1,8 @@
 
-from db import db
+from db import db, tagdb
 from utils.exceptions import UserError
 from datetime import timedelta
+from bson import ObjectId
 
 def viewLogs(page_idx, page_size, date_from = None, date_to = None, order = 'latest') :
 	if order not in ['latest', 'oldest'] :
@@ -51,3 +52,17 @@ def viewLogsAggregated(page_idx, page_size, date_from = None, date_to = None, or
 		{'$limit': page_size}
 	])
 	return [i for i in ret]
+
+def viewTagHistroy(vid, language) :
+	all_items = db.tag_histroy.aggregate([
+		{'$match':{ 'vid': ObjectId(vid)}},
+		{'$lookup': {'from': 'users', 'localField': 'user', 'foreignField': '_id', 'as': 'user_obj'}},
+		{'$project': {'user_obj.profile.username': 1, 'user_obj.profile.image': 1, 'tags': 1, 'del': 1, 'add': 1}},
+		{'$sort': {"time": -1}}
+		])
+	all_items = list(all_items)
+	for item in all_items :
+		item['tags'], _, _ = tagdb.translate_tag_ids_to_user_language(item['tags'], language)
+		item['del'], _, _ = tagdb.translate_tag_ids_to_user_language(item['del'], language)
+		item['add'], _, _ = tagdb.translate_tag_ids_to_user_language(item['add'], language)
+	return all_items

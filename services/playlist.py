@@ -496,7 +496,7 @@ def listCommonTagIDs(pid, user) :
 	},
 	{
 		"$project" : {
-			"tags" : "$video.tags"
+			"tags" : {'$filter': {'input': '$video.tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}
 		}
 	},
 	{

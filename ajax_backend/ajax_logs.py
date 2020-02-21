@@ -12,7 +12,7 @@ from utils.jsontools import *
 from utils.exceptions import UserError
 from services.tcb import filterOperation
 
-from services.logViewer import viewLogs, viewLogsAggregated
+from services.logViewer import viewLogs, viewLogsAggregated, viewTagHistroy
 
 from dateutil.parser import parse
 from datetime import timezone
@@ -50,3 +50,10 @@ def ajax_admin_viewlogs_aggregated_do(rd, data, user):
 		date_to = parse(date_to).astimezone(timezone.utc)
 	ret = viewLogsAggregated(page, page_size, date_from, date_to, order)
 	return "json", makeResponseSuccess(ret)
+
+@app.route('/video/tag_log.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_video_tag_log_do(rd, data, user):
+	return "json", makeResponseSuccess(viewTagHistroy(data.vid, 'CHS'))
+
