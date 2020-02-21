@@ -315,9 +315,6 @@ def listFolder(viewing_user, user, path) :
 			elif item['playlist_object']['private'] : # playlist is private
 				if viewing_user is not None and filterOperation('viewPrivatePlaylist', viewing_user, item['playlist_object'], raise_exception = False) :
 					ans.append(item)
-				else :
-					item['playlist_object'] = 'PRIVATE_PLAYLIST'
-					ans.append(item)
 			else :
 				ans.append(item)
 		else : # subfolder item
