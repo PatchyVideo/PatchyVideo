@@ -304,7 +304,7 @@ def listFolder(viewing_user, user, path) :
 	
 	for item in items :
 		assert not (('playlist_object' in item) ^ item['leaf'])
-		if item['privateView'] and (viewing_user is None or (str(user) != str(viewing_user['_id']) and viewing_user['status'] != 'admin')) :
+		if item['privateView'] and (viewing_user is None or (str(user) != str(viewing_user['_id']) and viewing_user['access_control']['status'] != 'admin')) :
 			continue
 		if 'playlist_object' in item : # playlist item (leaf)
 			if item['playlist_object'] is None : # leaf playlist does not exist, do not display
@@ -313,7 +313,7 @@ def listFolder(viewing_user, user, path) :
 					db.playlist_folders.delete_one({'user': user, 'path': item['path']}, session = s())
 					s.mark_succeed()
 			elif item['playlist_object']['private'] : # playlist is private
-				if filterOperation('viewPrivatePlaylist', viewing_user, item['playlist_object'], raise_exception = False) :
+				if viewing_user is not None and filterOperation('viewPrivatePlaylist', viewing_user, item['playlist_object'], raise_exception = False) :
 					ans.append(item)
 				else :
 					item['playlist_object'] = 'PRIVATE_PLAYLIST'
