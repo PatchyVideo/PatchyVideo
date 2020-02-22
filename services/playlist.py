@@ -418,7 +418,7 @@ def listPlaylists(user, page_idx, page_size, query = {}, order = 'latest') :
 	if isObjectAgnosticOperationPermitted('viewPrivatePlaylist', user) :
 		auth_obj = {}
 	else :
-		auth_obj = {'$or': [{'private': False}, {'meta.created_by': user['_id'] if user else ''}]}
+		auth_obj = {'$or': [{'meta.created_by': user['_id'] if user else ''}, {'$and': [{'private': False}, {'videos': {'$gt': 1}}]}]}
 	query = {'$and': [query, auth_obj]}
 	ans_obj = db.playlists.aggregate([
 	{
@@ -569,7 +569,7 @@ def listPlaylistsForVideo(user, vid) :
 	if isObjectAgnosticOperationPermitted('viewPrivatePlaylist', user) :
 		auth_obj = {}
 	else :
-		auth_obj = {'$or': [{'playlist.private': False}, {'playlist.meta.created_by': user['_id'] if user else ''}]}
+		auth_obj = {'$or': [{'meta.created_by': user['_id'] if user else ''}, {'$and': [{'private': False}, {'videos': {'$gt': 1}}]}]}
 	result = db.playlist_items.aggregate([
 		{
 			'$match': {
