@@ -38,6 +38,7 @@ def ajax_listvideo_do(rd, data, user):
 @loginOptional
 @jsonRequest
 def ajax_queryvideo_do(rd, data, user):
+	start = time.time()
 	if len(data.query) > QueryConfig.MAX_QUERY_LENGTH :
 		raise UserError('QUERY_TOO_LONG')
 	order = getDefaultJSON(data, 'order', 'latest')
@@ -46,11 +47,13 @@ def ajax_queryvideo_do(rd, data, user):
 		raise AttributeError()
 	videos, related_tags, video_count = listVideoQuery(user, data.query, data.page - 1, data.page_size, order,  hide_placeholder = hide_placeholder)
 	tag_category_map = getTagCategoryMap(related_tags)
+	end = time.time()
 	ret = makeResponseSuccess({
 		"videos": [i for i in videos],
 		"count": video_count,
 		"page_count": (video_count - 1) // data.page_size + 1,
-		"tags": tag_category_map
+		"tags": tag_category_map,
+		'time_used_ms': int((end - start) * 1000)
 	})
 	return "json", ret
 
