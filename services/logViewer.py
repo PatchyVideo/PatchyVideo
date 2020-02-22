@@ -53,8 +53,8 @@ def viewLogsAggregated(page_idx, page_size, date_from = None, date_to = None, or
 	])
 	return [i for i in ret]
 
-def viewTagHistroy(vid, language) :
-	all_items = db.tag_histroy.aggregate([
+def viewTaghistory(vid, language) :
+	all_items = db.tag_history.aggregate([
 		{'$match':{ 'vid': ObjectId(vid)}},
 		{'$lookup': {'from': 'users', 'localField': 'user', 'foreignField': '_id', 'as': 'user_obj'}},
 		{'$project': {'user_obj.profile.username': 1, 'user_obj.profile.image': 1, 'tags': 1, 'del': 1, 'add': 1}},

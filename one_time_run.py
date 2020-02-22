@@ -63,7 +63,7 @@ if __name__ == '__main__' :
 if __name__ == '__main__' :
     cursor = db.items.find(no_cursor_timeout = True).batch_size(100)
     for item in cursor :
-        db.tag_histroy.insert_one({
+        db.tag_history.insert_one({
 			'vid': item['_id'],
 			'user': item['meta']['created_by'],
 			'tags': [],

@@ -150,7 +150,7 @@ video downloading
 tag prompt/auto-complete
 show uploader profile photo
 jsproxy for sites
-video tagging histroy
+#video tagging history
 autotag using browser plugins(use tensorflow.js to recognize characters)
 autotag with simple NLP
 #full text search

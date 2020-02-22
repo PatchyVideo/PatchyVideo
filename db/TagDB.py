@@ -55,7 +55,7 @@ db.tag_alias:
 	"dst": ObjectId("...")
 }
 
-db.tag_histroy:
+db.tag_history:
 {
 	"_id": ...
 	"vid": ObjectId("..."),
@@ -243,12 +243,12 @@ class TagDB() :
 		self.db.tag_alias.delete_many({'dst': tag_obj['_id']}, session = session)
 		self.db.tags.delete_one({'_id': tag_obj['_id']}, session = session)
 		self.db.cats.update_one({'name': tag_obj['category']}, {'$inc': {'count': -1}}, session = session)
-		self.db.items.aggregate([
+		history_items = list(self.db.items.aggregate([
 			{'$match': {'tags': {'$in': [tagid]}}},
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
-			{'$addFields': {'del': [tagid], 'add': [], 'time': datetime.now(), 'user': user}},
-			{'$merge': {'into': 'tag_histroy'}}
-		], session = session)
+			{'$addFields': {'del': [tagid], 'add': [], 'time': datetime.now(), 'user': user}}
+		], session = session))
+		self.db.tag_history.insert_many(history_items, session = session)
 		self.db.items.update_many({'tags': {'$in': [tagid]}}, {'$pull': {'tags': tagid}}, session = session)
 		self.db.free_tags.insert_one({'id': tagid})
 		self.aci.DeleteTag(tagid)
@@ -510,7 +510,7 @@ class TagDB() :
 		word_ids = build_index(field_texts, session = session)
 		item_id = self.db.items.insert_one({'clearence': clearence, 'tags': tag_ids + word_ids, 'item': item, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session).inserted_id
 		self.db.tags.update_many({'id': {'$in': tag_ids}}, {'$inc': {'count': 1}}, session = session)
-		self.db.tag_histroy.insert_one({
+		self.db.tag_history.insert_one({
 			'vid': ObjectId(item_id),
 			'user': user,
 			'tags': [],
@@ -563,7 +563,7 @@ class TagDB() :
 
 	def _log_tag_update(self, user, vid : ObjectId, old_tags, new_tags, session = None) :
 		added, removed = _diff(old_tags, new_tags)
-		self.db.tag_histroy.insert_one({
+		self.db.tag_history.insert_one({
 			'vid': vid,
 			'user': user,
 			'tags': old_tags,
@@ -620,13 +620,13 @@ class TagDB() :
 			new_tag_ids = self.filter_and_translate_tags(new_tags)
 		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts(item_ids, new_tag_ids, user, session)])
 		# TODO: trigger tag rule and action
-		self.db.items.aggregate([
+		history_items = list(self.db.items.aggregate([
 			{'$match': {'_id': {'$in': item_ids}}},
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
 			{'$project': {'vid': 1, 'tags': 1, 'add': {'$setDifference': [new_tag_ids, '$tags']}}},
-			{'$addFields': {'del': [], 'time': datetime.now(), 'user': user}},
-			{'$merge': {'into': 'tag_histroy'}}
-		], session = session)
+			{'$addFields': {'del': [], 'time': datetime.now(), 'user': user}}
+		], session = session))
+		self.db.tag_history.insert_many(history_items, session = session)
 		self.db.items.update_many({'_id': {'$in': item_ids}}, {
 			'$addToSet': {'tags': {'$each': new_tag_ids}},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
@@ -645,13 +645,13 @@ class TagDB() :
 			tag_ids_to_remove = self.filter_and_translate_tags(tags_to_remove)
 		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts(item_ids, tag_ids_to_remove, user, session)])
 		# TODO: trigger tag rule and action
-		self.db.items.aggregate([
+		history_items = list(self.db.items.aggregate([
 			{'$match': {'_id': {'$in': item_ids}}},
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
 			{'$project': {'vid': 1, 'tags': 1, 'del': {'$setIntersection': [tag_ids_to_remove, '$tags']}}},
-			{'$addFields': {'add': [], 'time': datetime.now(), 'user': user}},
-			{'$merge': {'into': 'tag_histroy'}}
-		], session = session)
+			{'$addFields': {'add': [], 'time': datetime.now(), 'user': user}}
+		], session = session))
+		self.db.tag_history.insert_many(history_items, session = session)
 		self.db.items.update_many({'_id': {'$in': item_ids}}, {
 			'$pullAll': {'tags': tag_ids_to_remove},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
