@@ -248,7 +248,8 @@ class TagDB() :
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
 			{'$addFields': {'del': [tagid], 'add': [], 'time': datetime.now(), 'user': user}}
 		], session = session))
-		self.db.tag_history.insert_many(history_items, session = session)
+		if history_items :
+			self.db.tag_history.insert_many(history_items, session = session)
 		self.db.items.update_many({'tags': {'$in': [tagid]}}, {'$pull': {'tags': tagid}}, session = session)
 		self.db.free_tags.insert_one({'id': tagid})
 		self.aci.DeleteTag(tagid)
@@ -626,7 +627,8 @@ class TagDB() :
 			{'$project': {'vid': 1, 'tags': 1, 'add': {'$setDifference': [new_tag_ids, '$tags']}}},
 			{'$addFields': {'del': [], 'time': datetime.now(), 'user': user}}
 		], session = session))
-		self.db.tag_history.insert_many(history_items, session = session)
+		if history_items :
+			self.db.tag_history.insert_many(history_items, session = session)
 		self.db.items.update_many({'_id': {'$in': item_ids}}, {
 			'$addToSet': {'tags': {'$each': new_tag_ids}},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
@@ -651,7 +653,8 @@ class TagDB() :
 			{'$project': {'vid': 1, 'tags': 1, 'del': {'$setIntersection': [tag_ids_to_remove, '$tags']}}},
 			{'$addFields': {'add': [], 'time': datetime.now(), 'user': user}}
 		], session = session))
-		self.db.tag_history.insert_many(history_items, session = session)
+		if history_items :
+			self.db.tag_history.insert_many(history_items, session = session)
 		self.db.items.update_many({'_id': {'$in': item_ids}}, {
 			'$pullAll': {'tags': tag_ids_to_remove},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
