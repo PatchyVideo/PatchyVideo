@@ -449,9 +449,11 @@ def listPlaylists(user, page_idx, page_size, query = {}, order = 'latest') :
 	},
 	{
 		"$project": {
-			"user_detail.profile.username": 1,
-			"user_detail.profile.image": 1,
-			"user_detail.profile.desc": 1
+			"user_detail.crypto": 0,
+			"user_detail.access_control": 0,
+			"user_detail.meta": 0,
+			"user_detail.profile.email": 0,
+			"user_detail.settings": 0
 		}
 	},
 	{'$facet':
