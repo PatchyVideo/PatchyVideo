@@ -273,29 +273,44 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 	log_e(event_id, user, 'scraper', 'MSG', {'url': url, 'dst_copy': dst_copy, 'other_copies': other_copies, 'dst_playlist': dst_playlist})
 	setEventOp('scraper')
 	try :
-		ret = await parsed.get_metadata_async(parsed, url, update_video_detail)
-		if ret["status"] == 'FAILED' :
-			log_e(event_id, user, 'downloader', 'WARN', {'msg': 'FETCH_FAILED', 'ret': ret})
-			await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
-			return "FETCH_FAILED", ret
-		if hasattr(parsed, 'LOCAL_CRAWLER') :
-			url = ret["data"]["url"]
-		else :
-			url = clear_url(url)
-		lock_id = "videoEdit:" + ret["data"]["unique_id"]
-		use_override = False
-		if field_override and '__condition' in field_override :
-			condition = field_override['__condition']
-			del field_override['__condition']
-			if condition == 'any' :
-				use_override = True
-			elif condition == 'placeholder' and 'placeholder' in ret["data"] and ret["data"]['placeholder'] :
-				use_override = True
-		if use_override :
-			for key in field_override :
-				ret['data'][key] = field_override[key]
+		lock_id = "videoEdit:" + unique_id
 		async with RedisLockAsync(rdb, lock_id) :
-			unique, conflicting_item = verifyUniqueness(ret["data"]["unique_id"])
+			unique, conflicting_item = verifyUniqueness(unique_id)
+			if unique :
+				ret = await parsed.get_metadata_async(parsed, url, update_video_detail)
+				if ret["status"] == 'FAILED' :
+					log_e(event_id, user, 'downloader', 'WARN', {'msg': 'FETCH_FAILED', 'ret': ret})
+					await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
+					return "FETCH_FAILED", ret
+			else :
+				# build ret
+				ret = makeResponseSuccess({
+					'thumbnailURL': conflicting_item['item']['thumbnail_url'],
+					'title' : conflicting_item['item']['title'],
+					'desc' : conflicting_item['item']['desc'],
+					'site': conflicting_item['item']['site'],
+					'uploadDate' : conflicting_item['item']['upload_time'],
+					"unique_id": conflicting_item['item']['unique_id'],
+					"utags": conflicting_item['item']['utags']
+				})
+			#if hasattr(parsed, 'LOCAL_CRAWLER') :
+			#	url = ret["data"]["url"]
+			#else :
+			#	url = clear_url(url)
+			
+			use_override = False
+			if field_override and '__condition' in field_override :
+				condition = field_override['__condition']
+				del field_override['__condition']
+				if condition == 'any' :
+					use_override = True
+				elif condition == 'placeholder' and 'placeholder' in ret["data"] and ret["data"]['placeholder'] :
+					use_override = True
+			if use_override :
+				for key in field_override :
+					ret['data'][key] = field_override[key]
+		
+			
 			playlists = []
 			#playlist_lock = None
 			if dst_playlist :
