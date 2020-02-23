@@ -10,7 +10,8 @@ _color_map = {
 	'Character': '#0A0',
 	'Author': '#A00',
 	'General': '#0073ff',
-	'Meta': '#F80'}
+	'Meta': '#F80',
+	'Soundtrack': '#FF7792'}
 
 def verifyAndSanitizeTagOrAlias(alias):
 	alias = alias.strip()

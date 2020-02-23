@@ -20,6 +20,6 @@ try :
     tagdb.add_category('Copyright')
     tagdb.add_category('Author')
     tagdb.add_category('Meta')
-    tagdb.add_category('Language')
+    tagdb.add_category('Soundtrack')
 except :
     pass

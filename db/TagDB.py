@@ -73,7 +73,8 @@ _CATEGORY_MAP = {
 	'Copyright': 2,
 	'Author': 3,
 	'Meta': 4,
-	'Language': 5
+	'Language': 5,
+	'Soundtrack': 6
 }
 
 def _diff(old_tags, new_tags):
