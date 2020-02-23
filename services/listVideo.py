@@ -19,7 +19,7 @@ def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_
 	log(obj = {'q': query_str, 'page': page_idx, 'page_size': page_size, 'order': order, 'lang': user_language})
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
-	query_obj, tag_ids = db.compile_query(query_str)
+	query_obj, tags = db.compile_query(query_str)
 	log(obj = {'query': dumps(query_obj)})
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
 	if user and 'settings' in user :
@@ -29,8 +29,7 @@ def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_
 			query_obj = {'$and': [query_obj, {'tags': {'$nin': user['settings']['blacklist']}}]}
 	elif user is None :
 		query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}]}
-	tag_ids = list(set(tag_ids) - set(default_blacklist_tagids))
-	updateTagSearch(tag_ids)
+	updateTagSearch(tags)
 	try :
 		result = db.retrive_items(query_obj)
 		if order == 'latest':

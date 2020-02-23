@@ -5,6 +5,8 @@ import json
 import itertools
 from collections import Counter
 
+from services.config import Config
+
 from utils.exceptions import noexcept
 from utils.http import post_json, get_page
 from utils.tagtools import translateTagsToPreferredLanguage, getTagObjects
@@ -40,6 +42,8 @@ def getCommonTagsWithCount(user_language, videos, max_count = 20) :
 @noexcept
 def updateTagSearch(tags) :
 	tag_ids = tagdb.filter_and_translate_tags(tags)
+	default_blacklist_poptag_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST_POPULAR_TAG.split(',')]
+	tag_ids = list(set(tag_ids) - set(default_blacklist_poptag_tagids))
 	payload = {
 		'hitmap': dict.fromkeys(tag_ids, 1)
 	}
