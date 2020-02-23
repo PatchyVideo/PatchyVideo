@@ -28,7 +28,7 @@ def editVideoTags(vid, tags, user):
 	if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO:
 		raise UserError('TOO_MANY_TAGS')
 	with redis_lock.Lock(rdb, "videoEdit:" + item['item']['unique_id']), MongoTransaction(client) as s :
-		tagdb.update_item_tags(item, tags, makeUserMeta(user), s())
+		tagdb.update_item_tags(item, tags, makeUserMeta(user), session = s())
 		s.mark_succeed()
 
 def getVideoTags(vid, user_language, user) :

@@ -61,7 +61,7 @@ def addTag(user, tag, category, language):
 	if len(sanitized_tag) > TagsConfig.MAX_TAG_LENGTH :
 		raise UserError('TAG_TOO_LONG')
 	with MongoTransaction(client) as s :
-		tagdb.add_tag(sanitized_tag, category, language, makeUserMeta(user), s())
+		tagdb.add_tag(sanitized_tag, category, language, makeUserMeta(user), session = s())
 		s.mark_succeed()
 
 def queryTagCategories(tags) :

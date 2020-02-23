@@ -47,8 +47,8 @@ def breakLink(vid, user):
 		log(obj = {'old_clique': nodes, 'node_remove': vid})
 		if nodes :
 			for node in nodes :
-				_removeThisCopy(node, vid, makeUserMeta(user), s())
-			tagdb.update_item_query(ObjectId(vid), {"$set": {"item.copies": []}}, makeUserMeta(user), s())
+				_removeThisCopy(node, vid, makeUserMeta(user), session = s())
+			tagdb.update_item_query(ObjectId(vid), {"$set": {"item.copies": []}}, makeUserMeta(user), session = s())
 		s.mark_succeed()
 
 @usingResource('tags')
@@ -62,7 +62,7 @@ def syncTags(dst, src, user):
 	if dst_item is None :
 		raise UserError('ITEM_NOT_EXIST')
 	with redis_lock.Lock(rdb, "videoEdit:" + dst_item["item"]["unique_id"]), MongoTransaction(client) as s:
-		tagdb.update_item_tags_merge(ObjectId(dst), src_tags, makeUserMeta(user), s())
+		tagdb.update_item_tags_merge(ObjectId(dst), src_tags, makeUserMeta(user), session = s())
 		s.mark_succeed()
 
 @usingResource('tags')
@@ -78,5 +78,5 @@ def broadcastTags(src, user):
 				copy_obj = tagdb.retrive_item({"_id": ObjectId(copy)}, session = s())
 				assert copy_obj is not None, 'copy_obj %s not exist' % copy
 				with redis_lock.Lock(rdb, "videoEdit:" + copy_obj["item"]["unique_id"]):
-					tagdb.update_item_tags_merge(ObjectId(copy), src_tags, makeUserMeta(user), s())
+					tagdb.update_item_tags_merge(ObjectId(copy), src_tags, makeUserMeta(user), session = s())
 		s.mark_succeed()
