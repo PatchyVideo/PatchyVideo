@@ -569,7 +569,7 @@ def listPlaylistsForVideo(user, vid) :
 	if isObjectAgnosticOperationPermitted('viewPrivatePlaylist', user) :
 		auth_obj = {}
 	else :
-		auth_obj = {'$or': [{'meta.created_by': user['_id'] if user else ''}, {'$and': [{'private': False}, {'videos': {'$gt': 1}}]}]}
+		auth_obj = {'$or': [{'playlist.meta.created_by': user['_id'] if user else ''}, {'$and': [{'playlist.private': False}, {'playlist.videos': {'$gt': 1}}]}]}
 	result = db.playlist_items.aggregate([
 		{
 			'$match': {
