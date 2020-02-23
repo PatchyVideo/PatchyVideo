@@ -30,6 +30,8 @@ class Zcool( Crawler ) :
 		return 'zcool:%s' % self.UID_REGEX_OBJ.search(link).group(1)
 	
 	def run( self, content, xpath, link, update_video_detail ) :
+		if not 'J_prismPlayer0' in content :
+			return makeResponseFailed('NOT_ZCOOL_VIDEO')
 		zcool_id = self.UID_REGEX_OBJ.search(link).group(1)
 		title = xpath.xpath('//span[@class="fw-bold"]/text()')[0]
 		
