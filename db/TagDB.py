@@ -237,6 +237,9 @@ class TagDB() :
 			tag_map[item['tag']] = item['tag_obj']['id']
 		return [tag_map[tag] if tag in tag_map else self._translate_text_search(tag) for tag in tags]
 
+	def translate_text(self, terms, session = None) :
+		return [self._translate_text_search(term) for term in terms]
+
 	def remove_tag(self, tag_name_or_tag_obj, user = '', session = None) :
 		tag_obj = self._tag(tag_name_or_tag_obj, session = session)
 		tagid = tag_obj['id']
@@ -249,6 +252,8 @@ class TagDB() :
 			{'$addFields': {'del': [tagid], 'add': [], 'time': datetime.now(), 'user': user}}
 		], session = session))
 		if history_items :
+			for i in history_items :
+				del i['_id']
 			self.db.tag_history.insert_many(history_items, session = session)
 		self.db.items.update_many({'tags': {'$in': [tagid]}}, {'$pull': {'tags': tagid}}, session = session)
 		self.db.free_tags.insert_one({'id': tagid})
@@ -628,6 +633,8 @@ class TagDB() :
 			{'$addFields': {'del': [], 'time': datetime.now(), 'user': user}}
 		], session = session))
 		if history_items :
+			for i in history_items :
+				del i['_id']
 			self.db.tag_history.insert_many(history_items, session = session)
 		self.db.items.update_many({'_id': {'$in': item_ids}}, {
 			'$addToSet': {'tags': {'$each': new_tag_ids}},
@@ -654,6 +661,8 @@ class TagDB() :
 			{'$addFields': {'add': [], 'time': datetime.now(), 'user': user}}
 		], session = session))
 		if history_items :
+			for i in history_items :
+				del i['_id']
 			self.db.tag_history.insert_many(history_items, session = session)
 		self.db.items.update_many({'_id': {'$in': item_ids}}, {
 			'$pullAll': {'tags': tag_ids_to_remove},
@@ -765,8 +774,11 @@ class TagDB() :
 		])
 		return [item['tag_obj']['id'] for item in ret]
 
-	def compile_query(self, query, session = None):
-		query_obj, tags = Parser.parse(query, self.translate_tags, self.translate_tag_group, self.translate_tag_wildcard)
+	def compile_query(self, query, query_type = 'tag', session = None):
+		if query_type == 'text' :
+			query_obj, tags = Parser.parse(query, self.translate_text, self.translate_tag_group, self.translate_tag_wildcard)
+		else :
+			query_obj, tags = Parser.parse(query, self.translate_tags, self.translate_tag_group, self.translate_tag_wildcard)
 		if query_obj is None:
 			raise UserError('INCORRECT_QUERY')
 		return query_obj, tags
