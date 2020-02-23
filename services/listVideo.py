@@ -59,6 +59,7 @@ def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS'
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
+	query_obj = {}
 	if user and 'settings' in user :
 		if user['settings']['blacklist'] == 'default' :
 			query_obj = {'tags': {'$nin': default_blacklist_tagids}}
