@@ -62,6 +62,12 @@ def ajax_playlist_moveup_do(rd, user, data):
 def ajax_playlist_movedown_do(rd, user, data):
 	editPlaylist_MoveDown(data.pid, data.vid, int(data.page), int(data.page_size), user)
 
+@app.route('/list/move.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_playlist_move_do(rd, user, data):
+	editPlaylist_Move(data.pid, data.vid, data.rank, user)
+
 @app.route('/list/inverse.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
