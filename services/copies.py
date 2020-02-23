@@ -49,7 +49,7 @@ def breakLink(vid, user):
 			for node in nodes :
 				_removeThisCopy(node, vid, makeUserMeta(user), s())
 			tagdb.update_item_query(ObjectId(vid), {"$set": {"item.copies": []}}, makeUserMeta(user), s())
-			s.mark_succeed()
+		s.mark_succeed()
 
 @usingResource('tags')
 def syncTags(dst, src, user):

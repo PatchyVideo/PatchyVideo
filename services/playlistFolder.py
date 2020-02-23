@@ -282,6 +282,8 @@ def removePlaylistsFromFolder(user, path, playlists) :
 		s.mark_succeed()
 
 def listFolder(viewing_user, user, path) :
+	if user == 'me' :
+		raise UserError('INCORRECT_USER')
 	_verifyPath(path)
 	folder_obj = _findFolder(user, path)
 	if isinstance(user, dict) :
