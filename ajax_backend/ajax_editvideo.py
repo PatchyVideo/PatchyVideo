@@ -5,10 +5,11 @@ import redis
 from flask import render_template, request, current_app, jsonify, redirect, session
 
 from init import app
+from utils import getDefaultJSON
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 
-from services.editVideo import editVideoTags, getVideoTags, refreshVideoDetail, refreshVideoDetailURL
+from services.editVideo import editVideoTags, getVideoTags, refreshVideoDetail, refreshVideoDetailURL, editVideoTagsQuery
 from services.tcb import setVideoClearence
 from config import TagsConfig, VideoConfig
 
@@ -17,6 +18,13 @@ from config import TagsConfig, VideoConfig
 @jsonRequest
 def ajax_videos_edittags(rd, user, data):
 	editVideoTags(data.video_id, data.tags, user)
+
+@app.route('/videos/edittags_batch.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_videos_edittags_batch(rd, user, data):
+	query_type = getDefaultJSON(data, 'query_type', 'tag')
+	editVideoTagsQuery(data.query, query_type, data.tags_add, data.tags_del, user)
 
 @app.route('/videos/gettags.do', methods = ['POST'])
 @loginOptional

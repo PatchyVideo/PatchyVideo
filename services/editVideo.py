@@ -7,6 +7,7 @@ from utils.tagtools import translateTagsToPreferredLanguage
 from services.postVideo import postTask
 from services.tcb import filterSingleVideo, filterOperation
 
+import pymongo
 from init import rdb
 from bson import ObjectId
 import redis_lock
@@ -74,3 +75,35 @@ def refreshVideoDetailURL(url, user) :
 	})
 	postTask(json_str)
 
+def _batchedRead(cursor, batch_size = 100) :
+	batch = []
+	try :
+		for _ in range(batch_size) :
+			batch.append(next(cursor))
+	except StopIteration :
+		pass
+	return batch
+
+def editVideoTagsQuery(query, query_type, tags_to_add, tags_to_remove, user) :
+	if query_type not in ['tag', 'text'] :
+		raise UserError('INCORRECT_QUERY_TYPE')
+	filterOperation('batchVideoTagEdit', user)
+	query_obj, tag_ids = tagdb.compile_query(query)
+	log(obj = {'query': dumps(query_obj)})
+	tagids_to_add = tagdb.filter_and_translate_tags(tags_to_add)
+	tagids_to_remove = tagdb.filter_and_translate_tags(tags_to_remove)
+	try :
+		with MongoTransaction(client) as s_read, MongoTransaction(client) as s_write :
+			result_cursor = tagdb.retrive_items(query_obj, session = s_read())
+			batch = _batchedRead(result_cursor)
+			while batch :
+				item_ids = [item['_id'] for item in batch]
+				tagdb.update_many_items_tags_pull(item_ids, tagids_to_remove, makeUserMeta(user), session = s_write())
+				tagdb.update_many_items_tags_merge(item_ids, tagids_to_add, makeUserMeta(user), session = s_write())
+				batch = _batchedRead(result_cursor)
+	except pymongo.errors.OperationFailure as ex:
+		if '$not' in str(ex) :
+			raise UserError('FAILED_NOT_OP')
+		else :
+			log(level = 'ERR', obj = {'ex': str(ex)})
+			raise UserError('FAILED_UNKNOWN')
