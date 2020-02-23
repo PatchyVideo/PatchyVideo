@@ -52,42 +52,45 @@ def _cleanUtags(utags) :
 	utags = [utag.replace(' ', '') for utag in utags]
 	return list(set(utags))
 
-_DOWNLOADING_TASKS = 0
+#_DOWNLOADING_TASKS = 0
+
+_download_sem = asyncio.Semaphore(10)
 
 async def _download_thumbnail(url, user, event_id) :
-	global _DOWNLOADING_TASKS
-	while _DOWNLOADING_TASKS > 5 :
-		await asyncio.sleep(0.5)
-	_DOWNLOADING_TASKS += 1
-	print('Downloding for %s, tasks = %d' % (url, _DOWNLOADING_TASKS))
+	#global _DOWNLOADING_TASKS
+	#while _DOWNLOADING_TASKS > 5 :
+	#	await asyncio.sleep(0.5)
+	#_DOWNLOADING_TASKS += 1
+	#print('Downloding for %s, tasks = %d' % (url, _DOWNLOADING_TASKS))
 	filename = ""
 	if url :
 		for attemp in range(3) :
 			try :
-				async with ClientSession() as session:
-					async with session.get(url) as resp:
-						if resp.status == 200 :
-							img = Image.open(io.BytesIO(await resp.read()))
-							if isinstance(img, PIL.GifImagePlugin.GifImageFile) :
-								filename = random_bytes_str(24) + ".gif"
-								frames = ImageSequence.Iterator(img)
-								frames = _gif_thumbnails(frames)
-								om = next(frames) # Handle first frame separately
-								om.info = img.info # Copy sequence info
-								om.save(_COVER_PATH + filename, save_all = True, append_images = list(frames), loop = 0)
+				async with _download_sem :
+					async with ClientSession() as session:
+						async with session.get(url) as resp:
+							if resp.status == 200 :
+								img = Image.open(io.BytesIO(await resp.read()))
+								if isinstance(img, PIL.GifImagePlugin.GifImageFile) :
+									filename = random_bytes_str(24) + ".gif"
+									frames = ImageSequence.Iterator(img)
+									frames = _gif_thumbnails(frames)
+									om = next(frames) # Handle first frame separately
+									om.info = img.info # Copy sequence info
+									om.save(_COVER_PATH + filename, save_all = True, append_images = list(frames), loop = 0)
+								else :
+									filename = random_bytes_str(24) + ".png"
+									img.thumbnail((320, 200), Image.ANTIALIAS)
+									img.save(_COVER_PATH + filename)
+								log_e(event_id, user, 'download_cover', obj = {'filename': filename})
+								break
 							else :
-								filename = random_bytes_str(24) + ".png"
-								img.thumbnail((320, 200), Image.ANTIALIAS)
-								img.save(_COVER_PATH + filename)
-							log_e(event_id, user, 'download_cover', obj = {'filename': filename})
-							break
-						else :
-							log_e(event_id, user, 'download_cover', 'WARN', {'status_code': resp.status, 'attemp': attemp})
+								log_e(event_id, user, 'download_cover', 'WARN', {'status_code': resp.status, 'attemp': attemp})
 			except Exception as ex :
 				log_e(event_id, user, 'download_cover', 'WARN', {'ex': str(ex), 'attemp': attemp})
 				continue
-	_DOWNLOADING_TASKS -= 1
-	print('Downloding for %s finished, tasks = %d' % (url, _DOWNLOADING_TASKS))
+	#_DOWNLOADING_TASKS -= 1
+	#print('Downloding for %s finished, tasks = %d' % (url, _DOWNLOADING_TASKS))
 	return filename
 
 async def _make_video_data(data, copies, playlists, url, user, event_id) :
@@ -277,7 +280,8 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 		async with RedisLockAsync(rdb, lock_id) :
 			unique, conflicting_item = verifyUniqueness(unique_id)
 			if unique :
-				ret = await parsed.get_metadata_async(parsed, url, update_video_detail)
+				async with _download_sem :
+					ret = await parsed.get_metadata_async(parsed, url, update_video_detail)
 				if ret["status"] == 'FAILED' :
 					log_e(event_id, user, 'downloader', 'WARN', {'msg': 'FETCH_FAILED', 'ret': ret})
 					await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
