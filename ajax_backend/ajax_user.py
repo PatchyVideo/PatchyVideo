@@ -96,6 +96,12 @@ def ajax_user_changephoto(rd, user, data):
 def ajax_user_changeemail(rd, user, data):
 	update_email(session['sid'], user['_id'], data.new_email)
 
+@app.route('/user/changeblacklist.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_user_changeblacklist(rd, user, data):
+	update_blacklist(session['sid'], user['_id'], data.blacklist)
+
 @app.route('/user/changepass.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest

@@ -87,7 +87,8 @@ def login(username, password, challenge, login_session_id) :
 				'image': user_obj['profile']['image'],
 				'desc': user_obj['profile']['desc']
 			},
-			'access_control': user_obj['access_control']
+			'access_control': user_obj['access_control'],
+			'settings': user_obj['settings']
 		}
 		redis_user_value = dumps(common_user_obj)
 		redis_user_key = binascii.hexlify(bytearray(random_bytes(16))).decode()
@@ -103,6 +104,7 @@ def query_user(uid) :
 		obj = db.users.find_one({'_id': ObjectId(uid)})
 		del obj['access_control']
 		del obj['crypto']
+		del obj['settings']
 		del obj['profile']['email']
 	except :
 		raise UserError('USER_NOT_EXIST')
@@ -114,6 +116,7 @@ def queryUsername(username) :
 		raise UserError('USER_NOT_EXIST')
 	del user_obj_find['access_control']
 	del user_obj_find['crypto']
+	del user_obj_find['settings']
 	del user_obj_find['profile']['email']
 	return user_obj_find
 
@@ -166,6 +169,9 @@ def signup(username, password, email, challenge, signup_session_id) :
 					'access_mode': 'blacklist',
 					'allowed_ops': [],
 					'denied_ops': []
+				},
+				'settings': {
+					'blacklist': 'default'
 				},
 				'meta': {
 					'created_at': datetime.now()
@@ -245,6 +251,26 @@ def update_email(redis_user_key, user_id, new_email) :
 
 	def updater(obj) :
 		obj['profile']['email'] = new_email
+		return obj
+
+	_updateUserRedisValue(user_id, updater)
+
+def update_blacklist(redis_user_key, user_id, blacklist) :
+	log(obj = {'redis_user_key': redis_user_key, 'user_id': user_id, 'blacklist': blacklist})
+	obj = db.users.find_one({'_id': ObjectId(user_id)})
+	if obj is None :
+		raise UserError('USER_NOT_EXIST')
+	log(obj = {'old_blacklist': obj['settings']['blacklist']})
+	if isinstance(blacklist, str) :
+		blacklist = 'default'
+	elif isinstance(blacklist, list) :
+		blacklist = tagdb.filter_and_translate_tags(blacklist)
+	else :
+		raise UserError('INCORRECT_BLACKLIST')
+	db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'settings.blacklist': blacklist}})
+
+	def updater(obj) :
+		obj['settings']['blacklist'] = blacklist
 		return obj
 
 	_updateUserRedisValue(user_id, updater)

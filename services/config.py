@@ -41,3 +41,4 @@ def _config_env(attr, envvar, default = '') :
 _config_env("BILICOOKIE_SESSDATA", "bilicookie_SESSDATA")
 _config_env("BILICOOKIE_bili_jct", "bilicookie_bili_jct")
 _config_env("YOUTUBE_API_KEYS", "GOOGLE_API_KEYs")
+_config_env("DEFAULT_BLACKLIST", "DEFAULT_BLACKLIST")
