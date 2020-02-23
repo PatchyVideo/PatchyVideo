@@ -24,7 +24,8 @@ def ajax_videos_edittags(rd, user, data):
 @jsonRequest
 def ajax_videos_edittags_batch(rd, user, data):
 	query_type = getDefaultJSON(data, 'query_type', 'tag')
-	editVideoTagsQuery(data.query, query_type, data.tags_add, data.tags_del, user)
+	count = editVideoTagsQuery(data.query, query_type, data.tags_add, data.tags_del, user)
+	return makeResponseSuccess(count)
 
 @app.route('/videos/gettags.do', methods = ['POST'])
 @loginOptional

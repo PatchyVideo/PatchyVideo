@@ -88,11 +88,12 @@ def editVideoTagsQuery(query, query_type, tags_to_add, tags_to_remove, user) :
 	if query_type not in ['tag', 'text'] :
 		raise UserError('INCORRECT_QUERY_TYPE')
 	filterOperation('batchVideoTagEdit', user)
-	query_obj, tag_ids = tagdb.compile_query(query)
+	query_obj, _ = tagdb.compile_query(query)
 	log(obj = {'query': dumps(query_obj)})
 	tagids_to_add = tagdb.filter_and_translate_tags(tags_to_add)
 	tagids_to_remove = tagdb.filter_and_translate_tags(tags_to_remove)
 	try :
+		count = 0
 		with MongoTransaction(client) as s_read, MongoTransaction(client) as s_write :
 			result_cursor = tagdb.retrive_items(query_obj, session = s_read())
 			batch = _batchedRead(result_cursor)
@@ -100,7 +101,10 @@ def editVideoTagsQuery(query, query_type, tags_to_add, tags_to_remove, user) :
 				item_ids = [item['_id'] for item in batch]
 				tagdb.update_many_items_tags_pull(item_ids, tagids_to_remove, makeUserMeta(user), session = s_write())
 				tagdb.update_many_items_tags_merge(item_ids, tagids_to_add, makeUserMeta(user), session = s_write())
+				count += len(batch)
 				batch = _batchedRead(result_cursor)
+			s_write.mark_succeed()
+		return count
 	except pymongo.errors.OperationFailure as ex:
 		if '$not' in str(ex) :
 			raise UserError('FAILED_NOT_OP')
