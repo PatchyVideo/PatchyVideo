@@ -546,7 +546,7 @@ def updateCommonTags(pid, tags, user) :
 			raise UserError('PLAYLIST_NOT_EXIST')
 		filterOperation('updateCommonTags', user, playlist_obj)
 		# user is editing video tags, not the playlist itself, no need to lock playlist
-		tags = tagdb.filter_and_translate_tags(tags, s())
+		tags = tagdb.filter_and_translate_tags(tags, session = s())
 		old_tags = listCommonTagIDs(pid, user)
 		log(obj = {'old_tags': old_tags})
 		old_tags_set = set(old_tags)
@@ -762,12 +762,14 @@ def createPlaylistFromCopies(pid, site, user) :
 	videos, _, playlist_obj = listAllPlaylistVideosOrdered(pid, user)
 	new_pid = createPlaylist('english', playlist_obj['title']['english'] + ' - %s' % site, playlist_obj['desc']['english'], playlist_obj['cover'], user, playlist_obj['private'])
 	with redis_lock.Lock(rdb, 'editLink'), redis_lock.Lock(rdb, "playlistEdit:" + str(new_pid)), MongoTransaction(client) as s :
+		rank = 0
 		for video in videos :
 			copies = video['item']['item']['copies']
 			for cp in copies :
-				item = tagdb.retrive_item(cp, s())
+				item = tagdb.retrive_item(cp, session = s())
 				if item['_id'] != video['vid'] and item['item']['site'] == site :
-					addVideoToPlaylistLockFree(new_pid, item['_id'], user)
+					addVideoToPlaylistLockFree(new_pid, item['_id'], user, rank, session = s())
+					rank += 1
 					break
 		s.mark_succeed()
 	return new_pid
