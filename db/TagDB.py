@@ -222,7 +222,7 @@ class TagDB() :
 	def _translate_text_search(self, text) :
 		if '*' in text : # tag wildcard
 			return text
-		if text in ['site', 'date', 'placeholder', 'and', 'or', 'not', 'any', 'all', 'notag', 'true', 'false'] :
+		if text in ['site', 'date', 'placeholder', 'and', 'or', 'not', 'any', 'all', 'tagless', 'true', 'false'] :
 			return text
 		serach_obj, serach_type = parse_search(text)
 		return ')' + dumps({'obj': serach_obj, 'type': serach_type})

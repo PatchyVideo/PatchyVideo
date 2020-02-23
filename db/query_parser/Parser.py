@@ -184,7 +184,7 @@ def _prepare_attributes(name, value):
 			return { 'item.upload_time' : { '$gte' : date, '$lte' : date + timedelta(days = 1) } }
 		date = parse_date(value)
 		return { 'item.upload_time' : { '$gte' : date, '$lte' : date + timedelta(days = 1) } }
-	elif name == 'notag':
+	elif name == 'tagless':
 		if value == 'true' :
 			return { 'tags' : { '$size' : 0 } }
 		elif value == 'false' :
