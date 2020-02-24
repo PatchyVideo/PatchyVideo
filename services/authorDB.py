@@ -24,12 +24,12 @@ def createOrModifyAuthorRecord(user, author_type, tagid, common_tags, user_space
         tag_obj = tagdb._tag(tagid, session = s())
         if tag_obj['category'] != 'Author' :
             raise UserError('TAG_NOT_AUTHOR')
-        exisiting_record = None
+        existing_record = None
         log(obj = {'tag_obj': tag_obj})
         if 'author' in tag_obj :
-            exisiting_record = db.authors.find_one({'_id': tag_obj['author']}, session = s())
-            assert exisiting_record
-            log(obj = {'old_record': exisiting_record})
+            existing_record = db.authors.find_one({'_id': tag_obj['author']}, session = s())
+            assert existing_record
+            log(obj = {'old_record': existing_record})
         common_tagids = tagdb.filter_and_translate_tags(common_tags, session = s())
         avatar_file = ''
         if avatar_file_key :
@@ -37,8 +37,8 @@ def createOrModifyAuthorRecord(user, author_type, tagid, common_tags, user_space
                 filename = rdb.get(avatar_file_key)
                 if filename :
                     avatar_file = filename.decode('ascii')
-        if exisiting_record :
-            record_id = exisiting_record['_id']
+        if existing_record :
+            record_id = existing_record['_id']
             db.authors.update_one({'_id': record_id}, {'$set': {
                 'type': author_type,
                 'tagid': tagid,
