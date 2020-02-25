@@ -279,7 +279,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 		lock_id = "videoEdit:" + unique_id
 		async with RedisLockAsync(rdb, lock_id) :
 			unique, conflicting_item = verifyUniqueness(unique_id)
-			if unique :
+			if unique and not update_video_detail :
 				async with _download_sem :
 					ret = await parsed.get_metadata_async(parsed, url, update_video_detail)
 				if ret["status"] == 'FAILED' :
@@ -329,7 +329,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 				Update existing video
 				"""
 				
-				if update_video_detail and not tags :
+				if update_video_detail :
 					log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Updating video detail')
 					with MongoTransaction(client) as s :
 						old_item = tagdb.retrive_item(conflicting_item['_id'], session = s())['item']
