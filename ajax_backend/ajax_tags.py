@@ -12,7 +12,7 @@ from utils.jsontools import *
 
 from services.tagStatistics import getRelatedTagsExperimental
 from services.autotag import inferTagsFromUtags
-from services.editTag import getTag
+from services.editTag import getTag, getDefaultBlacklist
 
 @app.route('/tags/get_related_tags.do', methods = ['POST'])
 @loginOptional
@@ -37,3 +37,9 @@ def ajax_autotag_do(rd, user, data) :
 @jsonRequest
 def ajax_tags_get_tag_do(rd, user, data) :
 	return "json", makeResponseSuccess({'tag_obj': getTag(data.tagid)})
+
+@app.route('/tags/get_default_blacklist.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_tags_get_default_blacklist_do(rd, user, data) :
+	return "json", makeResponseSuccess({'tags': getDefaultBlacklist('CHS')})
