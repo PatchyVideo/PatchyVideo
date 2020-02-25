@@ -11,6 +11,7 @@ from utils.logger import log
 from utils.interceptors import asyncJsonRequest
 from utils.crypto import random_bytes_str
 from bson.json_util import dumps
+from aiohttp import ClientSession
 
 from config import UploadConfig
 
@@ -28,6 +29,46 @@ def _gif_thumbnails(frames, resolution = (320, 200)):
 		thumbnail = frame.copy()
 		thumbnail.thumbnail(resolution, Image.ANTIALIAS)
 		yield thumbnail
+
+@routes.post("/upload_image_url.do")
+async def upload_image_url(request) :
+	data = loads(await request.json())
+	try :
+		url = data['url']
+		if data['type'] == 'cover' :
+			resolution = (320, 200)
+			dst = _COVER_PATH
+		elif type_field == 'userphoto' :
+			resolution = (256, 256)
+			dst = _USERPHOTO_PATH
+		else :
+			return web.json_response(makeResponseFailed('INCORRECT_UPLOAD_TYPE'), dumps = dumps)
+	except :
+		return web.json_response(makeResponseFailed('INCORRECT_REQUEST'), dumps = dumps)
+	async with ClientSession() as session:
+		async with session.get(url) as resp:
+			if resp.status == 200 :
+				try :
+					img = Image.open(io.BytesIO(await resp.read()))
+					if isinstance(img, PIL.GifImagePlugin.GifImageFile) :
+						filename = random_bytes_str(24) + ".gif"
+						frames = ImageSequence.Iterator(img)
+						frames = _gif_thumbnails(frames, resolution)
+						om = next(frames) # Handle first frame separately
+						om.info = img.info # Copy sequence info
+						om.save(dst + filename, save_all = True, append_images = list(frames), loop = 0)
+					else :
+						filename = random_bytes_str(24) + ".png"
+						img.thumbnail(resolution, Image.ANTIALIAS)
+						img.save(dst + filename)
+				except :
+					return web.json_response(makeResponseFailed('INCORRECT_UPLOAD_TYPE'), dumps = dumps)
+			else :
+				return web.json_response(makeResponseFailed('INCORRECT_UPLOAD_TYPE'), dumps = dumps)
+	file_key = "upload-image-" + random_bytes_str(16)
+	rdb.set(file_key, filename)
+	log('fe_upload_image_url', obj = {'filename': filename, 'file_key': file_key})
+	return web.json_response(makeResponseSuccess({'file_key': file_key}), dumps = dumps)
 
 @routes.post("/upload_image.do")
 async def upload_image(request):
