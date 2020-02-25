@@ -75,6 +75,18 @@ def refreshVideoDetailURL(url, user) :
 	})
 	postTask(json_str)
 
+def setVideoRepostType(vid, repost_type, user) :
+	filterOperation('setVideoRepostType', user)
+	if repost_type not in ['official', 'official_repost', 'authorized_translation', 'authorized_repost', 'translation', 'repost'] :
+		raise UserError('INCORRECT_REPOST_TYPE')
+	video_obj = tagdb.retrive_item(vid)
+	if video_obj is None :
+		raise UserError('VIDEO_NOT_FOUND')
+	lock_id = "videoEdit:" + video_obj['item']['unique_id']
+	with redis_lock.Lock(rdb, lock_id), MongoTransaction(client) as s :
+		tagdb.update_item_query(video_obj, {'$set': {'item.repost_type': repost_type}}, session = s())
+		s.mark_succeed()
+
 def _batchedRead(cursor, batch_size = 100) :
 	batch = []
 	try :

@@ -553,7 +553,7 @@ class TagDB() :
 				raise UserError('ITEM_NOT_EXIST')
 		else:
 			item = item_id_or_item_object
-		if '$set' in query and 'item' in query['$set'] :
+		if fields_to_index and '$set' in query and 'item' in query['$set'] :
 			all_reindex = True
 			for field in fields_to_index :
 				if field not in query['$set']['item'] :

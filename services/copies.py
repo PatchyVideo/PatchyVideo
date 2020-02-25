@@ -41,10 +41,12 @@ def _removeThisCopy(dst_vid, this_vid, user, session):
 	tagdb.update_item_query(ObjectId(dst_vid), {"$set": {"item.copies": dst_copies}}, user, session)
 
 def breakLink(vid, user):
+	if not vid :
+		return
 	filterOperation('breakLink', user, vid)
 	with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
 		nodes = _getAllCopies(vid)
-		log(obj = {'old_clique': nodes, 'node_remove': vid})
+		#log(obj = {'old_clique': nodes, 'node_remove': vid})
 		if nodes :
 			for node in nodes :
 				_removeThisCopy(node, vid, makeUserMeta(user), session = s())
