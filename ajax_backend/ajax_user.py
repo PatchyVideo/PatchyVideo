@@ -125,7 +125,7 @@ def ajax_user_resetpass(rd, user, data):
 @jsonRequest
 def ajax_user_whoami(rd, user, data):
 	if not user :
-		"json", makeResponseError("UNAUTHORISED_OPERATION")
+		return "json", makeResponseError("UNAUTHORISED_OPERATION")
 	return "json", makeResponseSuccess(whoAmI(user))
 
 @app.route('/user/is_authorized', methods = ['POST'])
