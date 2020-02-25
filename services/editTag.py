@@ -16,6 +16,12 @@ from config import TagsConfig
 from utils.logger import log
 from services.tcb import filterOperation
 
+def getTag(tagid) :
+	obj = tagdb.db.tags.find_one({'id': tagid})
+	if obj :
+		return obj
+	raise UserError('TAG_NOT_FOUND')
+
 def queryTags(category, page_idx, page_size, order = 'none'):
 	result = tagdb.list_category_tags(category)
 	if isinstance(result, str):

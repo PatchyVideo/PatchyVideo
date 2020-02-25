@@ -110,9 +110,10 @@ class TagDB() :
 	def list_categories(self, session = None) :
 		return [item for item in self.db.cats.find({}, session = session)]
 
-	def list_category_tags(self, category, session = None) :
+	def list_category_tags(self, category, blacklist_tagids = [], session = None) :
 		self._check_category(category, session)
-		ans = self.db.tags.find({'category': category}, session = session)
+		# TODO: blacklist tags
+		ans = self.db.tags.find({'$and': [{'category': category}]}, session = session)
 		return ans
 
 	def transfer_category(self, tag, new_category, user = '', session = None) :

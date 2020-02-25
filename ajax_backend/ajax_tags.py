@@ -12,6 +12,7 @@ from utils.jsontools import *
 
 from services.tagStatistics import getRelatedTagsExperimental
 from services.autotag import inferTagsFromUtags
+from services.editTag import getTag
 
 @app.route('/tags/get_related_tags.do', methods = ['POST'])
 @loginOptional
@@ -30,3 +31,9 @@ def ajax_get_related_tags_do(rd, user, data):
 def ajax_autotag_do(rd, user, data) :
 	tags = inferTagsFromUtags(data.utags, 'CHS')
 	return "json", makeResponseSuccess({'tags': tags})
+
+@app.route('/tags/get_tag.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_tags_get_tag_do(rd, user, data) :
+	return "json", makeResponseSuccess({'tag_obj': getTag(data.tagid)})
