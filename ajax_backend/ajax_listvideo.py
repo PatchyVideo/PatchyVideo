@@ -42,10 +42,11 @@ def ajax_queryvideo_do(rd, data, user):
 	if len(data.query) > QueryConfig.MAX_QUERY_LENGTH :
 		raise UserError('QUERY_TOO_LONG')
 	order = getDefaultJSON(data, 'order', 'latest')
+	qtype = getDefaultJSON(data, 'qtype', 'tag')
 	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, related_tags, video_count = listVideoQuery(user, data.query, data.page - 1, data.page_size, order,  hide_placeholder = hide_placeholder)
+	videos, related_tags, video_count = listVideoQuery(user, data.query, data.page - 1, data.page_size, order,  hide_placeholder = hide_placeholder, qtype = qtype)
 	tag_category_map = getTagCategoryMap(related_tags)
 	end = time.time()
 	ret = makeResponseSuccess({

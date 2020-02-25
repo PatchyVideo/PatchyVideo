@@ -15,11 +15,11 @@ from services.config import Config
 def _filterPlaceholder(videos) :
 	return list(filter(lambda x: not ('placeholder' in x['item'] and x['item']['placeholder']), videos))
 
-def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_language = 'CHS', hide_placeholder = True):
+def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_language = 'CHS', hide_placeholder = True, qtype = 'tag'):
 	log(obj = {'q': query_str, 'page': page_idx, 'page_size': page_size, 'order': order, 'lang': user_language})
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
-	query_obj, tags = db.compile_query(query_str)
+	query_obj, tags = db.compile_query(query_str, qtype)
 	log(obj = {'query': dumps(query_obj)})
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
 	if user and 'settings' in user :
