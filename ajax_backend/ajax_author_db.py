@@ -29,7 +29,7 @@ def ajax_authors_create_or_modify(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_authors_get_record(rd, user, data):
-	return "json", makeResponseSuccess({"record": getAuthorRecord(data.tag)})
+	return "json", makeResponseSuccess({"record": getAuthorRecord(data.tag, 'CHS')})
 
 
 

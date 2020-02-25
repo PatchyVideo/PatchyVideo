@@ -61,12 +61,13 @@ def createOrModifyAuthorRecord(user, author_type, tagid, common_tags, user_space
         s.mark_succeed()
         return str(record_id)
 
-def getAuthorRecord(tag) :
+def getAuthorRecord(tag, language) :
     tag_obj = tagdb._tag(tag)
     if not 'author' in tag_obj :
         raise UserError('RECORD_NOT_FOUND')
     author_obj = db.authors.find_one({'_id': tag_obj['author']})
     assert author_obj
+    author_obj['common_tags'] = tagdb.translate_tag_ids_to_user_language(author_obj['common_tagids'], language)
     return author_obj
 
 def matchUserSpace(url) :
