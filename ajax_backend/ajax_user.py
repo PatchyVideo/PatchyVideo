@@ -71,6 +71,12 @@ def ajax_user_profile_username(rd, user, data):
 	obj = queryUsername(data.username)
 	return "json", makeResponseSuccess(obj)
 
+@app.route('/user/get_blacklist.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_user_get_blacklist(rd, user, data):
+	return "json", makeResponseSuccess(queryBlacklist(user, 'CHS'))
+
 @app.route('/user/changedesc.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest

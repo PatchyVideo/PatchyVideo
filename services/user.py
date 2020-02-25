@@ -110,6 +110,15 @@ def query_user(uid) :
 		raise UserError('USER_NOT_EXIST')
 	return obj
 
+def queryBlacklist(user, language) :
+	if 'blacklist' in user['settings'] :
+		if isinstance(user['settings']['blacklist'], list) :
+			return tagdb.translate_tag_ids_to_user_language(user['settings']['blacklist'], language)[0]
+		else :
+			return 'default'
+	else :
+		return 'default'
+
 def queryUsername(username) :
 	user_obj_find = db.users.find_one({'profile.username': username})
 	if user_obj_find is None :
