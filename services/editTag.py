@@ -27,11 +27,11 @@ def _getBlacklistTagids(user) :
 	blacklist_tagids = []
 	if user and 'settings' in user :
 		if user['settings']['blacklist'] == 'default' :
-			blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
+			blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST_POPULAR_TAG.split(',')]
 		else :
 			blacklist_tagids = user['settings']['blacklist']
 	elif user is None :
-		blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
+		blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST_POPULAR_TAG.split(',')]
 	return blacklist_tagids
 
 def queryTags(category, page_idx, page_size, order = 'none', user = None):
