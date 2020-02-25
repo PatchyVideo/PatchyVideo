@@ -21,12 +21,13 @@ def getDefaultBlacklist(language) :
 	return tagdb.translate_tag_ids_to_user_language([int(i) for i in Config.DEFAULT_BLACKLIST_POPULAR_TAG.split(',')], language)[0]
 
 def getTag(tag_or_tagid) :
-	if isinstance(tag_or_tagid, int) :
-		obj = tagdb.db.tags.find_one({'id': tagid})
-	elif isinstance(tag_or_tagid, str) :
-		obj = tagdb.filter_and_translate_tags([tag_or_tagid])
-		if obj :
-			obj = obj[0]
+	if isinstance(tag_or_tagid, str) :
+		tag_or_tagid = tagdb.filter_and_translate_tags([tag_or_tagid])
+		if not tag_or_tagid :
+			raise UserError('TAG_NOT_FOUND')
+		else :
+			tag_or_tagid = tag_or_tagid[0]
+	obj = tagdb.db.tags.find_one({'id': tag_or_tagid})
 	if obj :
 		return obj
 	raise UserError('TAG_NOT_FOUND')
