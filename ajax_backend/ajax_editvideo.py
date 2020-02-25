@@ -9,7 +9,7 @@ from utils import getDefaultJSON
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 
-from services.editVideo import editVideoTags, getVideoTags, refreshVideoDetail, refreshVideoDetailURL, editVideoTagsQuery
+from services.editVideo import editVideoTags, getVideoTags, refreshVideoDetail, refreshVideoDetailURL, editVideoTagsQuery, setVideoRepostType
 from services.tcb import setVideoClearence
 from config import TagsConfig, VideoConfig
 
@@ -51,3 +51,9 @@ def ajax_videos_refresh_url(rd, user, data):
 @jsonRequest
 def ajax_videos_set_clearence(rd, user, data):
 	setVideoClearence(data.vid, data.clearence, user)
+
+@app.route('/videos/set_repost_type.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_videos_set_repost_type(rd, user, data):
+	setVideoRepostType(data.vid, data.repost_type, user)

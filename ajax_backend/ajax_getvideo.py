@@ -13,6 +13,7 @@ from services.getVideo import getVideoDetail, getVideoDetailWithTags
 from services.playlist import listPlaylistsForVideo
 from config import TagsConfig, VideoConfig
 
+from collections import defaultdict
 
 @app.route('/getvideo.do', methods = ['POST'])
 @loginOptional
@@ -27,17 +28,23 @@ def ajax_getvideo(rd, user, data):
 	tag_by_category = category_tag_map
 	for category in tag_by_category :
 		tag_by_category[category] = list(sorted(tag_by_category[category]))
+	copies_by_type = defaultdict(list)
 	copies = []
 	for item in obj['item']['copies'] :
 		ver = getVideoDetail(item, user)
 		if ver :
 			copies.append(ver)
+			if 'repost_type' in ver['item'] :
+				copies_by_type[ver['item']['repost_type']].append(ver)
+			else :
+				copies_by_type['unknown'].append(ver)
 	playlists = listPlaylistsForVideo(user, vidid)
 
 	return "json", makeResponseSuccess({
 		"video" : obj,
 		"tags" : tags,
 		"copies" : copies,
+		"copies_by_repost_type": copies_by_type,
 		"playlists" : playlists,
 		"tag_by_category": tag_by_category
 	})
