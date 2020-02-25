@@ -18,7 +18,7 @@ from services.tcb import filterOperation
 from services.config import Config
 
 def getDefaultBlacklist(language) :
-	return tagdb.translate_tag_ids_to_user_language(Config.DEFAULT_BLACKLIST_POPULAR_TAG, language)[0]
+	return tagdb.translate_tag_ids_to_user_language([int(i) for i in Config.DEFAULT_BLACKLIST_POPULAR_TAG.split(',')], language)[0]
 
 def getTag(tagid) :
 	obj = tagdb.db.tags.find_one({'id': tagid})
