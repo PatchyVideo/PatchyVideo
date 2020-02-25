@@ -48,7 +48,7 @@ class Zcool( Crawler ) :
 			'thumbnailURL': cover,
 			'title' : title,
 			'desc' : desc,
-			'site': 'acfun',
+			'site': 'zcool',
 			'uploadDate' : upload_time,
 			"unique_id": "zcool:%s" % zcool_id,
 			"utags": []
