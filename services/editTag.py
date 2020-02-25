@@ -20,8 +20,13 @@ from services.config import Config
 def getDefaultBlacklist(language) :
 	return tagdb.translate_tag_ids_to_user_language([int(i) for i in Config.DEFAULT_BLACKLIST_POPULAR_TAG.split(',')], language)[0]
 
-def getTag(tagid) :
-	obj = tagdb.db.tags.find_one({'id': tagid})
+def getTag(tag_or_tagid) :
+	if isinstance(tag_or_tagid, int) :
+		obj = tagdb.db.tags.find_one({'id': tagid})
+	elif isinstance(tag_or_tagid, str) :
+		obj = tagdb.filter_and_translate_tags([tag_or_tagid])
+		if obj :
+			obj = obj[0]
 	if obj :
 		return obj
 	raise UserError('TAG_NOT_FOUND')
