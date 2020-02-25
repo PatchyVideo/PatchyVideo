@@ -15,6 +15,7 @@ import time
 from config import TagsConfig
 from utils.logger import log
 from services.tcb import filterOperation
+from services.config import Config
 
 def getTag(tagid) :
 	obj = tagdb.db.tags.find_one({'id': tagid})
@@ -22,8 +23,20 @@ def getTag(tagid) :
 		return obj
 	raise UserError('TAG_NOT_FOUND')
 
-def queryTags(category, page_idx, page_size, order = 'none'):
-	result = tagdb.list_category_tags(category)
+def _getBlacklistTagids(user) :
+	blacklist_tagids = []
+	if user and 'settings' in user :
+		if user['settings']['blacklist'] == 'default' :
+			blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
+		else :
+			blacklist_tagids = user['settings']['blacklist']
+	elif user is None :
+		blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
+	return blacklist_tagids
+
+def queryTags(category, page_idx, page_size, order = 'none', user = None):
+	blacklist_tagids = _getBlacklistTagids(user)
+	result = tagdb.list_category_tags(category, blacklist_tagids)
 	if isinstance(result, str):
 		return result
 	if order not in ['latest', 'oldest', 'count', 'count_inv'] :
@@ -38,16 +51,18 @@ def queryTags(category, page_idx, page_size, order = 'none'):
 		result = result.sort([("count", -1)])
 	return result.skip(page_idx * page_size).limit(page_size)
 
-def queryTagsWildcard(query, category, page_idx, page_size, order):
-	ret = tagdb.find_tags_wildcard(query, category, page_idx, page_size, order)
+def queryTagsWildcard(query, category, page_idx, page_size, order, user):
+	blacklist_tagids = _getBlacklistTagids(user)
+	ret = tagdb.find_tags_wildcard(query, category, page_idx, page_size, order, blacklist_tagids)
 	result = [i for i in ret][0]
 	if result['tags_found'] :
 		return [i for i in result['result']], result['tags_found'][0]['tags_found']
 	else :
 		return [], 0
 
-def queryTagsRegex(query, category, page_idx, page_size, order):
-	ret = tagdb.find_tags_regex(query, category, page_idx, page_size, order)
+def queryTagsRegex(query, category, page_idx, page_size, order, user):
+	blacklist_tagids = _getBlacklistTagids(user)
+	ret = tagdb.find_tags_regex(query, category, page_idx, page_size, order, blacklist_tagids)
 	result = [i for i in ret][0]
 	if result['tags_found'] :
 		return [i for i in result['result']], result['tags_found'][0]['tags_found']

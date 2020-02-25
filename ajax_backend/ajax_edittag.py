@@ -42,7 +42,7 @@ def ajax_query_tags(rd, user, data):
 		order = 'latest'
 	if order not in ['latest', 'oldest', 'count', 'count_inv'] :
 		raise AttributeError()
-	tags = queryTags(data.category, data.page - 1, data.page_size, order)
+	tags = queryTags(data.category, data.page - 1, data.page_size, order, user)
 	tag_count = tags.count()
 	ret = makeResponseSuccess({
 		"tags": [i for i in tags],
@@ -65,7 +65,7 @@ def ajax_query_tags_wildcard(rd, user, data):
 		category = data.category
 	else :
 		category = ''
-	tags, tag_count = queryTagsWildcard(data.query, category, data.page - 1, data.page_size, order)
+	tags, tag_count = queryTagsWildcard(data.query, category, data.page - 1, data.page_size, order, user)
 	ret = makeResponseSuccess({
 		"tags": tags,
 		"count": tag_count,
@@ -85,7 +85,7 @@ def ajax_query_tags_regex(rd, user, data):
 		category = data.category
 	else :
 		category = ''
-	tags, tag_count = queryTagsRegex(data.query, category, data.page - 1, data.page_size, order)
+	tags, tag_count = queryTagsRegex(data.query, category, data.page - 1, data.page_size, order, user)
 	ret = makeResponseSuccess({
 		"tags": tags,
 		"count": tag_count,

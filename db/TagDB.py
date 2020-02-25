@@ -112,8 +112,7 @@ class TagDB() :
 
 	def list_category_tags(self, category, blacklist_tagids = [], session = None) :
 		self._check_category(category, session)
-		# TODO: blacklist tags
-		ans = self.db.tags.find({'$and': [{'category': category}]}, session = session)
+		ans = self.db.tags.find({'$and': [{'category': category}, {'id': {'$nin': blacklist_tagids}}]}, session = session)
 		return ans
 
 	def transfer_category(self, tag, new_category, user = '', session = None) :
@@ -162,19 +161,19 @@ class TagDB() :
 		self.aci.AddWord([(tag_id, tag, language)])
 		return tag_id
 
-	def find_tags_wildcard(self, query, category, page_idx, page_size, order) :
+	def find_tags_wildcard(self, query, category, page_idx, page_size, order, blacklist_tagids = []) :
 		assert isinstance(query, str)
 		query = re.escape(query)
 		#query = query.replace('\\*', '.*')
 		query = f'^.*{query}.*$'
-		return self.find_tags_regex(query, category, page_idx, page_size, order)
+		return self.find_tags_regex(query, category, page_idx, page_size, order, blacklist_tagids)
 
-	def find_tags_regex(self, query, category, page_idx, page_size, order) :
+	def find_tags_regex(self, query, category, page_idx, page_size, order, blacklist_tagids = []) :
 		assert isinstance(query, str)
 		if category :
-			match_obj = {'category': category}
+			match_obj = {'$and': [{'category': category}, {'id': {'$nin': blacklist_tagids}}]}
 		else :
-			match_obj = {}
+			match_obj = {'id': {'$nin': blacklist_tagids}}
 			
 		if order not in ['latest', 'oldest', 'count', 'count_inv'] :
 	   		raise UserError('INCORRECT_ORDER')
