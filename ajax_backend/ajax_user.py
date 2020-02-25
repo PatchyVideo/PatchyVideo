@@ -121,10 +121,18 @@ def ajax_user_resetpass(rd, user, data):
 	reset_password(data.reset_key, data.new_pass)
 
 @app.route('/user/whoami', methods = ['POST'])
-@loginRequiredJSON
+@loginOptional
 @jsonRequest
 def ajax_user_whoami(rd, user, data):
+	if not user :
+		"json", makeResponseError("UNAUTHORISED_OPERATION")
 	return "json", makeResponseSuccess(whoAmI(user))
+
+@app.route('/user/is_authorized', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_user_is_authorized(rd, user, data):
+	checkIsAuthorized(user, data.op)
 
 @app.route('/user/admin/updaterole.do', methods = ['POST'])
 @loginRequiredJSON

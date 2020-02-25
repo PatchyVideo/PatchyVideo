@@ -126,6 +126,9 @@ def checkIfUserExists(username) :
 		return True
 	return False
 
+def checkIsAuthorized(user, op) :
+	filterOperation(op, user)
+
 def signup(username, password, email, challenge, signup_session_id) :
 	log(obj = {'username': username, 'email': email, 'challenge': challenge, 'signup_session_id': signup_session_id})
 	if len(username) > UserConfig.MAX_USERNAME_LENGTH :
