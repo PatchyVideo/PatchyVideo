@@ -59,7 +59,7 @@ if __name__ == '__main__' :
         s.mark_succeed()
 """
 
-
+"""
 if __name__ == '__main__' :
     cursor = db.items.find(no_cursor_timeout = True).batch_size(100)
     for item in cursor :
@@ -71,7 +71,7 @@ if __name__ == '__main__' :
 			'del': [],
 			'time': item['meta']['created_at']
 		})
-
+"""
 
 if __name__ == '__main__' :
     from db.index.index_builder import build_index
