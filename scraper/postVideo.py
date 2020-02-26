@@ -298,6 +298,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 					ret['data']['repost_type'] = repost_type
 				else :
 					ret['data']['repost_type'] = 'unknown'
+				tagdb.update_item_query(conflicting_item, {'$set': {'item.repost_type': repost_type}})
 			#if hasattr(parsed, 'LOCAL_CRAWLER') :
 			#	url = ret["data"]["url"]
 			#else :
