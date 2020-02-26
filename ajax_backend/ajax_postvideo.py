@@ -25,7 +25,7 @@ def ajax_postvideo_do(rd, user, data):
 	dst_playlist = getDefaultJSON(data, 'pid', '')
 	dst_rank = getDefaultJSON(data, 'rank', -1)
 	repost_type = getDefaultJSON(data, 'repost_type', 'repost')
-	if repost_type not in ['official', 'official_repost', 'authorized_translation', 'authorized_repost', 'translation', 'repost'] :
+	if repost_type not in ['official', 'official_repost', 'authorized_translation', 'authorized_repost', 'translation', 'repost', 'unknown'] :
 		raise UserError('INCORRECT_REPOST_TYPE')
 	task_id = postVideo(user, data.url, data.tags, dst_copy, dst_playlist, dst_rank, repost_type)
 	return "json", makeResponseSuccess({"task_id": task_id})
@@ -39,7 +39,7 @@ def ajax_postvideo_batch_do(rd, user, data):
 	dst_rank = getDefaultJSON(data, 'rank', -1)
 	as_copies = getDefaultJSON(data, 'as_copies', False)
 	repost_type = getDefaultJSON(data, 'repost_type', 'repost')
-	if repost_type not in ['official', 'official_repost', 'authorized_translation', 'authorized_repost', 'translation', 'repost'] :
+	if repost_type not in ['official', 'official_repost', 'authorized_translation', 'authorized_repost', 'translation', 'repost', 'unknown'] :
 		raise UserError('INCORRECT_REPOST_TYPE')
 	task_ids = postVideoBatch(user, data.videos, data.tags, dst_copy, dst_playlist, dst_rank, as_copies, repost_type)
 	return "json", makeResponseSuccess({"task_ids": task_ids})
@@ -56,7 +56,7 @@ def ajax_postvideo_ipfs_do(rd, user, data):
 	file_key = getDefaultJSON(data, 'file_key', '')
 	original_url = getDefaultJSON(data, 'original_url', '')
 	repost_type = getDefaultJSON(data, 'repost_type', 'repost')
-	if repost_type not in ['official', 'official_repost', 'authorized_translation', 'authorized_repost', 'translation', 'repost'] :
+	if repost_type not in ['official', 'official_repost', 'authorized_translation', 'authorized_repost', 'translation', 'repost', 'unknown'] :
 		raise UserError('INCORRECT_REPOST_TYPE')
 	if desc and title and file_key  :
 		task_id = postVideoIPFS_new(user, data.url, data.tags, dst_copy, dst_playlist, dst_rank, desc, title, file_key, repost_type)
