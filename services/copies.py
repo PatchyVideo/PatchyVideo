@@ -45,12 +45,12 @@ def breakLink(vid, user):
 		return
 	filterOperation('breakLink', user, vid)
 	with redis_lock.Lock(rdb, 'editLink'), MongoTransaction(client) as s :
-		nodes = _getAllCopies(vid)
-		#log(obj = {'old_clique': nodes, 'node_remove': vid})
+		nodes = _getAllCopies(vid, session = s())
+		log(obj = {'old_clique': nodes, 'node_remove': vid})
 		if nodes :
 			for node in nodes :
 				_removeThisCopy(node, vid, makeUserMeta(user), session = s())
-			tagdb.update_item_query(ObjectId(vid), {"$set": {"item.copies": []}}, makeUserMeta(user), session = s())
+			tagdb.update_item_query(ObjectId(vid), {"$set": {"item.copies": []}}, user = makeUserMeta(user), session = s())
 		s.mark_succeed()
 
 @usingResource('tags')
