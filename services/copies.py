@@ -33,12 +33,12 @@ def _getAllCopies(vid_or_obj, session = None) :
 def _removeThisCopy(dst_vid, this_vid, user, session):
 	if this_vid is None :
 		return
-	dst_video = tagdb.retrive_item({"_id": ObjectId(dst_vid)}, session)
+	dst_video = tagdb.retrive_item({"_id": ObjectId(dst_vid)}, session = session)
 	if dst_video is None :
 		return
 	dst_copies = dst_video['item']['copies']
 	dst_copies = list(set(dst_copies) - set([ObjectId(this_vid)]))
-	tagdb.update_item_query(ObjectId(dst_vid), {"$set": {"item.copies": dst_copies}}, user, session)
+	tagdb.update_item_query(ObjectId(dst_vid), {"$set": {"item.copies": dst_copies}}, user = user, session = session)
 
 def breakLink(vid, user):
 	if not vid :
