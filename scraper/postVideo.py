@@ -52,16 +52,9 @@ def _cleanUtags(utags) :
 	utags = [utag.replace(' ', '') for utag in utags]
 	return list(set(utags))
 
-#_DOWNLOADING_TASKS = 0
-
 _download_sem = asyncio.Semaphore(10)
 
 async def _download_thumbnail(url, user, event_id) :
-	#global _DOWNLOADING_TASKS
-	#while _DOWNLOADING_TASKS > 5 :
-	#	await asyncio.sleep(0.5)
-	#_DOWNLOADING_TASKS += 1
-	#print('Downloding for %s, tasks = %d' % (url, _DOWNLOADING_TASKS))
 	filename = ""
 	if url :
 		for attemp in range(3) :
@@ -89,8 +82,6 @@ async def _download_thumbnail(url, user, event_id) :
 			except Exception as ex :
 				log_e(event_id, user, 'download_cover', 'WARN', {'ex': str(ex), 'attemp': attemp})
 				continue
-	#_DOWNLOADING_TASKS -= 1
-	#print('Downloding for %s finished, tasks = %d' % (url, _DOWNLOADING_TASKS))
 	return filename
 
 async def _make_video_data(data, copies, playlists, url, user, event_id) :
@@ -109,6 +100,7 @@ async def _make_video_data(data, copies, playlists, url, user, event_id) :
 		'series': playlists,
 		'copies': copies,
 		'upload_time': data['uploadDate'],
+		'repost_type': data['repost_type'],
 		'views': -1,
 		'rating': -1.0,
 		"utags": _cleanUtags(data['utags']) if 'utags' in data else [],
@@ -128,6 +120,7 @@ async def _make_video_data_update(data, url, user, event_id, thumbnail_url = Non
 		'site': data['site'],
 		"unique_id": data['unique_id'],
 		'upload_time': data['uploadDate'],
+		'repost_type': data['repost_type'],
 		'views': -1,
 		'rating': -1.0,
 		"utags": _cleanUtags(data['utags']) if 'utags' in data else [],
@@ -259,7 +252,7 @@ class _PlaylistReorederHelper() :
 _playlist_reorder_helper = _PlaylistReorederHelper()
 
 @usingResourceAsync('tags')
-async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, playlist_ordered, user, update_video_detail, event_id, field_override = None):
+async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, repost_type, playlist_ordered, user, update_video_detail, event_id, field_override = None):
 	parsed = None
 	try :
 		dst_playlist = str(dst_playlist)
@@ -282,6 +275,10 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 			if unique and not update_video_detail :
 				async with _download_sem :
 					ret = await parsed.get_metadata_async(parsed, url, update_video_detail)
+					if repost_type :
+						ret['data']['repost_type'] = repost_type
+					else :
+						ret['data']['repost_type'] = 'unknown'
 				if ret["status"] == 'FAILED' :
 					log_e(event_id, user, 'downloader', 'WARN', {'msg': 'FETCH_FAILED', 'ret': ret})
 					await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
@@ -297,6 +294,10 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 					"unique_id": conflicting_item['item']['unique_id'],
 					"utags": conflicting_item['item']['utags']
 				})
+				if conflicting_item['item']['repost_type'] :
+					ret['data']['repost_type'] = repost_type
+				else :
+					ret['data']['repost_type'] = 'unknown'
 			#if hasattr(parsed, 'LOCAL_CRAWLER') :
 			#	url = ret["data"]["url"]
 			#else :
@@ -469,9 +470,10 @@ async def postVideoAsyncJSON(param_json) :
 	user = param_json['user']
 	playlist_ordered = param_json['playlist_ordered']
 	event_id = param_json['event_id']
+	repost_type = param_json['repost_type']
 	field_overrides = param_json['field_overrides'] if 'field_overrides' in param_json else None
 	update_video_detail = param_json['update_video_detail'] if 'update_video_detail' in param_json else False
-	ret, ret_obj = await postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, playlist_ordered, user, update_video_detail, event_id, field_overrides)
+	ret, ret_obj = await postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, repost_type, playlist_ordered, user, update_video_detail, event_id, field_overrides)
 	return {'result' : ret, 'result_obj' : ret_obj}
 
 def verifyUniqueness(postingId):

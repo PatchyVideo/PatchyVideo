@@ -24,7 +24,10 @@ def ajax_postvideo_do(rd, user, data):
 	dst_copy = getDefaultJSON(data, 'copy', '')
 	dst_playlist = getDefaultJSON(data, 'pid', '')
 	dst_rank = getDefaultJSON(data, 'rank', -1)
-	task_id = postVideo(user, data.url, data.tags, dst_copy, dst_playlist, dst_rank)
+	repost_type = getDefaultJSON(data, 'repost_type', 'repost')
+	if repost_type not in ['official', 'official_repost', 'authorized_translation', 'authorized_repost', 'translation', 'repost'] :
+		raise UserError('INCORRECT_REPOST_TYPE')
+	task_id = postVideo(user, data.url, data.tags, dst_copy, dst_playlist, dst_rank, repost_type)
 	return "json", makeResponseSuccess({"task_id": task_id})
 
 @app.route('/postvideo_batch.do', methods = ['POST'])
@@ -35,7 +38,10 @@ def ajax_postvideo_batch_do(rd, user, data):
 	dst_playlist = getDefaultJSON(data, 'pid', '')
 	dst_rank = getDefaultJSON(data, 'rank', -1)
 	as_copies = getDefaultJSON(data, 'as_copies', False)
-	task_ids = postVideoBatch(user, data.videos, data.tags, dst_copy, dst_playlist, dst_rank, as_copies)
+	repost_type = getDefaultJSON(data, 'repost_type', 'repost')
+	if repost_type not in ['official', 'official_repost', 'authorized_translation', 'authorized_repost', 'translation', 'repost'] :
+		raise UserError('INCORRECT_REPOST_TYPE')
+	task_ids = postVideoBatch(user, data.videos, data.tags, dst_copy, dst_playlist, dst_rank, as_copies, repost_type)
 	return "json", makeResponseSuccess({"task_ids": task_ids})
 
 @app.route('/postvideo_ipfs.do', methods = ['POST'])
@@ -49,8 +55,11 @@ def ajax_postvideo_ipfs_do(rd, user, data):
 	title = getDefaultJSON(data, 'title', '')
 	file_key = getDefaultJSON(data, 'file_key', '')
 	original_url = getDefaultJSON(data, 'original_url', '')
+	repost_type = getDefaultJSON(data, 'repost_type', 'repost')
+	if repost_type not in ['official', 'official_repost', 'authorized_translation', 'authorized_repost', 'translation', 'repost'] :
+		raise UserError('INCORRECT_REPOST_TYPE')
 	if desc and title and file_key  :
-		task_id = postVideoIPFS_new(user, data.url, data.tags, dst_copy, dst_playlist, dst_rank, desc, title, file_key)
+		task_id = postVideoIPFS_new(user, data.url, data.tags, dst_copy, dst_playlist, dst_rank, desc, title, file_key, repost_type)
 		return "json", makeResponseSuccess({"task_id": task_id})
 	elif original_url :
 		pass
