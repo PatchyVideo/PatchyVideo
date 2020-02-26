@@ -294,7 +294,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 					"unique_id": conflicting_item['item']['unique_id'],
 					"utags": conflicting_item['item']['utags']
 				})
-				if conflicting_item['item']['repost_type'] :
+				if 'repost_type' in conflicting_item['item'] and conflicting_item['item']['repost_type'] :
 					ret['data']['repost_type'] = repost_type
 				else :
 					ret['data']['repost_type'] = 'unknown'
