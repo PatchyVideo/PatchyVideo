@@ -57,7 +57,9 @@ _DEFAULT_OPS = [
 	'editVideoTags', 'refreshVideoDetail', 'refreshVideoDetailURL',
 	'createPlaylist', 'createPlaylistFromSingleVideo', 'createPlaylistFromExistingPlaylist', 'extendPlaylistFromExistingPlaylist',
 	'postVideo', 'postVideoBatch',
-	'createFolder', 'listFolder']
+	'createFolder', 'listFolder',
+	'createOrModifyAuthorRecord',
+	'setVideoRepostType']
 
 def _check_object_agnostic(op_name, user, raise_exception = True) :
 	if user['access_control']['access_mode'] == 'blacklist' :
