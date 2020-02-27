@@ -38,7 +38,7 @@ async def upload_image_url(request) :
 		if data['type'] == 'cover' :
 			resolution = (320, 200)
 			dst = _COVER_PATH
-		elif type_field == 'userphoto' :
+		elif data['type'] == 'userphoto' :
 			resolution = (256, 256)
 			dst = _USERPHOTO_PATH
 		else :
