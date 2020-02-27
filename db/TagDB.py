@@ -149,12 +149,12 @@ class TagDB() :
 			'icon': '',
 			'languages': {language: tag},
 			'alias': [],
-			'meta': {'created_by': user, 'created_at': datetime.now()}
+			'meta': {'created_by': user, 'created_at': datetime.now(), 'modified_by': user, 'modified_at': datetime.now()}
 		}, session = session).inserted_id
 		self.db.tag_alias.insert_one({
 			'tag': tag,
 			'dst': item_id,
-			'meta': {'created_by': user, 'created_at': datetime.now()}
+			'meta': {'created_by': user, 'created_at': datetime.now(), 'modified_by': user, 'modified_at': datetime.now()}
 		}, session = session)
 		self.db.cats.update_one({'name': category}, {'$inc': {'count': 1}}, session = session)
 		self.aci.AddTag([(tag_id, 0, _CATEGORY_MAP[category])])
@@ -289,14 +289,14 @@ class TagDB() :
 			self.db.tag_alias.insert_one({
 				'tag': v,
 				'dst': tag_obj_dst['_id'],
-				'meta': {'created_by': user, 'created_at': datetime.now()}
+				'meta': {'created_by': user, 'created_at': datetime.now(), 'modified_by': user, 'modified_at': datetime.now()}
 			}, session = session)
 		for alias in tag_obj_src['alias'] + addtional_alias :
 			tag_obj_dst['alias'].append(alias)
 			self.db.tag_alias.insert_one({
 				'tag': alias,
 				'dst': tag_obj_dst['_id'],
-				'meta': {'created_by': user, 'created_at': datetime.now()}
+				'meta': {'created_by': user, 'created_at': datetime.now(), 'modified_by': user, 'modified_at': datetime.now()}
 			}, session = session)
 
 		self.db.tags.replace_one({'_id': tag_obj_dst['_id']}, tag_obj_dst, session = session)
@@ -340,14 +340,14 @@ class TagDB() :
 					self.db.tag_alias.insert_one({
 						'tag': new_tag_name,
 						'dst': tag_obj['_id'],
-						'meta': {'created_by': user, 'created_at': datetime.now()}
+						'meta': {'created_by': user, 'created_at': datetime.now(), 'modified_by': user, 'modified_at': datetime.now()}
 					}, session = session)
 					self.aci.AddWord([(tag_obj['id'], new_tag_name, language)])
 			else :
 				self.db.tag_alias.insert_one({
 					'tag': new_tag_name,
 					'dst': tag_obj['_id'],
-					'meta': {'created_by': user, 'created_at': datetime.now()}
+					'meta': {'created_by': user, 'created_at': datetime.now(), 'modified_by': user, 'modified_at': datetime.now()}
 				}, session = session)
 				self.aci.AddWord([(tag_obj['id'], new_tag_name, language)])
 		else :
@@ -392,7 +392,7 @@ class TagDB() :
 			self.db.tag_alias.insert_one({
 				'tag': alias_name,
 				'dst': tag_obj['_id'],
-				'meta': {'created_by': user, 'created_at': datetime.now()}
+				'meta': {'created_by': user, 'created_at': datetime.now(), 'modified_by': user, 'modified_at': datetime.now()}
 			}, session = session)
 			self.db.tags.update_one({'_id': tag_obj['_id']}, {
 				'$addToSet': {'alias': alias_name},
@@ -418,7 +418,7 @@ class TagDB() :
 				self.db.tag_alias.insert_one({
 					'tag': alias_name,
 					'dst': tag_obj['_id'],
-					'meta': {'created_by': user, 'created_at': datetime.now()}
+					'meta': {'created_by': user, 'created_at': datetime.now(), 'modified_by': user, 'modified_at': datetime.now()}
 				}, session = session)
 				self.db.tags.update_one({'_id': tag_obj['_id']}, {
 					'$addToSet': {'alias': alias_name},
@@ -517,7 +517,17 @@ class TagDB() :
 		tag_ids = self.filter_and_translate_tags(tags)
 		field_texts = [item[field] for field in fields_to_index]
 		word_ids = build_index(field_texts, session = session)
-		item_id = self.db.items.insert_one({'clearence': clearence, 'tags': tag_ids + word_ids, 'item': item, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session).inserted_id
+		item_id = self.db.items.insert_one({
+			'clearence': clearence,
+			'tags': tag_ids + word_ids,
+			'item': item,
+			'meta': {
+				'created_by': user,
+				'created_at': datetime.now(),
+				'modified_by': user,
+				'modified_at': datetime.now()
+			}
+		}, session = session).inserted_id
 		self.db.tags.update_many({'id': {'$in': tag_ids}}, {'$inc': {'count': 1}}, session = session)
 		self.db.tag_history.insert_one({
 			'vid': ObjectId(item_id),
@@ -735,7 +745,16 @@ class TagDB() :
 		g_obj = self.db.groups.find_one({'name': group_name}, session = session)
 		if g_obj is not None:
 			raise UserError('GROUP_EXIST')
-		self.db.groups.insert_one({'name': group_name, 'tags': tags, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session)
+		self.db.groups.insert_one({
+			'name': group_name,
+			'tags': tags,
+			'meta': {
+				'created_by': user,
+				'created_at': datetime.now(),
+				'modified_by': user,
+				'modified_at': datetime.now()
+			}
+		}, session = session)
 
 	def remove_tag_group(self, group_name, user = '', session = None):
 		g_obj = self.db.groups.find_one({'name': group_name}, session = session)
