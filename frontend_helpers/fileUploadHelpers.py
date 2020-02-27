@@ -32,7 +32,7 @@ def _gif_thumbnails(frames, resolution = (320, 200)):
 
 @routes.post("/upload_image_url.do")
 async def upload_image_url(request) :
-	data = loads(await request.json())
+	data = await request.json()
 	try :
 		url = data['url']
 		if data['type'] == 'cover' :
