@@ -26,12 +26,13 @@ def createOrModifyAuthorRecord(user, author_type, tagid, common_tags, user_space
             raise UserError('TAG_NOT_AUTHOR')
         existing_record = None
         log(obj = {'tag_obj': tag_obj})
+        avatar_file = ''
         if 'author' in tag_obj :
             existing_record = db.authors.find_one({'_id': tag_obj['author']}, session = s())
             assert existing_record
+            avatar_file = existing_record['avatar']
             log(obj = {'old_record': existing_record})
         common_tagids = tagdb.filter_and_translate_tags(common_tags, session = s())
-        avatar_file = ''
         if avatar_file_key :
             if avatar_file_key.startswith("upload-image-") :
                 filename = rdb.get(avatar_file_key)
