@@ -222,7 +222,7 @@ class TagDB() :
 	def _translate_text_search(self, text) :
 		if '*' in text : # tag wildcard
 			return text
-		if text in ['site', 'date', 'placeholder', 'and', 'or', 'not', 'any', 'all', 'tagless', 'true', 'false'] :
+		if text in ['site', 'date', 'placeholder', 'and', 'or', 'not', 'any', 'all', 'tags', 'true', 'false'] :
 			return text
 		serach_obj, serach_type = parse_search(text)
 		return ')' + dumps({'obj': serach_obj, 'type': serach_type})
@@ -258,7 +258,7 @@ class TagDB() :
 			for i in history_items :
 				del i['_id']
 			self.db.tag_history.insert_many(history_items, session = session)
-		self.db.items.update_many({'tags': {'$in': [tagid]}}, {'$pull': {'tags': tagid}}, session = session)
+		self.db.items.update_many({'tags': {'$in': [tagid]}}, {'$pull': {'tags': tagid}, '$inc': {'tag_count': int(-1)}}, session = session)
 		self.db.free_tags.insert_one({'id': tagid})
 		self.aci.DeleteTag(tagid)
 
@@ -521,6 +521,7 @@ class TagDB() :
 			'clearence': clearence,
 			'tags': tag_ids + word_ids,
 			'item': item,
+			'tag_count': int(len(tag_ids)),
 			'meta': {
 				'created_by': user,
 				'created_at': datetime.now(),
@@ -605,7 +606,7 @@ class TagDB() :
 		self._log_tag_update(user, item_id_or_item_object['_id'], real_tags, new_tag_ids, session = session)
 		self.db.tags.update_many({'id': {'$in': real_tags}}, {'$inc': {'count': -1}}, session = session)
 		self.db.tags.update_many({'id': {'$in': new_tag_ids}}, {'$inc': {'count': 1}}, session = session)
-		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': new_tag_ids + index_tags, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': new_tag_ids + index_tags, 'tag_count': int(len(new_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		self.aci.SetCountDiff([(t, -1) for t in item['tags']])
 		self.aci.SetCountDiff([(t, 1) for t in new_tag_ids])
 
@@ -656,6 +657,12 @@ class TagDB() :
 		new_tag_count_diff = [(tag, num_items - prior_tag_counts.get(tag, 0)) for tag in new_tag_ids]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session) # $inc is atomic, no locking needed
+		item_objs = self.db.items.aggregate([
+			{'$match': {'_id': {'$in': item_ids}}},
+			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
+		], session = session)
+		for obj in item_objs :
+			self.db.items.update_one({'_id': obj['vid']}, {'$set': {'tag_count': int(len(obj['tags']))}}, session = session)
 		self.aci.SetCountDiff(new_tag_count_diff)
 
 	def update_many_items_tags_pull(self, item_ids, tags_to_remove, user = '', session = None):
@@ -683,6 +690,12 @@ class TagDB() :
 		new_tag_count_diff = [(tag, -prior_tag_counts.get(tag, 0)) for tag in tag_ids_to_remove]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
+			item_objs = self.db.items.aggregate([
+			{'$match': {'_id': {'$in': item_ids}}},
+			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
+		], session = session)
+		for obj in item_objs :
+			self.db.items.update_one({'_id': obj['vid']}, {'$set': {'tag_count': int(len(obj['tags']))}}, session = session)
 		self.aci.SetCountDiff(new_tag_count_diff)
 
 	def update_item_tags_merge(self, item_id, new_tags, user = '', session = None):
@@ -700,8 +713,8 @@ class TagDB() :
 		merged_tag_ids = self._trigger_tag_rule_and_action(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
 		self._log_tag_update(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
 		self.db.items.update_one({'_id': ObjectId(item_id)}, {
-			'$addToSet': {'tags': {'$each': new_tag_ids}},
-			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+			'$addToSet': {'$each': merged_tag_ids},
+			'$set': {'tag_count': int(len(merged_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		tags_added, _ = _diff(old_tag_ids, merged_tag_ids)
 		new_tag_count_diff = [(tagid, 1) for tagid in tags_added]
 		for (tag, diff) in new_tag_count_diff:
@@ -724,7 +737,7 @@ class TagDB() :
 		self._log_tag_update(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
 		self.db.items.update_one({'_id': ObjectId(item_id)}, {
 			'$pullAll': {'tags': tag_ids_to_remove},
-			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+			'$set': {'tag_count': int(len(merged_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		_, tags_removed = _diff(old_tag_ids, merged_tag_ids)
 		new_tag_count_diff = [(tagid, -1) for tagid in tags_removed]
 		for (tag, diff) in new_tag_count_diff:

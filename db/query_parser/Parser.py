@@ -186,11 +186,17 @@ def _prepare_attributes(name, value):
 			return { 'item.upload_time' : { '$gte' : date, '$lte' : date + timedelta(days = 1) } }
 		date = parse_date(value)
 		return { 'item.upload_time' : { '$gte' : date, '$lte' : date + timedelta(days = 1) } }
-	elif name == 'tagless':
-		if value == 'true' :
-			return { 'tags' : { '$size' : 0 } }
-		elif value == 'false' :
-			return { 'tags' : { '$not' : { '$size' : 0 } } }
+	elif name == 'tags':
+		if value[:2] == '<=' :
+			return { 'tag_count' : { '$lte' : int(value[2:]) } }
+		elif value[:2] == '>=' :
+			return { 'tag_count' : { '$gte' : int(value[2:]) } }
+		elif value[:1] == '<' :
+			return { 'tag_count' : { '$lt' : int(value[1:]) } }
+		elif value[:1] == '>' :
+			return { 'tag_count' : { '$gt' : int(value[1:]) } }
+		elif value[:1] == '=' :
+			return { 'tag_count' : { '$eq' : int(value[1:]) } }
 		else :
 			return {}
 	elif name == 'placeholder':
