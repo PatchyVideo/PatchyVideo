@@ -75,7 +75,7 @@ def ajax_user_profile_username(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_user_get_blacklist(rd, user, data):
-	return "json", makeResponseSuccess(queryBlacklist(user, 'CHS'))
+	return "json", makeResponseSuccess(queryBlacklist(user, data.lang))
 
 @app.route('/user/changedesc.do', methods = ['POST'])
 @loginRequiredJSON
@@ -118,7 +118,7 @@ def ajax_user_changepass(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_user_request_resetpass(rd, user, data):
-	request_password_reset(data.email, 'CHS')
+	request_password_reset(data.email, data.lang)
 
 @app.route('/user/resetpass.do', methods = ['POST'])
 @loginOptional

@@ -29,7 +29,7 @@ def _buildQueryObj(query) :
 @loginOptional
 @jsonRequest
 def ajax_playlist_getcommontags_do(rd, data, user):
-	tags = listCommonTags(user, data.pid, 'CHS')
+	tags = listCommonTags(user, data.pid, data.lang)
 	return "json", makeResponseSuccess(tags)
 
 @app.route('/list/setcommontags.do', methods = ['POST'])

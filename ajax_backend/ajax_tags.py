@@ -21,7 +21,7 @@ def ajax_get_related_tags_do(rd, user, data):
 	max_count = getDefaultJSON(data, 'max_count', 10)
 	exclude = getDefaultJSON(data, 'exclude', [])
 	start = time.time()
-	ret = getRelatedTagsExperimental('CHS', data.tags, exclude, max_count)
+	ret = getRelatedTagsExperimental(data.lang, data.tags, exclude, max_count)
 	end = time.time()
 	return "json", makeResponseSuccess({'tags': ret, 'time_used_ms': int((end - start) * 1000)})
 
@@ -29,7 +29,7 @@ def ajax_get_related_tags_do(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_autotag_do(rd, user, data) :
-	tags = inferTagsFromUtags(data.utags, 'CHS')
+	tags = inferTagsFromUtags(data.utags, data.lang)
 	return "json", makeResponseSuccess({'tags': tags})
 
 @app.route('/tags/get_tag.do', methods = ['POST'])
@@ -45,4 +45,4 @@ def ajax_tags_get_tag_do(rd, user, data) :
 @loginOptional
 @jsonRequest
 def ajax_tags_get_default_blacklist_do(rd, user, data) :
-	return "json", makeResponseSuccess({'tags': getDefaultBlacklist('CHS')})
+	return "json", makeResponseSuccess({'tags': getDefaultBlacklist(data.lang)})

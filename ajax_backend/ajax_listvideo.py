@@ -69,7 +69,7 @@ def ajax_listmyvideo_do(rd, data, user):
 	ret = makeResponseSuccess({
 		"videos": videos,
 		"count": video_count,
-		"tags": getCommonTagsWithCount('CHS', videos),
+		"tags": getCommonTagsWithCount(data.lang, videos),
 		"page_count": (video_count - 1) // data.page_size + 1,
 	})
 	return "json", ret
@@ -85,7 +85,7 @@ def ajax_listyourvideo_do(rd, data, user):
 	ret = makeResponseSuccess({
 		"videos": videos,
 		"count": video_count,
-		"tags": getCommonTagsWithCount('CHS', videos),
+		"tags": getCommonTagsWithCount(data.lang, videos),
 		"page_count": (video_count - 1) // data.page_size + 1,
 	})
 	return "json", ret

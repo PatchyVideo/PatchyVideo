@@ -21,7 +21,7 @@ from collections import defaultdict
 def ajax_getvideo(rd, user, data):
 	vidid = data.vid
 	try:
-		obj, tags, category_tag_map, tag_category_map = getVideoDetailWithTags(vidid, 'CHS', user)
+		obj, tags, category_tag_map, tag_category_map = getVideoDetailWithTags(vidid, data.lang, user)
 	except UserError:
 		abort(404)
 
