@@ -22,9 +22,10 @@ from config import QueryConfig
 def ajax_listvideo_do(rd, data, user):
 	order = getDefaultJSON(data, 'order', 'latest')
 	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
+	lang = getDefaultJSON(data, 'lang', 'CHS')
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, video_count, related_tags = listVideo(data.page - 1, data.page_size, user, order, hide_placeholder = hide_placeholder, user_language = data.lang)
+	videos, video_count, related_tags = listVideo(data.page - 1, data.page_size, user, order, hide_placeholder = hide_placeholder, user_language = lang)
 	tag_category_map = getTagCategoryMap(related_tags)
 	ret = makeResponseSuccess({
 		"videos": videos,
@@ -43,10 +44,11 @@ def ajax_queryvideo_do(rd, data, user):
 		raise UserError('QUERY_TOO_LONG')
 	order = getDefaultJSON(data, 'order', 'latest')
 	qtype = getDefaultJSON(data, 'qtype', 'tag')
+	lang = getDefaultJSON(data, 'lang', 'CHS')
 	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, related_tags, video_count = listVideoQuery(user, data.query, data.page - 1, data.page_size, order,  hide_placeholder = hide_placeholder, qtype = qtype, user_language = data.lang)
+	videos, related_tags, video_count = listVideoQuery(user, data.query, data.page - 1, data.page_size, order,  hide_placeholder = hide_placeholder, qtype = qtype, user_language = lang)
 	tag_category_map = getTagCategoryMap(related_tags)
 	end = time.time()
 	ret = makeResponseSuccess({
