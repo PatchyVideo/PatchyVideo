@@ -699,7 +699,6 @@ class TagDB() :
 		self.aci.SetCountDiff(new_tag_count_diff)
 
 	def update_item_tags_merge(self, item_id, new_tags, user = '', session = None):
-		import pdb; pdb.set_trace()
 		if not new_tags :
 			return
 		if isinstance(new_tags[0], int) :
