@@ -235,7 +235,7 @@ def ajax_lists_create_from_video_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_lists_create_from_existing_playlists(rd, user, data):
-	new_playlist_id, task_id = createPlaylistFromExistingPlaylist('english', data.url, user)
+	new_playlist_id, task_id = createPlaylistFromExistingPlaylist('english', data.url, user, data.lang)
 	return "json", makeResponseSuccess({'pid': new_playlist_id, 'task_id': task_id})
 
 @app.route('/lists/extend_from_existing_playlists.do', methods = ['POST'])

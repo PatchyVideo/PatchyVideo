@@ -699,6 +699,7 @@ class TagDB() :
 		self.aci.SetCountDiff(new_tag_count_diff)
 
 	def update_item_tags_merge(self, item_id, new_tags, user = '', session = None):
+		import pdb; pdb.set_trace()
 		if not new_tags :
 			return
 		if isinstance(new_tags[0], int) :
@@ -713,7 +714,7 @@ class TagDB() :
 		merged_tag_ids = self._trigger_tag_rule_and_action(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
 		self._log_tag_update(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
 		self.db.items.update_one({'_id': ObjectId(item_id)}, {
-			'$addToSet': {'$each': merged_tag_ids},
+			'$addToSet': {'tags': {'$each': merged_tag_ids}},
 			'$set': {'tag_count': int(len(merged_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		tags_added, _ = _diff(old_tag_ids, merged_tag_ids)
 		new_tag_count_diff = [(tagid, 1) for tagid in tags_added]

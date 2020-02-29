@@ -82,13 +82,17 @@ def _postPlaylistTask(url, pid, use_autotag, user, extend = False) :
 	ret_obj = loads(post_raw(SCRAPER_ADDRESS + "/playlist", post_obj_json_str.encode('utf-8')).text)
 	return ret_obj['task_id']
 
-def createPlaylistFromExistingPlaylist(language, url, user, use_autotag = False) :
+def createPlaylistFromExistingPlaylist(language, url, user, user_language, use_autotag = False) :
 	log(obj = {'url': url})
 	filterOperation('createPlaylistFromExistingPlaylist', user)
 	cralwer, cleanURL = dispatch_playlist(url)
 	if not cralwer :
 		raise UserError('UNSUPPORTED_PLAYLIST_URL')
-	new_playlist_id = createPlaylist(language, "创建中...", str(datetime.now()), '', user)
+	if user_language == 'CHS' :
+		prompt = '创建中...'
+	else :
+		prompt = 'Creating, please wait...'
+	new_playlist_id = createPlaylist(language, prompt, str(datetime.now()), '', user)
 	log(obj = {'pid': new_playlist_id})
 	task_id = _postPlaylistTask(cleanURL, new_playlist_id, use_autotag, user)
 	return new_playlist_id, task_id
