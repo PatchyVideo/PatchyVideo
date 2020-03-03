@@ -74,8 +74,8 @@ def login(username, password, challenge, login_session_id) :
 			if redis_user_obj_json_str :
 				logged_in = True
 				# reset expire time
-				rdb.set(redis_user_key, redis_user_obj_json_str, ex = UserConfig.LOGIN_EXPIRE_TIME)
-				rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
+				rdb.set(redis_user_key, redis_user_obj_json_str)
+				rdb.set(redis_user_key_lookup_key, redis_user_key)
 
 		if logged_in :
 			return redis_user_key, user_obj['profile']
@@ -93,8 +93,8 @@ def login(username, password, challenge, login_session_id) :
 		redis_user_value = dumps(common_user_obj)
 		redis_user_key = binascii.hexlify(bytearray(random_bytes(16))).decode()
 		redis_user_key_lookup_key = f"user-{user_obj['_id']}"
-		rdb.set(redis_user_key, redis_user_value, ex = UserConfig.LOGIN_EXPIRE_TIME)
-		rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
+		rdb.set(redis_user_key, redis_user_value)
+		rdb.set(redis_user_key_lookup_key, redis_user_key)
 		log(obj = {'redis_user_key': redis_user_key, 'user': common_user_obj})
 		return redis_user_key, common_user_obj['profile']
 	raise UserError('INCORRECT_SESSION')
