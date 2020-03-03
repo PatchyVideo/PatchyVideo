@@ -22,3 +22,4 @@ from . import ajax_tags
 from . import ajax_playlist_folder
 from . import ajax_logs
 from . import ajax_author_db
+from . import ajax_subscription
