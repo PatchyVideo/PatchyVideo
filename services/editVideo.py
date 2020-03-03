@@ -52,6 +52,7 @@ def refreshVideoDetail(vid, user) :
 		'dst_rank' : -1,
 		'other_copies' : [],
 		'user' : user,
+		'repost_type': 'repost',
 		'playlist_ordered' : None,
 		'update_video_detail': True,
 		'event_id': getEventID()

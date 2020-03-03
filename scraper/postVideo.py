@@ -272,7 +272,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 		lock_id = "videoEdit:" + unique_id
 		async with RedisLockAsync(rdb, lock_id) :
 			unique, conflicting_item = verifyUniqueness(unique_id)
-			if unique and not update_video_detail :
+			if unique or update_video_detail :
 				async with _download_sem :
 					ret = await parsed.get_metadata_async(parsed, url, update_video_detail)
 					if repost_type :

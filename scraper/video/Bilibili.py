@@ -12,7 +12,7 @@ import os
 
 class Bilibili( Crawler ) :
 	NAME = 'bilibili'
-	PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?(bilibili\.com\/video\/[aA][vV][\d]+|b23\.tv\/[aA][vV][\d]+)'
+	PATTERN = r'^(https:\/\/|http:\/\/)?((www|m)\.)?(bilibili\.com\/video\/[aA][vV][\d]+|b23\.tv\/[aA][vV][\d]+)'
 	SHORT_PATTERN = r'^[aA][Vv][\d]+$'
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
@@ -43,7 +43,7 @@ class Bilibili( Crawler ) :
 	async def run_async(self, content, xpath, link, update_video_detail) :
 		link = link.lower()
 		vidid = link[link.rfind("av"):]
-		if update_video_detail :
+		if False :
 			# use biliplus, try to get metadata from deleted video
 			api_url = f"https://www.biliplus.com/api/view?id={vidid[2:]}"
 			async with aiohttp.ClientSession() as session:
