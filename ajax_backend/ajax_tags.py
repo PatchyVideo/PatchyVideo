@@ -11,7 +11,7 @@ from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 
 from services.tagStatistics import getRelatedTagsExperimental
-from services.autotag import inferTagsFromUtags
+from services.autotag import inferTagsFromVideo
 from services.editTag import getTag, getDefaultBlacklist
 
 @app.route('/tags/get_related_tags.do', methods = ['POST'])
@@ -29,7 +29,9 @@ def ajax_get_related_tags_do(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_autotag_do(rd, user, data) :
-	tags = inferTagsFromUtags(data.utags, data.lang)
+	title = getDefaultJSON(data, 'title', '')
+	desc = getDefaultJSON(data, 'desc', '')
+	tags = inferTagsFromVideo(data.utags, title, desc, data.lang)
 	return "json", makeResponseSuccess({'tags': tags})
 
 @app.route('/tags/get_tag.do', methods = ['POST'])

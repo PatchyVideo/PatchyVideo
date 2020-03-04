@@ -2,7 +2,7 @@
 import re
 
 from db import db
-from .textseg import cut_for_search
+from .textseg import cut_for_index
 
 from utils.exceptions import UserError
 
@@ -36,7 +36,7 @@ def _prefix_fallthrough(words) :
 def parse_search(txt) :
 	#if len(txt) <= 2 :
 	#    return {}
-	words = cut_for_search(txt)
+	words = cut_for_index(txt)
 	if not words :
 		raise UserError('NO_MATCH_FOUND')
 	found_word_objs = list(db.index_words.find({'word': {'$in': words}}))
