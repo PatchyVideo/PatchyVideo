@@ -2,7 +2,7 @@
 from db import tagdb as db
 from db import client
 from db.TagDB_language import translateTagToPreferredLanguage
-from utils.dbtools import MongoTransaction
+from utils.dbtools import MongoTransaction, MongoTransactionDisabled
 from utils.logger import log
 from collections import defaultdict
 from db.index.textseg import cut_for_search
@@ -29,7 +29,7 @@ def buildTagRulesFromScratch(vid_tags_threshold = 4, utag_threshold = 5, freq_th
 		tag_ids = list(filter(lambda x: x < 0x80000000, vid['tags']))
 		db.db.vid_tags.insert_one({'utags': all_utags, 'tags': tag_ids})		
 
-	with MongoTransaction(client) as s :
+	with MongoTransactionDisabled(client) as s :
 		ret = db.db.vid_tags.aggregate([
 			{'$unwind': {'path': '$utags'}},
 			{'$group': {'_id': '$utags', 'count': {'$sum': 1}}}
@@ -38,7 +38,7 @@ def buildTagRulesFromScratch(vid_tags_threshold = 4, utag_threshold = 5, freq_th
 			db.db.utag_freq.insert_one(r, session = s())
 		s.mark_succeed()
 
-	with MongoTransaction(client) as s :
+	with MongoTransactionDisabled(client) as s :
 		in_mem_utag_freq = dict([(it['_id'], it['count']) for it in db.db.utag_freq.find({}, session = s())])
 		in_mem_tag_utag_freq = defaultdict(int)
 		for video_item in db.db.vid_tags.find({}, session = s()) :
