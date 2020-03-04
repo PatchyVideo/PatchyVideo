@@ -66,6 +66,7 @@ def ajax_subs_list_do(rd, data, user):
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
+	# TODO: support blacklist
 	videos, sub_objs, tags, count = listSubscriptedItems(
 		user,
 		data.page - 1,

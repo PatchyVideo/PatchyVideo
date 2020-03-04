@@ -7,6 +7,7 @@ from utils.exceptions import UserError
 from utils.dbtools import makeUserMetaObject, makeUserMeta
 from .tagStatistics import getPopularTags, getCommonTags, updateTagSearch
 from services.tcb import filterVideoList
+from services.config import Config
 
 def addSubscription(user, query_str : str, qtype = 'tag', name = '') :
 	query_str = query_str.strip()
@@ -56,13 +57,21 @@ def _filterPlaceholder(videos) :
 def listSubscriptedItems(user, page_idx, page_size, user_language, hide_placeholder = True, order = 'latest_video') :
 	subs = list(db.subs.find({'meta.created_by': makeUserMeta(user)}))
 	q = [tagdb.compile_query(q['qs'], q['qt']) for q in subs]
-	q_obj = {'$or': []}
+	query_obj = {'$or': []}
 	for qi, _ in q :
-		q_obj['$or'].append(qi)
+		query_obj['$or'].append(qi)
 	for i in range(len(q)) :
 		subs[i]['obj'] = q[i][0]
 		subs[i]['obj_tags'] = q[i][1]
-	result = tagdb.retrive_items(q_obj)
+	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
+	if user and 'settings' in user :
+		if user['settings']['blacklist'] == 'default' :
+			query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}]}
+		else :
+			query_obj = {'$and': [query_obj, {'tags': {'$nin': user['settings']['blacklist']}}]}
+	elif user is None :
+		query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}]}
+	result = tagdb.retrive_items(query_obj)
 	if order == 'latest':
 		result = result.sort([("meta.created_at", -1)])
 	if order == 'oldest':
