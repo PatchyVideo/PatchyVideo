@@ -85,7 +85,8 @@ def login(username, password, challenge, login_session_id) :
 			'profile': {
 				'username': user_obj['profile']['username'],
 				'image': user_obj['profile']['image'],
-				'desc': user_obj['profile']['desc']
+				'desc': user_obj['profile']['desc'],
+				'email': user_obj['profile']['email']
 			},
 			'access_control': user_obj['access_control'],
 			'settings': user_obj['settings']
@@ -313,7 +314,7 @@ def request_password_reset(email, user_language) :
 		raise UserError('EMAIL_NOT_EXIST')
 	reset_key = random_bytes_str(16)
 	rdb.set('passreset-' + reset_key, email)
-	send_noreply(email, '找回密码', '点击下方的链接重置密码:\n%s%s' % ('https://patchyvideo.com/resetpassword?key=', reset_key))
+	send_noreply(email, '找回密码', '点击下方的链接重置密码:\n%s%s' % ('https://patchyvideo.com/#/resetpassword?key=', reset_key))
 
 def reset_password(reset_key, new_pass) :
 	if len(new_pass) > UserConfig.MAX_PASSWORD_LENGTH or len(new_pass) < UserConfig.MIN_PASSWORD_LENGTH:
