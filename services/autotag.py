@@ -59,6 +59,19 @@ def buildTagRulesFromScratch(vid_tags_threshold = 4, utag_threshold = 5, freq_th
 				print('Adding rule {%s} => {%s} with prob = %.2f%%' % (utag, translateTagToPreferredLanguage(tag_obj, 'CHS'), prob * 100))
 		s.mark_succeed()
 
+def buildTagRulesFromTags() :
+	with MongoTransactionDisabled(client) as s :
+		for tag_obj in db.db.tags.find() :
+			words = []
+			for (lang, value) in tag_obj['languages'].items() :
+				words += cut_for_search(value)
+			for value in tag_obj['alias'] :
+				words += cut_for_search(value)
+			for w in words :
+				if db.db.utag_rules.find_one({'utag': w}) is None :
+					db.db.utag_rules.insert_one({'utag': w, 'tag': tag_obj['id']}, session = s())
+					print('Adding rule {%s} => {%s} with prob = %.2f%%' % (w, translateTagToPreferredLanguage(tag_obj, 'CHS'), 1 * 100))
+		
 def inferTagidsFromUtags(utags) :
 	tags = [it['_id'] for it in db.db.utag_rules.aggregate([{'$match': {'utag': {'$in': utags}}}, {'$group':{'_id': '$tag'}}])]
 	return list(set(tags))
