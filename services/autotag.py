@@ -17,7 +17,7 @@ def _clearOrCreateCollections(session) :
 	db.db.utag_rules_2.delete_many({}, session = session)
 
 def purge() :
-	with MongoTransaction(client) as s :
+	with MongoTransactionDisabled(client) as s :
 		_clearOrCreateCollections(s())
 		s.mark_succeed()
 
@@ -81,6 +81,22 @@ def buildTagRulesFromTags() :
 					db.db.utag_rules.insert_one({'utag': w, 'tag': tag_obj['id']}, session = s())
 					print('Adding rule {%s} => {%s} with prob = %.2f%%' % (w, translateTagToPreferredLanguage(tag_obj, 'CHS'), 1 * 100))
 		
+def _addWords(tag_obj, utags, session = None) :
+	for w1, w2 in itertools.combinations_with_replacement(utags, 2) :
+		if w1 == w2 :
+			continue
+		if len(w1) > 1 and len(w2) > 1 :
+			db.db.utag_rules_2.insert_one({'utags': [w1, w2], 'tag': tag_obj['id']}, session = session)
+			print('Adding rule {%s,%s} => {%s} with prob = %.2f%%' % (w1, w2, translateTagToPreferredLanguage(tag_obj, 'CHS'), 1 * 100))
+		elif len(w1) > 1 :
+			if db.db.utag_rules.find_one({'utag': w1}) is None :
+				db.db.utag_rules.insert_one({'utag': w1, 'tag': tag_obj['id']}, session = session)
+				print('Adding rule {%s} => {%s} with prob = %.2f%%' % (w1, translateTagToPreferredLanguage(tag_obj, 'CHS'), 1 * 100))
+		elif len(w2) > 1 :
+			if db.db.utag_rules.find_one({'utag': w2}) is None :
+				db.db.utag_rules.insert_one({'utag': w2, 'tag': tag_obj['id']}, session = session)
+				print('Adding rule {%s} => {%s} with prob = %.2f%%' % (w2, translateTagToPreferredLanguage(tag_obj, 'CHS'), 1 * 100))
+
 def buildTagRulesFromScratchV2(utag_threshold = 5, freq_threshold = 3, rule_threshold = 0.75) :
 	purge()
 	with MongoTransactionDisabled(client) as s :
@@ -115,24 +131,17 @@ def buildTagRulesFromScratchV2(utag_threshold = 5, freq_threshold = 3, rule_thre
 
 	with MongoTransactionDisabled(client) as s :
 		for tag_obj in db.db.tags.find() :
-			words = []
 			full_words = []
 			for (lang, value) in tag_obj['languages'].items() :
-				words += cut_for_search(value)
+				_addWords(tag_obj, cut_for_search(value), session = s())
 				full_words.append(value)
 			for value in tag_obj['alias'] :
-				words += cut_for_search(value)
+				_addWords(tag_obj, cut_for_search(value), session = s())
 				full_words.append(value)
-			words = list(set(words))
 			for w in full_words :
 				db.db.utag_rules.insert_one({'utag': w, 'tag': tag_obj['id']}, session = s())
 				print('Adding rule {%s} => {%s} with prob = %.2f%%' % (w, translateTagToPreferredLanguage(tag_obj, 'CHS'), 1 * 100))
-			for w1, w2 in itertools.combinations_with_replacement(words, 2) :
-				if w1 == w2 :
-					continue
-				db.db.utag_rules_2.insert_one({'utags': [w1, w2], 'tag': tag_obj['id']}, session = s())
-				print('Adding rule {%s,%s} => {%s} with prob = %.2f%%' % (w1, w2, translateTagToPreferredLanguage(tag_obj, 'CHS'), 1 * 100))
-
+			
 	
 
 def inferTagidsFromUtags(utags) :
