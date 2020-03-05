@@ -114,7 +114,7 @@ def removeTag(user, tag) :
 		tag_obj = tagdb.get_tag_object(tag, session = s())
 		log(obj = {'tag_obj': tag_obj})
 		if tag_obj :
-			filterOperation('removeTag', user, tag_obj)
+			filterOperation('tagAdmin', user, tag_obj)
 		tagdb.remove_tag(tag_obj, makeUserMeta(user), session = s())
 		s.mark_succeed()
 
@@ -153,14 +153,14 @@ def removeAlias(user, alias) :
 		alias_obj = tagdb.db.tag_alias.find_one({'tag': alias}, session = s())
 		if alias_obj :
 			log(obj = {'alias': alias, 'dst': alias_obj['dst']})
-			filterOperation('removeAlias', user, alias_obj)
+			filterOperation('tagAdmin', user, alias_obj)
 		tagdb.remove_alias(alias, makeUserMeta(user), session = s())
 		s.mark_succeed()
 
 @modifyingResource('tags')
 def mergeTag(user, tags_dst, tag_src) :
 	log(obj = {'tags_dst': tags_dst, 'tag_src': tag_src})
-	filterOperation('mergeTag', user) # only admin can do this
+	filterOperation('tagAdmin', user) # only admin can do this
 	with MongoTransaction(client) as s :
 		tagdb.merge_tag(tags_dst, tag_src, makeUserMeta(user), session = s())
 		s.mark_succeed()

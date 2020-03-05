@@ -181,11 +181,11 @@ class _PlaylistReorederHelper() :
 						if unique_id in self.playlist_map[dst_playlist]['succeed'] :
 							(video_id, _, user) = self.playlist_map[dst_playlist]['succeed'][unique_id]
 							if dst_rank == -1 :
-								if filterOperation('addVideoToPlaylist', user, playlist, False) :
+								if filterOperation('editPlaylist', user, playlist, False) :
 									if addVideoToPlaylistLockFree(dst_playlist, video_id, user, playlist_videos, session = s()) :
 										playlist_videos += 1
 							else :
-								if filterOperation('insertIntoPlaylist', user, playlist, False) :
+								if filterOperation('editPlaylist', user, playlist, False) :
 									if insertIntoPlaylistLockFree(dst_playlist, video_id, dst_rank + cur_rank, user, session = s()) :
 										cur_rank += 1
 					s.mark_succeed()

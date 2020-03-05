@@ -65,8 +65,11 @@ def buildTagRulesFromTags() :
 			words = []
 			for (lang, value) in tag_obj['languages'].items() :
 				words += cut_for_search(value)
+				words.append(value)
 			for value in tag_obj['alias'] :
 				words += cut_for_search(value)
+				words.append(value)
+			words = list(set(words))
 			for w in words :
 				if db.db.utag_rules.find_one({'utag': w}) is None :
 					db.db.utag_rules.insert_one({'utag': w, 'tag': tag_obj['id']}, session = s())

@@ -67,7 +67,7 @@ def createPlaylist(language, title, desc, cover, user, private = False) :
 
 def createPlaylistFromSingleVideo(language, vid, user) :
 	log(obj = {'vid': vid})
-	filterOperation('createPlaylistFromSingleVideo', user)
+	filterOperation('createPlaylist', user)
 	video_obj = filterSingleVideo(vid, user)
 	if video_obj is None :
 		raise UserError('VIDEO_NOT_EXIST')
@@ -84,7 +84,7 @@ def _postPlaylistTask(url, pid, use_autotag, user, extend = False) :
 
 def createPlaylistFromExistingPlaylist(language, url, user, user_language, use_autotag = False) :
 	log(obj = {'url': url})
-	filterOperation('createPlaylistFromExistingPlaylist', user)
+	filterOperation('createPlaylist', user)
 	cralwer, cleanURL = dispatch_playlist(url)
 	if not cralwer :
 		raise UserError('UNSUPPORTED_PLAYLIST_URL')
@@ -99,7 +99,7 @@ def createPlaylistFromExistingPlaylist(language, url, user, user_language, use_a
 
 def extendPlaylistFromExistingPlaylist(language, pid, url, user, use_autotag = False) :
 	log(obj = {'url': url, 'pid': pid})
-	filterOperation('extendPlaylistFromExistingPlaylist', user)
+	filterOperation('editPlaylist', user)
 	if not db.playlists.find_one({'_id': ObjectId(pid)}) :
 		raise UserError('PLAYLIST_NOT_EXIST')
 	cralwer, cleanURL = dispatch_playlist(url)
@@ -181,7 +181,7 @@ def updatePlaylistCover(pid, cover, user) :
 		log(obj = {'playlist': list_obj})
 		if list_obj is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('updatePlaylistCover', user, list_obj)
+		filterOperation('editPlaylist', user, list_obj)
 		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {"cover": cover}}, session = s())
 		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
 			'meta.modified_by': makeUserMeta(user),
@@ -195,7 +195,7 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 		log(obj = {'playlist': list_obj})
 		if list_obj is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('updatePlaylistCover', user, list_obj)
+		filterOperation('editPlaylist', user, list_obj)
 		video_obj = filterSingleVideo(vid, user)
 		if video_obj is None :
 			raise UserError('VIDEO_NOT_EXIST')
@@ -225,7 +225,7 @@ def updatePlaylistInfo(pid, language, title, desc, cover, user, private = False)
 		log(obj = {'playlist': list_obj})
 		if list_obj is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('updatePlaylistInfo', user, list_obj)
+		filterOperation('editPlaylist', user, list_obj)
 		if cover :
 			db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {"cover": cover}}, session = s())
 		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {
@@ -242,7 +242,7 @@ def addVideoToPlaylist(pid, vid, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('addVideoToPlaylist', user, playlist)
+		filterOperation('editPlaylist', user, playlist)
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
 			raise UserError('VIDEO_NOT_EXIST')
 		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
@@ -559,7 +559,7 @@ def updateCommonTags(pid, tags, user) :
 		playlist_obj = db.playlists.find_one({'_id': ObjectId(pid)})
 		if playlist_obj is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('updateCommonTags', user, playlist_obj)
+		filterOperation('editPlaylist', user, playlist_obj)
 		# user is editing video tags, not the playlist itself, no need to lock playlist
 		tags = tagdb.filter_and_translate_tags(tags, session = s())
 		old_tags = listCommonTagIDs(pid, user)
@@ -636,7 +636,7 @@ def removeVideoFromPlaylist(pid, vid, page, page_size, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('removeVideoFromPlaylist', user, playlist)
+		filterOperation('editPlaylist', user, playlist)
 		if playlist["videos"] > 0 :
 			entry = db.playlist_items.find_one({"pid": ObjectId(pid), "vid": ObjectId(vid)}, session = s())
 			if entry is None :
@@ -666,7 +666,7 @@ def editPlaylist_MoveUp(pid, vid, page, page_size, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('editPlaylist_Reorder', user, playlist)
+		filterOperation('editPlaylist', user, playlist)
 		if playlist["videos"] > 0 :
 			entry = db.playlist_items.find_one({"pid": ObjectId(pid), "vid": ObjectId(vid)}, session = s())
 			if entry is None :
@@ -692,7 +692,7 @@ def editPlaylist_MoveDown(pid, vid, page, page_size, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('editPlaylist_Reorder', user, playlist)
+		filterOperation('editPlaylist', user, playlist)
 		if playlist["videos"] > 0 :
 			entry = db.playlist_items.find_one({"pid": ObjectId(pid), "vid": ObjectId(vid)}, session = s())
 			if entry is None :
@@ -717,7 +717,7 @@ def editPlaylist_Move(pid, vid, to_rank, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('editPlaylist_Move', user, playlist)
+		filterOperation('editPlaylist', user, playlist)
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
 			raise UserError('VIDEO_NOT_EXIST')
 		if to_rank < 0 :
@@ -752,7 +752,7 @@ def insertIntoPlaylist(pid, vid, rank, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('insertIntoPlaylist', user, playlist)
+		filterOperation('editPlaylist', user, playlist)
 		if tagdb.retrive_item({'_id': ObjectId(vid)}, session = s()) is None :
 			raise UserError('VIDEO_NOT_EXIST')
 		if playlist["videos"] > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
@@ -814,7 +814,7 @@ def inversePlaylistOrder(pid, user) :
 		playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
 		if playlist is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('inversePlaylistOrder', user, playlist)
+		filterOperation('editPlaylist', user, playlist)
 		db.playlist_items.update_many({"pid": playlist["_id"]}, {'$bit': {'rank': {'xor': int(-1)}}})
 		db.playlist_items.update_many({"pid": playlist["_id"]}, {'$inc': {'rank': int(playlist['videos'])}})
 		s.mark_succeed()

@@ -134,7 +134,7 @@ def postVideoIPFS_new(user, url, tags, copy, pid, rank, desc, title, cover_file_
 
 def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies, repost_type):
 	log(obj = {'urls': videos, 'tags': tags, 'copy': copy, 'pid': pid, 'rank': rank, 'as_copies': as_copies})
-	filterOperation('postVideoBatch', user)
+	filterOperation('postVideo', user)
 	tags = [tag.strip() for tag in tags]
 	if not videos :
 		raise UserError('EMPTY_LIST')
