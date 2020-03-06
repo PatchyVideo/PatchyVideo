@@ -120,11 +120,11 @@ class Youtube( Crawler ) :
 			api_url = "https://www.googleapis.com/youtube/v3/videos?id=" + vidid + "&key=" + key + "&part=snippet,contentDetails,statistics,status"
 			async with aiohttp.ClientSession() as session:
 				async with session.get(api_url, headers = self.HEADERS_NO_UTF8) as resp:
+					apirespond = await resp.text()
 					if resp.status == 200 :
-						apirespond = await resp.text()
 						break
 					else :
-						log_ne(op = 'youtube_run_async', level = 'WARN', obj = {'msg': 'FETCH_FAILED', 'key': key, 'resp': apirespond.content, 'url': api_url})
+						log_ne(op = 'youtube_run_async', level = 'WARN', obj = {'msg': 'FETCH_FAILED', 'key': key, 'resp': apirespond, 'url': api_url})
 			keys.remove(key)
 
 		player_response = loads(apirespond)
