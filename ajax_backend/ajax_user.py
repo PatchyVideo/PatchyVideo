@@ -55,6 +55,13 @@ def ajax_user_exists(rd, data):
 def ajax_user_myprofile(rd, user, data):
 	return "json", makeResponseSuccess(user)
 
+@app.route('/user/view_opinion.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_user_view_opinion(rd, user, data):
+	thread, users = viewOpinion(user)
+	return "json", makeResponseSuccess({'comments': thread, 'users': users})
+
 @app.route('/user/profile.do', methods = ['POST'])
 @loginOptional
 @jsonRequest

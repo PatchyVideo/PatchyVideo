@@ -145,7 +145,7 @@ user subscript to playlists
 custom thumbnail for playlist
 user subscriptions
 danmaku
-comment section
+#comment section
 video downloading
 tag prompt/auto-complete
 show uploader profile photo

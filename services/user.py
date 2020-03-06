@@ -20,6 +20,7 @@ from config import UserConfig
 from utils.logger import log, log_ne
 from services.tcb import filterOperation
 from services.emailSender import send_noreply
+from services.comment import listThread
 
 def query_user_basic_info(uid) :
 	obj = db.users.find_one({"_id": ObjectId(uid)})
@@ -446,3 +447,10 @@ def listUsers(user, page_idx, page_size, query = None, order = 'latest') :
 	for i in range(len(items)) :
 		del items[i]["crypto"]
 	return items, count
+
+def viewOpinion(user) :
+	uobj = db.users.find_one({'_id': user['_id']})
+	if 'comment_thread' in uobj :
+		return listThread(uobj['comment_thread'])
+	else :
+		return None, None

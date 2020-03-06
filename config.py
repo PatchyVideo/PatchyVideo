@@ -67,3 +67,10 @@ Author DB
 """
 class AuthorDB:
     DESC_MAX_LENGTH = 2000
+
+"""
+Comments
+"""
+class Comments:
+    MAX_COMMENT_LENGTH_REGULAR = 500
+    MAX_COMMENT_LENGTH_LONG = 50000
