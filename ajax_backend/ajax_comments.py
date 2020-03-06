@@ -16,22 +16,22 @@ from bson import ObjectId
 @loginRequiredJSON
 @jsonRequest
 def ajax_comments_add_to_video(rd, user, data):
-	thread_id = addToVideo(user, ObjectId(data.vid), data.text)
-	return "json", makeResponseSuccess({'thread_id': thread_id})
+	thread_id, cid = addToVideo(user, ObjectId(data.vid), data.text)
+	return "json", makeResponseSuccess({'thread_id': str(thread_id), 'cid': cid})
 
 @app.route('/comments/add_to_playlist.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_comments_add_to_playlist(rd, user, data):
-	thread_id = addToPlaylist(user, ObjectId(data.pid), data.text)
-	return "json", makeResponseSuccess({'thread_id': thread_id})
+	thread_id, cid = addToPlaylist(user, ObjectId(data.pid), data.text)
+	return "json", makeResponseSuccess({'thread_id': str(thread_id), 'cid': cid})
 
 @app.route('/comments/add_to_user.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_comments_add_to_user(rd, user, data):
-	thread_id = addToUser(user, ObjectId(data.uid), data.text)
-	return "json", makeResponseSuccess({'thread_id': thread_id})
+	thread_id, cid = addToUser(user, ObjectId(data.uid), data.text)
+	return "json", makeResponseSuccess({'thread_id': str(thread_id), 'cid': cid})
 
 @app.route('/comments/reply.do', methods = ['POST'])
 @loginRequiredJSON

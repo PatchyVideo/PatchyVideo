@@ -61,7 +61,7 @@ def addComment(user, thread_id : ObjectId, text : str) : # user can add comments
     if thread_obj is None :
         raise UserError('THREAD_NOT_EXIST')
     with redis_lock.Lock(rdb, "thread:" + str(thread_id)), MongoTransaction(client) as s :
-        db.comment_items.insert_one({
+        cid = str(db.comment_items.insert_one({
             'thread': thread_id,
             'content': text,
             'hidden': False,
@@ -69,9 +69,10 @@ def addComment(user, thread_id : ObjectId, text : str) : # user can add comments
             'upvotes': 0,
             'downvotes': 0,
             'meta': makeUserMetaObject(user)
-        }, session = s())
+        }, session = s()).inserted_id)
         db.comment_threads.update_one({'_id': thread_id}, {'$inc': {'count': int(1)}}, session = s())
         s.mark_succeed()
+        return cid
 
 def addReply(user, reply_to : ObjectId, text : str) : # user can add comments
     """
@@ -142,15 +143,15 @@ def addToVideo(user, vid : ObjectId, text : str) :
         raise UserError('VIDEO_NOT_EXIST')
     with redis_lock.Lock(rdb, "videoEdit:" + video_obj["item"]["unique_id"]) :
         if 'comment_thread' in video_obj :
-            addComment(user, video_obj['comment_thread'], text)
-            return video_obj['comment_thread']
+            cid = addComment(user, video_obj['comment_thread'], text)
+            return video_obj['comment_thread'], cid
         else :
             with MongoTransaction(client) as s :
                 tid = createThread(video_obj['meta']['created_by'], session = s())
                 db.items.update_one({'_id': vid}, {'$set': {'comment_thread': tid}})
                 s.mark_succeed()
-            addComment(user, tid, text)
-            return tid
+            cid = addComment(user, tid, text)
+            return tid, cid
     
 def addToPlaylist(user, pid : ObjectId, text : str) :
     filterOperation('postComment', user)
@@ -159,15 +160,15 @@ def addToPlaylist(user, pid : ObjectId, text : str) :
         raise UserError('PLAYLIST_NOT_EXIST')
     with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)) :
         if 'comment_thread' in playlist_obj :
-            addComment(user, playlist_obj['comment_thread'], text)
-            return playlist_obj['comment_thread']
+            cid = addComment(user, playlist_obj['comment_thread'], text)
+            return playlist_obj['comment_thread'], cid
         else :
             with MongoTransaction(client) as s :
                 tid = createThread(playlist_obj['meta']['created_by'], session = s())
                 db.playlists.update_one({'_id': pid}, {'$set': {'comment_thread': tid}})
                 s.mark_succeed()
-            addComment(user, tid, text)
-            return tid
+            cid = addComment(user, tid, text)
+            return tid, cid
 
 def addToUser(user, uid : ObjectId, text : str) :
     filterOperation('postComment', user)
@@ -176,12 +177,12 @@ def addToUser(user, uid : ObjectId, text : str) :
         raise UserError('USER_NOT_EXIST')
     with redis_lock.Lock(rdb, "userEdit:" + str(uid)) :
         if 'comment_thread' in user_obj :
-            addComment(user, user_obj['comment_thread'], text)
-            return user_obj['comment_thread']
+            cid = addComment(user, user_obj['comment_thread'], text)
+            return user_obj['comment_thread'], cid
         else :
             with MongoTransaction(client) as s :
                 tid = createThread(uid, session = s())
                 db.users.update_one({'_id': uid}, {'$set': {'comment_thread': tid}})
                 s.mark_succeed()
-            addComment(user, tid, text)
-            return tid
+            cid = addComment(user, tid, text)
+            return tid, cid
