@@ -14,7 +14,6 @@ def cut_for_search(txt) :
 	resp = post_raw(TEXTSEG_ADDRESS + 's/', txt.encode('utf-8'))
 	txt = resp.content.decode('utf-8')
 	words = loads(txt)['Words']
-	words = list(filter(lambda a: len(a) > 1, words))
 	return words
 
 def cut_for_index(txt) :

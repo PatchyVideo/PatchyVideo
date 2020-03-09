@@ -8,7 +8,11 @@ WORKDIR /webapp
 COPY . /webapp
 
 # Install any needed packages specified in requirements.txt
+RUN apt-get update -y && apt-get install -y gcc
 RUN pip3 install --trusted-host pypi.python.org -r requirements.txt
+RUN apt-get remove -y --purge gcc
+RUN apt autoremove -y
+RUN rm -rf /var/lib/apt/lists/*
 
 ENV FLASK_APP main.py
 ENV FLASK_RUN_HOST 0.0.0.0
