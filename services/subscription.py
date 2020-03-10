@@ -15,7 +15,7 @@ def addSubscription(user, query_str : str, qtype = 'tag', name = '') :
 		raise UserError('EMPTY_QUERY')
 	# TODO: add duplicated query check
 	qobj, qtags = tagdb.compile_query(query_str, qtype)
-	if len(qtags) == 1 and 'tags' in qobj :
+	if len(qtags) == 1 and 'tags' in qobj and isinstance(qobj['tags'], int) and qobj['tags'] < 0x80000000:
 		subid = db.subs.insert_one({'qs': query_str, 'qt': qtype, 'name': name, 'tagid': qobj['tags'], 'meta': makeUserMetaObject(user)}).inserted_id
 	else :
 		subid = db.subs.insert_one({'qs': query_str, 'qt': qtype, 'name': name, 'meta': makeUserMetaObject(user)}).inserted_id
