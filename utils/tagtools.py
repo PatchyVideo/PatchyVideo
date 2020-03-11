@@ -14,7 +14,7 @@ _color_map = {
 	'Soundtrack': '#FF7792'}
 
 def verifyAndSanitizeTagOrAlias(alias):
-	alias = alias.strip().lower()
+	alias = alias.strip()
 	try:
 		ts, ss = _lex(alias)
 	except:

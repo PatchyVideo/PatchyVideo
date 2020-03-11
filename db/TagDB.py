@@ -188,7 +188,7 @@ class TagDB() :
 			sort_obj = {"count": -1}
 
 		return self.db.tag_alias.aggregate([
-			{'$match': {'tag': {'$regex': query}}},
+			{'$match': {'tag': re.compile(query, re.IGNORECASE)}},
 			{'$group': {'_id': "$dst"}},
 			{'$lookup': {'localField': '_id', 'foreignField': '_id', 'from': 'tags', 'as': 'tag'}},
 			{'$replaceRoot': {'newRoot': {'$mergeObjects': [{'$arrayElemAt': ["$tag", 0]}, "$$ROOT"]}}},
@@ -827,7 +827,7 @@ class TagDB() :
 		elif isinstance(tag, dict) :
 			return tag
 		elif isinstance(tag, str) :
-			alias_obj = self.db.tag_alias.find_one({'tag': tag}, session = session)
+			alias_obj = self.db.tag_alias.find_one({'tag': re.compile('^' + re.escape(tag) + '$', re.IGNORECASE)}, session = session)
 			if alias_obj is None :
 				if return_none :
 					return None
