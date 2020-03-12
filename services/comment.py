@@ -113,10 +113,27 @@ def addReply(user, reply_to : ObjectId, text : str) : # user can add comments
         s.mark_succeed()
 
 def hideComment(user, comment_id : ObjectId) :
-    pass
+    comm_obj = db.comment_items.find_one({'_id': comment_id})
+    if comm_obj is None :
+        raise UserError('COMMENT_NOT_EXIST')
+    filterOperation('commentAdmin', user, comm_obj)
+    db.comment_items.update_one({'_id': comment_id}, {'$set': {'hidden': True}})
 
 def delComment(user, comment_id : ObjectId) :
-    pass
+    comm_obj = db.comment_items.find_one({'_id': comment_id})
+    if comm_obj is None :
+        raise UserError('COMMENT_NOT_EXIST')
+    filterOperation('commentAdmin', user, comm_obj)
+    db.comment_items.update_one({'_id': comment_id}, {'$set': {'deleted': True}})
+
+"""
+def makeTopComment(user, comment_id : ObjectId) :
+    comm_obj = db.comment_items.find_one({'_id': comment_id})
+    if comm_obj is None :
+        raise UserError('COMMENT_NOT_EXIST')
+    filterOperation('commentAdmin', user, comm_obj)
+    db.comment_items.update_one({'_id': comment_id}, {'$set': {'top': True}})
+"""
 
 def listThread(thread_id : ObjectId) :
     if db.comment_threads.find_one({'_id': thread_id}) is None :
@@ -128,8 +145,12 @@ def listThread(thread_id : ObjectId) :
     users = []
     for comment in ret :
         users.append(comment['meta']['created_by'])
+        if comment['deleted'] :
+            comment['content'] = ''
         for child in comment['children'] :
             users.append(child['meta']['created_by'])
+            if child['deleted'] :
+                child['content'] = ''
     users = db.users.aggregate([
         {'$match': {'_id': {'$in': users}}},
         {'$project': {'profile.username': 1, 'profile.desc': 1, 'profile.image': 1}}

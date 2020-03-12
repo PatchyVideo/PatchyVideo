@@ -7,7 +7,7 @@ from utils.jsontools import *
 from utils.exceptions import UserError
 from utils import getDefaultJSON
 
-from services.comment import addToVideo, addToPlaylist, addToUser, addComment, addReply, listThread
+from services.comment import addToVideo, addToPlaylist, addToUser, addComment, addReply, listThread, hideComment, delComment, makeTopComment
 from services.tcb import filterOperation
 
 from bson import ObjectId
@@ -38,6 +38,26 @@ def ajax_comments_add_to_user(rd, user, data):
 @jsonRequest
 def ajax_comments_reply(rd, user, data):
 	addReply(user, ObjectId(data.reply_to), data.text)
+
+@app.route('/comments/hide.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_comments_hide(rd, user, data):
+	hideComment(user, ObjectId(data.cid))
+
+@app.route('/comments/del.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_comments_del(rd, user, data):
+	delComment(user, ObjectId(data.cid))
+
+"""
+@app.route('/comments/make_top.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_comments_make_top(rd, user, data):
+	makeTopComment(user, ObjectId(data.cid))
+"""
 
 @app.route('/comments/view.do', methods = ['POST'])
 @loginOptional
