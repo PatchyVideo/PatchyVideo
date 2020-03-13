@@ -24,3 +24,4 @@ from . import ajax_logs
 from . import ajax_author_db
 from . import ajax_subscription
 from . import ajax_comments
+from . import ajax_rating

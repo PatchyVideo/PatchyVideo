@@ -7,7 +7,7 @@ from utils.jsontools import *
 from utils.exceptions import UserError
 from utils import getDefaultJSON
 
-from services.comment import addToVideo, addToPlaylist, addToUser, addComment, addReply, listThread, hideComment, delComment, makeTopComment
+from services.comment import addToVideo, addToPlaylist, addToUser, addComment, addReply, listThread, hideComment, delComment
 from services.tcb import filterOperation
 
 from bson import ObjectId
