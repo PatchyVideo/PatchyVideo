@@ -7,9 +7,11 @@ from init import rdb
 from db import db, client
 from utils.dbtools import MongoTransaction
 from utils.exceptions import UserError
-from utils.dbtools import makeUserMetaObject
+from utils.dbtools import makeUserMetaObject, makeUserMeta
 from services.tcb import filterOperation
 from config import Comments
+from services.notifications import createNotification
+from utils.logger import log
 
 """
 Standalone comment APIs
@@ -44,9 +46,10 @@ sub_comment: {
 }
 """
 
-def createThread(owner : ObjectId, session = None) : # thread is created by the website automatically, not user
+def createThread(obj_type: str, obj_id : ObjectId, owner : ObjectId, session = None) : # thread is created by the website automatically, not user
     # owner is an user id, who will receive notification if new comment was added
-    tid = db.comment_threads.insert_one({'count': 0, 'owner': owner}, session = session).inserted_id
+    # obj is video/playlist/user
+    tid = db.comment_threads.insert_one({'count': 0, 'owner': owner, 'obj_type': obj_type, 'obj_id': obj_id}, session = session).inserted_id
     return ObjectId(tid)
 
 def addComment(user, thread_id : ObjectId, text : str) : # user can add comments
@@ -71,6 +74,38 @@ def addComment(user, thread_id : ObjectId, text : str) : # user can add comments
             'meta': makeUserMetaObject(user)
         }, session = s()).inserted_id)
         db.comment_threads.update_one({'_id': thread_id}, {'$inc': {'count': int(1)}}, session = s())
+        note_obj = {
+            "cid": ObjectId(cid),
+            "replied_by": makeUserMeta(user),
+            "content": text[:Comments.NOTIFICATION_CONTENT_LENGTH]
+        }
+        # ===========================================================
+        if 'obj_type' in thread_obj and 'obj_id' in thread_obj :
+            note_obj['replied_type'] = thread_obj['obj_type']
+            note_obj['replied_obj'] = thread_obj['obj_id']
+        else :
+            obj = db.items.find_one({'comment_thread': thread_id}, session = s())
+            if obj :
+                note_obj['replied_type'] = 'video'
+                note_obj['replied_obj'] = obj['_id']
+                db.comment_threads.update_one({'_id': thread_id}, {'$set': {'obj_type': 'video', 'obj_id': obj['_id']}}, session = s())
+            else :
+                obj = db.playlists.find_one({'comment_thread': thread_id}, session = s())
+                if obj :
+                    note_obj['replied_type'] = 'playlist'
+                    note_obj['replied_obj'] = obj['_id']
+                    db.comment_threads.update_one({'_id': thread_id}, {'$set': {'obj_type': 'playlist', 'obj_id': obj['_id']}}, session = s())
+                else :
+                    obj = db.users.find_one({'comment_thread': thread_id}, session = s())
+                    if obj :
+                        note_obj['replied_type'] = 'user'
+                        note_obj['replied_obj'] = obj['_id']
+                        db.comment_threads.update_one({'_id': thread_id}, {'$set': {'obj_type': 'user', 'obj_id': obj['_id']}}, session = s())
+                    else :
+                        log(level = 'ERR', obj = {'msg': 'orphan thread found!!', 'thread_id': thread_id, 'thread_obj': thread_obj})
+                        raise UserError('UNKNOWN_ERROR')
+        # ===========================================================
+        createNotification('comment_reply', thread_obj['owner'], session = s(), other = note_obj)
         s.mark_succeed()
         return cid
 
@@ -90,7 +125,7 @@ def addReply(user, reply_to : ObjectId, text : str) : # user can add comments
         raise UserError('PARENT_NOT_EXIST')
     with MongoTransaction(client) as s :
         if 'thread' in parent_obj : # reply to primary comment
-            db.comment_items.insert_one({
+            cid = str(db.comment_items.insert_one({
                 'parent': reply_to,
                 'content': text,
                 'hidden': False,
@@ -98,9 +133,14 @@ def addReply(user, reply_to : ObjectId, text : str) : # user can add comments
                 'upvotes': 0,
                 'downvotes': 0,
                 'meta': makeUserMetaObject(user)
-            }, session = s())
+            }, session = s()).inserted_id)
+            thread_obj = db.comment_threads.find_one({'_id': parent_obj['thread']}, session = s())
+            if thread_obj is None :
+                log(level = 'ERR', obj = {'msg': 'orphan comment found!!', 'cid': parent_obj['_id'], 'obj': parent_obj})
+                raise UserError('UNKNOWN_ERROR')
+            thread_id = thread_obj['_id']
         else : # reply to secondary comment
-            db.comment_items.insert_one({
+            cid = str(db.comment_items.insert_one({
                 'parent': parent_obj['parent'],
                 'reply_to': reply_to,
                 'content': text,
@@ -109,7 +149,48 @@ def addReply(user, reply_to : ObjectId, text : str) : # user can add comments
                 'upvotes': 0,
                 'downvotes': 0,
                 'meta': makeUserMetaObject(user)
-            }, session = s())
+            }, session = s()).inserted_id)
+            parent_parent_obj = db.comment_items.find_one({'_id': parent_obj['parent']}, session = s())
+            if parent_parent_obj is None :
+                log(level = 'ERR', obj = {'msg': 'orphan comment found!!', 'cid': parent_obj['_id'], 'obj': parent_obj})
+                raise UserError('UNKNOWN_ERROR')
+            thread_obj = db.comment_threads.find_one({'_id': parent_parent_obj['thread']}, session = s())
+            if thread_obj is None :
+                log(level = 'ERR', obj = {'msg': 'orphan comment found!!', 'cid': parent_parent_obj['_id'], 'obj': parent_parent_obj})
+                raise UserError('UNKNOWN_ERROR')
+            thread_id = thread_obj['_id']
+        note_obj = {
+            "cid": ObjectId(cid),
+            "replied_by": makeUserMeta(user),
+            "content": text[:Comments.NOTIFICATION_CONTENT_LENGTH]
+        }
+        # ===========================================================
+        if 'obj_type' in thread_obj and 'obj_id' in thread_obj :
+            note_obj['replied_type'] = thread_obj['obj_type']
+            note_obj['replied_obj'] = thread_obj['obj_id']
+        else :
+            obj = db.items.find_one({'comment_thread': thread_id}, session = s())
+            if obj :
+                note_obj['replied_type'] = 'video'
+                note_obj['replied_obj'] = obj['_id']
+                db.comment_threads.update_one({'_id': thread_id}, {'$set': {'obj_type': 'video', 'obj_id': obj['_id']}}, session = s())
+            else :
+                obj = db.playlists.find_one({'comment_thread': thread_id}, session = s())
+                if obj :
+                    note_obj['replied_type'] = 'playlist'
+                    note_obj['replied_obj'] = obj['_id']
+                    db.comment_threads.update_one({'_id': thread_id}, {'$set': {'obj_type': 'playlist', 'obj_id': obj['_id']}}, session = s())
+                else :
+                    obj = db.users.find_one({'comment_thread': thread_id}, session = s())
+                    if obj :
+                        note_obj['replied_type'] = 'user'
+                        note_obj['replied_obj'] = obj['_id']
+                        db.comment_threads.update_one({'_id': thread_id}, {'$set': {'obj_type': 'user', 'obj_id': obj['_id']}}, session = s())
+                    else :
+                        log(level = 'ERR', obj = {'msg': 'orphan thread found!!', 'thread_id': thread_id, 'thread_obj': thread_obj})
+                        raise UserError('UNKNOWN_ERROR')
+        # ===========================================================
+        createNotification('comment_reply', parent_obj['meta']['created_by'], session = s(), other = note_obj)
         s.mark_succeed()
 
 def hideComment(user, comment_id : ObjectId) :
@@ -168,7 +249,7 @@ def addToVideo(user, vid : ObjectId, text : str) :
             return video_obj['comment_thread'], cid
         else :
             with MongoTransaction(client) as s :
-                tid = createThread(video_obj['meta']['created_by'], session = s())
+                tid = createThread('video', video_obj['_id'], video_obj['meta']['created_by'], session = s())
                 db.items.update_one({'_id': vid}, {'$set': {'comment_thread': tid}})
                 s.mark_succeed()
             cid = addComment(user, tid, text)
@@ -185,7 +266,7 @@ def addToPlaylist(user, pid : ObjectId, text : str) :
             return playlist_obj['comment_thread'], cid
         else :
             with MongoTransaction(client) as s :
-                tid = createThread(playlist_obj['meta']['created_by'], session = s())
+                tid = createThread('playlist', playlist_obj['_id'], playlist_obj['meta']['created_by'], session = s())
                 db.playlists.update_one({'_id': pid}, {'$set': {'comment_thread': tid}})
                 s.mark_succeed()
             cid = addComment(user, tid, text)
@@ -202,7 +283,7 @@ def addToUser(user, uid : ObjectId, text : str) :
             return user_obj['comment_thread'], cid
         else :
             with MongoTransaction(client) as s :
-                tid = createThread(uid, session = s())
+                tid = createThread('user', uid, uid, session = s())
                 db.users.update_one({'_id': uid}, {'$set': {'comment_thread': tid}})
                 s.mark_succeed()
             cid = addComment(user, tid, text)
