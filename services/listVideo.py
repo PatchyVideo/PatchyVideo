@@ -65,7 +65,7 @@ def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS'
 		else :
 			query_obj = {'tags': {'$nin': user['settings']['blacklist']}}
 	elif user is None :
-		query_obj = {}
+		query_obj = {'tags': {'$nin': default_blacklist_tagids}}
 	result = db.retrive_items(query_obj)
 	if order == 'latest':
 		result = result.sort([("meta.created_at", -1)])
