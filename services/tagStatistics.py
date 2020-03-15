@@ -19,7 +19,8 @@ def getPopularTags(user_language, max_count = 20) :
 		response = get_page(TAG_TRACKER_ADDRESS + "/get?count=%d" % max_count)
 		json_obj = json.loads(response)
 		tag_ids = [int(i) for i in json_obj['tags']]
-		return tagdb.translate_tag_ids_to_user_language(tag_ids, user_language)[0]
+		tags, _, _ = tagdb.translate_tag_ids_to_user_language(tag_ids, user_language, id_data_map = json_obj['pops'])
+		return [i[0] for i in tags], {i[0]: i[1] for i in tags}
 	except :
 		return []
 

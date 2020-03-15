@@ -81,7 +81,8 @@ def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS'
 	videos = filterVideoList(videos, user)
 	if hide_placeholder :
 		videos = _filterPlaceholder(videos)
-	return videos, video_count, getPopularTags(user_language)
+	tags, pops = getPopularTags(user_language)
+	return videos, video_count, tags, pops
 
 def listMyVideo(page_idx, page_size, user, order = 'latest'):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :

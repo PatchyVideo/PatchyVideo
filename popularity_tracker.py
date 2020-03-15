@@ -94,7 +94,7 @@ import json
 @basePageNoLog
 @jsonRequest
 def hit_page(rd, data) :
-	print('hit', data.hitmap)
+	#print('hit', data.hitmap)
 	update_lock.acquire()
 	try:
 		tracker.update_current_bin(data.hitmap)
@@ -116,7 +116,7 @@ def get_page(rd) :
 	count = min(count, len(tracker.hitmap_sorted))
 	hitmap = list(tracker.hitmap_sorted.keys())[:count]
 	hitmap_update_lock.release()
-	return "json", {"tags": hitmap}
+	return "json", {"tags": hitmap, "pops": tracker.hitmap_sorted}
 
 from apscheduler.schedulers.background import BackgroundScheduler
 

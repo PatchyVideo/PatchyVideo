@@ -25,13 +25,14 @@ def ajax_listvideo_do(rd, data, user):
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, video_count, related_tags = listVideo(data.page - 1, data.page_size, user, order, hide_placeholder = hide_placeholder, user_language = lang)
+	videos, video_count, related_tags, related_tags_popularity = listVideo(data.page - 1, data.page_size, user, order, hide_placeholder = hide_placeholder, user_language = lang)
 	tag_category_map = getTagCategoryMap(related_tags)
 	ret = makeResponseSuccess({
 		"videos": videos,
 		"count": video_count,
 		"page_count": (video_count - 1) // data.page_size + 1,
-		"tags": tag_category_map
+		"tags": tag_category_map,
+		"tag_pops": related_tags_popularity
 	})
 	return "json", ret
 
