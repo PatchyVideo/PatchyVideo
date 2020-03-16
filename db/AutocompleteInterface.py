@@ -18,8 +18,7 @@ class AutocompleteInterface() :
 		err_msg = ''
 		for _ in range(self.retry_count) :
 			try :
-				post_raw(AUTOCOMPLETE_ADDRESS + "/" + endpoint, payload.encode('utf-8'))
-				return
+				return post_raw(AUTOCOMPLETE_ADDRESS + "/" + endpoint, payload.encode('utf-8'))
 			except Exception as e :
 				err_msg = str(e)
 		print('FAILED: %s message=%s' % (func, err_msg), file = sys.stderr)
@@ -71,4 +70,12 @@ class AutocompleteInterface() :
 	def DeleteWord(self, word) :
 		payload = word + " "
 		self._post("DeleteWord", "delword", payload)
+
+	def MatchFirstTag(self, list_of_querys) :
+		if not list_of_querys :
+			return
+		payload = "%d " % len(list_of_querys)
+		for q in list_of_querys :
+			payload += "%s " % q
+		return self._post("MatchFirstTag", "matchfirst", payload)
 

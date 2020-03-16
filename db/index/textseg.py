@@ -16,6 +16,12 @@ def cut_for_search(txt) :
 	words = loads(txt)['Words']
 	return words
 
+def find_touhou_words(txt) :
+	resp = post_raw(TEXTSEG_ADDRESS + 't/', txt.encode('utf-8'))
+	txt = resp.content.decode('utf-8')
+	words = loads(txt)
+	return words
+
 def cut_for_index(txt) :
 	if isinstance(txt, list) :
 		return list(set(itertools.chain.from_iterable([cut_for_index(i) for i in txt])))

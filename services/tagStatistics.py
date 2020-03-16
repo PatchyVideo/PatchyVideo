@@ -22,7 +22,7 @@ def getPopularTags(user_language, max_count = 20) :
 		tags, _, _ = tagdb.translate_tag_ids_to_user_language(tag_ids, user_language, id_data_map = json_obj['pops'])
 		return [i[0] for i in tags], {i[0]: i[1] for i in tags}
 	except :
-		return []
+		return [], {}
 
 def getCommonTags(user_language, videos, max_count = 20) :
 	if len(videos) <= 0 :

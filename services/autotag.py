@@ -5,13 +5,16 @@ from db.TagDB_language import translateTagToPreferredLanguage
 from utils.dbtools import MongoTransaction, MongoTransactionDisabled
 from utils.logger import log
 from collections import defaultdict
-from db.index.textseg import cut_for_search
+from db.index.textseg import cut_for_search, find_touhou_words
+from db.AutocompleteInterface import AutocompleteInterface
+from bson.json_util import loads
 
 import ahocorasick
 import itertools
 
 _keyword_dict = None
 _automata = None
+_aci = None
 
 def buildKeywordDictMongo() :
 	"""
@@ -64,17 +67,23 @@ def buildAutomata() :
 def inferTagidsFromText(text) :
 	global _keyword_dict
 	global _automata
+	global _aci
 	if _keyword_dict is None :
 		buildKeywordDict()
 	if _automata is None :
 		buildAutomata()
+	if _aci is None :
+		_aci = AutocompleteInterface()
 	words = cut_for_search(text)
 	word_ids = [_keyword_dict.get(word, 0) for word in words]
 	wordstr = ''.join([chr(wid) for wid in word_ids])
 	tagids = []
 	for _, tagid in _automata.iter(wordstr) :
 		tagids.append(tagid)
-	return list(set(tagids))
+	thwords = find_touhou_words(text)
+	matched_tags = _aci.MatchFirstTag(thwords)
+	th_tagids = loads(matched_tags.content.decode('utf-8'))
+	return list(set(tagids + th_tagids))
 
 def inferTagsFromVideo(utags, title, desc, user_language) :
 	log(obj = {'title': title, 'desc': desc, 'utags': utags, 'lang': user_language})
