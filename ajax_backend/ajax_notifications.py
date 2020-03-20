@@ -7,7 +7,7 @@ from utils.jsontools import *
 from utils.exceptions import UserError
 from utils import getDefaultJSON
 
-from services.notifications import listMyNotificationUnread, listMyNotificationAll, getUnreadNotificationCount, markRead
+from services.notifications import listMyNotificationUnread, listMyNotificationAll, getUnreadNotificationCount, markRead, markAllRead
 from services.tcb import filterOperation
 
 from bson import ObjectId
@@ -39,3 +39,9 @@ def ajax_notes_unread_count(rd, user, data):
 @jsonRequest
 def ajax_notes_mark_read(rd, user, data):
 	markRead(user, data.note_ids)
+
+@app.route('/notes/mark_all_read.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_notes_mark_all_read(rd, user, data):
+	markAllRead(user)

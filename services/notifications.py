@@ -37,3 +37,7 @@ def markRead(user, note_ids) :
         db.notes.update_many({'_id': {'$in': note_ids}}, {'$set': {'read': True}}, session = s())
         s.mark_succeed()
 
+def markAllRead(user) :
+    with MongoTransaction(client) as s :
+        db.notes.update_many({'to': user['_id']}, {'$set': {'read': True}}, session = s())
+        s.mark_succeed()
