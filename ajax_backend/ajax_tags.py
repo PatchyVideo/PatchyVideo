@@ -10,7 +10,7 @@ from utils import getDefaultJSON
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 
-from services.tagStatistics import getRelatedTagsExperimental
+from services.tagStatistics import getRelatedTagsExperimental, getRelatedTagsFixedMainTags
 from services.autotag import inferTagsFromVideo
 from services.editTag import getTag, getDefaultBlacklist
 
@@ -21,7 +21,7 @@ def ajax_get_related_tags_do(rd, user, data):
 	max_count = getDefaultJSON(data, 'max_count', 10)
 	exclude = getDefaultJSON(data, 'exclude', [])
 	start = time.time()
-	ret = getRelatedTagsExperimental(data.lang, data.tags, exclude, max_count)
+	ret = getRelatedTagsFixedMainTags(data.lang, data.tags, exclude, max_count)
 	end = time.time()
 	return "json", makeResponseSuccess({'tags': ret, 'time_used_ms': int((end - start) * 1000)})
 
