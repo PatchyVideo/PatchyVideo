@@ -17,7 +17,7 @@ Tags
 """
 class TagsConfig:
     MAX_LANGUAGE_LENGTH = 6
-    MAX_TAG_LENGTH = 48
+    MAX_TAG_LENGTH = 64
     MAX_CATEGORY_LENGTH = 16
 
 """
