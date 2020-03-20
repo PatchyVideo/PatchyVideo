@@ -76,7 +76,7 @@ def remove_stop_words(words, stopwords) :
 def getRelatedTagsFixedMainTags(user_language, tags, exclude = [], max_count = 10) :
 	exclude_tag_ids = tagdb.filter_and_translate_tags(exclude)
 	exclude_tags, _, _ = tagdb.translate_tag_ids_to_user_language(exclude_tag_ids, 'CHS')
-	return remove_stop_words(['东方MMD',
+	all_tags = remove_stop_words(['东方MMD',
 		'剧情MMD',
 		'舞蹈MMD',
 		'东方3D',
@@ -116,3 +116,4 @@ def getRelatedTagsFixedMainTags(user_language, tags, exclude = [], max_count = 1
 		'Shitpost',
 		'手工艺',
 		'主标签完成'], exclude_tags)
+	return [{k: 1} for k in all_tags]
