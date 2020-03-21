@@ -71,6 +71,13 @@ def ajax_user_profile(rd, user, data):
 	obj = query_user(data.uid)
 	return "json", makeResponseSuccess(obj)
 
+@app.route('/user/profile_batch.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_user_profile_batch(rd, user, data):
+	obj = query_user_batch(data.uids)
+	return "json", makeResponseSuccess(obj)
+
 @app.route('/user/profile_username.do', methods = ['POST'])
 @loginOptional
 @jsonRequest

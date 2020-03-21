@@ -101,6 +101,13 @@ def login(username, password, challenge, login_session_id) :
 		return redis_user_key, common_user_obj['profile']
 	raise UserError('INCORRECT_SESSION')
 
+def query_user_batch(uids) :
+	uids = [ObjectId(i) for i in uids]
+	return list(db.users.aggregate([
+		{'$match': {'_id': {'$in': uids}}},
+		{'$project': {'profile.username': 1, 'profile.desc': 1, 'profile.image': 1, '_id': 1}}
+	]))
+
 def query_user(uid) :
 	try :
 		obj = db.users.find_one({'_id': ObjectId(uid)})
