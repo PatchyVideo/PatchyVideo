@@ -88,6 +88,7 @@ def getRelatedTagsFixedMainTags(user_language, tags, exclude = [], max_count = 1
 		'Minecraft',
 		'实况',
 		'攻略',
+		'跑团',
 		'音乐',
 		'东方Arrange',
 		'东方风Arrange',
