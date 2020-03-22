@@ -116,5 +116,6 @@ def getRelatedTagsFixedMainTags(user_language, tags, exclude = [], max_count = 1
 		'meme',
 		'Shitpost',
 		'手工艺',
+		'VTuber',
 		'主标签完成'], exclude_tags)
 	return [{k: 1} for k in all_tags]
