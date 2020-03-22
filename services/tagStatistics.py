@@ -84,6 +84,7 @@ def getRelatedTagsFixedMainTags(user_language, tags, exclude = [], max_count = 1
 		'东方FTG',
 		'东方STG',
 		'游戏宣传',
+		'音乐游戏',
 		'mugen',
 		'Minecraft',
 		'实况',
