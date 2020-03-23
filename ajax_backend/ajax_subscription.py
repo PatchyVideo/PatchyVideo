@@ -64,6 +64,7 @@ def ajax_subs_list_do(rd, data, user):
 	order = getDefaultJSON(data, 'order', 'video_latest')
 	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
 	lang = getDefaultJSON(data, 'lang', 'CHS')
+	visible = getDefaultJSON(data, 'visible', [''])
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
 	videos, sub_objs, tags, count = listSubscriptedItems(
@@ -72,7 +73,8 @@ def ajax_subs_list_do(rd, data, user):
 		data.page_size,
 		lang,
 		hide_placeholder,
-		order)
+		order,
+		visible)
 	return "json", makeResponseSuccess({
 		'videos': videos,
 		'objs': sub_objs,

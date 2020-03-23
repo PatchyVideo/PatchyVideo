@@ -54,15 +54,21 @@ def updateSubScription(user, sub_id, query_str : str, qtype : str = '', name = '
 def _filterPlaceholder(videos) :
 	return list(filter(lambda x: not ('placeholder' in x['item'] and x['item']['placeholder']), videos))
 
-def listSubscriptedItems(user, page_idx, page_size, user_language, hide_placeholder = True, order = 'latest_video') :
+def listSubscriptedItems(user, page_idx, page_size, user_language, hide_placeholder = True, order = 'video_latest', visibleSubs = ['']) :
 	subs = list(db.subs.find({'meta.created_by': makeUserMeta(user)}))
-	q = [tagdb.compile_query(q['qs'], q['qt']) for q in subs]
+	q = [(tagdb.compile_query(q['qs'], q['qt']), str(q['_id'])) for q in subs]
 	query_obj = {'$or': []}
-	for qi, _ in q :
-		query_obj['$or'].append(qi)
+	if '' in visibleSubs :
+		for (qi, _), _ in q :
+			query_obj['$or'].append(qi)
+	else :
+		for (qi, _), qid in q :
+			if qid in visibleSubs :
+				query_obj['$or'].append(qi)
 	for i in range(len(q)) :
-		subs[i]['obj'] = q[i][0]
-		subs[i]['obj_tags'] = q[i][1]
+		(qobj, qtags), _ = q[i]
+		subs[i]['obj'] = qobj
+		subs[i]['obj_tags'] = qtags
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
 	if user and 'settings' in user :
 		if user['settings']['blacklist'] == 'default' :
