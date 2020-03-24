@@ -94,6 +94,7 @@ def getRelatedTagsFixedMainTags(user_language, tags, exclude = [], max_count = 1
 		'东方Arrange',
 		'东方风Arrange',
 		'东方PV',
+		'XFD',
 		'MV',
 		'演奏',
 		'东方手书',
