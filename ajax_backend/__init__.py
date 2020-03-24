@@ -26,3 +26,4 @@ from . import ajax_subscription
 from . import ajax_comments
 from . import ajax_rating
 from . import ajax_notifications
+from . import ajax_ranking

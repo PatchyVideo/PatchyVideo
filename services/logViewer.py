@@ -2,6 +2,7 @@
 from db import db, tagdb
 from utils.exceptions import UserError
 from datetime import timedelta
+from datetime import datetime
 from bson import ObjectId
 
 def viewLogs(page_idx, page_size, date_from = None, date_to = None, order = 'latest') :
@@ -55,11 +56,56 @@ def viewLogsAggregated(page_idx, page_size, date_from = None, date_to = None, or
 
 def viewTaghistory(vid, language) :
 	all_items = db.tag_history.aggregate([
-		{'$match':{ 'vid': ObjectId(vid)}},
+		{'$match': {'vid': ObjectId(vid)}},
 		{'$lookup': {'from': 'users', 'localField': 'user', 'foreignField': '_id', 'as': 'user_obj'}},
 		{'$project': {'user_obj._id': 1, 'user_obj.profile.username': 1, 'user_obj.profile.image': 1, 'tags': 1, 'del': 1, 'add': 1, 'time': 1}},
 		{'$sort': {"time": -1}}
-		])
+	])
+	all_items = list(all_items)
+	for item in all_items :
+		item['tags'], _, _ = tagdb.translate_tag_ids_to_user_language(item['tags'], language)
+		item['del'], _, _ = tagdb.translate_tag_ids_to_user_language(item['del'], language)
+		item['add'], _, _ = tagdb.translate_tag_ids_to_user_language(item['add'], language)
+	return all_items
+
+def rankTagContributor(hrs = 24, n = 20) :
+	"""
+	List top `n` user who contibuted the most tag updates in the last `hrs` hours
+	"""
+	cur_time = datetime.now()
+	ans = db.tag_history.aggregate([
+		{'$match': {'time': {'$gte': cur_time - timedelta(hours = hrs)}}},
+		{'$match': {'$or': [{'add': {'$not': {'$size': 0}}}, {'del': {'$not': {'$size': 0}}}]}},
+		{'$group': {'_id': '$user', 'count': {'$sum': 1}}},
+		{'$sort': {'count': -1}},
+		{'$limit': n},
+		{'$lookup': {'from': 'users', 'localField': '_id', 'foreignField': '_id', 'as': 'user_obj'}},
+		{'$unwind': {'path': '$user_obj'}},
+		{'$project': {'user_obj._id': 1, 'user_obj.profile.username': 1, 'user_obj.profile.desc': 1, 'user_obj.profile.image': 1, 'count': 1}}
+	])
+	return list(ans)
+
+def viewRawTagHistory(page, page_size, language) :
+	all_items = db.tag_history.aggregate([
+		{'$sort': {"time": -1}},
+		{'$skip': page * page_size},
+		{'$limit': page_size},
+		{'$lookup': {'from': 'users', 'localField': 'user', 'foreignField': '_id', 'as': 'user_obj'}},
+		{'$project': {'vid': 1, 'user_obj._id': 1, 'user_obj.profile.username': 1, 'user_obj.profile.image': 1, 'tags': 1, 'del': 1, 'add': 1, 'time': 1}},
+		{'$lookup': {'from': 'items', 'localField': 'vid', 'foreignField': '_id', 'as': 'video_obj'}},
+		{'$project': {
+			'vid': 1,
+			'user_obj._id': 1,
+			'user_obj.profile.username': 1,
+			'user_obj.profile.image': 1,
+			'tags': 1,
+			'del': 1,
+			'add': 1,
+			'time': 1,
+			'video_obj.item': 1
+			}
+		},
+	])
 	all_items = list(all_items)
 	for item in all_items :
 		item['tags'], _, _ = tagdb.translate_tag_ids_to_user_language(item['tags'], language)
