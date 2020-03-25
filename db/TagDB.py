@@ -812,7 +812,10 @@ class TagDB() :
 		])
 		return [item['tag_obj']['id'] for item in ret]
 
-	def compile_query(self, query, query_type = 'tag', session = None):
+	def compile_query(self, query : str, query_type = 'tag', session = None):
+		query = query.strip()
+		if not query :
+			return {}, []
 		if query_type == 'text' :
 			query_obj, tags = Parser.parse(query, self.translate_text, self.translate_tag_group, self.translate_tag_wildcard)
 		else :

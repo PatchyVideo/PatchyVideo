@@ -15,20 +15,21 @@ from services.config import Config
 def _filterPlaceholder(videos) :
 	return list(filter(lambda x: not ('placeholder' in x['item'] and x['item']['placeholder']), videos))
 
-def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_language = 'CHS', hide_placeholder = True, qtype = 'tag'):
+def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_language = 'CHS', hide_placeholder = True, qtype = 'tag', additional_constraint = ''):
 	log(obj = {'q': query_str, 'page': page_idx, 'page_size': page_size, 'order': order, 'lang': user_language})
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	query_obj, tags = db.compile_query(query_str, qtype)
+	query_obj_extra, _ = db.compile_query(additional_constraint, 'tag')
 	log(obj = {'query': dumps(query_obj)})
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
 	if user and 'settings' in user :
 		if user['settings']['blacklist'] == 'default' :
-			query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}]}
+			query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
 		else :
-			query_obj = {'$and': [query_obj, {'tags': {'$nin': user['settings']['blacklist']}}]}
-	elif user is None :
-		query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}]}
+			query_obj = {'$and': [query_obj, {'tags': {'$nin': user['settings']['blacklist']}}, query_obj_extra]}
+	else :
+		query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
 	updateTagSearch(tags)
 	try :
 		result = db.retrive_items(query_obj)
@@ -54,18 +55,19 @@ def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_
 			raise UserError('FAILED_UNKNOWN')
 	return videos, getCommonTags(user_language, videos), count
 
-def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS', hide_placeholder = True):
+def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS', hide_placeholder = True, additional_constraint = ''):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
+	query_obj_extra, _ = db.compile_query(additional_constraint, 'tag')
 	query_obj = {}
 	if user and 'settings' in user :
 		if user['settings']['blacklist'] == 'default' :
-			query_obj = {'tags': {'$nin': default_blacklist_tagids}}
+			query_obj = {'$and': [{'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
 		else :
-			query_obj = {'tags': {'$nin': user['settings']['blacklist']}}
-	elif user is None :
-		query_obj = {'tags': {'$nin': default_blacklist_tagids}}
+			query_obj = {'$and': [{'tags': {'$nin': user['settings']['blacklist']}}, query_obj_extra]}
+	else :
+		query_obj = {'$and': [{'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
 	result = db.retrive_items(query_obj)
 	if order == 'latest':
 		result = result.sort([("meta.created_at", -1)])
