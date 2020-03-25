@@ -5,7 +5,7 @@ from datetime import timedelta
 from datetime import datetime
 from bson import ObjectId
 
-def viewLogs(page_idx, page_size, date_from = None, date_to = None, order = 'latest') :
+def viewLogs(page_idx, page_size, date_from = None, date_to = None, order = 'latest', op = '', level = ['MSG', 'WARN', 'SEC', 'ERR']) :
 	if order not in ['latest', 'oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	if order == 'latest':
@@ -20,9 +20,12 @@ def viewLogs(page_idx, page_size, date_from = None, date_to = None, order = 'lat
 		date_obj = {'time': {'$lt': date_to + timedelta(days = 1)}}
 	else :
 		date_obj = {}
+	date_obj = {'$and': [date_obj, {'level': {'$in': level}}]}
+	if op :
+		date_obj['$and'].append({'op': op})
 	return [i for i in db.logs.find(date_obj).sort([sort_obj]).skip(page_idx * page_size).limit(page_size)]
 
-def viewLogsAggregated(page_idx, page_size, date_from = None, date_to = None, order = 'latest') :
+def viewLogsAggregated(page_idx, page_size, date_from = None, date_to = None, order = 'latest', op = '', level = ['MSG', 'WARN', 'SEC', 'ERR']) :
 	if order not in ['latest', 'oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	if order == 'latest':
@@ -37,9 +40,12 @@ def viewLogsAggregated(page_idx, page_size, date_from = None, date_to = None, or
 		date_obj = {'time': {'$lt': date_to + timedelta(days = 1)}}
 	else :
 		date_obj = {}
+	date_obj2 = {'$and': [date_obj, {'level': {'$in': level}}]}
+	if op :
+		date_obj2['$and'].append({'op': op})
 	#TODO: replace this with periodically aggregate logs to a new collection
 	ret = db.logs.aggregate([
-		{'$match': date_obj},
+		{'$match': date_obj2},
 		{'$sort': sort_obj},
 		#{'$skip': page_idx * page_size},
 		{'$limit': page_size * 20},

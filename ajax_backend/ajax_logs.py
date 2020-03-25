@@ -27,11 +27,13 @@ def ajax_admin_viewlogs_do(rd, data, user):
 	date_to = getDefaultJSON(data, 'date_to', '')
 	page = getDefaultJSON(data, 'page', 1) - 1
 	page_size = getDefaultJSON(data, 'page_size', 100)
+	levels = getDefaultJSON(data, 'levels', ['SEC', 'MSG', 'WARN', 'ERR'])
+	op = getDefaultJSON(data, 'op', '')
 	if date_from :
 		date_from = parse(date_from).astimezone(timezone.utc)
 	if date_to :
 		date_to = parse(date_to).astimezone(timezone.utc)
-	ret = viewLogs(page, page_size, date_from, date_to, order)
+	ret = viewLogs(page, page_size, date_from, date_to, order, op, levels)
 	return "json", makeResponseSuccess(ret)
 
 @app.route('/admin/viewlogs_aggregated.do', methods = ['POST'])
@@ -44,11 +46,13 @@ def ajax_admin_viewlogs_aggregated_do(rd, data, user):
 	date_to = getDefaultJSON(data, 'date_to', '')
 	page = getDefaultJSON(data, 'page', 1) - 1
 	page_size = getDefaultJSON(data, 'page_size', 100)
+	levels = getDefaultJSON(data, 'levels', ['SEC', 'MSG', 'WARN', 'ERR'])
+	op = getDefaultJSON(data, 'op', '')
 	if date_from :
 		date_from = parse(date_from).astimezone(timezone.utc)
 	if date_to :
 		date_to = parse(date_to).astimezone(timezone.utc)
-	ret = viewLogsAggregated(page, page_size, date_from, date_to, order)
+	ret = viewLogsAggregated(page, page_size, date_from, date_to, order, op, levels)
 	return "json", makeResponseSuccess(ret)
 
 @app.route('/video/tag_log.do', methods = ['POST'])
