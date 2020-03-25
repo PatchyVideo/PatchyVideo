@@ -459,7 +459,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 			problematic_lock.reset()
 		except:
 			pass
-		return "UNKNOWN", traceback.format_exc()
+		return "UNKNOWN", '\n'.join([repr(traceback.format_exc()), repr(traceback.extract_stack())])
 
 async def postVideoAsyncJSON(param_json) :
 	url = param_json['url']

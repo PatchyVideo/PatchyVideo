@@ -72,7 +72,8 @@ def basePage(func):
 			log(level = 'WARN', obj = {'ex': e})
 			raise e
 		except Exception as ex:
-			log(level = 'ERR', obj = {'ex': str(ex)})
+			import traceback
+			log(level = 'ERR', obj = {'ex': str(ex), 'tb1': repr(traceback.format_exc()), 'tb2': repr(traceback.extract_stack())})
 			abort(400)
 	return wrapper
 
@@ -126,7 +127,8 @@ def loginRequired(func):
 				else :
 					abort(400)
 			except Exception as ex:
-				log(level = 'ERR', obj = {'ex': str(ex)})
+				import traceback
+				log(level = 'ERR', obj = {'ex': str(ex), 'tb1': repr(traceback.format_exc()), 'tb2': repr(traceback.extract_stack())})
 				abort(400)
 		else :
 			log('login_check', level = 'SEC', obj = {'action': 'denied', 'path': request.full_path})
@@ -183,7 +185,8 @@ def loginOptional(func):
 			else :
 				abort(400)
 		except Exception as ex :
-			log(level = 'ERR', obj = {'ex': str(ex)})
+			import traceback
+			log(level = 'ERR', obj = {'ex': str(ex), 'tb1': repr(traceback.format_exc()), 'tb2': repr(traceback.extract_stack())})
 			abort(400)
 	return wrapper
 
@@ -208,7 +211,8 @@ def jsonRequest(func):
 			log(level = 'WARN', obj = {'ue': str(ue)})
 			return jsonResponse(makeResponseFailed({"reason": ue.msg, "aux": ue.aux}))
 		except Exception as ex:
-			log(level = 'ERR', obj = {'ex': str(ex)})
+			import traceback
+			log(level = 'ERR', obj = {'ex': str(ex), 'tb1': repr(traceback.format_exc()), 'tb2': repr(traceback.extract_stack())})
 			abort(400)
 		if not ret :
 			return "json", makeResponseSuccess({})

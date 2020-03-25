@@ -22,7 +22,7 @@ def rateVideo(user, vid: ObjectId, stars: int) :
             user_rated = 0
             db.video_ratings.insert_one({'vid': vid, 'uid': ObjectId(user['_id']), 'v': int(stars)}, session = s())
         if 'total_rating' in video_obj :
-            db.items.update_one({'_id': vid}, {'$inc': {'total_rating': int(stars - rating_obj['v'])}, 'total_rating_user': int(1 - user_rated)}, session = s())
+            db.items.update_one({'_id': vid}, {'$inc': {'total_rating': int(stars - rating_obj['v']), 'total_rating_user': int(1 - user_rated)}}, session = s())
         else :
             db.items.update_one({'_id': vid}, {'$set': {'total_rating': int(stars), 'total_rating_user': int(1)}}, session = s())
         s.mark_succeed()

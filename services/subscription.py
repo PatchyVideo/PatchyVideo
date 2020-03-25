@@ -69,6 +69,8 @@ def listSubscriptedItems(user, page_idx, page_size, user_language, hide_placehol
 		(qobj, qtags), _ = q[i]
 		subs[i]['obj'] = qobj
 		subs[i]['obj_tags'] = qtags
+	if not query_obj['$or'] :
+		return [], subs, [], 0
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
 	if user and 'settings' in user :
 		if user['settings']['blacklist'] == 'default' :
