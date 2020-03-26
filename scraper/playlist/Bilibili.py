@@ -10,7 +10,7 @@ from utils.logger import log_ne
 
 class Bilibili() :
 	URL_MATCH = re.compile(r'space\.bilibili\.com\/(\d+)\/favlist\?fid=(\d+)')
-	EXTRACT_AVID = re.compile(r'(av\d+)')
+	EXTRACT_AVID = re.compile(r'(av\d+|BV[a-zA-Z0-9]+)')
 	def __init__(self) :
 		pass
 
