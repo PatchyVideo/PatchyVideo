@@ -1,6 +1,7 @@
 from . import Crawler
 from utils.jsontools import *
 from utils.encodings import makeUTF8
+from utils.html import html_to_plain_text
 
 import re
 import requests
@@ -28,13 +29,23 @@ class Sina(Crawler):
         soup = BeautifulSoup(content, "lxml")
         data = str(soup.select("body  script")[0]).split('var $render_data = [')[1].split('][0]')[0]
         status = json.loads(data)["status"]
+        html = json.loads(data)["status"]["text"]
+        soup = BeautifulSoup(html, "lxml")
+        a_list = soup.findAll('a')
+        text = html_to_plain_text(html)
+        HYPERLINK = []
+        for a in a_list:
+            if 'm.weibo.cn/search?' in a.get('href'):
+                HYPERLINK.append(a.get('href'))
+        for url in HYPERLINK:
+            text = text.replace('HYPERLINK', url, 1)
         return makeResponseSuccess({"unique_id": "weibo:%s" % status["id"],
             'creat_time' : status["created_at"],#Tue Feb 18 02:48:31 +0800 2020
             'users': status["user"]["screen_name"],
             'page_pic_url': status["page_info"]["page_pic"]["url"],#视频url
             'title': status["page_info"]["title"],
             'stream_url_hd': status["page_info"]["media_info"]["stream_url_hd"],
-            'description': status["text"]#html文件
+            'description': text#超链接
             })
 
     async def run_async(self, content, xpath, link, update_video_detail):
