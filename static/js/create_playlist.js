@@ -25,6 +25,15 @@ $(document).ready(function(){
 //////////////////////////////////////////////////////
 
 function submitPlaylist() {
+    if ($("#tab-button-new").hasClass("tab-active")) {
+        submitPlaylistNew();
+    }
+    if ($("#tab-button-existing").hasClass("tab-active")) {
+        submitPlaylistExisting();
+    }
+}
+
+function submitPlaylistNew() {
     title = $("#playlist-title").val();
     desc = $("#playlist-desc").val();
     pid = $("#pid").attr("content");
@@ -50,5 +59,33 @@ function submitPlaylist() {
     );
 }
 
+function submitPlaylistExisting() {
+    url = $("#playlist-url").val();
+    if (isEmpty(url)) {
+        setStatus("Please fill all required fields.", "red");
+        return;
+    }
+    postJSON("/lists/create_from_existing_playlists.do",
+        {
+            url: url
+        },
+        function(result){
+            pid = result.data.pid;
+            window.location = "/list/" + pid;
+        },
+        function(result){
+            alert(result.data);
+        }
+    );
+}
 
-
+function gotoTab(name) {
+    $(".tab-element").each(function(idx){
+        $(this).css("display", "none");
+    });
+    $(".tab-button").each(function(idx){
+        $(this).removeClass("tab-active");
+    });
+    $("#tab-" + name).css("display", "block");
+    $("#tab-button-" + name).addClass("tab-active");
+}

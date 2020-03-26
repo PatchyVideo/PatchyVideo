@@ -6,12 +6,13 @@ import redis
 from flask import render_template, request, current_app, jsonify, redirect, session
 
 from init import app
-from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON, loginRequired
+from utils import getDefaultJSON
+from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 from utils.exceptions import UserError
 
-from spiders import dispatch
-from services.listVideo import listVideo, listVideoQuery, listMyVideo
+from services.listVideo import listVideo, listVideoQuery, listMyVideo, listYourVideo
+from services.tagStatistics import getCommonTagsWithCount
 from services.getVideo import getTagCategoryMap
 from config import QueryConfig
 
@@ -19,17 +20,27 @@ from config import QueryConfig
 @loginOptional
 @jsonRequest
 def ajax_listvideo_do(rd, data, user):
-	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
+	order = getDefaultJSON(data, 'order', 'latest')
+	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
+	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
+	lang = getDefaultJSON(data, 'lang', 'CHS')
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, related_tags = listVideo(data.page - 1, data.page_size, order)
+	videos, video_count, related_tags, related_tags_popularity = listVideo(
+		data.page - 1,
+		data.page_size,
+		user,
+		order,
+		hide_placeholder = hide_placeholder,
+		user_language = lang,
+		additional_constraint = additional_constraint)
 	tag_category_map = getTagCategoryMap(related_tags)
-	video_count = videos.count()
 	ret = makeResponseSuccess({
-		"videos": [i for i in videos],
+		"videos": videos,
 		"count": video_count,
 		"page_count": (video_count - 1) // data.page_size + 1,
-		"tags": tag_category_map
+		"tags": tag_category_map,
+		"tag_pops": related_tags_popularity
 	})
 	return "json", ret
 
@@ -37,33 +48,65 @@ def ajax_listvideo_do(rd, data, user):
 @loginOptional
 @jsonRequest
 def ajax_queryvideo_do(rd, data, user):
+	start = time.time()
 	if len(data.query) > QueryConfig.MAX_QUERY_LENGTH :
 		raise UserError('QUERY_TOO_LONG')
-	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
+	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
+	order = getDefaultJSON(data, 'order', 'latest')
+	qtype = getDefaultJSON(data, 'qtype', 'tag')
+	lang = getDefaultJSON(data, 'lang', 'CHS')
+	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, related_tags, video_count = listVideoQuery(data.query, data.page - 1, data.page_size, order)
+	videos, related_tags, video_count = listVideoQuery(
+		user,
+		data.query,
+		data.page - 1,
+		data.page_size,
+		order,
+		hide_placeholder = hide_placeholder,
+		qtype = qtype,
+		user_language = lang,
+		additional_constraint = additional_constraint)
 	tag_category_map = getTagCategoryMap(related_tags)
+	end = time.time()
 	ret = makeResponseSuccess({
 		"videos": [i for i in videos],
 		"count": video_count,
 		"page_count": (video_count - 1) // data.page_size + 1,
-		"tags": tag_category_map
+		"tags": tag_category_map,
+		'time_used_ms': int((end - start) * 1000)
 	})
 	return "json", ret
 
 @app.route('/listmyvideo.do', methods = ['POST'])
-@loginRequired
+@loginRequiredJSON
 @jsonRequest
 def ajax_listmyvideo_do(rd, data, user):
-	order = data.order if 'order' in data.__dict__ and data.order is not None else 'latest'
+	order = getDefaultJSON(data, 'order', 'latest')
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos = listMyVideo(data.page - 1, data.page_size, user, order)
-	video_count = videos.count()
+	videos, video_count = listMyVideo(data.page - 1, data.page_size, user, order)
 	ret = makeResponseSuccess({
-		"videos": [i for i in videos],
+		"videos": videos,
 		"count": video_count,
+		"tags": getCommonTagsWithCount(data.lang, videos),
+		"page_count": (video_count - 1) // data.page_size + 1,
+	})
+	return "json", ret
+
+@app.route('/listyourvideo.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_listyourvideo_do(rd, data, user):
+	order = getDefaultJSON(data, 'order', 'latest')
+	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
+		raise AttributeError()
+	videos, video_count = listYourVideo(data.uid, data.page - 1, data.page_size, user, order)
+	ret = makeResponseSuccess({
+		"videos": videos,
+		"count": video_count,
+		"tags": getCommonTagsWithCount(data.lang, videos),
 		"page_count": (video_count - 1) // data.page_size + 1,
 	})
 	return "json", ret

@@ -50,69 +50,107 @@ phase 2
 #all query using GET
 #sort by video upload date
 #batch post as copies
-!<!!HIGH PRIORITY!!> tag alias(as multi-language phase1)
-    lacking UI for tag alias
-recover password
-!user access control for backend
-!user access control for frontend HTMLs
+#<!!HIGH PRIORITY!!> tag alias(as multi-language phase1)
+#   lacking UI for tag alias
+#recover password
+#    lacking UI support
+#user access control for backend
+#user access control for frontend HTMLs
 #log error, don't want others to see filenames in error response
 #change background image to include more patchouli
-better user profile page
-!user sees his playlists
-!user sees his uploads
-!user sees his pending/failed uploads
-    backend done, need UI
+#better user profile page
+#user sees his playlists
+#user sees his uploads
+#user sees his pending/failed uploads
+#    backend done, need UI
 #create playlist from a single video
-create playlist from current playlist but with videos from other site in "copies" field
-search playlist
-beautiful http error page
+!create playlist from current playlist but with videos from other site in "copies" field
+    lacking UI support
+#search playlist
+#beautiful http error page
 #add interactive admin shell
 #unify naming convention for status code AND use exception to replace status code
 #unify JSON return as status code, not error message
 add multi-language framework
-deployment mode using GCI
 #use reader-writer lock to protect tag rename/deletion
 add wiki/help page and documents/tagging guide
 #<!!HIGH PRIORITY!!> replace redis queue which is slow and does not support multiple workers/coroutines
 #    make postVideo async, don't want to waste time on requests.get
 #reorder playlist insert/add result after async post
-make autocomplete with fast_io::epoll
+#make autocomplete with fast_io::epoll
 #fix autocomplete unicode bug
 #support suffix autocomplete
 #tag rename
 #    lack tag rename for non-language tags
 #root tag language mark
-user-friendly error messages
+#user-friendly error messages
 show tag counts on video detail page
 #use common tags when adding video to playlist
+#add ajax interface for updating internal configs(e.g. bilicookie_SESSDATA) for both scraper and main website
+add clearence level for updating configs
+#add refresh video detail function
+!logging using MongoDB
+    need log viewing UI
+#check ajax input(e.g. page/page_size)
+use redis to cache commonly used video pages and tag translation
+add robots.txt
+remove unnecessary fileds from ajax results
+!interface for updating user access control info, remember to update user's access control info in redis db as well
+    lacking UI support
+#interface for updating video clearence
+#    lacking UI support
+#add view pending post playlist job interface
+#async frontend helper, create a new container for this task
+#add index for placeholder and folder
+#playlist tree structure(folder)
+#    need UI
+#image upload for cover/user-id photo
+#check user input for IPFS upload and image upload
+!merge tag
+    lacking UI
+#nico.ms support vue
+#add video to playlist from video detail page
+create video copy from desc automatically
+#extend playlist with playlist
+#post playlist optimization: once locked, no longer need to check for playlist existence and correctness for every video
 
 ======================
 offical launch
 ======================
 #restructured tag system for full multi language support
 tag group
-tag cooccurrences/related tag when posting video
+!autotag support
+    twitter is not supported
+!tag cooccurrences/related tag when posting video
+    current algorithm is expensive
 tag rule(e.g. adding touhou_mmd will results in mmd tag being added)
-batch post from existing playlist
-full text search
+#batch post from existing playlist
 mobile phone UI
 full multi-language support(CHS/CHT/JPN/ENG)
+automatically identify insufficient tags, show this message on both video upload and video detail page
+request videos for backup
+expand NOT operator
 + phase 2
 
 ======================
 phase 3
 ======================
+use microservice architecture
+user change video title/desc
+mark playlist as outdated, so its creator can update it
+IPFS support
 make everything async, don't want to waste time on spin locks
 user subscript to playlists
-user photo storing
+#user photo storing
 custom thumbnail for playlist
 user subscriptions
 danmaku
-comment section
+#comment section
 video downloading
 tag prompt/auto-complete
 show uploader profile photo
 jsproxy for sites
-video tagging histroy
+#video tagging history
 autotag using browser plugins(use tensorflow.js to recognize characters)
 autotag with simple NLP
+#full text search

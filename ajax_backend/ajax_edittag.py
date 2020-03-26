@@ -9,9 +9,7 @@ from init import app
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 
-from spiders import dispatch
-
-from services.editTag import addTag, queryTags, queryCategories, queryTagCategories, removeTag, renameTagOrAddTagLanguage, renameOrAddAlias, removeAlias, queryTagsWildcard, queryTagsRegex
+from services.editTag import *
 from config import TagsConfig
 
 @app.route('/tags/query_categories.do', methods = ['POST'])
@@ -44,7 +42,7 @@ def ajax_query_tags(rd, user, data):
 		order = 'latest'
 	if order not in ['latest', 'oldest', 'count', 'count_inv'] :
 		raise AttributeError()
-	tags = queryTags(data.category, data.page - 1, data.page_size, order)
+	tags = queryTags(data.category, data.page - 1, data.page_size, order, user)
 	tag_count = tags.count()
 	ret = makeResponseSuccess({
 		"tags": [i for i in tags],
@@ -67,7 +65,7 @@ def ajax_query_tags_wildcard(rd, user, data):
 		category = data.category
 	else :
 		category = ''
-	tags, tag_count = queryTagsWildcard(data.query, category, data.page - 1, data.page_size, order)
+	tags, tag_count = queryTagsWildcard(data.query, category, data.page - 1, data.page_size, order, user)
 	ret = makeResponseSuccess({
 		"tags": tags,
 		"count": tag_count,
@@ -87,7 +85,7 @@ def ajax_query_tags_regex(rd, user, data):
 		category = data.category
 	else :
 		category = ''
-	tags, tag_count = queryTagsRegex(data.query, category, data.page - 1, data.page_size, order)
+	tags, tag_count = queryTagsRegex(data.query, category, data.page - 1, data.page_size, order, user)
 	ret = makeResponseSuccess({
 		"tags": tags,
 		"count": tag_count,
@@ -106,6 +104,12 @@ def ajax_add_tag(rd, user, data):
 @jsonRequest
 def ajax_remove_tag(rd, user, data):
 	removeTag(user, data.tag)
+
+@app.route('/tags/transfer_category.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_transfer_category(rd, user, data):
+	transferCategory(user, data.tag, data.category)
 
 @app.route('/tags/rename_tag.do', methods = ['POST'])
 @loginRequiredJSON
@@ -137,3 +141,8 @@ def ajax_add_tag_language(rd, user, data):
 def ajax_remove_alias(rd, user, data):
 	removeAlias(user, data.alias)
 
+@app.route('/tags/merge_tag.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_merge_tag(rd, user, data):
+	mergeTag(user, data.tag_dst, data.tag_src)

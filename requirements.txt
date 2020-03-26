@@ -17,3 +17,5 @@ flask-restplus
 request
 python-dateutil
 aiohttp
+pyyaml
+pyahocorasick

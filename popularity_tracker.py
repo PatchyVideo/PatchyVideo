@@ -1,7 +1,7 @@
 
 from db import db, tagdb, client as dbclient
 from utils.dbtools import MongoTransaction
-from utils.interceptors import jsonRequest, basePage
+from utils.interceptors import jsonRequest, basePageNoLog
 from flask import Flask, request
 from collections import Counter
 from bson import ObjectId
@@ -91,10 +91,10 @@ tracker = PopularityTracker(7 * 24 * 6)
 import json
 
 @app.route("/hit", methods = ["POST"])
-@basePage
+@basePageNoLog
 @jsonRequest
 def hit_page(rd, data) :
-	print('hit', data.hitmap)
+	#print('hit', data.hitmap)
 	update_lock.acquire()
 	try:
 		tracker.update_current_bin(data.hitmap)
@@ -104,7 +104,7 @@ def hit_page(rd, data) :
 	return "data", "your hit:" + json.dumps(data.hitmap)
 
 @app.route("/get")
-@basePage
+@basePageNoLog
 def get_page(rd) :
 	try :
 		count = int(request.values['count'])
@@ -116,7 +116,7 @@ def get_page(rd) :
 	count = min(count, len(tracker.hitmap_sorted))
 	hitmap = list(tracker.hitmap_sorted.keys())[:count]
 	hitmap_update_lock.release()
-	return "json", {"tags": hitmap}
+	return "json", {"tags": hitmap, "pops": tracker.hitmap_sorted}
 
 from apscheduler.schedulers.background import BackgroundScheduler
 

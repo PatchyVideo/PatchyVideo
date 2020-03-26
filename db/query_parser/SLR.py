@@ -189,7 +189,6 @@ class Parser :
 
 		succeed = False
 
-		#pdb.set_trace()
 		while True :
 			topI = tokens[-1]
 			topS = stream[-1]

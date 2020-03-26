@@ -38,14 +38,14 @@ function gotoPage(page) {
     form.submit();
 }
 
-function proxyResource(url, referrer = "", user_agent = "Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0") {
-    url = encodeURI(url);
+function proxyResource(url, referrer = "", user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3835.0 Safari/537.36") {
+    url = escape(url);
     if (referrer)
         header = JSON.stringify({ 'Referer' : referrer, 'User-Agent': user_agent })
     else
         header = JSON.stringify({ 'User-Agent': user_agent })
-    header = encodeURI(header)
-    return `/proxy?url=${url}&header=${header}`;
+    header = escape(header)
+    return `/helper/proxy?url=${url}&header=${header}`;
 }
 
 function setStatus(prompt, color = "black") {

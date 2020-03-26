@@ -6,3 +6,4 @@ if os.getenv("FLASK_ENV", "development") == "production" :
 else :
     TAG_TRACKER_ADDRESS = 'http://localhost:5001'
 
+import services.config

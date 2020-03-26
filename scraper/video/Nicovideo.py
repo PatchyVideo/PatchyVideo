@@ -1,7 +1,7 @@
 
 import json
 import re
-from . import Spider
+from . import Crawler
 from utils.jsontools import *
 from utils.encodings import makeUTF8
 from utils.html import try_get_xpath
@@ -11,9 +11,9 @@ from datetime import timezone
 from lxml.etree import tostring
 from bs4 import BeautifulSoup
 
-class Nicovideo( Spider ) :
+class Nicovideo( Crawler ) :
 	NAME = 'nicovideo'
-	PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?nicovideo\.jp\/watch\/(s|n)m[\d]+'
+	PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?(nicovideo\.jp\/watch\/(s|n)m[\d]+|nico\.ms\/(s|n)m[\d]+)'
 	SHORT_PATTERN = r'^(s|n)m[\d]+$'
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.nicovideo.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.nicovideo.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
@@ -29,7 +29,7 @@ class Nicovideo( Spider ) :
 		link = link.lower()
 		return "nicovideo:%s" % link[link.rfind("m") - 1:]
 
-	def run( self, content, xpath, link ) :
+	def run( self, content, xpath, link, update_video_detail ) :
 		link = link.lower()
 		vidid = link[link.rfind("m") - 1:]
 		thumbnailURL = try_get_xpath(xpath, ['//meta[@itemprop="thumbnailUrl"]/@content', '//meta[@name="thumbnail"]/@content'])[0]
@@ -51,17 +51,20 @@ class Nicovideo( Spider ) :
 		soup = BeautifulSoup(desc, features = "lxml")
 		desc_textonly = ''.join(soup.findAll(text = True))
 		uploadDate = parse(uploadDate).astimezone(timezone.utc)
+		utags = try_get_xpath(xpath, ['//meta[@property="og:video:tag"]/@content', '//meta[@itemprop="og:video:tag"]/@content', '//meta[@name="og:video:tag"]/@content'])
+		utags = [str(ut) for ut in utags]
 		return makeResponseSuccess({
 			'thumbnailURL': thumbnailURL,
 			'title' : title,
 			'desc' : desc_textonly,
 			'site': 'nicovideo',
 			'uploadDate' : uploadDate,
-			"unique_id": "nicovideo:%s" % vidid
+			"unique_id": "nicovideo:%s" % vidid,
+			"utags": utags
 		})
 		
 	async def unique_id_async( self, link ) :
-		return self.unique_id(link)
+		return self.unique_id(self = self, link = link)
 		
-	async def run_async(self, content, xpath, link) :
-		return self.run(self = self, content = content, xpath = xpath, link = link)
+	async def run_async(self, content, xpath, link, update_video_detail) :
+		return self.run(self = self, content = content, xpath = xpath, link = link, update_video_detail = update_video_detail)

@@ -13,7 +13,7 @@
 <link href="{{ url_for('static',filename='css/textcomplete.css') }}" rel="stylesheet">
 <script>
     function match_keywords(term) {
-        keywords = ["AND", "OR", "NOT", "date:", "site:acfun", "site:bilibili", "site:nicovideo", "site:twitter", "site:youtube"];
+        keywords = ["AND", "OR", "NOT", "date:", "site:acfun", "site:bilibili", "site:nicovideo", "site:twitter", "site:youtube", "site:ipfs"];
         data2 = [];
         keywords.forEach(element => {
             if (element.startsWith(term)) {
@@ -62,7 +62,10 @@
 				var term_start_pos = value.tag.indexOf(value.term);
 				prefix = value.tag.substring(0, term_start_pos);
 				suffix = value.tag.substring(term_start_pos + value.term.length);
-				highlighted_term = `${prefix}<b><u>${value.term}</u></b>${suffix}`;
+                highlighted_term = `${prefix}<b><u>${value.term}</u></b>${suffix}`;
+                if (value.cnt == -1) {
+					return `<span style="color: ${value.color};"><span style="margin-right: 6em;">${highlighted_term}</span></span>`;
+				}
 				return `<span style="color: ${value.color};"><span style="margin-right: 6em;">${highlighted_term}</span></span><span style="float:right;">${value.cnt}</span>`;
 			},
 			replace: function (value) {

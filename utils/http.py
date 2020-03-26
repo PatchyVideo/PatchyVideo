@@ -1,11 +1,11 @@
 
 import requests
-import json
 from urllib.parse import urlparse
+from bson.json_util import dumps, loads
 
 def post_json(url, json_obj_or_string) :
     if not isinstance(json_obj_or_string, str) :
-        payload = json.dumps(json_obj_or_string)
+        payload = dumps(json_obj_or_string)
     else :
         payload = json_obj_or_string
     headers = {'content-type': 'application/json'}
@@ -29,3 +29,9 @@ def clear_url(url) :
         return "https://%s%s" % (
             link_parsed.netloc,
             link_parsed.path)
+
+def getRealIP(request) :
+    if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        return request.environ['REMOTE_ADDR']
+    else:
+        return request.environ['HTTP_X_FORWARDED_FOR']

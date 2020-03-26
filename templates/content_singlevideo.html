@@ -257,6 +257,7 @@
                 <li><a href="/lists">播放列表</a></li>
                 <li><a href="/postvideo">发布视频</a></li>
                 <li><a href="/edittag">标签</a></li>
+                <li><a href="/ipfs">幻想之物</a></li>
             </ul>
         </div>
         <div class="nav_right">
@@ -336,6 +337,7 @@
 			<div class="recommend">
 				<div class="re_top">
 					<h2>{{title}}</h2>
+					<i onclick="javascript:refreshVideo('{{video_id}}');" class="fa fa-refresh" style="position: absolute; left: 0px;"></i>
 				</div>
 				<h4 class="video_link" id="video_link"><a href="{{link}}">{{link}}</a>
 					<i onclick="javascript:copyToClipboard($('#video_link'));" class="fa fa-copy fa-1x"></i>
@@ -349,7 +351,19 @@
 				<h5 style="text-align: center;">{{upload_date}} UTC</h5>
 				{% endif %}
 				<div class="re_video">
-					<img src="/images/covers/{{cover_image}}" width="320px" alt="{{title}}" title="{{title}}">
+					{% if ipfs_video %}
+					<video src="https://ipfs.globalupload.io/{{ipfs_hash}}"
+						id="player"
+						controls
+						loop
+						width="50%" style="display: block;
+						vertical-align: middle;
+						margin: 20px auto;">
+						<p>Please use a modern browser</p>
+					</video>
+					{% else %}
+						<img src="/images/covers/{{cover_image}}" width="320px" alt="{{title}}" title="{{title}}">
+					{% endif %}
 					<p id="desc-area">{{desc}}</p>
 				</div>
 			</div>

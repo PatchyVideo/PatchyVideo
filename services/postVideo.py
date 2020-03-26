@@ -16,8 +16,10 @@ from bson.json_util import dumps, loads
 from bson import ObjectId
 
 from db import tagdb
-from spiders import dispatch
+from scraper.video import dispatch
 from config import VideoConfig, TagsConfig
+from utils.logger import log, getEventID
+from services.tcb import filterOperation
 
 if os.getenv("FLASK_ENV", "development") == "production" :
 	SCRAPER_ADDRESS = 'http://scraper:5003'
@@ -28,11 +30,11 @@ else :
 def _verifyTags(tags) :
 	tagdb.verify_tags(tags)
 
-def _postTask(json_str) :
-	ret_obj = loads(post_raw(SCRAPER_ADDRESS, json_str.encode('utf-8')).text)
+def postTask(json_str) :
+	ret_obj = loads(post_raw(SCRAPER_ADDRESS + "/video", json_str.encode('utf-8')).text)
 	return ret_obj['task_id']
 
-def _createJsonForPosting(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, user, playlist_ordered = None) :
+def _createJsonForPosting(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, repost_type, user, playlist_ordered = None, field_overrides = None) :
 	return dumps({
 		'url' : url,
 		'tags' : tags,
@@ -40,8 +42,11 @@ def _createJsonForPosting(url, tags, dst_copy, dst_playlist, dst_rank, other_cop
 		'dst_playlist' : dst_playlist,
 		'dst_rank' : dst_rank,
 		'other_copies' : other_copies,
+		'repost_type': repost_type,
 		'user' : user,
-		'playlist_ordered' : playlist_ordered
+		'playlist_ordered' : playlist_ordered,
+		'event_id': getEventID(),
+		'field_overrides': field_overrides
 	})
 
 def getTaskParamas(task_id) :
@@ -71,9 +76,11 @@ def listFailedPosts(user, page = 0, page_size = 100000) :
 	uid = ObjectId(user['_id'])
 	result = tagdb.db.failed_posts.find({'uid': uid})
 	result = result.skip(page * page_size).limit(page_size)
-	return result
+	return result, result.count()
 
-def postVideo(user, url, tags, copy, pid, rank):
+def postVideo(user, url, tags, copy, pid, rank, repost_type):
+	log(obj = {'url': url, 'tags': tags, 'copy': copy, 'pid': pid, 'rank': rank})
+	filterOperation('postVideo', user)
 	tags = [tag.strip() for tag in tags]
 	if not url :
 		raise UserError('EMPTY_URL')
@@ -87,11 +94,47 @@ def postVideo(user, url, tags, copy, pid, rank):
 	if not cleanURL :
 		raise UserError('EMPTY_URL')
 	_verifyTags(tags)
-	print('Posting %s' % cleanURL, file = sys.stderr)
-	task_id = _postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], user))
+	log(obj = {'url': cleanURL})
+	task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], repost_type, user))
 	return task_id
 
-def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies):
+def postVideoIPFS_new(user, url, tags, copy, pid, rank, desc, title, cover_file_key, repost_type):
+	log(obj = {'url': url, 'tags': tags, 'copy': copy, 'pid': pid, 'rank': rank})
+	filterOperation('postVideo', user)
+	tags = [tag.strip() for tag in tags]
+	# TODO: check title and desc clength
+	if not url :
+		raise UserError('EMPTY_URL')
+	if len(url) > VideoConfig.MAX_URL_LENGTH :
+		raise UserError('URL_TOO_LONG')
+	if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
+		raise UserError('TAGS_LIMIT_EXCEEDED')
+	if len(title) > VideoConfig.MAX_TITLE_LENGTH :
+		raise UserError('TITLE_TOO_LONG')
+	if len(desc) > VideoConfig.MAX_DESC_LENGTH :
+		raise UserError('DESC_TOO_LONG')
+	cover_file = None
+	if cover_file_key.startswith("upload-image-") :
+		filename = rdb.get(cover_file_key)
+		if filename :
+			cover_file = filename.decode('ascii')
+	if cover_file is None :
+		raise UserError('NO_COVER')
+	obj, cleanURL = dispatch(url)
+	if obj is None:
+		raise UserError('UNSUPPORTED_WEBSITE')
+	if not cleanURL :
+		raise UserError('EMPTY_URL')
+	if obj.NAME != 'ipfs' :
+		raise UserError('NOT_IPFS')
+	_verifyTags(tags)
+	log(obj = {'url': cleanURL})
+	task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], repost_type, user, field_overrides = {'title': title, 'desc': desc, 'cover_image_override': cover_file, '__condition': 'any'}))
+	return task_id
+
+def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies, repost_type):
+	log(obj = {'urls': videos, 'tags': tags, 'copy': copy, 'pid': pid, 'rank': rank, 'as_copies': as_copies})
+	filterOperation('postVideo', user)
 	tags = [tag.strip() for tag in tags]
 	if not videos :
 		raise UserError('EMPTY_LIST')
@@ -107,19 +150,18 @@ def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies):
 		if not url:
 			continue
 		obj, cleanURL = dispatch(url)
+		# Here we allow batch post to be partially successful
 		if obj is not None :
 			uid = obj.unique_id(obj, cleanURL)
 			if not uid in unique_ids : # remove duplicated items
 				cleanURL_objs.append((obj, cleanURL))
 				unique_ids.append(uid)
-	# Here we allow batch post to be partially successful
+		else :
+			log('dispatcher', level = 'WARN', obj = {'failed_url': url})
 	task_ids = []
 	for idx, (obj, cleanURL) in enumerate(cleanURL_objs) :
-		print('Posting %s' % cleanURL, file = sys.stderr)
-		if obj :
-			next_idx = idx if rank >= 0 else 0
-			task_id = _postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank + next_idx, unique_ids if as_copies else [], user, unique_ids))
-			task_ids.append(task_id)
-		else :
-			pass # ignore for now
+		log(obj = {'url': cleanURL})
+		next_idx = idx if rank >= 0 else 0
+		task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank + next_idx, unique_ids if as_copies else [], repost_type, user, unique_ids))
+		task_ids.append(task_id)
 	return task_ids

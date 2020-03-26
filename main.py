@@ -1,12 +1,12 @@
 
 from init import app
 
-import utils
 import db
+import utils
 import services
 import ajax_backend
 import pages
-import backend
+#import backend
 
 if __name__ == '__main__' or __name__ == 'main' :
     from db import tagdb

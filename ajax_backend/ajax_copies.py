@@ -9,8 +9,6 @@ from init import app
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 
-from spiders import dispatch
-
 from services.copies import breakLink, syncTags, broadcastTags
 
 @app.route('/videos/breaklink.do', methods = ['POST'])

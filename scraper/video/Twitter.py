@@ -1,5 +1,5 @@
 
-from . import Spider
+from . import Crawler
 from utils.jsontools import *
 from utils.encodings import makeUTF8
 from utils.html import getInnerText
@@ -11,7 +11,7 @@ import re
 import json
 import aiohttp
 
-class Twitter( Spider ) :
+class Twitter( Crawler ) :
 	NAME = 'twitter'
 	PATTERN = r'^(https:\/\/)?(www\.|mobile\.)?twitter\.com\/[\w]+\/status\/[\d]+'
 	SHORT_PATTERN = r''
@@ -75,13 +75,14 @@ class Twitter( Spider ) :
 			'site': 'twitter',
 			'uploadDate' : uploadDate,
 			"unique_id": "twitter:%s" % item_id,
-			"url_overwrite": f'https://twitter.com/{screen_name}/status/{item_id}'
+			"url_overwrite": f'https://twitter.com/{screen_name}/status/{item_id}',
+			"utags": []
 		})
 		
 	async def unique_id_async( self, link ) :
-		return self.unique_id(link)
+		return self.unique_id(self = self, link = link)
 		
-	async def run_async(self, content, xpath, link) :
+	async def run_async(self, content, xpath, link, update_video_detail) :
 		if re.match(r'https?://mobile', link): # normalize mobile URL
 			link = 'https://' + match1(link, r'//mobile\.(.+)')
 		screen_name = r1(r'twitter\.com/([^/]+)', link) or r1(r'data-screen-name="([^"]*)"', content) or \
@@ -116,5 +117,6 @@ class Twitter( Spider ) :
 			'site': 'twitter',
 			'uploadDate' : uploadDate,
 			"unique_id": "twitter:%s" % item_id,
-			"url_overwrite": f'https://twitter.com/{screen_name}/status/{item_id}'
+			"url_overwrite": f'https://twitter.com/{screen_name}/status/{item_id}',
+			"utags": []
 		})
