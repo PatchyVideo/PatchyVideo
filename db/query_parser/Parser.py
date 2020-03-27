@@ -268,7 +268,10 @@ def _parse_tree(node, groups, tag_translator, wildcard_translator, any_node = Fa
 			struct, tree = _parse_tree(node.children[2], groups, tag_translator, wildcard_translator, any_node = True)
 			if struct == 'any-tags' or struct == 'single-tag':
 			    return struct, tree
-			return 'complex-query', { '$or' : tree }
+			if len(tree) == 1 :
+				return 'complex-query', tree
+			else :
+				return 'complex-query', { '$or' : tree }
 	if node.name == '<unary-query>' :
 		if len(node.children) == 1:
 			return _parse_tree(node.children[0], groups, tag_translator, wildcard_translator)
