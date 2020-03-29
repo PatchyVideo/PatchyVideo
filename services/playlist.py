@@ -731,6 +731,7 @@ def editPlaylist_Move(pid, vid, to_rank, user) :
 		s.mark_succeed()
 
 def editPlaylist_MoveLockFree(pid, vid_or_playlist_item, to_rank, session) :
+	log(obj = {'pid': pid, 'vid': vid_or_playlist_item, 'to_rank': to_rank})
 	if isinstance(vid_or_playlist_item, str) or isinstance(vid_or_playlist_item, ObjectId) :
 		playlist_item = db.playlist_items.find_one({'pid': ObjectId(pid), 'vid': ObjectId(vid_or_playlist_item)}, session = session)
 	else :
@@ -740,10 +741,10 @@ def editPlaylist_MoveLockFree(pid, vid_or_playlist_item, to_rank, session) :
 		return False
 	if to_rank > from_rank :
 		db.playlist_items.update_many({'pid': ObjectId(pid), 'rank': {'$gt': from_rank, '$lt': to_rank}}, {'$inc': {'rank': int(-1)}}, session = session)
-		db.playlist_items.update_one({'_id': playlist_item['_id']}, {'$set': {'rank': int(to_rank - 1)}})
+		db.playlist_items.update_one({'_id': playlist_item['_id']}, {'$set': {'rank': int(to_rank - 1)}}, session = session)
 	else :
 		db.playlist_items.update_many({'pid': ObjectId(pid), 'rank': {'$gte': to_rank, '$lt': from_rank}}, {'$inc': {'rank': int(1)}}, session = session)
-		db.playlist_items.update_one({'_id': playlist_item['_id']}, {'$set': {'rank': int(to_rank)}})
+		db.playlist_items.update_one({'_id': playlist_item['_id']}, {'$set': {'rank': int(to_rank)}}, session = session)
 	return True
 
 def insertIntoPlaylist(pid, vid, rank, user) :
