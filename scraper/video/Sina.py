@@ -15,7 +15,7 @@ class Sina(Crawler):
     HEADERS = makeUTF8({'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0',})
     HEADERS_NO_UTF8 = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0',}
     def normalize_url(self, link):
-        return link #目前没找到其他形式的链接
+        return link
 
     def unique_id(self, link):
         for item in link.split('/'):
