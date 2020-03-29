@@ -83,7 +83,7 @@ def getRelatedTagsFixedMainTags(user_language, tags, exclude = [], max_count = 1
 		'游戏',
 		'东方FTG',
 		'东方STG',
-		'游戏宣传',
+		'游戏宣传',  # exclude
 		'音乐游戏',
 		'mugen',
 		'Minecraft',
@@ -115,8 +115,8 @@ def getRelatedTagsFixedMainTags(user_language, tags, exclude = [], max_count = 1
 		'线下活动',
 		'Cosplay',
 		'绘画过程',
-		'meme',
-		'Shitpost',
+		'meme',      # exclude
+		'Shitpost',  # exclude
 		'手工艺',
 		'VTuber',
 		'图集',
