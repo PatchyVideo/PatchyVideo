@@ -55,7 +55,7 @@ def createThread(obj_type: str, obj_id : ObjectId, owner : ObjectId, session = N
 
 def addComment(user, thread_id : ObjectId, text : str) : # user can add comments
     filterOperation('postComment', user)
-    text = bleach.clean(text)
+    text = bleach.clean(text, tags = [], attributes = [], styles = [])
     l = len(text)
     if l > Comments.MAX_COMMENT_LENGTH_LONG :
         raise UserError('COMMENT_TOO_LONG')
@@ -115,7 +115,7 @@ def addReply(user, reply_to : ObjectId, text : str) : # user can add comments
     reply_to: comment id
     """
     filterOperation('postComment', user)
-    text = bleach.clean(text)
+    text = bleach.clean(text, tags = [], attributes = [], styles = [])
     l = len(text)
     if l > Comments.MAX_COMMENT_LENGTH_LONG :
         raise UserError('COMMENT_TOO_LONG')
