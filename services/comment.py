@@ -1,5 +1,6 @@
 
 import redis_lock
+import bleach
 
 from bson import ObjectId
 
@@ -53,8 +54,8 @@ def createThread(obj_type: str, obj_id : ObjectId, owner : ObjectId, session = N
     return ObjectId(tid)
 
 def addComment(user, thread_id : ObjectId, text : str) : # user can add comments
-    # TODO notify user being replied to
     filterOperation('postComment', user)
+    text = bleach.clean(text)
     l = len(text)
     if l > Comments.MAX_COMMENT_LENGTH_LONG :
         raise UserError('COMMENT_TOO_LONG')
@@ -114,7 +115,7 @@ def addReply(user, reply_to : ObjectId, text : str) : # user can add comments
     reply_to: comment id
     """
     filterOperation('postComment', user)
-    # TODO notify user being replied to
+    text = bleach.clean(text)
     l = len(text)
     if l > Comments.MAX_COMMENT_LENGTH_LONG :
         raise UserError('COMMENT_TOO_LONG')
