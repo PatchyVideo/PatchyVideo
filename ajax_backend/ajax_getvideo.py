@@ -9,7 +9,7 @@ from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 from utils.exceptions import UserError
 
-from services.getVideo import getVideoDetail, getVideoDetailWithTags
+from services.getVideo import getVideoDetail, getVideoDetailWithTags, getVideoByURL
 from services.playlist import listPlaylistsForVideo
 from config import TagsConfig, VideoConfig
 
@@ -49,3 +49,9 @@ def ajax_getvideo(rd, user, data):
 		"tag_by_category": tag_by_category
 	})
 
+@app.route('/getvideo_url.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_getvideo_url(rd, user, data) :
+	obj = getVideoByURL(data.url)
+	return "json", makeResponseSuccess({'video': obj})
