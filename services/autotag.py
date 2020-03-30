@@ -82,7 +82,10 @@ def inferTagidsFromText(text) :
 		tagids.append(tagid)
 	thwords = find_touhou_words(text)
 	matched_tags = _aci.MatchFirstTag(thwords)
-	th_tagids = loads(matched_tags.content.decode('utf-8'))
+	if matched_tags :
+		th_tagids = loads(matched_tags.content.decode('utf-8'))
+	else :
+		th_tagids = []
 	return list(set(tagids + th_tagids))
 
 def inferTagsFromVideo(utags, title, desc, user_language) :

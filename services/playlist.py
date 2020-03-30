@@ -630,6 +630,52 @@ def listPlaylistsForVideo(user, vid) :
 		ans.append(playlist_obj)
 	return ans
 
+def listPlaylistsForVideoNoAuth(vid) :
+	video = tagdb.retrive_item({'_id': ObjectId(vid)})
+	if video is None :
+		raise UserError('VIDEO_NOT_EXIST')
+	result = db.playlist_items.aggregate([
+		{
+			'$match': {
+				'$and': [
+				{
+					'pid': {
+						'$in': video['item']['series']
+					}
+				},
+				{
+					'vid': video['_id']
+				}
+				]
+			}
+		},
+		{
+			'$lookup': {
+				'from': 'playlists',
+				'localField': 'pid',
+				'foreignField': '_id',
+				'as': 'playlist'
+			}
+		},
+		{
+			'$unwind': {
+				'path': '$playlist'
+			}
+		}
+	])
+	ans = []
+	for obj in result :
+		playlist_obj = obj['playlist']
+		playlist_obj['prev'] = ''
+		playlist_obj['next'] = ''
+		rank = obj['rank']
+		if rank > 0 :
+			playlist_obj['prev'] = str(db.playlist_items.find_one({'pid': playlist_obj['_id'], 'rank': int(rank - 1)})['vid'])
+		if rank + 1 < playlist_obj['videos'] :
+			playlist_obj['next'] = str(db.playlist_items.find_one({'pid': playlist_obj['_id'], 'rank': int(rank + 1)})['vid'])
+		ans.append(playlist_obj)
+	return ans
+
 def removeVideoFromPlaylist(pid, vid, page, page_size, user) :
 	log(obj = {'pid': pid, 'vid': vid})
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
