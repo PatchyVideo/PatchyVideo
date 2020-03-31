@@ -36,7 +36,7 @@ def ratePlaylist(user, pid: ObjectId, stars: int) :
     if playlist_obj is None :
         raise UserError('PLAYLIST_NOT_EXIST')
     with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
-        rating_obj = db.playlist_ratings.find_one({'pid': pid, 'uid': ObjectId(user['_id'])})
+        rating_obj = db.playlist_ratings.find_one({'pid': pid, 'uid': ObjectId(user['_id'])}, session = s())
         user_rated = 0
         if rating_obj :
             user_rated = 1
