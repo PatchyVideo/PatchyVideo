@@ -15,11 +15,19 @@ import itertools
 _keyword_dict = None
 _automata = None
 _aci = None
+_stopwords = None
 
 def buildKeywordDictMongo() :
 	"""
 	Build keyword dict from scratch and store into MongoDB, manually triggered
 	"""
+	stopwords = []
+	with open('stopwords.txt') as fp :
+		for l in fp :
+			l = l.strip()
+			if not l :
+				break
+			stopwords.append(l.lower())
 	word_id_map = {}
 	def add_words(words, tagid) :
 		for w in words :
@@ -37,10 +45,14 @@ def buildKeywordDictMongo() :
 		for tag_obj in db.db.tags.find() :
 			for (_, value) in tag_obj['languages'].items() :
 				words = cut_for_search(value)
+				if len(words) == 1 and words[0].lower() in stopwords :
+					continue # ignore stopword
 				add_words(words, tag_obj['id'])
 				add_words([value], tag_obj['id'])
 			for value in tag_obj['alias'] :
 				words = cut_for_search(value)
+				if len(words) == 1 and words[0].lower() in stopwords :
+					continue # ignore stopword
 				add_words(words, tag_obj['id'])
 				add_words([value], tag_obj['id'])
 		for (word, wid) in word_id_map.items() :
@@ -64,16 +76,30 @@ def buildAutomata() :
 	[_automata.add_word(obj['wordstr'], obj['tagid']) for obj in ret]
 	_automata.make_automaton()
 
+def buildStopwords() :
+	global _stopwords
+	stopwords = []
+	with open('stopwords.txt') as fp :
+		for l in fp :
+			l = l.strip()
+			if not l :
+				break
+			stopwords.append(l.lower())
+	_stopwords = set(stopwords)
+
 def inferTagidsFromText(text) :
 	global _keyword_dict
 	global _automata
 	global _aci
+	global _stopwords
 	if _keyword_dict is None :
 		buildKeywordDict()
 	if _automata is None :
 		buildAutomata()
 	if _aci is None :
 		_aci = AutocompleteInterface()
+	if _stopwords is None :
+		buildStopwords()
 	words = cut_for_search(text)
 	word_ids = [_keyword_dict.get(word, 0) for word in words]
 	wordstr = ''.join([chr(wid) for wid in word_ids])
@@ -81,6 +107,7 @@ def inferTagidsFromText(text) :
 	for _, tagid in _automata.iter(wordstr) :
 		tagids.append(tagid)
 	thwords = find_touhou_words(text)
+	thwords = list(set(thwords) - _stopwords)
 	matched_tags = _aci.MatchFirstTag(thwords)
 	if matched_tags :
 		th_tagids = loads(matched_tags.content.decode('utf-8'))
