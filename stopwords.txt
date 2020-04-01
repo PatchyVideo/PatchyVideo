@@ -15,3 +15,5 @@ Settings
 Live
 music
 舞
+弹幕
+弾幕
