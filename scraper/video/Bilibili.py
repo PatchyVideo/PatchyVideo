@@ -15,7 +15,7 @@ import os
 From https://www.zhihu.com/question/381784377/answer/1099438784
 """
 class _bv2av() :
-	table='fZodR9XQDSUm21yCkr6zBqiveYah8bt4xsWpHnJE7jL5VG3guMTKNPAwcF'
+	table = 'fZodR9XQDSUm21yCkr6zBqiveYah8bt4xsWpHnJE7jL5VG3guMTKNPAwcF'
 	tr = {}
 	s = [11, 10, 3, 8, 4, 6]
 	xor = 177451812
