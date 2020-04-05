@@ -27,7 +27,7 @@ def ajax_listvideo_do(rd, data, user):
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, video_count, related_tags, related_tags_popularity, query_obj = listVideo(
+	videos, video_count, related_tags, related_tags_popularity, query_obj, exStats1, exStats2 = listVideo(
 		data.page - 1,
 		data.page_size,
 		user,
@@ -44,7 +44,9 @@ def ajax_listvideo_do(rd, data, user):
 		"tags": tag_category_map,
 		"tag_pops": related_tags_popularity,
 		'time_used_ms': int((end - start) * 1000),
-		"query_obj": query_obj
+		"query_obj": query_obj,
+		"ex_stats_1": exStats1,
+		"ex_stats_2": exStats2
 	})
 	return "json", ret
 
@@ -62,7 +64,7 @@ def ajax_queryvideo_do(rd, data, user):
 	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, related_tags, video_count, query_obj = listVideoQuery(
+	videos, related_tags, video_count, query_obj, exStats1, exStats2 = listVideoQuery(
 		user,
 		data.query,
 		data.page - 1,
@@ -80,7 +82,9 @@ def ajax_queryvideo_do(rd, data, user):
 		"page_count": (video_count - 1) // data.page_size + 1,
 		"tags": tag_category_map,
 		'time_used_ms': int((end - start) * 1000),
-		"query_obj": query_obj
+		"query_obj": query_obj,
+		"ex_stats_1": exStats1,
+		"ex_stats_2": exStats2
 	})
 	return "json", ret
 

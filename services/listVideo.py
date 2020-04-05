@@ -31,8 +31,11 @@ def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_
 	else :
 		query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
 	updateTagSearch(tags)
+	exStats1 = None
+	exStats2 = None
 	try :
 		result = db.retrive_items(query_obj)
+		exStats1 = result.explain()
 		if order == 'latest':
 			result = result.sort([("meta.created_at", -1)])
 		if order == 'oldest':
@@ -42,6 +45,7 @@ def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_
 		if order == 'video_oldest':
 			result = result.sort([("item.upload_time", 1)])
 		ret = result.skip(page_idx * page_size).limit(page_size)
+		exStats2 = ret.explain()
 		count = ret.count()
 		videos = [item for item in ret]
 		videos = filterVideoList(videos, user)
@@ -53,7 +57,7 @@ def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_
 		else :
 			log(level = 'ERR', obj = {'ex': str(ex)})
 			raise UserError('FAILED_UNKNOWN')
-	return videos, getCommonTags(user_language, videos), count, query_obj
+	return videos, getCommonTags(user_language, videos), count, query_obj, exStats1, exStats2
 
 def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS', hide_placeholder = True, additional_constraint = ''):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
@@ -61,14 +65,24 @@ def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS'
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
 	query_obj_extra, _ = db.compile_query(additional_constraint, 'tag')
 	query_obj = {}
+	empty_query = True
 	if user and 'settings' in user :
 		if user['settings']['blacklist'] == 'default' :
+			empty_query = False
 			query_obj = {'$and': [{'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
 		else :
+			if user['settings']['blacklist'] or query_obj_extra :
+				empty_query = False
 			query_obj = {'$and': [{'tags': {'$nin': user['settings']['blacklist']}}, query_obj_extra]}
 	else :
+		empty_query = False
 		query_obj = {'$and': [{'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
+	if empty_query :
+		query_obj = {}
+	exStats1 = None
+	exStats2 = None
 	result = db.retrive_items(query_obj)
+	exStats1 = result.explain()
 	if order == 'latest':
 		result = result.sort([("meta.created_at", -1)])
 	if order == 'oldest':
@@ -78,13 +92,14 @@ def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS'
 	if order == 'video_oldest':
 		result = result.sort([("item.upload_time", 1)])
 	videos = result.skip(page_idx * page_size).limit(page_size)
+	exStats2 = videos.explain()
 	video_count = videos.count()
 	videos = [i for i in videos]
 	videos = filterVideoList(videos, user)
 	if hide_placeholder :
 		videos = _filterPlaceholder(videos)
 	tags, pops = getPopularTags(user_language)
-	return videos, video_count, tags, pops, query_obj
+	return videos, video_count, tags, pops, query_obj, exStats1, exStats2
 
 def listMyVideo(page_idx, page_size, user, order = 'latest'):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
