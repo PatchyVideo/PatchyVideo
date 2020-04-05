@@ -327,7 +327,7 @@ def request_password_reset(email, user_language) :
 def reset_password(reset_key, new_pass) :
 	if len(new_pass) > UserConfig.MAX_PASSWORD_LENGTH or len(new_pass) < UserConfig.MIN_PASSWORD_LENGTH:
 		raise UserError('PASSWORD_LENGTH')
-	reset_key_content = rdb.get('passreset' + reset_key)
+	reset_key_content = rdb.get('passreset-' + reset_key)
 	try :
 		email = reset_key_content.decode('ascii')
 		assert len(email) > 0
