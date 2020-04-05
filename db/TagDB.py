@@ -252,7 +252,8 @@ class TagDB() :
 		history_items = list(self.db.items.aggregate([
 			{'$match': {'tags': {'$in': [tagid]}}},
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
-			{'$addFields': {'del': [tagid], 'add': [], 'time': datetime.now(), 'user': user}}
+			{'$addFields': {'del': [tagid], 'add': [], 'time': datetime.now(), 'user': user}},
+			{'$match': {'$or': [{'del': {'$not': {'$size': 0}}}, {'add': {'$not': {'$size': 0}}}]}},
 		], session = session))
 		if history_items :
 			for i in history_items :
@@ -586,14 +587,15 @@ class TagDB() :
 
 	def _log_tag_update(self, user, vid : ObjectId, old_tags, new_tags, session = None) :
 		added, removed = _diff(old_tags, new_tags)
-		self.db.tag_history.insert_one({
-			'vid': vid,
-			'user': user,
-			'tags': old_tags,
-			'add': added,
-			'del': removed,
-			'time': datetime.now()
-		}, session = session)
+		if added or removed :
+			self.db.tag_history.insert_one({
+				'vid': vid,
+				'user': user,
+				'tags': old_tags,
+				'add': added,
+				'del': removed,
+				'time': datetime.now()
+			}, session = session)
 
 	def update_item_tags(self, item_id_or_item_object, new_tags, user = '', session = None):
 		new_tag_ids = self.filter_and_translate_tags(new_tags)
@@ -647,7 +649,8 @@ class TagDB() :
 			{'$match': {'_id': {'$in': item_ids}}},
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
 			{'$project': {'vid': 1, 'tags': 1, 'add': {'$setDifference': [new_tag_ids, '$tags']}}},
-			{'$addFields': {'del': [], 'time': datetime.now(), 'user': user}}
+			{'$addFields': {'del': [], 'time': datetime.now(), 'user': user}},
+			{'$match': {'$or': [{'del': {'$not': {'$size': 0}}}, {'add': {'$not': {'$size': 0}}}]}}
 		], session = session))
 		if history_items :
 			for i in history_items :
@@ -681,7 +684,8 @@ class TagDB() :
 			{'$match': {'_id': {'$in': item_ids}}},
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
 			{'$project': {'vid': 1, 'tags': 1, 'del': {'$setIntersection': [tag_ids_to_remove, '$tags']}}},
-			{'$addFields': {'add': [], 'time': datetime.now(), 'user': user}}
+			{'$addFields': {'add': [], 'time': datetime.now(), 'user': user}},
+			{'$match': {'$or': [{'del': {'$not': {'$size': 0}}}, {'add': {'$not': {'$size': 0}}}]}}
 		], session = session))
 		if history_items :
 			for i in history_items :
