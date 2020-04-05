@@ -20,13 +20,14 @@ from config import QueryConfig
 @loginOptional
 @jsonRequest
 def ajax_listvideo_do(rd, data, user):
+	start = time.time()
 	order = getDefaultJSON(data, 'order', 'latest')
 	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
 	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, video_count, related_tags, related_tags_popularity = listVideo(
+	videos, video_count, related_tags, related_tags_popularity, query_obj = listVideo(
 		data.page - 1,
 		data.page_size,
 		user,
@@ -35,12 +36,15 @@ def ajax_listvideo_do(rd, data, user):
 		user_language = lang,
 		additional_constraint = additional_constraint)
 	tag_category_map = getTagCategoryMap(related_tags)
+	end = time.time()
 	ret = makeResponseSuccess({
 		"videos": videos,
 		"count": video_count,
 		"page_count": (video_count - 1) // data.page_size + 1,
 		"tags": tag_category_map,
-		"tag_pops": related_tags_popularity
+		"tag_pops": related_tags_popularity,
+		'time_used_ms': int((end - start) * 1000),
+		"query_obj": query_obj
 	})
 	return "json", ret
 
@@ -58,7 +62,7 @@ def ajax_queryvideo_do(rd, data, user):
 	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, related_tags, video_count = listVideoQuery(
+	videos, related_tags, video_count, query_obj = listVideoQuery(
 		user,
 		data.query,
 		data.page - 1,
@@ -75,7 +79,8 @@ def ajax_queryvideo_do(rd, data, user):
 		"count": video_count,
 		"page_count": (video_count - 1) // data.page_size + 1,
 		"tags": tag_category_map,
-		'time_used_ms': int((end - start) * 1000)
+		'time_used_ms': int((end - start) * 1000),
+		"query_obj": query_obj
 	})
 	return "json", ret
 

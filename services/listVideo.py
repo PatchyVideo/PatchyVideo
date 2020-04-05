@@ -53,7 +53,7 @@ def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_
 		else :
 			log(level = 'ERR', obj = {'ex': str(ex)})
 			raise UserError('FAILED_UNKNOWN')
-	return videos, getCommonTags(user_language, videos), count
+	return videos, getCommonTags(user_language, videos), count, query_obj
 
 def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS', hide_placeholder = True, additional_constraint = ''):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
@@ -84,7 +84,7 @@ def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS'
 	if hide_placeholder :
 		videos = _filterPlaceholder(videos)
 	tags, pops = getPopularTags(user_language)
-	return videos, video_count, tags, pops
+	return videos, video_count, tags, pops, query_obj
 
 def listMyVideo(page_idx, page_size, user, order = 'latest'):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
