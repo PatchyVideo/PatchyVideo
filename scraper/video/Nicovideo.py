@@ -19,11 +19,11 @@ class Nicovideo( Crawler ) :
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.nicovideo.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
 	THUMBNAIL_PATTERN = r'\"(https:\\\\/\\\\/img\.cdn\.nimg\.jp\\\\/s\\\\/nicovideo\\\\/thumbnails\\\\/\d+\\\\/\d+\.\w+\\\\/\w+\?key=\w+)\"'
 
-	def get_cookie(self) :
-		return {
-			'user_session': 'user_session_69318161_02257179b85d2430deb42ca8763071423671fbf8f531ddcf43185de2e376f686',
-			'user_session_secure': 'NjkzMTgxNjE6ZXIwOW4yM29YdXUueHFCY2d0Qk5mZHlvOVNROGpjTjV1emRaWFRHZDJqMQ',
-		}
+	#def get_cookie(self) :
+	#	return {
+	#		'user_session': 'user_session_69318161_02257179b85d2430deb42ca8763071423671fbf8f531ddcf43185de2e376f686',
+	#		'user_session_secure': 'NjkzMTgxNjE6ZXIwOW4yM29YdXUueHFCY2d0Qk5mZHlvOVNROGpjTjV1emRaWFRHZDJqMQ',
+	#	}
 
 	def normalize_url( self, link ) :
 		link = link.lower()
