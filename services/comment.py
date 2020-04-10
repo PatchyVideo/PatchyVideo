@@ -13,6 +13,7 @@ from services.tcb import filterOperation
 from config import Comments
 from services.notifications import createNotification
 from utils.logger import log
+from datetime import datetime
 
 """
 Standalone comment APIs
@@ -53,7 +54,7 @@ def createThread(obj_type: str, obj_id : ObjectId, owner : ObjectId, session = N
     tid = db.comment_threads.insert_one({'count': 0, 'owner': owner, 'obj_type': obj_type, 'obj_id': obj_id}, session = session).inserted_id
     return ObjectId(tid)
 
-def addComment(user, thread_id : ObjectId, text : str) : # user can add comments
+def addComment(user, thread_id : ObjectId, text : str, notification_type : str = 'comment_reply') : # user can add comments
     filterOperation('postComment', user)
     text = bleach.clean(text, tags = [], attributes = [], styles = [])
     l = len(text)
@@ -106,11 +107,14 @@ def addComment(user, thread_id : ObjectId, text : str) : # user can add comments
                         log(level = 'ERR', obj = {'msg': 'orphan thread found!!', 'thread_id': thread_id, 'thread_obj': thread_obj})
                         raise UserError('UNKNOWN_ERROR')
         # ===========================================================
-        createNotification('comment_reply', thread_obj['owner'], session = s(), other = note_obj)
+        if notification_type : # empty means do not notify user
+            createNotification(notification_type, thread_obj['owner'], session = s(), other = note_obj)
+        if note_obj['replied_type'] == 'forum' : # forum comment, set modified_at date
+            db.forum_threads.update_one({'_id': note_obj['replied_obj']}, {'$set': {'meta.modified_at': datetime.now(), 'meta.modified_by': user['_id']}}, session = s())
         s.mark_succeed()
         return cid
 
-def addReply(user, reply_to : ObjectId, text : str) : # user can add comments
+def addReply(user, reply_to : ObjectId, text : str, notification_type : str = 'comment_reply') : # user can add comments
     """
     reply_to: comment id
     """
@@ -191,7 +195,10 @@ def addReply(user, reply_to : ObjectId, text : str) : # user can add comments
                         log(level = 'ERR', obj = {'msg': 'orphan thread found!!', 'thread_id': thread_id, 'thread_obj': thread_obj})
                         raise UserError('UNKNOWN_ERROR')
         # ===========================================================
-        createNotification('comment_reply', parent_obj['meta']['created_by'], session = s(), other = note_obj)
+        if notification_type : # empty means do not notify user
+            createNotification(notification_type, parent_obj['meta']['created_by'], session = s(), other = note_obj)
+        if note_obj['replied_type'] == 'forum' : # forum reply, set modified_at date
+            db.forum_threads.update_one({'_id': note_obj['replied_obj']}, {'$set': {'meta.modified_at': datetime.now(), 'meta.modified_by': user['_id']}}, session = s())
         s.mark_succeed()
 
 def hideComment(user, comment_id : ObjectId) :

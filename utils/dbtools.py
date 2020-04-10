@@ -19,9 +19,13 @@ class MongoTransactionEnabled(object) :
     """
     MongoDB transaction RAII helper
     """
-    def __init__(self, client) :
+    def __init__(self, client, existing_session = None) :
         self.client = client
         self.succeed = False
+        if existing_session is None :
+            self.enabled = True
+        else :
+            self.enabled = False
 
     def mark_succeed(self) :
         self.succeed = True
@@ -55,7 +59,7 @@ class MongoTransactionEnabled(object) :
         self.session.__exit__(type, value, traceback)
 
 class MongoTransactionDisabled(object) :
-    def __init__(self, client) :
+    def __init__(self, client, existing_session = None) :
         pass
 
     def mark_succeed(self) :

@@ -27,3 +27,4 @@ from . import ajax_comments
 from . import ajax_rating
 from . import ajax_notifications
 from . import ajax_ranking
+from . import ajax_forums

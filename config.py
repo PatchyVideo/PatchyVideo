@@ -75,3 +75,9 @@ class Comments:
     MAX_COMMENT_LENGTH_REGULAR = 500
     MAX_COMMENT_LENGTH_LONG = 50000
     NOTIFICATION_CONTENT_LENGTH = 100
+
+"""
+Forums
+"""
+class Forums:
+    MAX_TITLE_LENGTH = 100
