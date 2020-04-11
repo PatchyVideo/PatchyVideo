@@ -74,6 +74,12 @@ def ajax_playlist_move_do(rd, user, data):
 def ajax_playlist_inverse_do(rd, user, data):
 	inversePlaylistOrder(data.pid, user)
 
+@app.route('/list/set_tags.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_playlist_set_tags_do(rd, user, data):
+	updatePlaylistTags(data.pid, data.tags, user)
+
 @app.route('/lists/new.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
@@ -174,7 +180,8 @@ def ajax_lists_search_do(rd, user, data):
 def ajax_lists_get_playlist_do(rd, user, data):
 	page_size = getDefaultJSON(data, 'page_size', 20)
 	page = getDefaultJSON(data, 'page', 1) - 1
-	playlist = getPlaylist(data.pid)
+	lang = getDefaultJSON(data, 'lang', 'CHS')
+	playlist = getPlaylist(data.pid, lang)
 	if playlist["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) and user['access_control']['status'] != 'admin' :
 		abort(404)
 	playlist_editable = False
@@ -194,7 +201,8 @@ def ajax_lists_get_playlist_do(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_lists_get_playlist_metadata_do(rd, user, data):
-	playlist = getPlaylist(data.pid)
+	lang = getDefaultJSON(data, 'lang', 'CHS')
+	playlist = getPlaylist(data.pid, lang)
 	if playlist["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) :
 		abort(404)
 	playlist_editable = False

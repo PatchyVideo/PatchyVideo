@@ -27,10 +27,14 @@ if os.getenv("FLASK_ENV", "development") == "production" :
 else :
 	SCRAPER_ADDRESS = 'http://localhost:5003'
 
-def getPlaylist(pid) :
+def getPlaylist(pid, lang) :
 	ret = db.playlists.find_one({'_id': ObjectId(pid)})
 	if not ret :
 		raise UserError('PLAYLIST_NOT_EXIST')
+	if 'tags' in ret :
+		ret['tags_translated'], ret['tags_category'], ret['tags_tags'] = tagdb.translate_tag_ids_to_user_language(ret['tags'], lang)
+	else :
+		ret['tags_translated'], ret['tags_category'], ret['tags_tags'] = [], {}, {}
 	return ret
 
 def _is_authorised(pid_or_obj, user, op = 'edit') :
@@ -235,6 +239,17 @@ def updatePlaylistInfo(pid, language, title, desc, cover, user, private = False)
 			'meta.modified_by': makeUserMeta(user),
 			'meta.modified_at': datetime.now()}}, session = s())
 		s.mark_succeed()
+
+def updatePlaylistTags(pid, new_tags, user) :
+	log(obj = {'pid': pid, 'new_tags': new_tags})
+	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
+		list_obj = db.playlists.find_one({'_id': ObjectId(pid)})
+		log(obj = {'playlist': list_obj, 'old_tags': list_obj['tags'] if 'tags' in list_obj else []})
+		if list_obj is None :
+			raise UserError('PLAYLIST_NOT_EXIST')
+		filterOperation('editPlaylist', user, list_obj)
+		new_tag_ids = tagdb.filter_and_translate_tags(new_tags)
+		db.playlists.update_one({'_id': ObjectId(pid)}, {'$set': {'tags': new_tag_ids}})
 
 def addVideoToPlaylist(pid, vid, user) :
 	log(obj = {'pid': pid, 'vid': vid})
