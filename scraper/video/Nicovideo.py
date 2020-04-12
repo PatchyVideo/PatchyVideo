@@ -37,6 +37,7 @@ class Nicovideo( Crawler ) :
 		return "nicovideo:%s" % link[link.rfind("m") - 1:]
 
 	def run( self, content, xpath, link, update_video_detail ) :
+		breakpoint()
 		link = link.lower()
 		vidid = link[link.rfind("m") - 1:]
 		thumbnailURL = try_get_xpath(xpath, ['//meta[@itemprop="thumbnailUrl"]/@content', '//meta[@name="thumbnail"]/@content'])
@@ -69,7 +70,10 @@ class Nicovideo( Crawler ) :
 		desc_textonly = ''.join(soup.findAll(text = True))
 		uploadDate = parse(uploadDate).astimezone(timezone.utc)
 		utags = try_get_xpath(xpath, ['//meta[@property="og:video:tag"]/@content', '//meta[@itemprop="og:video:tag"]/@content', '//meta[@name="og:video:tag"]/@content'])
-		utags = [str(ut) for ut in utags]
+		if utags :
+			utags = [str(ut) for ut in utags]
+		else :
+			utags = []
 		return makeResponseSuccess({
 			'thumbnailURL': thumbnailURL,
 			'title' : title,
