@@ -206,6 +206,8 @@ def _prepare_attributes(name, value):
 			return { 'item.placeholder' : False }
 		else :
 			return {}
+	elif name == 'repost':
+		return { 'item.repost_type': value }
 	return {}
 
 def _getk(node, idx):
