@@ -148,6 +148,18 @@ _p = _build_parser()
 from dateutil.parser import parse as parse_date
 from datetime import timedelta
 
+_REPOST_TRANSLATE = {
+	'原始发布': 'official',
+	'官方再发布': 'official_repost',
+	'授权翻译': 'authorized_translation',
+	'授权转载': 'authorized_repost',
+	'自发翻译': 'translation',
+	'自发搬运': 'repost',
+	'未知': '',
+	'unknown': '',
+	'unspecified': ''
+}
+
 def _prepare_attributes(name, value):
 	value = value.lower()
 	name = name.lower()
@@ -207,6 +219,10 @@ def _prepare_attributes(name, value):
 		else :
 			return {}
 	elif name == 'repost':
+		if value in _REPOST_TRANSLATE :
+			value = _REPOST_TRANSLATE[value]
+		if not value :
+			return { 'item.repost_type': {'$exists': False} }
 		return { 'item.repost_type': value }
 	return {}
 
