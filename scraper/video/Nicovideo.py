@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 
 class Nicovideo( Crawler ) :
 	NAME = 'nicovideo'
-	PATTERN = r'^(https:\/\/|http:\/\/)?(www\.)?(nicovideo\.jp\/watch\/(s|n)m[\d]+|nico\.ms\/(s|n)m[\d]+)'
+	PATTERN = r'^(https:\/\/|http:\/\/)?(www\.|sp\.)?(nicovideo\.jp\/watch\/(s|n)m[\d]+|nico\.ms\/(s|n)m[\d]+)'
 	SHORT_PATTERN = r'^(s|n)m[\d]+$'
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.nicovideo.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.nicovideo.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
