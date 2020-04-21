@@ -90,6 +90,7 @@ def postVideo(user, url, tags, copy, pid, rank, repost_type):
 		raise UserError('TAGS_LIMIT_EXCEEDED')
 	obj, cleanURL = dispatch(url)
 	if obj is None:
+		log(level = 'WARN', obj = {'url': url})
 		raise UserError('UNSUPPORTED_WEBSITE')
 	if not cleanURL :
 		raise UserError('EMPTY_URL')
@@ -122,6 +123,7 @@ def postVideoIPFS_new(user, url, tags, copy, pid, rank, desc, title, cover_file_
 		raise UserError('NO_COVER')
 	obj, cleanURL = dispatch(url)
 	if obj is None:
+		log(level = 'WARN', obj = {'url': url})
 		raise UserError('UNSUPPORTED_WEBSITE')
 	if not cleanURL :
 		raise UserError('EMPTY_URL')

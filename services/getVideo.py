@@ -4,6 +4,7 @@ from bson import ObjectId
 from utils.exceptions import UserError
 from services.tcb import filterSingleVideo
 from scraper.video import dispatch
+from utils.logger import log
 
 def getVideoDetail(vid, user, raise_error = False):
 	return filterSingleVideo(vid, user, raise_error)
@@ -21,6 +22,7 @@ def getVideoDetailNoFilter(vid):
 def getVideoByURL(url) :
 	obj, cleanURL = dispatch(url)
 	if obj is None:
+		log(level = 'WARN', obj = {'url': url})
 		raise UserError('UNSUPPORTED_WEBSITE')
 	if not cleanURL :
 		raise UserError('EMPTY_URL')
