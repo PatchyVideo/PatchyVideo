@@ -73,6 +73,7 @@ if __name__ == '__main__' :
 		})
 """
 
+"""
 if __name__ == '__main__' :
     from db.index.index_builder import build_index
     #with MongoTransaction(client) as s :
@@ -86,4 +87,11 @@ if __name__ == '__main__' :
         word_ids = build_index([item['item']['desc'], item['item']['title']])
         db.items.update_one({'_id': item['_id']}, {'$set': {'tags': item['tags'] + word_ids}})
     #    s.mark_succeed()
+"""
 
+if __name__ == '__main__' :
+    cursor = db.items.find({'item.site': 'bilibili'}, no_cursor_timeout = True).batch_size(100)
+    for item in cursor :
+        print(item['item']['title'])
+        db.items.update_one({'_id': item['_id']}, {'$set': {'item.unique_id': item['item']['unique_id'] + '-1'}})
+        db.items.update_one({'_id': item['_id']}, {'$set': {'item.url': item['item']['url'] + '?p=1'}})

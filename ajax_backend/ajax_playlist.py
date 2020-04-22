@@ -25,6 +25,9 @@ def _buildQueryObj(query) :
 		query_obj = {}
 	return query_obj
 
+def _buildQueryObjV2(query, additional_constraints) :
+	pass
+
 @app.route('/list/getcommontags.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
@@ -165,6 +168,24 @@ def ajax_lists_search_do(rd, user, data):
 	page = getDefaultJSON(data, 'page', 1) - 1
 	order = getDefaultJSON(data, 'order', 'last_modified')
 	query = getDefaultJSON(data, 'query', '')
+	query_obj = _buildQueryObj(query)
+	playlists, playlists_count = listPlaylists(user, page, page_size, query_obj, order)
+	result = [item for item in playlists]
+	return "json", makeResponseSuccess({
+		"playlists": result,
+		"count": playlists_count,
+		"page_count": (playlists_count - 1) // page_size + 1
+		})
+
+@app.route('/lists/list.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_lists_list_do(rd, user, data):
+	page_size = getDefaultJSON(data, 'page_size', 20)
+	page = getDefaultJSON(data, 'page', 1) - 1
+	order = getDefaultJSON(data, 'order', 'last_modified')
+	query = getDefaultJSON(data, 'query', '')
+	additional_constraints = getDefaultJSON(data, 'additional_constraints', '')
 	query_obj = _buildQueryObj(query)
 	playlists, playlists_count = listPlaylists(user, page, page_size, query_obj, order)
 	result = [item for item in playlists]
