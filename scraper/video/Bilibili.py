@@ -12,6 +12,8 @@ import re
 
 import os
 
+from utils.exceptions import UserError
+
 """
 From https://www.zhihu.com/question/381784377/answer/1099438784
 """
@@ -107,10 +109,12 @@ class Bilibili( Crawler ) :
 						api_obj = loads(api_content)
 						num_parts = len(api_obj['data'])
 						if p_num < 1 or p_num > num_parts :
-							raise Exception(f'P number out of range, should be in [1, {num_parts}]')
+							raise UserError(f'P number out of range, should be in [1, {num_parts}]')
 						part_name = api_obj['data'][p_num - 1]['part']
 					else :
 						raise Exception(f'api request failed, message:\n{api_content}')
+		except UserError as ex :
+			raise ex
 		except :
 			return makeResponseSuccess({
 				'thumbnailURL': '',
