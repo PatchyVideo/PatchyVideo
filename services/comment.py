@@ -86,7 +86,7 @@ def addComment(user, thread_id : ObjectId, text : str, notification_type : str =
             note_obj['replied_type'] = thread_obj['obj_type']
             note_obj['replied_obj'] = thread_obj['obj_id']
         else :
-            obj = db.items.find_one({'comment_thread': thread_id}, session = s())
+            obj = db.videos.find_one({'comment_thread': thread_id}, session = s())
             if obj :
                 note_obj['replied_type'] = 'video'
                 note_obj['replied_obj'] = obj['_id']
@@ -174,7 +174,7 @@ def addReply(user, reply_to : ObjectId, text : str, notification_type : str = 'c
             note_obj['replied_type'] = thread_obj['obj_type']
             note_obj['replied_obj'] = thread_obj['obj_id']
         else :
-            obj = db.items.find_one({'comment_thread': thread_id}, session = s())
+            obj = db.videos.find_one({'comment_thread': thread_id}, session = s())
             if obj :
                 note_obj['replied_type'] = 'video'
                 note_obj['replied_obj'] = obj['_id']
@@ -248,7 +248,7 @@ def listThread(thread_id : ObjectId) :
 
 def addToVideo(user, vid : ObjectId, text : str) :
     filterOperation('postComment', user)
-    video_obj = db.items.find_one({'_id': vid})
+    video_obj = db.videos.find_one({'_id': vid})
     if video_obj is None :
         raise UserError('VIDEO_NOT_EXIST')
     with redis_lock.Lock(rdb, "videoEdit:" + video_obj["item"]["unique_id"]) :
@@ -258,7 +258,7 @@ def addToVideo(user, vid : ObjectId, text : str) :
         else :
             with MongoTransaction(client) as s :
                 tid = createThread('video', video_obj['_id'], video_obj['meta']['created_by'], session = s())
-                db.items.update_one({'_id': vid}, {'$set': {'comment_thread': tid}})
+                db.videos.update_one({'_id': vid}, {'$set': {'comment_thread': tid}})
                 s.mark_succeed()
             cid = addComment(user, tid, text)
             return tid, cid

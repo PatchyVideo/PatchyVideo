@@ -9,7 +9,7 @@ from utils.dbtools import MongoTransaction
 
 def rateVideo(user, vid: ObjectId, stars: int) :
     stars = max(min(int(stars), 10), 1)
-    video_obj = db.items.find_one({'_id': vid})
+    video_obj = db.videos.find_one({'_id': vid})
     if video_obj is None :
         raise UserError('VIDEO_NOT_EXIST')
     with redis_lock.Lock(rdb, "videoEdit:" + video_obj["item"]["unique_id"]), MongoTransaction(client) as s :
@@ -23,11 +23,11 @@ def rateVideo(user, vid: ObjectId, stars: int) :
             db.video_ratings.insert_one({'vid': vid, 'uid': ObjectId(user['_id']), 'v': int(stars)}, session = s())
         if 'total_rating' in video_obj :
             if rating_obj :
-                db.items.update_one({'_id': vid}, {'$inc': {'total_rating': int(stars - rating_obj['v']), 'total_rating_user': int(1 - user_rated)}}, session = s())
+                db.videos.update_one({'_id': vid}, {'$inc': {'total_rating': int(stars - rating_obj['v']), 'total_rating_user': int(1 - user_rated)}}, session = s())
             else :
-                db.items.update_one({'_id': vid}, {'$inc': {'total_rating': int(stars), 'total_rating_user': int(1 - user_rated)}}, session = s())
+                db.videos.update_one({'_id': vid}, {'$inc': {'total_rating': int(stars), 'total_rating_user': int(1 - user_rated)}}, session = s())
         else :
-            db.items.update_one({'_id': vid}, {'$set': {'total_rating': int(stars), 'total_rating_user': int(1)}}, session = s())
+            db.videos.update_one({'_id': vid}, {'$set': {'total_rating': int(stars), 'total_rating_user': int(1)}}, session = s())
         s.mark_succeed()
 
 def ratePlaylist(user, pid: ObjectId, stars: int) :
@@ -72,7 +72,7 @@ def getPlaylistRating(user, pid: ObjectId) :
     return rating, getPlaylistRatingAggregate(pid)
 
 def getVideoRatingAggregate(vid: ObjectId) :
-    video_obj = db.items.find_one({'_id': vid})
+    video_obj = db.videos.find_one({'_id': vid})
     if video_obj is None :
         raise UserError('VIDEO_NOT_EXIST')
     if 'total_rating' in video_obj :

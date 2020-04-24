@@ -6,7 +6,7 @@ from bson import ObjectId
 '''
 if __name__ == '__main__' :
     with MongoTransaction(client) as s :
-        for item in [i for i in db.items.find({'item.cover_image':'','item.site':'youtube'},session=s())]:
+        for item in [i for i in db.videos.find({'item.cover_image':'','item.site':'youtube'},session=s())]:
             print('Updating %s'%item['item']['unique_id'])
             yid = item['item']['unique_id'].split(':')[1]
             data = {
@@ -17,7 +17,7 @@ if __name__ == '__main__' :
                 'thumbnailURL':"https://img.youtube.com/vi/%s/hqdefault.jpg"%yid,
                 }
             new_data = _make_video_data(data,item['item']['copies'],item['item']['series'],item['item']['url'])
-            db.items.update_one({'_id':ObjectId(item['_id'])},{'$set':{
+            db.videos.update_one({'_id':ObjectId(item['_id'])},{'$set':{
                 'item.cover_image':new_data['cover_image'],
                 'item.thumbnail_url':new_data['thumbnail_url']}},session=s())
                 
@@ -45,7 +45,7 @@ if __name__ == '__main__' :
                 tagdb.add_or_rename_tag(tt['dst'], tt['tag'], tt['language'], session = s())
                 print(f"{tt['language']}: {tt['tag']} -> {tt['dst']}")
         video_tag_map = {}
-        for vid in db.items.find(session = s()) :
+        for vid in db.videos.find(session = s()) :
             tag_ids = []
             for t in vid['tags'] :
                 if t not in tag_map :
@@ -55,13 +55,13 @@ if __name__ == '__main__' :
             video_tag_map[str(vid['_id'])] = tag_ids
             #print(f"{vid['tags']} -> {tag_ids}")
         for (_id, tags) in video_tag_map.items() :
-            db.items.update_one({'_id': ObjectId(_id)}, {'$set': {'tags': tags}}, session = s())
+            db.videos.update_one({'_id': ObjectId(_id)}, {'$set': {'tags': tags}}, session = s())
         s.mark_succeed()
 """
 
 """
 if __name__ == '__main__' :
-    cursor = db.items.find(no_cursor_timeout = True).batch_size(100)
+    cursor = db.videos.find(no_cursor_timeout = True).batch_size(100)
     for item in cursor :
         db.tag_history.insert_one({
 			'vid': item['_id'],
@@ -77,21 +77,21 @@ if __name__ == '__main__' :
 if __name__ == '__main__' :
     from db.index.index_builder import build_index
     #with MongoTransaction(client) as s :
-    db.items.update_many({}, {'$pull': {'tags': {'$gte': 0x80000000}}})
+    db.videos.update_many({}, {'$pull': {'tags': {'$gte': 0x80000000}}})
     db.index_words.delete_many({})
     #    s.mark_succeed()
-    cursor = db.items.find(no_cursor_timeout = True).batch_size(100)
+    cursor = db.videos.find(no_cursor_timeout = True).batch_size(100)
     #with MongoTransaction(client) as s :
     for item in cursor :
         print(item['item']['title'])
         word_ids = build_index([item['item']['desc'], item['item']['title']])
-        db.items.update_one({'_id': item['_id']}, {'$set': {'tags': item['tags'] + word_ids}})
+        db.videos.update_one({'_id': item['_id']}, {'$set': {'tags': item['tags'] + word_ids}})
     #    s.mark_succeed()
 """
 
 if __name__ == '__main__' :
-    cursor = db.items.find({'item.site': 'bilibili'}, no_cursor_timeout = True).batch_size(100)
+    cursor = db.videos.find({'item.site': 'bilibili'}, no_cursor_timeout = True).batch_size(100)
     for item in cursor :
         print(item['item']['title'])
-        db.items.update_one({'_id': item['_id']}, {'$set': {'item.unique_id': item['item']['unique_id'] + '-1'}})
-        db.items.update_one({'_id': item['_id']}, {'$set': {'item.url': item['item']['url'] + '?p=1'}})
+        db.videos.update_one({'_id': item['_id']}, {'$set': {'item.unique_id': item['item']['unique_id'] + '-1'}})
+        db.videos.update_one({'_id': item['_id']}, {'$set': {'item.url': item['item']['url'] + '?p=1'}})
