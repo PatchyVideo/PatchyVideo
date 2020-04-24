@@ -106,8 +106,9 @@ async def _make_video_data(data, copies, playlists, url, user, event_id) :
 		"utags": _cleanUtags(data['utags']) if 'utags' in data else [],
 		"placeholder": data["placeholder"] if 'placeholder' in data else False
 	}
-	if 'part_name' in data :
-		ret['part_name'] = data['part_name']
+	if 'extra' in data :
+		for k, v in data['extra'].items() :
+			ret[k] = v
 	return ret
 
 async def _make_video_data_update(data, url, user, event_id, thumbnail_url = None) :
@@ -129,8 +130,9 @@ async def _make_video_data_update(data, url, user, event_id, thumbnail_url = Non
 		"utags": _cleanUtags(data['utags']) if 'utags' in data else [],
 		"placeholder": data["placeholder"] if 'placeholder' in data else False
 	}
-	if 'part_name' in data :
-		ret['part_name'] = data['part_name']
+	if 'extra' in data :
+		for k, v in data['extra'].items() :
+			ret[k] = v
 	if filename :
 		ret['cover_image'] = filename
 	return ret
@@ -299,6 +301,8 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 					"unique_id": conflicting_item['item']['unique_id'],
 					"utags": conflicting_item['item']['utags']
 				})
+				for k, v in conflicting_item['item'].items() :
+					ret['data'][k] = v
 				if 'part_name' in conflicting_item['item'] :
 					ret['part_name'] = conflicting_item['item']['part_name']
 				if 'repost_type' in conflicting_item['item'] and conflicting_item['item']['repost_type'] :

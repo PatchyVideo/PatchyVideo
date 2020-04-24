@@ -102,6 +102,7 @@ class Bilibili( Crawler ) :
 			utags = xpath.xpath( '//meta[@itemprop="keywords"]/@content' )[0]
 			utags = list(filter(None, utags.split(',')[1: -4]))
 			part_name = title
+			cid = 0
 			async with aiohttp.ClientSession() as session:
 				async with session.get(f'https://api.bilibili.com/x/player/pagelist?aid={aid}&jsonp=jsonp') as resp:
 					api_content = await resp.text()
@@ -111,6 +112,7 @@ class Bilibili( Crawler ) :
 						if p_num < 1 or p_num > num_parts :
 							raise UserError(f'P number out of range, should be in [1, {num_parts}]')
 						part_name = api_obj['data'][p_num - 1]['part']
+						cid = api_obj['data'][p_num - 1]['cid']
 					else :
 						raise Exception(f'api request failed, message:\n{api_content}')
 		except UserError as ex :
@@ -124,8 +126,7 @@ class Bilibili( Crawler ) :
 				'uploadDate' : datetime.now(),
 				"unique_id": self.unique_id(self = self, link = link),
 				"utags": [],
-				"placeholder": True,
-				'part_name': ''
+				"placeholder": True
 			})
 		return makeResponseSuccess({
 			'thumbnailURL': thumbnailURL,
@@ -135,5 +136,5 @@ class Bilibili( Crawler ) :
 			'uploadDate' : uploadDate,
 			"unique_id": self.unique_id(self = self, link = link),
 			"utags": utags,
-			'part_name': part_name
+			'extra': {'part_name': part_name, 'cid': cid}
 		})
