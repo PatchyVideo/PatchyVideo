@@ -80,6 +80,11 @@ class Bilibili( Crawler ) :
 		return f"https://www.bilibili.com/video/{vidid}?p={p_num}"
 
 	def expand_url( self, short ) :
+		if short[:2].lower() == 'av' :
+			short = short.lower()
+		if short[:2].upper() == 'BV' :
+			short = 'BV' + short[2:]
+			short = 'av' + str(self.BV2AV.dec(short))
 		return f"https://www.bilibili.com/video/{short}?p=1"
 
 	def unique_id( self, link ) :
