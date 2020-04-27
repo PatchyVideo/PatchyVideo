@@ -31,3 +31,21 @@ def getVideoByURL(url) :
 	if obj :
 		return obj
 	raise UserError('VIDEO_NOT_EXIST')
+
+def getVideosByURLs(urls) :
+	ret = []
+	for url in urls :
+		obj, cleanURL = dispatch(url)
+		if obj is None :
+			ret.append({url: 'UNSUPPORTED_WEBSITE'})
+			continue
+		if not cleanURL :
+			ret.append({url: 'EMPTY_URL'})
+			continue
+		uid = obj.unique_id(obj, cleanURL)
+		obj = db.retrive_item({'item.unique_id': uid})
+		if obj :
+			ret.append({url: obj['_id']})
+		else :
+			ret.append({url: 'VIDEO_NOT_EXIST'})
+	return ret
