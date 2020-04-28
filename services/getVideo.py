@@ -37,15 +37,15 @@ def getVideosByURLs(urls) :
 	for url in urls :
 		obj, cleanURL = dispatch(url)
 		if obj is None :
-			ret.append({url: 'UNSUPPORTED_WEBSITE'})
+			ret.append({'url': url, 'exist': False, 'reason': 'UNSUPPORTED_WEBSITE'})
 			continue
 		if not cleanURL :
-			ret.append({url: 'EMPTY_URL'})
+			ret.append({'url': url, 'exist': False, 'reason': 'EMPTY_URL'})
 			continue
 		uid = obj.unique_id(obj, cleanURL)
 		obj = db.retrive_item({'item.unique_id': uid})
 		if obj :
-			ret.append({url: obj['_id']})
+			ret.append({'url': url, 'exist': True, 'id': obj['_id']})
 		else :
-			ret.append({url: 'VIDEO_NOT_EXIST'})
+			ret.append({'url': url, 'exist': False, 'reason': 'VIDEO_NOT_EXIST'})
 	return ret
