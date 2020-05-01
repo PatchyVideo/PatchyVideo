@@ -41,6 +41,7 @@ def postThreadToForum(user, forum_id : ObjectId, title : str, text: str) : # cre
 			'tid': thread_id,
 			'hidden': False,
 			'deleted': False,
+			'pinned': False,
 			'meta': makeUserMetaObject(user)
 		}, session = s()).inserted_id)
 		db.comment_items.insert_one({
@@ -64,7 +65,7 @@ def listForumThreads(forum_id : ObjectId, page_idx : int = 0, page_size : int = 
 	if order == 'last_modified' :
 		sort_obj = {"meta.modified_at": -1}
 	all_items = db.forum_threads.aggregate([
-		{'$match': {'forum_id': forum_id, 'deleted': False}},
+		{'$match': {'forum_id': forum_id, 'deleted': False, 'pinned': False}},
 		{'$sort': sort_obj},
 		{'$skip': page_idx * page_size},
 		{'$limit': page_size},
@@ -105,7 +106,7 @@ def deleteThread(user, ftid : ObjectId) :
 		raise UserError('THREAD_NOT_EXIST')
 	if ft_obj['deleted'] :
 		raise UserError('THREAD_NOT_EXIST') # deleted counts as non-exist
-    filterOperation('commentAdmin', user, ft_obj)
+	filterOperation('commentAdmin', user, ft_obj)
 	db.forum_threads.update_one({'_id': ftid}, {'$set': {'deleted': True}})
 
 def pinThread(user, ftid : ObjectId, pinned : bool) :
@@ -114,6 +115,6 @@ def pinThread(user, ftid : ObjectId, pinned : bool) :
 		raise UserError('THREAD_NOT_EXIST')
 	if ft_obj['deleted'] :
 		raise UserError('THREAD_NOT_EXIST') # deleted counts as non-exist
-    filterOperation('commentAdmin', user, ft_obj)
+	filterOperation('commentAdmin', user)
 	db.forum_threads.update_one({'_id': ftid}, {'$set': {'pinned': pinned}})
 
