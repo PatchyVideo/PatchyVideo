@@ -29,13 +29,13 @@ def ajax_forums_view_thread(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_forums_delete(rd, user, data):
-	deleteThread(user, ObjectId(data.ftid))
+	deleteThread(user, ObjectId(data.forum_tid))
 
 @app.route('/forums/pin_thread.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_forums_pin(rd, user, data):
-	pinThread(user, ObjectId(data.ftid), data.pinned)
+	pinThread(user, ObjectId(data.forum_tid), data.pinned)
 
 @app.route('/forums/view_forum.do', methods = ['POST'])
 @loginOptional
