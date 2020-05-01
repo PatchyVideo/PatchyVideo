@@ -215,14 +215,31 @@ def delComment(user, comment_id : ObjectId) :
     filterOperation('commentAdmin', user, comm_obj)
     db.comment_items.update_one({'_id': comment_id}, {'$set': {'deleted': True}})
 
-"""
-def makeTopComment(user, comment_id : ObjectId) :
+def editComment(user, text : str, comment_id : ObjectId) :
     comm_obj = db.comment_items.find_one({'_id': comment_id})
     if comm_obj is None :
         raise UserError('COMMENT_NOT_EXIST')
+    text = bleach.clean(text, tags = [], attributes = [], styles = [])
+    l = len(text)
+    if l > Comments.MAX_COMMENT_LENGTH_LONG :
+        raise UserError('COMMENT_TOO_LONG')
+    elif l > Comments.MAX_COMMENT_LENGTH_REGULAR and not filterOperation('postLongComment', user, raise_exception = False) :
+        raise UserError('COMMENT_TOO_LONG')
     filterOperation('commentAdmin', user, comm_obj)
-    db.comment_items.update_one({'_id': comment_id}, {'$set': {'top': True}})
-"""
+    with MongoTransaction(client) as s :
+        db.comment_items.update_one({'_id': comment_id}, {'$set': {'content': text, 'edited': True}}, session = s())
+        db.comment_items.update_one({'_id': comment_id}, {'$set': {'meta.modified_by': datetime.now()}}, session = s())
+        s.mark_succeed()
+
+def pinComment(user, comment_id : ObjectId, pinned : bool) :
+    comm_obj = db.comment_items.find_one({'_id': comment_id})
+    if comm_obj is None :
+        raise UserError('COMMENT_NOT_EXIST')
+    parent_obj = db.comment_items.find_one({'_id': comm_obj['parent']})
+    if parent_obj is None :
+        raise UserError('PARENT_NOT_EXIST')
+    filterOperation('commentAdmin', user, parent_obj)
+    db.comment_items.update_one({'_id': comment_id}, {'$set': {'pinned': pinned}})
 
 def listThread(thread_id : ObjectId) :
     if db.comment_threads.find_one({'_id': thread_id}) is None :

@@ -7,7 +7,7 @@ from utils.jsontools import *
 from utils.exceptions import UserError
 from utils import getDefaultJSON
 
-from services.forums import postThreadToForum, viewSingleForumThread, listForumThreads, addToThread, addReplyToThread
+from services.forums import postThreadToForum, viewSingleForumThread, listForumThreads, addToThread, addReplyToThread, deleteThread, pinThread
 
 from bson import ObjectId
 
@@ -24,6 +24,18 @@ def ajax_forums_post_thread(rd, user, data):
 def ajax_forums_view_thread(rd, user, data):
 	comments, users, title = viewSingleForumThread(ObjectId(data.forum_tid))
 	return "json", makeResponseSuccess({'comments': comments, 'users': users, 'title': title})
+
+@app.route('/forums/delete_thread.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_forums_delete(rd, user, data):
+	deleteThread(user, ObjectId(data.ftid))
+
+@app.route('/forums/pin_thread.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_forums_pin(rd, user, data):
+	pinThread(user, ObjectId(data.ftid), data.pinned)
 
 @app.route('/forums/view_forum.do', methods = ['POST'])
 @loginOptional

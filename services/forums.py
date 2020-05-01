@@ -70,7 +70,13 @@ def listForumThreads(forum_id : ObjectId, page_idx : int = 0, page_size : int = 
 		{'$limit': page_size},
 		{'$lookup': {'from': 'comment_threads', 'localField': 'tid', 'foreignField': '_id', 'as': 'thread_obj'}}
 	])
-	return list(all_items)
+	all_pinned_items = db.forum_threads.aggregate([
+		{'$match': {'forum_id': forum_id, 'deleted': False, 'pinned': True}},
+		{'$sort': sort_obj},
+		{'$lookup': {'from': 'comment_threads', 'localField': 'tid', 'foreignField': '_id', 'as': 'thread_obj'}}
+	])
+	all_items_list = list(all_pinned_items) + list(all_items)
+	return all_items_list[: page_size]
 
 def viewSingleForumThread(ftid : ObjectId) :
 	ft_obj = db.forum_threads.find_one({'_id': ftid})
@@ -92,3 +98,22 @@ def addToThread(user, ftid : ObjectId, content : str) :
 
 def addReplyToThread(user, reply_to : ObjectId, text : str) :
 	return addReply(user, reply_to, text, notification_type = 'forum_reply')
+
+def deleteThread(user, ftid : ObjectId) :
+	ft_obj = db.forum_threads.find_one({'_id': ftid})
+	if ft_obj is None :
+		raise UserError('THREAD_NOT_EXIST')
+	if ft_obj['deleted'] :
+		raise UserError('THREAD_NOT_EXIST') # deleted counts as non-exist
+    filterOperation('commentAdmin', user, ft_obj)
+	db.forum_threads.update_one({'_id': ftid}, {'$set': {'deleted': True}})
+
+def pinThread(user, ftid : ObjectId, pinned : bool) :
+	ft_obj = db.forum_threads.find_one({'_id': ftid})
+	if ft_obj is None :
+		raise UserError('THREAD_NOT_EXIST')
+	if ft_obj['deleted'] :
+		raise UserError('THREAD_NOT_EXIST') # deleted counts as non-exist
+    filterOperation('commentAdmin', user, ft_obj)
+	db.forum_threads.update_one({'_id': ftid}, {'$set': {'pinned': pinned}})
+
