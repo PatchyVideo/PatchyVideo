@@ -20,7 +20,7 @@ def createForum(name : str, lang : str) : # this can only be used by admin from 
 	}).inserted_id)
 	return fid
 
-def postThreadToForum(user, forum_id : ObjectId, title : str, text: str) : # create a thread and post a comment
+def postThreadToForum(user, forum_id : ObjectId, title : str, text: str, use_bleach = True) : # create a thread and post a comment
 	filterOperation('postThreadToForum', user)
 	if db.forum_metas.find_one({'_id': forum_id}) is None :
 		raise UserError('FORUM_NOT_EXIST')
@@ -31,7 +31,8 @@ def postThreadToForum(user, forum_id : ObjectId, title : str, text: str) : # cre
 		raise UserError('COMMENT_TOO_LONG')
 	elif l > Comments.MAX_COMMENT_LENGTH_REGULAR and not filterOperation('postLongComment', user, raise_exception = False) :
 		raise UserError('COMMENT_TOO_LONG')
-	text = bleach.clean(text, tags = [], attributes = [], styles = [])
+	if use_bleach :
+		text = bleach.clean(text, tags = [], attributes = [], styles = [])
 
 	with MongoTransaction(client) as s :
 		thread_id = createThread('forum', None, user['_id'], session = s())

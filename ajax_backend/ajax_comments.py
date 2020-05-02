@@ -19,11 +19,25 @@ def ajax_comments_add_to_video(rd, user, data):
 	thread_id, cid = addToVideo(user, ObjectId(data.vid), data.text)
 	return "json", makeResponseSuccess({'thread_id': str(thread_id), 'cid': cid})
 
+@app.route('/comments/add_to_video_unfiltered.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_comments_add_to_video_unfiltered(rd, user, data):
+	thread_id, cid = addToVideo(user, ObjectId(data.vid), data.text, use_bleach = False)
+	return "json", makeResponseSuccess({'thread_id': str(thread_id), 'cid': cid})
+
 @app.route('/comments/add_to_playlist.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_comments_add_to_playlist(rd, user, data):
 	thread_id, cid = addToPlaylist(user, ObjectId(data.pid), data.text)
+	return "json", makeResponseSuccess({'thread_id': str(thread_id), 'cid': cid})
+
+@app.route('/comments/add_to_playlist_unfiltered.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_comments_add_to_playlist_unfiltered(rd, user, data):
+	thread_id, cid = addToPlaylist(user, ObjectId(data.pid), data.text, use_bleach = False)
 	return "json", makeResponseSuccess({'thread_id': str(thread_id), 'cid': cid})
 
 @app.route('/comments/add_to_user.do', methods = ['POST'])
@@ -33,11 +47,25 @@ def ajax_comments_add_to_user(rd, user, data):
 	thread_id, cid = addToUser(user, ObjectId(data.uid), data.text)
 	return "json", makeResponseSuccess({'thread_id': str(thread_id), 'cid': cid})
 
+@app.route('/comments/add_to_user_unfiltered.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_comments_add_to_user_unfiltered(rd, user, data):
+	thread_id, cid = addToUser(user, ObjectId(data.uid), data.text, use_bleach = False)
+	return "json", makeResponseSuccess({'thread_id': str(thread_id), 'cid': cid})
+
 @app.route('/comments/reply.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_comments_reply(rd, user, data):
 	addReply(user, ObjectId(data.reply_to), data.text)
+
+@app.route('/comments/reply_unfiltered.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_comments_reply_unfiltered(rd, user, data):
+	addReply(user, ObjectId(data.reply_to), data.text, use_bleach = False)
+
 
 @app.route('/comments/hide.do', methods = ['POST'])
 @loginRequiredJSON

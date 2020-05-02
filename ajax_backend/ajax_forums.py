@@ -18,6 +18,13 @@ def ajax_forums_post_thread(rd, user, data):
 	ftid = postThreadToForum(user, ObjectId(data.forum_id), data.title, data.text)
 	return "json", makeResponseSuccess({'forum_tid': ftid})
 
+@app.route('/forums/post_thread_unfiltered.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_forums_post_thread_unfiltered(rd, user, data):
+	ftid = postThreadToForum(user, ObjectId(data.forum_id), data.title, data.text, use_bleach = False)
+	return "json", makeResponseSuccess({'forum_tid': ftid})
+
 @app.route('/forums/view_thread.do', methods = ['POST'])
 @loginOptional
 @jsonRequest

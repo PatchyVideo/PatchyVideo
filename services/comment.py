@@ -54,9 +54,10 @@ def createThread(obj_type: str, obj_id : ObjectId, owner : ObjectId, session = N
 	tid = db.comment_threads.insert_one({'count': 0, 'owner': owner, 'obj_type': obj_type, 'obj_id': obj_id}, session = session).inserted_id
 	return ObjectId(tid)
 
-def addComment(user, thread_id : ObjectId, text : str, notification_type : str = 'comment_reply') : # user can add comments
+def addComment(user, thread_id : ObjectId, text : str, notification_type : str = 'comment_reply', use_bleach = True) : # user can add comments
 	filterOperation('postComment', user)
-	text = bleach.clean(text, tags = [], attributes = [], styles = [])
+	if bleach :
+		text = bleach.clean(text, tags = [], attributes = [], styles = [])
 	l = len(text)
 	if l > Comments.MAX_COMMENT_LENGTH_LONG :
 		raise UserError('COMMENT_TOO_LONG')
@@ -115,12 +116,13 @@ def addComment(user, thread_id : ObjectId, text : str, notification_type : str =
 		s.mark_succeed()
 		return cid
 
-def addReply(user, reply_to : ObjectId, text : str, notification_type : str = 'comment_reply') : # user can add comments
+def addReply(user, reply_to : ObjectId, text : str, notification_type : str = 'comment_reply', use_bleach = True) : # user can add comments
 	"""
 	reply_to: comment id
 	"""
 	filterOperation('postComment', user)
-	text = bleach.clean(text, tags = [], attributes = [], styles = [])
+	if use_bleach :
+		text = bleach.clean(text, tags = [], attributes = [], styles = [])
 	l = len(text)
 	if l > Comments.MAX_COMMENT_LENGTH_LONG :
 		raise UserError('COMMENT_TOO_LONG')
@@ -218,11 +220,12 @@ def delComment(user, comment_id : ObjectId) :
 	filterOperation('commentAdmin', user, comm_obj)
 	db.comment_items.update_one({'_id': comment_id}, {'$set': {'deleted': True}})
 
-def editComment(user, text : str, comment_id : ObjectId) :
+def editComment(user, text : str, comment_id : ObjectId, use_bleach = True) :
 	comm_obj = db.comment_items.find_one({'_id': comment_id})
 	if comm_obj is None :
 		raise UserError('COMMENT_NOT_EXIST')
-	text = bleach.clean(text, tags = [], attributes = [], styles = [])
+	if use_bleach :
+		text = bleach.clean(text, tags = [], attributes = [], styles = [])
 	l = len(text)
 	if l > Comments.MAX_COMMENT_LENGTH_LONG :
 		raise UserError('COMMENT_TOO_LONG')
@@ -271,14 +274,14 @@ def listThread(thread_id : ObjectId) :
 	])
 	return all_items, list(users)
 
-def addToVideo(user, vid : ObjectId, text : str) :
+def addToVideo(user, vid : ObjectId, text : str, use_bleach = True) :
 	filterOperation('postComment', user)
 	video_obj = db.videos.find_one({'_id': vid})
 	if video_obj is None :
 		raise UserError('VIDEO_NOT_EXIST')
 	with redis_lock.Lock(rdb, "videoEdit:" + video_obj["item"]["unique_id"]) :
 		if 'comment_thread' in video_obj :
-			cid = addComment(user, video_obj['comment_thread'], text)
+			cid = addComment(user, video_obj['comment_thread'], text, use_bleach = use_bleach)
 			return video_obj['comment_thread'], cid
 		else :
 			with MongoTransaction(client) as s :
@@ -288,14 +291,14 @@ def addToVideo(user, vid : ObjectId, text : str) :
 			cid = addComment(user, tid, text)
 			return tid, cid
 	
-def addToPlaylist(user, pid : ObjectId, text : str) :
+def addToPlaylist(user, pid : ObjectId, text : str, use_bleach = True) :
 	filterOperation('postComment', user)
 	playlist_obj = db.playlists.find_one({'_id': pid})
 	if playlist_obj is None :
 		raise UserError('PLAYLIST_NOT_EXIST')
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)) :
 		if 'comment_thread' in playlist_obj :
-			cid = addComment(user, playlist_obj['comment_thread'], text)
+			cid = addComment(user, playlist_obj['comment_thread'], text, use_bleach = use_bleach)
 			return playlist_obj['comment_thread'], cid
 		else :
 			with MongoTransaction(client) as s :
@@ -305,14 +308,14 @@ def addToPlaylist(user, pid : ObjectId, text : str) :
 			cid = addComment(user, tid, text)
 			return tid, cid
 
-def addToUser(user, uid : ObjectId, text : str) :
+def addToUser(user, uid : ObjectId, text : str, use_bleach = True) :
 	filterOperation('postComment', user)
 	user_obj = db.users.find_one({'_id': uid})
 	if user_obj is None :
 		raise UserError('USER_NOT_EXIST')
 	with redis_lock.Lock(rdb, "userEdit:" + str(uid)) :
 		if 'comment_thread' in user_obj :
-			cid = addComment(user, user_obj['comment_thread'], text)
+			cid = addComment(user, user_obj['comment_thread'], text, use_bleach = use_bleach)
 			return user_obj['comment_thread'], cid
 		else :
 			with MongoTransaction(client) as s :
