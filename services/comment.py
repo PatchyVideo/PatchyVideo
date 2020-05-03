@@ -234,7 +234,7 @@ def editComment(user, text : str, comment_id : ObjectId, use_bleach = True) :
 	filterOperation('commentAdmin', user, comm_obj)
 	with MongoTransaction(client) as s :
 		db.comment_items.update_one({'_id': comment_id}, {'$set': {'content': text, 'edited': True}}, session = s())
-		db.comment_items.update_one({'_id': comment_id}, {'$set': {'meta.modified_by': datetime.now()}}, session = s())
+		db.comment_items.update_one({'_id': comment_id}, {'$set': {'meta.modified_at': datetime.now(), 'meta.modified_by': user['_id']}}, session = s())
 		s.mark_succeed()
 
 def pinComment(user, comment_id : ObjectId, pinned : bool) :
