@@ -241,7 +241,10 @@ def pinComment(user, comment_id : ObjectId, pinned : bool) :
 	comm_obj = db.comment_items.find_one({'_id': comment_id})
 	if comm_obj is None :
 		raise UserError('COMMENT_NOT_EXIST')
-	parent_obj = db.comment_items.find_one({'_id': comm_obj['parent']})
+	if 'parent' in comm_obj :
+		parent_obj = db.comment_items.find_one({'_id': comm_obj['parent']})
+	elif 'thread' in comm_obj :
+		parent_obj = db.comment_items.find_one({'_id': comm_obj['thread']})
 	if parent_obj is None :
 		raise UserError('PARENT_NOT_EXIST')
 	filterOperation('commentAdmin', user, parent_obj)
