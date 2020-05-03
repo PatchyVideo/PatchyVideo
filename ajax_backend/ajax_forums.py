@@ -29,8 +29,8 @@ def ajax_forums_post_thread_unfiltered(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_forums_view_thread(rd, user, data):
-	comments, users, title = viewSingleForumThread(ObjectId(data.forum_tid))
-	return "json", makeResponseSuccess({'comments': comments, 'users': users, 'title': title})
+	comments, users, title, pinned = viewSingleForumThread(ObjectId(data.forum_tid))
+	return "json", makeResponseSuccess({'comments': comments, 'users': users, 'title': title, 'pinned': pinned})
 
 @app.route('/forums/delete_thread.do', methods = ['POST'])
 @loginRequiredJSON

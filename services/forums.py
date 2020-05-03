@@ -65,19 +65,23 @@ def listForumThreads(forum_id : ObjectId, page_idx : int = 0, page_size : int = 
 		raise UserError('INCORRECT_ORDER')
 	if order == 'last_modified' :
 		sort_obj = {"meta.modified_at": -1}
-	all_items = db.forum_threads.aggregate([
+	all_items = list(db.forum_threads.aggregate([
 		{'$match': {'forum_id': forum_id, 'deleted': False, 'pinned': False}},
 		{'$sort': sort_obj},
 		{'$skip': page_idx * page_size},
 		{'$limit': page_size},
 		{'$lookup': {'from': 'comment_threads', 'localField': 'tid', 'foreignField': '_id', 'as': 'thread_obj'}}
-	])
-	all_pinned_items = db.forum_threads.aggregate([
+	]))
+	all_pinned_items = list(db.forum_threads.aggregate([
 		{'$match': {'forum_id': forum_id, 'deleted': False, 'pinned': True}},
 		{'$sort': sort_obj},
 		{'$lookup': {'from': 'comment_threads', 'localField': 'tid', 'foreignField': '_id', 'as': 'thread_obj'}}
-	])
-	all_items_list = list(all_pinned_items) + list(all_items)
+	]))
+	for i in all_pinned_items :
+		i['pinned'] = True
+	for i in all_items :
+		i['pinned'] = False
+	all_items_list = all_pinned_items + all_items
 	return all_items_list[: page_size]
 
 def viewSingleForumThread(ftid : ObjectId) :
@@ -88,7 +92,7 @@ def viewSingleForumThread(ftid : ObjectId) :
 		raise UserError('THREAD_NOT_EXIST') # deleted counts as non-exist
 	title = ft_obj['title']
 	replys, users = listThread(ft_obj['tid'])
-	return replys, users, title
+	return replys, users, title, ft_obj['pinned']
 
 def addToThread(user, ftid : ObjectId, content : str) :
 	ft_obj = db.forum_threads.find_one({'_id': ftid})
