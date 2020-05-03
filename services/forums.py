@@ -81,8 +81,7 @@ def listForumThreads(forum_id : ObjectId, page_idx : int = 0, page_size : int = 
 		i['pinned'] = True
 	for i in all_items :
 		i['pinned'] = False
-	all_items_list = all_pinned_items + all_items
-	return all_items_list[: page_size]
+	return all_pinned_items, all_items
 
 def viewSingleForumThread(ftid : ObjectId) :
 	ft_obj = db.forum_threads.find_one({'_id': ftid})

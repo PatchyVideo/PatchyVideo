@@ -50,8 +50,8 @@ def ajax_forums_pin(rd, user, data):
 def ajax_forums_view_forum(rd, user, data):
 	page_idx = getDefaultJSON(data, 'page', 1) - 1
 	page_size = getDefaultJSON(data, 'page_size', 30)
-	threads = listForumThreads(ObjectId(data.forum_id), page_idx, page_size)
-	return "json", makeResponseSuccess({'threads': threads})
+	threads_pinned, threads = listForumThreads(ObjectId(data.forum_id), page_idx, page_size)
+	return "json", makeResponseSuccess({'threads': threads, 'threads_pinned': threads_pinned})
 
 @app.route('/forums/add_to_thread.do', methods = ['POST'])
 @loginRequiredJSON
