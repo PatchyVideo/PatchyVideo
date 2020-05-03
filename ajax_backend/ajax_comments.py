@@ -85,6 +85,12 @@ def ajax_comments_del(rd, user, data):
 def ajax_comments_edit(rd, user, data):
 	editComment(user, data.text, ObjectId(data.cid))
 
+@app.route('/comments/edit_unfiltered.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_comments_edit_unfiltered(rd, user, data):
+	editComment(user, data.text, ObjectId(data.cid), use_bleach = False)
+
 @app.route('/comments/pin.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
