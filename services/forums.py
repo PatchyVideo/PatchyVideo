@@ -50,6 +50,7 @@ def postThreadToForum(user, forum_id : ObjectId, title : str, text: str, use_ble
 			'content': text,
 			'hidden': False,
 			'deleted': False,
+			'pinned': False,
 			'upvotes': 0,
 			'downvotes': 0,
 			'meta': makeUserMetaObject(user)
@@ -93,13 +94,13 @@ def viewSingleForumThread(ftid : ObjectId) :
 	replys, users = listThread(ft_obj['tid'])
 	return replys, users, title, ft_obj['pinned']
 
-def addToThread(user, ftid : ObjectId, content : str) :
+def addToThread(user, ftid : ObjectId, content : str, use_bleach = True) :
 	ft_obj = db.forum_threads.find_one({'_id': ftid})
 	if ft_obj is None :
 		raise UserError('THREAD_NOT_EXIST')
 	if ft_obj['deleted'] :
 		raise UserError('THREAD_NOT_EXIST') # deleted counts as non-exist
-	return addComment(user, ft_obj['tid'], content, notification_type = 'forum_reply')
+	return addComment(user, ft_obj['tid'], content, notification_type = 'forum_reply', use_bleach = use_bleach)
 
 def addReplyToThread(user, reply_to : ObjectId, text : str) :
 	return addReply(user, reply_to, text, notification_type = 'forum_reply')

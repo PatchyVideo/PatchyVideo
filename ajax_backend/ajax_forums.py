@@ -60,6 +60,13 @@ def ajax_forums_add_to_thread(rd, user, data):
 	cid = addToThread(user, ObjectId(data.forum_tid), data.text)
 	return "json", makeResponseSuccess({'cid': cid})
 
+@app.route('/forums/add_to_thread_unfiltered.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_forums_add_to_thread_unfiltered(rd, user, data):
+	cid = addToThread(user, ObjectId(data.forum_tid), data.text, use_bleach = False)
+	return "json", makeResponseSuccess({'cid': cid})
+
 @app.route('/forums/reply.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
