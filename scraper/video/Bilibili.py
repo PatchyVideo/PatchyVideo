@@ -42,7 +42,7 @@ class _bv2av() :
 
 class Bilibili( Crawler ) :
 	NAME = 'bilibili'
-	PATTERN = r'^((https:\/\/|http:\/\/)?((www|m)\.)?(bilibili\.com\/video\/([aA][vV][\d]+|BV[a-zA-Z0-9]+)\/([aA][vV][\d]+|BV[a-zA-Z0-9]+)).*|https:\/\/b23\.tv\/\w+)'
+	PATTERN = r'^((https:\/\/|http:\/\/)?((www|m)\.)?(bilibili\.com\/video\/([aA][vV][\d]+|BV[a-zA-Z0-9]+)).*|https:\/\/b23\.tv\/\w+)'
 	SHORT_PATTERN = r'^([aA][Vv][\d]+|BV[a-zA-Z0-9]+)$'
 	VID_MATCH_REGEX = r"([aA][Vv][\d]+|BV[a-zA-Z0-9]+)"
 	AID_MATCH_REGEX = r"__INITIAL_STATE__\s*=\s*{\"aid\"\:(\d+),"
