@@ -97,18 +97,25 @@ class Twitter( Crawler ) :
 			async with session.post(ga_url, headers = {'authorization': authorization}) as resp:
 				ga_content = await resp.text()
 			guest_token = json.loads(ga_content)['guest_token']
+
+			# get screen name and created_at
 			api_url = 'https://api.twitter.com/1.1/statuses/show.json?id=%s' % item_id
 			async with session.get(api_url, headers = {'authorization': authorization, 'x-guest-token': guest_token}) as resp:
 				api_content = await resp.text()
+			info = json.loads(api_content)
+			user_name = info['user']['name']
+			screen_name = info['user']['screen_name']
+			uploadDate = parse(info['created_at']).astimezone(timezone.utc)
 
-		info = json.loads(api_content)
-		if 'extended_entities' not in info :
-			return makeResponseFailed('Not a twitter video')
-		desc = info['text']
-		cover = info['extended_entities']['media'][0]['media_url']
-		user_name = info['user']['name']
-		screen_name = info['user']['screen_name']
-		uploadDate = parse(info['created_at']).astimezone(timezone.utc)
+			# get desc and cover
+			api_url = 'https://api.twitter.com/2/timeline/conversation/%s.json?tweet_mode=extended' % item_id
+			async with session.get(api_url, headers = {'authorization': authorization, 'x-guest-token': guest_token}) as resp:
+				api_content = await resp.text()
+			info = json.loads(api_content)['globalObjects']['tweets'][item_id]
+			if 'extended_entities' not in info :
+				return makeResponseFailed('Not a twitter video')
+			desc = info['full_text']
+			cover = info['extended_entities']['media'][0]['media_url']
 
 		return makeResponseSuccess({
 			'thumbnailURL': cover,
