@@ -109,7 +109,7 @@ def addComment(user, thread_id : ObjectId, text : str, notification_type : str =
 						log(level = 'ERR', obj = {'msg': 'orphan thread found!!', 'thread_id': thread_id, 'thread_obj': thread_obj})
 						raise UserError('UNKNOWN_ERROR')
 		# ===========================================================
-		if notification_type : # empty means do not notify user
+		if notification_type and parent_obj['meta']['created_by'] != user['_id'] : # empty means do not notify user
 			createNotification(notification_type, thread_obj['owner'], session = s(), other = note_obj)
 		if note_obj['replied_type'] == 'forum' : # forum comment, set modified_at date
 			db.forum_threads.update_one({'_id': note_obj['replied_obj']}, {'$set': {'meta.modified_at': datetime.now(), 'meta.modified_by': user['_id']}}, session = s())
@@ -200,7 +200,7 @@ def addReply(user, reply_to : ObjectId, text : str, notification_type : str = 'c
 						log(level = 'ERR', obj = {'msg': 'orphan thread found!!', 'thread_id': thread_id, 'thread_obj': thread_obj})
 						raise UserError('UNKNOWN_ERROR')
 		# ===========================================================
-		if notification_type : # empty means do not notify user
+		if notification_type and parent_obj['meta']['created_by'] != user['_id'] : # empty means do not notify user and we don't want to notify users who reply to themselves
 			createNotification(notification_type, parent_obj['meta']['created_by'], session = s(), other = note_obj)
 		if note_obj['replied_type'] == 'forum' : # forum reply, set modified_at date
 			db.forum_threads.update_one({'_id': note_obj['replied_obj']}, {'$set': {'meta.modified_at': datetime.now(), 'meta.modified_by': user['_id']}}, session = s())
