@@ -85,9 +85,10 @@ def _diff(old_tags, new_tags):
 	return list(added_tags), list(removed_tags)
 
 class TagDB() :
-	def __init__(self, db) :
+	def __init__(self, db, db_name = 'videos') :
 		self.db = db
 		self.aci = AutocompleteInterface()
+		self.db_name = db_name
 	
 	def init_autocomplete(self) :
 		all_tags = [i for i in self.db.tags.find()]
@@ -249,7 +250,7 @@ class TagDB() :
 		self.db.tag_alias.delete_many({'dst': tag_obj['_id']}, session = session)
 		self.db.tags.delete_one({'_id': tag_obj['_id']}, session = session)
 		self.db.cats.update_one({'name': tag_obj['category']}, {'$inc': {'count': -1}}, session = session)
-		history_items = list(self.db.items.aggregate([
+		history_items = list(self.db[self.db_name].aggregate([
 			{'$match': {'tags': {'$in': [tagid]}}},
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
 			{'$addFields': {'del': [tagid], 'add': [], 'time': datetime.now(), 'user': user}},
@@ -259,7 +260,7 @@ class TagDB() :
 			for i in history_items :
 				del i['_id']
 			self.db.tag_history.insert_many(history_items, session = session)
-		self.db.items.update_many({'tags': {'$in': [tagid]}}, {'$pull': {'tags': tagid}, '$inc': {'tag_count': int(-1)}}, session = session)
+		self.db[self.db_name].update_many({'tags': {'$in': [tagid]}}, {'$pull': {'tags': tagid}, '$inc': {'tag_count': int(-1)}}, session = session)
 		self.db.free_tags.insert_one({'id': tagid})
 		self.aci.DeleteTag(tagid)
 
@@ -269,7 +270,7 @@ class TagDB() :
 		if tag_obj_src['id'] == tag_obj_dst['id'] :
 			raise UserError('SAME_TAG')
 
-		self.db.items.update_many({'tags': {'$in': [tag_obj_src['id']]}}, {
+		self.db[self.db_name].update_many({'tags': {'$in': [tag_obj_src['id']]}}, {
 			'$addToSet': {'tags': tag_obj_dst['id']},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 
@@ -427,13 +428,13 @@ class TagDB() :
 				self.aci.AddWord([(tag_obj['id'], alias_name, "NAL")])
 	
 	def retrive_items(self, tag_query, session = None) :
-		return self.db.items.find(tag_query, session = session)
+		return self.db[self.db_name].find(tag_query, session = session)
 
 	def retrive_item(self, tag_query_or_item_id, session = None) :
 		if isinstance(tag_query_or_item_id, ObjectId) or isinstance(tag_query_or_item_id, str):
-			return self.db.items.find_one({'_id': ObjectId(tag_query_or_item_id)}, session = session)
+			return self.db[self.db_name].find_one({'_id': ObjectId(tag_query_or_item_id)}, session = session)
 		else:
-			return self.db.items.find_one(tag_query_or_item_id, session = session)
+			return self.db[self.db_name].find_one(tag_query_or_item_id, session = session)
 
 	"""
 	def get_tag_category(self, tags, session = None) :
@@ -496,11 +497,11 @@ class TagDB() :
 
 	def retrive_item_with_tag_category_map(self, tag_query_or_item_id, language, session = None) :
 		if isinstance(tag_query_or_item_id, ObjectId) or isinstance(tag_query_or_item_id, str):
-			item_obj = self.db.items.find_one({'_id': ObjectId(tag_query_or_item_id)}, session = session)
+			item_obj = self.db[self.db_name].find_one({'_id': ObjectId(tag_query_or_item_id)}, session = session)
 		elif isinstance(tag_query_or_item_id, dict) :
 			item_obj = tag_query_or_item_id
 		else:
-			item_obj = self.db.items.find_one(tag_query_or_item_id, session = session)
+			item_obj = self.db[self.db_name].find_one(tag_query_or_item_id, session = session)
 		if item_obj is None :
 			raise UserError('ITEM_NOT_EXIST')
 		tag_objs = self.db.tags.find({'id': {'$in': item_obj['tags']}}, session = session)
@@ -521,7 +522,7 @@ class TagDB() :
 		tag_ids = self.filter_and_translate_tags(tags)
 		field_texts = [item[field] for field in fields_to_index]
 		word_ids = build_index(field_texts, session = session)
-		item_id = self.db.items.insert_one({
+		item_id = self.db[self.db_name].insert_one({
 			'clearence': clearence,
 			'tags': tag_ids + word_ids,
 			'item': item,
@@ -553,17 +554,17 @@ class TagDB() :
 				raise UserError('TAG_NOT_EXIST', tag)
 
 	def update_item(self, item_id, item, user = '', session = None):
-		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
+		item = self.db[self.db_name].find_one({'_id': ObjectId(item_id)}, session = session)
 		if item is None:
 			raise UserError('ITEM_NOT_EXIST')
-		self.db.items.update_one({'_id': ObjectId(item_id)}, {'$set': {'item': item, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+		self.db[self.db_name].update_one({'_id': ObjectId(item_id)}, {'$set': {'item': item, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 
 	def update_item_query(self, item_id_or_item_object, query, fields_to_index = [], user = '', session = None):
 		"""
 		Your update query MUST NOT modify tags
 		"""
 		if isinstance(item_id_or_item_object, ObjectId) or isinstance(item_id_or_item_object, str):
-			item = self.db.items.find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
+			item = self.db[self.db_name].find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
 			if item is None:
 				raise UserError('ITEM_NOT_EXIST')
 		else:
@@ -580,10 +581,10 @@ class TagDB() :
 				word_ids = list(filter(lambda x: x >= 0x80000000, item['tags']))
 				remove_index(word_ids, session = session)
 				new_word_ids = build_index(field_texts, session = session)
-				self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': tag_ids + new_word_ids}}, session = session)
+				self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': tag_ids + new_word_ids}}, session = session)
 				
-		self.db.items.update_one({'_id': ObjectId(item['_id'])}, query, session = session)
-		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+		self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, query, session = session)
+		self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, {'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 
 	def _log_tag_update(self, user, vid : ObjectId, old_tags, new_tags, session = None) :
 		added, removed = _diff(old_tags, new_tags)
@@ -600,7 +601,7 @@ class TagDB() :
 	def update_item_tags(self, item_id_or_item_object, new_tags, user = '', session = None):
 		new_tag_ids = self.filter_and_translate_tags(new_tags)
 		if isinstance(item_id_or_item_object, ObjectId) or isinstance(item_id_or_item_object, str):
-			item = self.db.items.find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
+			item = self.db[self.db_name].find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
 			if item is None:
 				raise UserError('ITEM_NOT_EXIST')
 		else:
@@ -611,14 +612,14 @@ class TagDB() :
 		self._log_tag_update(user, item_id_or_item_object['_id'], real_tags, new_tag_ids, session = session)
 		self.db.tags.update_many({'id': {'$in': real_tags}}, {'$inc': {'count': -1}}, session = session)
 		self.db.tags.update_many({'id': {'$in': new_tag_ids}}, {'$inc': {'count': 1}}, session = session)
-		self.db.items.update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': new_tag_ids + index_tags, 'tag_count': int(len(new_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
+		self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': new_tag_ids + index_tags, 'tag_count': int(len(new_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		self.aci.SetCountDiff([(t, -1) for t in item['tags']])
 		self.aci.SetCountDiff([(t, 1) for t in new_tag_ids])
 
 	def _get_many_tag_counts(self, item_ids = None, tags = None, user = '', session = None):
 		id_match_obj = { '_id' : { '$in': item_ids } } if item_ids else {}
 		tag_match_obj = { '_id' : { '$in' : tags } } if tags else {}
-		return self.db.items.aggregate([
+		return self.db[self.db_name].aggregate([
 		{
 			"$match" : id_match_obj
 		},
@@ -645,7 +646,7 @@ class TagDB() :
 			new_tag_ids = self.filter_and_translate_tags(new_tags)
 		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts(item_ids, new_tag_ids, user, session)])
 		# TODO: trigger tag rule and action
-		history_items = list(self.db.items.aggregate([
+		history_items = list(self.db[self.db_name].aggregate([
 			{'$match': {'_id': {'$in': item_ids}}},
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
 			{'$project': {'vid': 1, 'tags': 1, 'add': {'$setDifference': [new_tag_ids, '$tags']}}},
@@ -656,19 +657,19 @@ class TagDB() :
 			for i in history_items :
 				del i['_id']
 			self.db.tag_history.insert_many(history_items, session = session)
-		self.db.items.update_many({'_id': {'$in': item_ids}}, {
+		self.db[self.db_name].update_many({'_id': {'$in': item_ids}}, {
 			'$addToSet': {'tags': {'$each': new_tag_ids}},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		num_items = len(item_ids)
 		new_tag_count_diff = [(tag, num_items - prior_tag_counts.get(tag, 0)) for tag in new_tag_ids]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session) # $inc is atomic, no locking needed
-		item_objs = self.db.items.aggregate([
+		item_objs = self.db[self.db_name].aggregate([
 			{'$match': {'_id': {'$in': item_ids}}},
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
 		], session = session)
 		for obj in item_objs :
-			self.db.items.update_one({'_id': obj['vid']}, {'$set': {'tag_count': int(len(obj['tags']))}}, session = session)
+			self.db[self.db_name].update_one({'_id': obj['vid']}, {'$set': {'tag_count': int(len(obj['tags']))}}, session = session)
 		self.aci.SetCountDiff(new_tag_count_diff)
 
 	def update_many_items_tags_pull(self, item_ids, tags_to_remove, user = '', session = None):
@@ -680,7 +681,7 @@ class TagDB() :
 			tag_ids_to_remove = self.filter_and_translate_tags(tags_to_remove)
 		prior_tag_counts = dict([(item['_id'], item['count']) for item in self._get_many_tag_counts(item_ids, tag_ids_to_remove, user, session)])
 		# TODO: trigger tag rule and action
-		history_items = list(self.db.items.aggregate([
+		history_items = list(self.db[self.db_name].aggregate([
 			{'$match': {'_id': {'$in': item_ids}}},
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
 			{'$project': {'vid': 1, 'tags': 1, 'del': {'$setIntersection': [tag_ids_to_remove, '$tags']}}},
@@ -691,18 +692,18 @@ class TagDB() :
 			for i in history_items :
 				del i['_id']
 			self.db.tag_history.insert_many(history_items, session = session)
-		self.db.items.update_many({'_id': {'$in': item_ids}}, {
+		self.db[self.db_name].update_many({'_id': {'$in': item_ids}}, {
 			'$pullAll': {'tags': tag_ids_to_remove},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		new_tag_count_diff = [(tag, -prior_tag_counts.get(tag, 0)) for tag in tag_ids_to_remove]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
-			item_objs = self.db.items.aggregate([
+			item_objs = self.db[self.db_name].aggregate([
 			{'$match': {'_id': {'$in': item_ids}}},
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
 		], session = session)
 		for obj in item_objs :
-			self.db.items.update_one({'_id': obj['vid']}, {'$set': {'tag_count': int(len(obj['tags']))}}, session = session)
+			self.db[self.db_name].update_one({'_id': obj['vid']}, {'$set': {'tag_count': int(len(obj['tags']))}}, session = session)
 		self.aci.SetCountDiff(new_tag_count_diff)
 
 	def update_item_tags_merge(self, item_id, new_tags, user = '', session = None):
@@ -712,14 +713,14 @@ class TagDB() :
 			new_tag_ids = new_tags
 		else :
 			new_tag_ids = self.filter_and_translate_tags(new_tags)
-		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
+		item = self.db[self.db_name].find_one({'_id': ObjectId(item_id)}, session = session)
 		if item is None :
 			raise UserError('ITEM_NOT_EXIST')
 		old_tag_ids = list(filter(lambda x: x < 0x80000000, item['tags']))
 		merged_tag_ids = list(set(old_tag_ids) | set(new_tag_ids))
 		merged_tag_ids = self._trigger_tag_rule_and_action(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
 		self._log_tag_update(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
-		self.db.items.update_one({'_id': ObjectId(item_id)}, {
+		self.db[self.db_name].update_one({'_id': ObjectId(item_id)}, {
 			'$addToSet': {'tags': {'$each': merged_tag_ids}},
 			'$set': {'tag_count': int(len(merged_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		tags_added, _ = _diff(old_tag_ids, merged_tag_ids)
@@ -735,14 +736,14 @@ class TagDB() :
 			tag_ids_to_remove = tags_to_remove
 		else :
 			tag_ids_to_remove = self.filter_and_translate_tags(tags_to_remove)
-		item = self.db.items.find_one({'_id': ObjectId(item_id)}, session = session)
+		item = self.db[self.db_name].find_one({'_id': ObjectId(item_id)}, session = session)
 		if item is None :
 			raise UserError('ITEM_NOT_EXIST')
 		old_tag_ids = list(filter(lambda x: x < 0x80000000, item['tags']))
 		merged_tag_ids = list(set(old_tag_ids) - set(tags_to_remove))
 		merged_tag_ids = self._trigger_tag_rule_and_action(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
 		self._log_tag_update(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
-		self.db.items.update_one({'_id': ObjectId(item_id)}, {
+		self.db[self.db_name].update_one({'_id': ObjectId(item_id)}, {
 			'$pullAll': {'tags': tag_ids_to_remove},
 			'$set': {'tag_count': int(len(merged_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		_, tags_removed = _diff(old_tag_ids, merged_tag_ids)

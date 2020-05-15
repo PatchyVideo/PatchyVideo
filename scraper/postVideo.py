@@ -272,7 +272,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 		log_e(event_id, user, 'dispatcher', 'ERR', {'msg': 'PARSE_FAILED', 'url': url})
 		await _playlist_reorder_helper.post_video_failed(url, dst_playlist, playlist_ordered, dst_rank, user, event_id)
 		return "PARSE_FAILED", {}
-	unique_id = await parsed.unique_id_async(self = parsed, link = url)
+	unique_id = await parsed.unique_id_async(self = parsed, link = url) # empty unique_id for b23.tv posts, fuck bilibli
 	log_e(event_id, user, 'scraper', 'MSG', {'url': url, 'dst_copy': dst_copy, 'other_copies': other_copies, 'dst_playlist': dst_playlist})
 	setEventOp('scraper')
 	try :
@@ -290,6 +290,8 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 					log_e(event_id, user, 'downloader', 'WARN', {'msg': 'FETCH_FAILED', 'ret': ret})
 					await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
 					return "FETCH_FAILED", ret
+				else :
+					unique_id = ret['data']['unique_id']
 			else :
 				# build ret
 				ret = makeResponseSuccess({
@@ -489,6 +491,8 @@ async def postVideoAsyncJSON(param_json) :
 	return {'result' : ret, 'result_obj' : ret_obj}
 
 def verifyUniqueness(postingId):
+	if not postingId :
+		return True, None
 	val = tagdb.retrive_item({"item.unique_id": postingId})
 	return val is None, val
 

@@ -54,7 +54,7 @@ def getRelatedTagsExperimental(user_language, tags, exclude = [], max_count = 10
 	log(obj = {'tags': tags, 'lang': user_language, 'count': max_count})
 	tag_ids = tagdb.filter_and_translate_tags(tags)
 	exclude_tag_ids = tagdb.filter_and_translate_tags(exclude)
-	top_tags = list(tagdb.db.items.aggregate([
+	top_tags = list(tagdb.db.videos.aggregate([
 		{'$match': {'tags': {'$all': tag_ids}}},
 		{'$project': {'tags': 1}},
 		{'$unwind': {'path': '$tags'}},

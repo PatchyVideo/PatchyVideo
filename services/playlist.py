@@ -318,7 +318,7 @@ def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
 		},
 		{
 			'$lookup': {
-				'from': "items",
+				'from': 'videos',
 				'localField': "vid",
 				'foreignField': "_id",
 				'as': 'item'
@@ -363,7 +363,7 @@ def listPlaylistVideos(pid, page_idx, page_size, user) :
 		},
 		{
 			'$lookup': {
-				'from': "items",
+				'from': 'videos',
 				'localField': "vid",
 				'foreignField': "_id",
 				'as': 'item'
@@ -415,7 +415,7 @@ def listAllPlaylistVideosOrdered(pid, user) :
 		},
 		{
 			'$lookup': {
-				'from': "items",
+				'from': 'videos',
 				'localField': "vid",
 				'foreignField': "_id",
 				'as': 'item'
@@ -508,7 +508,7 @@ def listCommonTagIDs(pid, user) :
 	},
 	{
 		"$lookup" : {
-			"from" : "items",
+			"from" : 'videos',
 			"localField" : "vid",
 			"foreignField" : "_id",
 			"as" : "video"

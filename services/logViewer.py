@@ -98,7 +98,7 @@ def viewRawTagHistory(page, page_size, language) :
 		{'$limit': page_size},
 		{'$lookup': {'from': 'users', 'localField': 'user', 'foreignField': '_id', 'as': 'user_obj'}},
 		{'$project': {'vid': 1, 'user_obj._id': 1, 'user_obj.profile.username': 1, 'user_obj.profile.image': 1, 'tags': 1, 'del': 1, 'add': 1, 'time': 1}},
-		{'$lookup': {'from': 'items', 'localField': 'vid', 'foreignField': '_id', 'as': 'video_obj'}},
+		{'$lookup': {'from': 'videos', 'localField': 'vid', 'foreignField': '_id', 'as': 'video_obj'}},
 		{'$project': {
 			'vid': 1,
 			'user_obj._id': 1,

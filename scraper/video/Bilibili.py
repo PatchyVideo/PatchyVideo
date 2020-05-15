@@ -42,9 +42,10 @@ class _bv2av() :
 
 class Bilibili( Crawler ) :
 	NAME = 'bilibili'
-	PATTERN = r'^(https:\/\/|http:\/\/)?((www|m)\.)?(bilibili\.com\/video\/([aA][vV][\d]+|BV[a-zA-Z0-9]+)|b23\.tv\/([aA][vV][\d]+|BV[a-zA-Z0-9]+)).*'
+	PATTERN = r'^((https:\/\/|http:\/\/)?((www|m)\.)?(bilibili\.com\/video\/([aA][vV][\d]+|BV[a-zA-Z0-9]+)).*|https:\/\/b23\.tv\/\w+)'
 	SHORT_PATTERN = r'^([aA][Vv][\d]+|BV[a-zA-Z0-9]+)$'
 	VID_MATCH_REGEX = r"([aA][Vv][\d]+|BV[a-zA-Z0-9]+)"
+	AID_MATCH_REGEX = r"__INITIAL_STATE__\s*=\s*{\"aid\"\:(\d+),"
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
 	BV2AV = _bv2av()
@@ -57,9 +58,9 @@ class Bilibili( Crawler ) :
 
 	# TODO: can not handle if p number exceeds actual p number of the given video
 	def extract_link(self, link) :
-		import sys
-		print(link, file = sys.stderr)
 		ret = re.search(self.VID_MATCH_REGEX, link)
+		if ret is None and 'b23.tv' in link :
+			return None, None, True
 		parsed_link = urlparse(link)
 		qs_dict = parse_qs(parsed_link.query)
 		p_num = 1
@@ -73,17 +74,29 @@ class Bilibili( Crawler ) :
 		if vid[:2].upper() == 'BV' :
 			vid = 'BV' + vid[2:]
 			vid = 'av' + str(self.BV2AV.dec(vid))
-		return vid, p_num
+		return vid, p_num, False
 
 	def normalize_url( self, link ) :
-		vidid, p_num = self.extract_link(self = self, link = link)
-		return f"https://www.bilibili.com/video/{vidid}?p={p_num}"
+		vidid, p_num, b23vid = self.extract_link(self = self, link = link)
+		if b23vid :
+			return link
+		else :
+			return f"https://www.bilibili.com/video/{vidid}?p={p_num}"
 
 	def expand_url( self, short ) :
+		if short[:2].lower() == 'av' :
+			short = short.lower()
+		if short[:2].upper() == 'BV' :
+			short = 'BV' + short[2:]
+			short = 'av' + str(self.BV2AV.dec(short))
 		return f"https://www.bilibili.com/video/{short}?p=1"
 
 	def unique_id( self, link ) :
-		return 'bilibili:%s-%d' % self.extract_link(self = self, link = link)
+		vidid, p_num, b23vid = self.extract_link(self = self, link = link)
+		if b23vid :
+			return ''
+		else :
+			return 'bilibili:%s-%d' % (vidid, p_num)
 	
 	def run( self, content, xpath, link, update_video_detail ) :
 		raise NotImplementedError()
@@ -92,8 +105,19 @@ class Bilibili( Crawler ) :
 		return self.unique_id(self = self, link = link)
 		
 	async def run_async(self, content, xpath, link, update_video_detail) :
+		uid = ''
+		new_url = ''
 		try :
-			aid, p_num = self.extract_link(self = self, link = link)
+			aid, p_num, b23vid = self.extract_link(self = self, link = link)
+			if b23vid :
+				aid_match = re.search(self.AID_MATCH_REGEX, content)
+				aid = 'av' + aid_match.group(1)
+				new_url = f"https://www.bilibili.com/video/{aid}?p=1"
+				p_num = 1
+				uid = 'bilibili:%s-1' % aid
+			else :
+				new_url = link
+				uid = self.unique_id(self = self, link = link)
 			aid = aid[2:] # remove 'av'
 			thumbnailURL = xpath.xpath( '//meta[@itemprop="thumbnailUrl"]/@content' )[0]
 			title = xpath.xpath( '//h1[@class="video-title"]/@title' )[0]
@@ -124,8 +148,9 @@ class Bilibili( Crawler ) :
 				'desc' : '已失效视频',
 				'site': 'bilibili',
 				'uploadDate' : datetime.now(),
-				"unique_id": self.unique_id(self = self, link = link),
+				"unique_id": uid,
 				"utags": [],
+				"url_overwrite": new_url,
 				"placeholder": True
 			})
 		return makeResponseSuccess({
@@ -134,7 +159,8 @@ class Bilibili( Crawler ) :
 			'desc' : desc,
 			'site': 'bilibili',
 			'uploadDate' : uploadDate,
-			"unique_id": self.unique_id(self = self, link = link),
+			"unique_id": uid,
 			"utags": utags,
+			"url_overwrite": new_url,
 			'extra': {'part_name': part_name, 'cid': cid}
 		})
