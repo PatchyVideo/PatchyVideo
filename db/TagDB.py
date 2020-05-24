@@ -11,16 +11,16 @@ if __name__ == '__main__':
 	from query_parser import Parser
 	from bson import ObjectId
 	from collections import defaultdict
-	from AutocompleteInterface import AutocompleteInterface
+	from AutocompleteInterface import AutocompleteInterface, AutocompleteInterfaceDummy
 	from TagDB_language import VALID_LANGUAGES, PREFERRED_LANGUAGE_MAP, translateTagToPreferredLanguage
 else:
 	from .query_parser import Parser
 	from bson import ObjectId
 	from collections import defaultdict
-	from .AutocompleteInterface import AutocompleteInterface
+	from .AutocompleteInterface import AutocompleteInterface, AutocompleteInterfaceDummy
 	from .TagDB_language import VALID_LANGUAGES, PREFERRED_LANGUAGE_MAP, translateTagToPreferredLanguage
 	from .index.search_parser import parse_search
-	from .index.index_builder import build_index, remove_index
+	from .index.index_builder import build_index, remove_index, remove_index_from_text
 
 
 """
@@ -85,9 +85,12 @@ def _diff(old_tags, new_tags):
 	return list(added_tags), list(removed_tags)
 
 class TagDB() :
-	def __init__(self, db, db_name = 'videos') :
+	def __init__(self, db, db_name = 'videos', use_aci = True) :
 		self.db = db
-		self.aci = AutocompleteInterface()
+		if use_aci :
+			self.aci = AutocompleteInterface()
+		else :
+			self.aci = AutocompleteInterfaceDummy()
 		self.db_name = db_name
 	
 	def init_autocomplete(self) :
@@ -534,7 +537,7 @@ class TagDB() :
 				'modified_at': datetime.now()
 			}
 		}, session = session).inserted_id
-		self.db.tags.update_many({'id': {'$in': tag_ids}}, {'$inc': {'count': 1}}, session = session)
+		self.db.tags.update_many({'id': {'$in': tag_ids}}, {'$inc': {'count': int(1)}}, session = session)
 		self.db.tag_history.insert_one({
 			'vid': ObjectId(item_id),
 			'user': user,
@@ -545,6 +548,27 @@ class TagDB() :
 		}, session = session)
 		self.aci.SetCountDiff([(tagid, 1) for tagid in tag_ids])
 		return item_id
+
+	def remove_item(self, item_id_or_item_object, fields_to_index = [], user = '', session = None) :
+		if isinstance(item_id_or_item_object, ObjectId) or isinstance(item_id_or_item_object, str):
+			item = self.db[self.db_name].find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
+			if item is None:
+				raise UserError('ITEM_NOT_EXIST')
+		else:
+			item = item_id_or_item_object
+		tag_ids = list(filter(lambda x: x < 0x80000000, item['tags']))
+		field_texts = [item[field] for field in fields_to_index]
+		remove_index_from_text(field_texts, session = session)
+		self.db.tags.update_many({'id': {'$in': tag_ids}}, {'$inc': {'count': int(-1)}}, session = session)
+		self.db.tag_history.insert_one({
+			'vid': item['_id'],
+			'user': user,
+			'tags': [],
+			'add': [],
+			'del': tag_ids,
+			'time': datetime.now()
+		}, session = session)
+		self.aci.SetCountDiff([(tagid, -1) for tagid in tag_ids])
 
 	def verify_tags(self, tags, session = None) :
 		found_tags = self.db.tag_alias.find({'tag': {'$in': tags}}, session = session)
