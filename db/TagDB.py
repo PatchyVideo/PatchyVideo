@@ -549,7 +549,7 @@ class TagDB() :
 		self.aci.SetCountDiff([(tagid, 1) for tagid in tag_ids])
 		return item_id
 
-	def remove_item(self, item_id_or_item_object, fields_to_index = [], user = '', session = None) :
+	def remove_item(self, item_id_or_item_object, user = '', session = None) :
 		if isinstance(item_id_or_item_object, ObjectId) or isinstance(item_id_or_item_object, str):
 			item = self.db[self.db_name].find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
 			if item is None:
@@ -557,8 +557,8 @@ class TagDB() :
 		else:
 			item = item_id_or_item_object
 		tag_ids = list(filter(lambda x: x < 0x80000000, item['tags']))
-		field_texts = [item[field] for field in fields_to_index]
-		remove_index_from_text(field_texts, session = session)
+		word_ids = list(filter(lambda x: x >= 0x80000000, item['tags']))
+		remove_index(word_ids, session = session)
 		self.db.tags.update_many({'id': {'$in': tag_ids}}, {'$inc': {'count': int(-1)}}, session = session)
 		self.db.tag_history.insert_one({
 			'vid': item['_id'],
