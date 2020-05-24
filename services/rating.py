@@ -1,7 +1,7 @@
 
 import redis_lock
 
-from db import db, client
+from db import db, client, playlist_db
 from init import rdb
 from bson import ObjectId
 from utils.exceptions import UserError
@@ -32,7 +32,7 @@ def rateVideo(user, vid: ObjectId, stars: int) :
 
 def ratePlaylist(user, pid: ObjectId, stars: int) :
     stars = max(min(int(stars), 10), 1)
-    playlist_obj = db.playlists.find_one({'_id': pid})
+    playlist_obj = playlist_db.retrive_item(pid)
     if playlist_obj is None :
         raise UserError('PLAYLIST_NOT_EXIST')
     with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
@@ -46,11 +46,11 @@ def ratePlaylist(user, pid: ObjectId, stars: int) :
             db.playlist_ratings.insert_one({'pid': pid, 'uid': ObjectId(user['_id']), 'v': int(stars)}, session = s())
         if 'total_rating' in playlist_obj :
             if rating_obj :
-                db.playlists.update_one({'_id': pid}, {'$inc': {'total_rating': int(stars - rating_obj['v']), 'total_rating_user': int(1 - user_rated)}}, session = s())
+                playlist_db.update_item_query(playlist_obj, {'$inc': {'total_rating': int(stars - rating_obj['v']), 'total_rating_user': int(1 - user_rated)}}, session = s())
             else :
-                db.playlists.update_one({'_id': pid}, {'$inc': {'total_rating': int(stars), 'total_rating_user': int(1 - user_rated)}}, session = s())
+                playlist_db.update_item_query(playlist_obj, {'$inc': {'total_rating': int(stars), 'total_rating_user': int(1 - user_rated)}}, session = s())
         else :
-            db.playlists.update_one({'_id': pid}, {'$set': {'total_rating': int(stars), 'total_rating_user': int(1)}}, session = s())
+            playlist_db.update_item_query(playlist_obj, {'$set': {'total_rating': int(stars), 'total_rating_user': int(1)}}, session = s())
         s.mark_succeed()
 
 def getVideoRating(user, vid: ObjectId) :
@@ -80,7 +80,7 @@ def getVideoRatingAggregate(vid: ObjectId) :
     raise UserError('NOT_RATED')
 
 def getPlaylistRatingAggregate(pid: ObjectId) :
-    playlist_obj = db.playlists.find_one({'_id': pid})
+    playlist_obj = playlist_db.retrive_item(pid)
     if playlist_obj is None :
         raise UserError('PLAYLIST_NOT_EXIST')
     if 'total_rating' in playlist_obj :

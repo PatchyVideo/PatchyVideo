@@ -23,7 +23,7 @@ from utils.lock_async import RedisLockAsync
 from utils.exceptions import UserError
 
 from .video import dispatch
-from db import tagdb, db, client
+from db import tagdb, db, client, playlist_db
 
 from bson import ObjectId
 
@@ -178,7 +178,7 @@ class _PlaylistReorederHelper() :
 				# fast method
 				async with RedisLockAsync(rdb, "playlistEdit:" + dst_playlist), MongoTransaction(client) as s :
 					cur_rank = 0
-					playlist = db.playlists.find_one({'_id': ObjectId(dst_playlist)})
+					playlist = playlist_db.retrive_item(dst_playlist, session = s())
 					if playlist is None :
 						raise UserError('PLAYLIST_NOT_EXIST')
 					if playlist["videos"] + len(self.playlist_map[dst_playlist]['succeed']) > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
@@ -335,7 +335,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 			if dst_playlist :
 				#playlist_lock = RedisLockAsync(rdb, "playlistEdit:" + str(dst_playlist))
 				#playlist_lock.acquire()
-				if db.playlists.find_one({'_id': ObjectId(dst_playlist)}) is not None :
+				if playlist_db.retrive_item(dst_playlist, session = s()) is not None :
 					playlists = [ ObjectId(dst_playlist) ]
 			if not unique:
 				log_e(event_id, user, 'scraper', level = 'MSG', obj = {'msg': 'ALREADY_EXIST', 'unique_id': ret["data"]["unique_id"]})

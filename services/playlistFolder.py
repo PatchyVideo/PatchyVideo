@@ -50,7 +50,7 @@ listFolder(user, path)
 """
 
 from init import rdb
-from db import client, db
+from db import client, db, playlist_db
 
 from utils.exceptions import UserError
 from utils.rwlock import usingResource, modifyingResource
@@ -237,7 +237,7 @@ def addPlaylistsToFolder(user, path, playlists) :
 		filterOperation('addPlaylistsToFolder', user, folder_obj)
 
 		for pid in playlists :
-			playlist = db.playlists.find_one({'_id': ObjectId(pid)}, session = s())
+			playlist = playlist_db.retrive_item(pid, session = s())
 			if playlist is None :
 				continue # skip non-exist playlist
 			if playlist['private'] and not filterOperation('viewPrivatePlaylist', user, playlist, raise_exception = False) :

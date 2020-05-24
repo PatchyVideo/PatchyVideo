@@ -5,7 +5,7 @@ import bleach
 from bson import ObjectId
 
 from init import rdb
-from db import db, client
+from db import db, client, playlist_db
 from utils.dbtools import MongoTransaction
 from utils.exceptions import UserError
 from utils.dbtools import makeUserMetaObject, makeUserMeta
@@ -94,7 +94,7 @@ def addComment(user, thread_id : ObjectId, text : str, notification_type : str =
 				note_obj['replied_obj'] = obj['_id']
 				db.comment_threads.update_one({'_id': thread_id}, {'$set': {'obj_type': 'video', 'obj_id': obj['_id']}}, session = s())
 			else :
-				obj = db.playlists.find_one({'comment_thread': thread_id}, session = s())
+				obj = playlist_db.retrive_item({'comment_thread': thread_id}, session = s())
 				if obj :
 					note_obj['replied_type'] = 'playlist'
 					note_obj['replied_obj'] = obj['_id']
@@ -185,7 +185,7 @@ def addReply(user, reply_to : ObjectId, text : str, notification_type : str = 'c
 				note_obj['replied_obj'] = obj['_id']
 				db.comment_threads.update_one({'_id': thread_id}, {'$set': {'obj_type': 'video', 'obj_id': obj['_id']}}, session = s())
 			else :
-				obj = db.playlists.find_one({'comment_thread': thread_id}, session = s())
+				obj = playlist_db.retrive_item({'comment_thread': thread_id}, session = s())
 				if obj :
 					note_obj['replied_type'] = 'playlist'
 					note_obj['replied_obj'] = obj['_id']
@@ -289,14 +289,14 @@ def addToVideo(user, vid : ObjectId, text : str, use_bleach = True) :
 		else :
 			with MongoTransaction(client) as s :
 				tid = createThread('video', video_obj['_id'], video_obj['meta']['created_by'], session = s())
-				db.videos.update_one({'_id': vid}, {'$set': {'comment_thread': tid}})
+				db.videos.update_one({'_id': vid}, {'$set': {'comment_thread': tid}}, session = s())
 				s.mark_succeed()
 			cid = addComment(user, tid, text)
 			return tid, cid
 	
 def addToPlaylist(user, pid : ObjectId, text : str, use_bleach = True) :
 	filterOperation('postComment', user)
-	playlist_obj = db.playlists.find_one({'_id': pid})
+	playlist_obj = playlist_db.retrive_item(pid)
 	if playlist_obj is None :
 		raise UserError('PLAYLIST_NOT_EXIST')
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)) :
@@ -306,7 +306,7 @@ def addToPlaylist(user, pid : ObjectId, text : str, use_bleach = True) :
 		else :
 			with MongoTransaction(client) as s :
 				tid = createThread('playlist', playlist_obj['_id'], playlist_obj['meta']['created_by'], session = s())
-				db.playlists.update_one({'_id': pid}, {'$set': {'comment_thread': tid}})
+				playlist_db.update_item_query(playlist_obj, {'$set': {'comment_thread': tid}}, session = s())
 				s.mark_succeed()
 			cid = addComment(user, tid, text)
 			return tid, cid
@@ -323,7 +323,7 @@ def addToUser(user, uid : ObjectId, text : str, use_bleach = True) :
 		else :
 			with MongoTransaction(client) as s :
 				tid = createThread('user', uid, uid, session = s())
-				db.users.update_one({'_id': uid}, {'$set': {'comment_thread': tid}})
+				db.users.update_one({'_id': uid}, {'$set': {'comment_thread': tid}}, session = s())
 				s.mark_succeed()
 			cid = addComment(user, tid, text)
 			return tid, cid

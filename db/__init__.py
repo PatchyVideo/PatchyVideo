@@ -12,6 +12,7 @@ db = client['patchyvideo']
 
 from .TagDB import TagDB
 tagdb = TagDB(db)
+playlist_db = TagDB(db, 'playlist_metas', False)
 
 # add initial tag categories
 try :
