@@ -607,7 +607,8 @@ class TagDB() :
 				new_word_ids = build_index(field_texts, session = session)
 				self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': tag_ids + new_word_ids}}, session = session)
 				
-		self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, query, session = session)
+		if query :
+			self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, query, session = session)
 		self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, {'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 
 	def _log_tag_update(self, user, vid : ObjectId, old_tags, new_tags, session = None) :

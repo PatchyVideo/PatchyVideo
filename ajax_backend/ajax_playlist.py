@@ -92,8 +92,8 @@ def ajax_lists_new_do(rd, user, data):
 		updatePlaylistInfo(data.pid, "english", data.title, data.desc, data.cover, user, private)
 		return "json", makeResponseSuccess({"pid": data.pid})
 	else :
-		pid = createPlaylist("english", data.title, data.desc, data.cover, user, private)
-		return "json", makeResponseSuccess({"pid": pid})
+		pid = createPlaylist(data.title, data.desc, data.cover, user, private)
+		return "json", makeResponseSuccess({"pid": str(pid)})
 
 @app.route('/lists/myplaylists', methods = ['POST'])
 @loginRequiredJSON

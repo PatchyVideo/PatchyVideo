@@ -79,3 +79,35 @@ class AutocompleteInterface() :
 			payload += "%s " % q
 		return self._post("MatchFirstTag", "matchfirst", payload)
 
+class AutocompleteInterfaceDummy() :
+	def __init__(self, retry_count = 3) :
+		pass
+
+	def _post(self, func, endpoint, payload) :
+		pass
+
+	def AddTag(self, list_of_tuple_of_tagid_count_category) :
+		pass
+
+	def AddWord(self, list_of_tuple_of_tagid_word_lang) :
+		pass
+
+	def SetCount(self, list_of_tuple_of_tagid_count) :
+		pass
+
+	def SetCountDiff(self, list_of_tuple_of_tagid_diff) :
+		pass
+
+	def SetCat(self, list_of_tuple_of_tagid_cat) :
+		pass
+
+	def DeleteTag(self, tagid) :
+		pass
+
+	def DeleteWord(self, word) :
+		pass
+
+	def MatchFirstTag(self, list_of_querys) :
+		pass
+
+
