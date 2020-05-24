@@ -262,7 +262,8 @@ class TagDB() :
 		if history_items :
 			for i in history_items :
 				del i['_id']
-			self.db.tag_history.insert_many(history_items, session = session)
+			if self.db_name == 'videos' :
+				self.db.tag_history.insert_many(history_items, session = session)
 		self.db[self.db_name].update_many({'tags': {'$in': [tagid]}}, {'$pull': {'tags': tagid}, '$inc': {'tag_count': int(-1)}}, session = session)
 		self.db.free_tags.insert_one({'id': tagid})
 		self.aci.DeleteTag(tagid)
@@ -521,31 +522,47 @@ class TagDB() :
 	def set_item_clearence(self, item_id, clearence, user = '', session = None) :
 		self.update_item_query(item_id, {'$set': {'clearence': clearence}}, user, session = session)
 
-	def add_item(self, tags, item, clearence, fields_to_index = [], user = '', session = None) :
+	def add_item(self, tags, item, clearence, fields_to_index = [], user = '', session = None, id_override = '') :
 		tag_ids = self.filter_and_translate_tags(tags)
 		field_texts = [item[field] for field in fields_to_index]
 		word_ids = build_index(field_texts, session = session)
-		item_id = self.db[self.db_name].insert_one({
-			'clearence': clearence,
-			'tags': tag_ids + word_ids,
-			'item': item,
-			'tag_count': int(len(tag_ids)),
-			'meta': {
-				'created_by': user,
-				'created_at': datetime.now(),
-				'modified_by': user,
-				'modified_at': datetime.now()
-			}
-		}, session = session).inserted_id
+		if id_override :
+			item_id = self.db[self.db_name].insert_one({
+				'_id': id_override,
+				'clearence': clearence,
+				'tags': tag_ids + word_ids,
+				'item': item,
+				'tag_count': int(len(tag_ids)),
+				'meta': {
+					'created_by': user,
+					'created_at': datetime.now(),
+					'modified_by': user,
+					'modified_at': datetime.now()
+				}
+			}, session = session).inserted_id
+		else :
+			item_id = self.db[self.db_name].insert_one({
+				'clearence': clearence,
+				'tags': tag_ids + word_ids,
+				'item': item,
+				'tag_count': int(len(tag_ids)),
+				'meta': {
+					'created_by': user,
+					'created_at': datetime.now(),
+					'modified_by': user,
+					'modified_at': datetime.now()
+				}
+			}, session = session).inserted_id
 		self.db.tags.update_many({'id': {'$in': tag_ids}}, {'$inc': {'count': int(1)}}, session = session)
-		self.db.tag_history.insert_one({
-			'vid': ObjectId(item_id),
-			'user': user,
-			'tags': [],
-			'add': tag_ids,
-			'del': [],
-			'time': datetime.now()
-		}, session = session)
+		if self.db_name == 'videos' :
+			self.db.tag_history.insert_one({
+				'vid': ObjectId(item_id),
+				'user': user,
+				'tags': [],
+				'add': tag_ids,
+				'del': [],
+				'time': datetime.now()
+			}, session = session)
 		self.aci.SetCountDiff([(tagid, 1) for tagid in tag_ids])
 		return item_id
 
@@ -560,14 +577,15 @@ class TagDB() :
 		word_ids = list(filter(lambda x: x >= 0x80000000, item['tags']))
 		remove_index(word_ids, session = session)
 		self.db.tags.update_many({'id': {'$in': tag_ids}}, {'$inc': {'count': int(-1)}}, session = session)
-		self.db.tag_history.insert_one({
-			'vid': item['_id'],
-			'user': user,
-			'tags': [],
-			'add': [],
-			'del': tag_ids,
-			'time': datetime.now()
-		}, session = session)
+		if self.db_name == 'videos' :
+			self.db.tag_history.insert_one({
+				'vid': item['_id'],
+				'user': user,
+				'tags': [],
+				'add': [],
+				'del': tag_ids,
+				'time': datetime.now()
+			}, session = session)
 		self.aci.SetCountDiff([(tagid, -1) for tagid in tag_ids])
 
 	def verify_tags(self, tags, session = None) :
@@ -614,14 +632,15 @@ class TagDB() :
 	def _log_tag_update(self, user, vid : ObjectId, old_tags, new_tags, session = None) :
 		added, removed = _diff(old_tags, new_tags)
 		if added or removed :
-			self.db.tag_history.insert_one({
-				'vid': vid,
-				'user': user,
-				'tags': old_tags,
-				'add': added,
-				'del': removed,
-				'time': datetime.now()
-			}, session = session)
+			if self.db_name == 'videos' :
+				self.db.tag_history.insert_one({
+					'vid': vid,
+					'user': user,
+					'tags': old_tags,
+					'add': added,
+					'del': removed,
+					'time': datetime.now()
+				}, session = session)
 
 	def update_item_tags(self, item_id_or_item_object, new_tags, user = '', session = None):
 		new_tag_ids = self.filter_and_translate_tags(new_tags)
@@ -681,7 +700,8 @@ class TagDB() :
 		if history_items :
 			for i in history_items :
 				del i['_id']
-			self.db.tag_history.insert_many(history_items, session = session)
+			if self.db_name == 'videos' :
+				self.db.tag_history.insert_many(history_items, session = session)
 		self.db[self.db_name].update_many({'_id': {'$in': item_ids}}, {
 			'$addToSet': {'tags': {'$each': new_tag_ids}},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
@@ -716,7 +736,8 @@ class TagDB() :
 		if history_items :
 			for i in history_items :
 				del i['_id']
-			self.db.tag_history.insert_many(history_items, session = session)
+			if self.db_name == 'videos' :
+				self.db.tag_history.insert_many(history_items, session = session)
 		self.db[self.db_name].update_many({'_id': {'$in': item_ids}}, {
 			'$pullAll': {'tags': tag_ids_to_remove},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)

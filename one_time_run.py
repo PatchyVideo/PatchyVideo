@@ -1,6 +1,6 @@
 
 
-from db import db, client, tagdb
+from db import db, client, tagdb, playlist_db
 from utils.dbtools import MongoTransaction
 from bson import ObjectId
 '''
@@ -89,9 +89,44 @@ if __name__ == '__main__' :
     #    s.mark_succeed()
 """
 
+"""
 if __name__ == '__main__' :
     cursor = db.videos.find({'item.site': 'bilibili'}, no_cursor_timeout = True).batch_size(100)
     for item in cursor :
         print(item['item']['title'])
         db.videos.update_one({'_id': item['_id']}, {'$set': {'item.unique_id': item['item']['unique_id'] + '-1'}})
         db.videos.update_one({'_id': item['_id']}, {'$set': {'item.url': item['item']['url'] + '?p=1'}})
+"""
+
+if __name__ == '__main__' :
+    cursor = db.playlists.find({}, no_cursor_timeout = True).batch_size(100)
+    for item in cursor :
+        title = item['title']['english']
+        desc = item['desc']['english']
+        cover = item['cover']
+        private = item['private']
+        views = item['views']
+        videos = item['videos']
+        total_rating = item['total_rating']
+        total_rating_user = item['total_rating_user']
+        print(title)
+        new_id = playlist_db.add_item([],
+        {
+			"title": title,
+			"desc": desc,
+			"private": private,
+			"views": views,
+			"videos": videos,
+			"cover": cover
+		},
+        3,
+        ['title', 'desc'],
+        '',
+        None,
+        id_override = item['_id']
+        )
+        assert str(new_id) == str(item['_id'])
+        db.playlist_metas.update_one({'_id': item["_id"]}, {'$set': {'meta': item['meta']}})
+
+
+
