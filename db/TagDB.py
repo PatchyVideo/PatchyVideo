@@ -92,6 +92,9 @@ class TagDB() :
 		else :
 			self.aci = AutocompleteInterfaceDummy()
 		self.db_name = db_name
+
+	def aggregate(self, *args, **kwargs) :
+		return self.db[self.db_name].aggregate(*args, **kwargs)
 	
 	def init_autocomplete(self) :
 		all_tags = [i for i in self.db.tags.find()]
@@ -586,6 +589,7 @@ class TagDB() :
 				'del': tag_ids,
 				'time': datetime.now()
 			}, session = session)
+		self.db[self.db_name].delete_one({'_id': item['_id']}, session = session)
 		self.aci.SetCountDiff([(tagid, -1) for tagid in tag_ids])
 
 	def verify_tags(self, tags, session = None) :

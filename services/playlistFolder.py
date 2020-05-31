@@ -240,7 +240,7 @@ def addPlaylistsToFolder(user, path, playlists) :
 			playlist = playlist_db.retrive_item(pid, session = s())
 			if playlist is None :
 				continue # skip non-exist playlist
-			if playlist['private'] and not filterOperation('viewPrivatePlaylist', user, playlist, raise_exception = False) :
+			if playlist['item']['private'] and not filterOperation('viewPrivatePlaylist', user, playlist, raise_exception = False) :
 				continue # skip other's private playlist
 			playlist_path = path + "\\" + str(playlist['_id']) + "\\/"
 			if _findFolder(user, playlist_path, raise_exception = False) :
@@ -299,7 +299,7 @@ def listFolder(viewing_user, user, path) :
 	query_regex = f'^{path_escaped}[^\\/]*\\/$'
 	ret = db.playlist_folders.aggregate([
 		{'$match': {'user': user, 'path': {'$regex': query_regex}}},
-		{'$lookup': {'from': 'playlists', 'localField': 'playlist', 'foreignField': '_id', 'as': 'playlist_object'}},
+		{'$lookup': {'from': 'playlist_metas', 'localField': 'playlist', 'foreignField': '_id', 'as': 'playlist_object'}},
 		{'$unwind': {'path': '$playlist_object', 'preserveNullAndEmptyArrays': True}},
 		{'$sort': {'path': 1}}
 	])
@@ -316,7 +316,7 @@ def listFolder(viewing_user, user, path) :
 				with MongoTransaction(client) as s :
 					db.playlist_folders.delete_one({'user': user, 'path': item['path']}, session = s())
 					s.mark_succeed()
-			elif item['playlist_object']['private'] : # playlist is private
+			elif item['playlist_object']['item']['private'] : # playlist is private
 				if viewing_user is not None and filterOperation('viewPrivatePlaylist', viewing_user, item['playlist_object'], raise_exception = False) :
 					ans.append(item)
 			else :

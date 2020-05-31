@@ -85,7 +85,7 @@ async def postPlaylistAsync(url, pid, use_autotag, user, event_id, extend) :
 				break
 			await asyncio.sleep(0.5)
 		setEventUserAndID(user, event_id)
-		updatePlaylistInfo(pid, "english", metadata['title'], metadata['desc'], '', user)
+		updatePlaylistInfo(pid, metadata['title'], metadata['desc'], '', user)
 	return 'SUCCEED', {'task_ids': task_ids}
 
 async def postPlaylistAsyncNoexcept(url, pid, use_autotag, user, event_id, extend) :

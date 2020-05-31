@@ -335,7 +335,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 			if dst_playlist :
 				#playlist_lock = RedisLockAsync(rdb, "playlistEdit:" + str(dst_playlist))
 				#playlist_lock.acquire()
-				if playlist_db.retrive_item(dst_playlist, session = s()) is not None :
+				if playlist_db.retrive_item(dst_playlist) is not None :
 					playlists = [ ObjectId(dst_playlist) ]
 			if not unique:
 				log_e(event_id, user, 'scraper', level = 'MSG', obj = {'msg': 'ALREADY_EXIST', 'unique_id': ret["data"]["unique_id"]})

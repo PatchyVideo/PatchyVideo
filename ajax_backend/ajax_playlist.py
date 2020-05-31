@@ -89,7 +89,7 @@ def ajax_playlist_set_tags_do(rd, user, data):
 def ajax_lists_new_do(rd, user, data):
 	private = getDefaultJSON(data, 'private', False)
 	if hasattr(data, 'pid') and data.pid :
-		updatePlaylistInfo(data.pid, "english", data.title, data.desc, data.cover, user, private)
+		updatePlaylistInfo(data.pid, data.title, data.desc, data.cover, user, private)
 		return "json", makeResponseSuccess({"pid": data.pid})
 	else :
 		pid = createPlaylist(data.title, data.desc, data.cover, user, private)
@@ -152,7 +152,7 @@ def ajax_lists_all_do(rd, user, data):
 	page_size = getDefaultJSON(data, 'page_size', 20)
 	page = getDefaultJSON(data, 'page', 1) - 1
 	order = getDefaultJSON(data, 'order', 'last_modified')
-	playlists, playlists_count = listPlaylists(user, page, page_size, {}, order)
+	playlists, playlists_count = listPlaylists(user, page, page_size, '', order, 'text', '')
 	result = [item for item in playlists]
 	return "json", makeResponseSuccess({
 		"playlists": result,
@@ -168,8 +168,9 @@ def ajax_lists_search_do(rd, user, data):
 	page = getDefaultJSON(data, 'page', 1) - 1
 	order = getDefaultJSON(data, 'order', 'last_modified')
 	query = getDefaultJSON(data, 'query', '')
-	query_obj = _buildQueryObj(query)
-	playlists, playlists_count = listPlaylists(user, page, page_size, query_obj, order)
+	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
+	assert isinstance(query, str)
+	playlists, playlists_count = listPlaylists(user, page, page_size, query, order, 'text', additional_constraint)
 	result = [item for item in playlists]
 	return "json", makeResponseSuccess({
 		"playlists": result,
@@ -203,7 +204,7 @@ def ajax_lists_get_playlist_do(rd, user, data):
 	page = getDefaultJSON(data, 'page', 1) - 1
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	playlist = getPlaylist(data.pid, lang)
-	if playlist["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) and user['access_control']['status'] != 'admin' :
+	if playlist["item"]["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) and user['access_control']['status'] != 'admin' :
 		abort(404)
 	playlist_editable = False
 	if user:
@@ -224,7 +225,7 @@ def ajax_lists_get_playlist_do(rd, user, data):
 def ajax_lists_get_playlist_metadata_do(rd, user, data):
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	playlist = getPlaylist(data.pid, lang)
-	if playlist["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) :
+	if playlist["item"]["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) :
 		abort(404)
 	playlist_editable = False
 	if user:
@@ -238,7 +239,7 @@ def ajax_lists_get_playlist_metadata_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_lists_update_playlist_metadata_do(rd, user, data):
-	updatePlaylistInfo(data.pid, 'english', data.title, data.desc, None, user, data.private)
+	updatePlaylistInfo(data.pid, data.title, data.desc, None, user, data.private)
 
 @app.route('/lists/del_playlist.do', methods = ['POST'])
 @loginRequiredJSON
@@ -246,30 +247,30 @@ def ajax_lists_update_playlist_metadata_do(rd, user, data):
 def ajax_lists_del_playlist_do(rd, user, data):
 	removePlaylist(data.pid, user)
 
-@app.route('/lists/create_from_copies.do', methods = ['POST'])
+@app.route('/lists/create_from_copies.do', methods = ['POST']) # untested
 @loginRequiredJSON
 @jsonRequest
 def ajax_lists_create_from_copies_do(rd, user, data):
 	pid = createPlaylistFromCopies(data.pid, data.site, user)
-	return "json", makeResponseSuccess(pid)
+	return "json", makeResponseSuccess(str(pid))
 
 @app.route('/lists/create_from_video.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_lists_create_from_video_do(rd, user, data):
-	pid = createPlaylistFromSingleVideo('english', data.vid, user)
-	return "json", makeResponseSuccess(pid)
+	pid = createPlaylistFromSingleVideo(data.vid, user)
+	return "json", makeResponseSuccess(str(pid))
 
 @app.route('/lists/create_from_existing_playlists.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_lists_create_from_existing_playlists(rd, user, data):
-	new_playlist_id, task_id = createPlaylistFromExistingPlaylist('english', data.url, user, data.lang)
-	return "json", makeResponseSuccess({'pid': new_playlist_id, 'task_id': task_id})
+	new_playlist_id, task_id = createPlaylistFromExistingPlaylist(data.url, user, data.lang)
+	return "json", makeResponseSuccess({'pid': str(new_playlist_id), 'task_id': task_id})
 
 @app.route('/lists/extend_from_existing_playlists.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_lists_extend_from_existing_playlists(rd, user, data):
-	task_id = extendPlaylistFromExistingPlaylist('english', data.pid, data.url, user)
-	return "json", makeResponseSuccess({'pid': data.pid, 'task_id': task_id})
+	task_id = extendPlaylistFromExistingPlaylist(data.pid, data.url, user)
+	return "json", makeResponseSuccess({'pid': str(data.pid), 'task_id': task_id})
