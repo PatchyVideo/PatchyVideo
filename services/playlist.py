@@ -256,7 +256,7 @@ def updatePlaylistTags(pid, new_tags, user) :
 		log(obj = {'playlist': list_obj, 'old_tags': list_obj['tags'] if 'tags' in list_obj else []})
 		if list_obj is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
-		filterOperation('editPlaylist', user, list_obj)
+		#filterOperation('editPlaylist', user, list_obj)
 		playlist_db.update_item_tags(list_obj, new_tags, user, session = s())
 		s.mark_succeed()
 
