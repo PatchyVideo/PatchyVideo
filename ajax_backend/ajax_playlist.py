@@ -4,7 +4,7 @@ import re
 
 from flask import render_template, request, jsonify, redirect, session, abort
 
-from db import tagdb
+from db import tagdb, playlist_db
 from init import app
 from utils import getDefaultJSON
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
@@ -211,9 +211,11 @@ def ajax_lists_get_playlist_do(rd, user, data):
 		videos, video_count, playlist_editable = listPlaylistVideosWithAuthorizationInfo(data.pid, page, page_size, user)
 	else:
 		videos, video_count = listPlaylistVideos(data.pid, page, page_size, user)
+	tags = playlist_db.retrive_item_with_tag_category_map(playlist['_id'], lang)
 	return "json", makeResponseSuccess({
 		"editable": playlist_editable,
 		"playlist": playlist,
+		"tags": tags,
 		"videos": [item for item in videos],
 		"count": video_count,
 		"page_count": (video_count - 1) // page_size + 1
@@ -227,11 +229,13 @@ def ajax_lists_get_playlist_metadata_do(rd, user, data):
 	playlist = getPlaylist(data.pid, lang)
 	if playlist["item"]["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) :
 		abort(404)
+	tags = playlist_db.retrive_item_with_tag_category_map(playlist['_id'], lang)
 	playlist_editable = False
 	if user:
 		playlist_editable = isAuthorised(playlist, user)
 	return "json", makeResponseSuccess({
 		"editable": playlist_editable,
+		"tags": tags,
 		"playlist": playlist
 		})
 
