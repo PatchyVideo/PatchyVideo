@@ -44,9 +44,9 @@ def ajax_listvideo_do(rd, data, user):
 		"tags": tag_category_map,
 		"tag_pops": related_tags_popularity,
 		'time_used_ms': int((end - start) * 1000),
-		"query_obj": query_obj,
-		"ex_stats_1": exStats1,
-		"ex_stats_2": exStats2
+		"query_obj": query_obj#,
+		# "ex_stats_1": exStats1,
+		# "ex_stats_2": exStats2
 	})
 	return "json", ret
 
@@ -82,9 +82,9 @@ def ajax_queryvideo_do(rd, data, user):
 		"page_count": (video_count - 1) // data.page_size + 1,
 		"tags": tag_category_map,
 		'time_used_ms': int((end - start) * 1000),
-		"query_obj": query_obj,
-		"ex_stats_1": exStats1,
-		"ex_stats_2": exStats2
+		"query_obj": query_obj#,
+		# "ex_stats_1": exStats1,
+		# "ex_stats_2": exStats2
 	})
 	return "json", ret
 
