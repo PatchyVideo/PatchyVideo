@@ -17,11 +17,14 @@ else :
 
 async def dispatch_presite_extraction(info) :
 	if info['extractor'] == 'BiliBili' :
-		ret_info = {
-			'stream_url': info['url'],
-			'format': 'flv',
-			'filesize': info['filesize']
-		}
+		ret_info = []
+		for quality in info['streams'] :
+			ret_info.append({
+				'format': quality['container'],
+				'quality_desc': quality['quality'],
+				'size': quality['size'],
+				'src': quality['src']
+			})
 		return makeResponseSuccess(ret_info)
 	else :
 		return makeResponseFailed('UNSUPPORTED_WEBSITE')
