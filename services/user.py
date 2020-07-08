@@ -39,7 +39,7 @@ def login_auth_qq(openid, nickname) :
 		sid, obj = do_login(user_obj)
 		return True, sid
 	else :
-		reg_sid = require_session('LOGIN_OR_SIGNUP_OPENID_QQ')
+		reg_sid = require_session('LOGIN_OR_SIGNUP_OPENID_QQ', openid_qq = openid)
 		return False, reg_sid
 
 def bind_qq_openid(user, openid) :
