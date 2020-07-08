@@ -61,6 +61,12 @@ def ajax_logout(rd, user, data) :
         logout(session['sid'])
         session.pop('sid', None)
 
+@app.route('/auth/unbind_qq.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_unbind_qq(rd, user, data) :
+    unbind_qq(user)
+
 @app.route('/signup.do', methods = ['POST'])
 @basePage
 @jsonRequest

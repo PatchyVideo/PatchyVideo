@@ -80,13 +80,15 @@ def do_login(user_obj) :
 	if logged_in :
 		return redis_user_key, user_obj['profile']
 
+	openid_qq = user_obj['profile']['openid_qq'] if 'openid_qq' in user_obj['profile'] else None
 	common_user_obj = {
 		'_id': user_obj['_id'],
 		'profile': {
 			'username': user_obj['profile']['username'],
 			'image': user_obj['profile']['image'],
 			'desc': user_obj['profile']['desc'],
-			'email': user_obj['profile']['email']
+			'email': user_obj['profile']['email'],
+			'bind_qq': True if openid_qq else False
 		},
 		'access_control': user_obj['access_control'],
 		'settings': user_obj['settings']
@@ -98,6 +100,9 @@ def do_login(user_obj) :
 	rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
 	log(obj = {'redis_user_key': redis_user_key, 'user': common_user_obj})
 	return redis_user_key, common_user_obj['profile']
+
+def unbind_qq(user) :
+	db.users.update_one({'_id': ObjectId(user['_id'])}, {'$set': {'profile.openid_qq': ''}})
 
 # we allow the same user to login multiple times and all of his login sessions are valid
 def login(username, password, challenge, login_session_id) :
@@ -142,6 +147,7 @@ def query_user(uid) :
 		del obj['crypto']
 		del obj['settings']
 		del obj['profile']['email']
+		del obj['profile']['openid_qq']
 	except :
 		raise UserError('USER_NOT_EXIST')
 	return obj
@@ -163,6 +169,7 @@ def queryUsername(username) :
 	del user_obj_find['crypto']
 	del user_obj_find['settings']
 	del user_obj_find['profile']['email']
+	del user_obj_find['profile']['openid_qq']
 	return user_obj_find
 
 def checkIfUserExists(username) :
