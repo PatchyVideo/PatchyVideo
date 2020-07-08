@@ -30,7 +30,7 @@ def query_user_basic_info(uid) :
 
 def verify_session(sid, stype) :
 	session_obj = loads(rdb.get(sid).decode('utf-8'))
-	ret = session_obj['type'] == stype.encode()
+	ret = session_obj['type'] == stype
 	return ret, session_obj
 
 def login_auth_qq(openid, nickname) :
