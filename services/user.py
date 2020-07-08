@@ -102,7 +102,12 @@ def do_login(user_obj) :
 	return redis_user_key, common_user_obj['profile']
 
 def unbind_qq(user) :
+	def updater(obj) :
+		obj['profile']['bind_qq'] = False
+		return obj
+
 	db.users.update_one({'_id': ObjectId(user['_id'])}, {'$set': {'profile.openid_qq': ''}})
+	_updateUserRedisValue(user['_id'], updater)
 
 # we allow the same user to login multiple times and all of his login sessions are valid
 def login(username, password, challenge, login_session_id) :
