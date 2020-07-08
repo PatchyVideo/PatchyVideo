@@ -30,18 +30,20 @@ def ajax_auth_callback(rd, user, data):
 	od = data['param']['code'].replace('-', '+').replace(',', '=').replace('_', '/')
 	b64 = base64.b64decode(od)
 	code = urllib.parse.parse_qs(b64.decode('utf-8'))
+	nickname = code['nickname'][0]
+	openid = code['openid'][0]
 	atype = data['param']['type']
 	if atype != 'qq' :
 		raise UserError('NOT_QQ')
 	if user is not None :
-		bind_qq_openid(user, code['openid'])
+		bind_qq_openid(user, openid)
 		return "redirect", "https://thvideo.tv/#/?bind_qq_openid=succeed"
-	succeed, sid = login_auth_qq(code['openid'], code['nickname'])
+	succeed, sid = login_auth_qq(openid, nickname)
 	if succeed :
 		session['sid'] = sid
 		return "redirect", "https://thvideo.tv/"
 	else :
-		return "redirect", "https://thvideo.tv/#/login?session=%s&nickname=%s" % (sid, urllib.parse.quote(code['nickname']))
+		return "redirect", "https://thvideo.tv/#/login?session=%s&nickname=%s" % (sid, urllib.parse.quote(nickname))
 
 @app.route('/login.do', methods = ['POST'])
 @basePage
