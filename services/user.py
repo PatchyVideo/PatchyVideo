@@ -3,7 +3,7 @@ import os
 import binascii
 import re
 from datetime import datetime
-from bson.json_util import dumps
+from bson.json_util import dumps, loads
 
 from init import app, rdb
 from utils.jsontools import *
@@ -29,15 +29,32 @@ def query_user_basic_info(uid) :
 	return obj['profile']
 
 def verify_session(sid, stype) :
-	ret = rdb.get(sid) == stype.encode()
-	return ret
+	session_obj = loads(rdb.get(sid).decode('utf-8'))
+	ret = session_obj['type'] == stype.encode()
+	return ret, session_obj
 
-def require_session(session_type) :
+def login_auth_qq(openid, nickname) :
+	user_obj = db.users.find_one({'profile.openid_qq': openid})
+	if user_obj is not None :
+		sid, obj = do_login(user_obj)
+		return True, sid
+	else :
+		reg_sid = require_session('LOGIN_OR_SIGNUP_OPENID_QQ')
+		return False, reg_sid
+
+def bind_qq_openid(user, openid) :
+	db.users.update_one({'_id': ObjectId(user['_id'])}, {'$set': {'profile.openid_qq': openid}})
+
+def require_session(session_type, **kwargs) :
 	# TODO: add challenge code to redis
-	if session_type not in ['LOGIN', 'SIGNUP'] :
+	if session_type not in ['LOGIN', 'SIGNUP', 'LOGIN_OR_SIGNUP_OPENID_QQ'] :
 		raise UserError('INCORRECT_SESSION_TYPE')
 	sid = binascii.hexlify(bytearray(random_bytes(16))).decode()
-	rdb.set(sid, session_type, ex = UserConfig.SESSION_EXPIRE_TIME)
+	session_obj = {
+		'type': session_type,
+		'openid_qq': kwargs['openid_qq'] if session_type == 'LOGIN_OR_SIGNUP_OPENID_QQ' else ''
+	}
+	rdb.set(sid, dumps(session_obj), ex = UserConfig.SESSION_EXPIRE_TIME)
 	log(obj = {'sid': sid})
 	return sid
 
@@ -45,6 +62,42 @@ def logout(redis_user_key) :
 	common_user_obj = rdb.get(redis_user_key)
 	log(obj = {'redis_user_key': redis_user_key, 'user': common_user_obj})
 	rdb.delete(redis_user_key)
+
+def do_login(user_obj) :
+	user_id = str(user_obj['_id'])
+	redis_user_key_lookup_key = f"user-{user_id}"
+	redis_user_key = rdb.get(redis_user_key_lookup_key)
+	logged_in = False
+	if redis_user_key :
+		# user already logged in on some other machines
+		redis_user_obj_json_str = rdb.get(redis_user_key)
+		if redis_user_obj_json_str :
+			logged_in = True
+			# reset expire time
+			rdb.set(redis_user_key, redis_user_obj_json_str, ex = UserConfig.LOGIN_EXPIRE_TIME)
+			rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
+
+	if logged_in :
+		return redis_user_key, user_obj['profile']
+
+	common_user_obj = {
+		'_id': user_obj['_id'],
+		'profile': {
+			'username': user_obj['profile']['username'],
+			'image': user_obj['profile']['image'],
+			'desc': user_obj['profile']['desc'],
+			'email': user_obj['profile']['email']
+		},
+		'access_control': user_obj['access_control'],
+		'settings': user_obj['settings']
+	}
+	redis_user_value = dumps(common_user_obj)
+	redis_user_key = binascii.hexlify(bytearray(random_bytes(16))).decode()
+	redis_user_key_lookup_key = f"user-{user_obj['_id']}"
+	rdb.set(redis_user_key, redis_user_value, ex = UserConfig.LOGIN_EXPIRE_TIME)
+	rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
+	log(obj = {'redis_user_key': redis_user_key, 'user': common_user_obj})
+	return redis_user_key, common_user_obj['profile']
 
 # we allow the same user to login multiple times and all of his login sessions are valid
 def login(username, password, challenge, login_session_id) :
@@ -57,7 +110,8 @@ def login(username, password, challenge, login_session_id) :
 		raise UserError('PASSWORD_TOO_LONG')
 	if len(password) < UserConfig.MIN_PASSWORD_LENGTH :
 		raise UserError('PASSWORD_TOO_SHORT')
-	if verify_session(login_session_id, 'LOGIN') :
+	session_verified, session_obj = verify_session(login_session_id, 'LOGIN')
+	if session_verified :
 		user_obj = db.users.find_one({'profile.username': username})
 		if not user_obj :
 			user_obj = db.users.find_one({'profile.email': username})
@@ -67,40 +121,11 @@ def login(username, password, challenge, login_session_id) :
 		if not verify_password_PBKDF2(password, user_obj['crypto']['salt1'], user_obj['crypto']['password_hashed']) :
 			log(level = 'SEC', obj = {'msg': 'WRONG_PASSWORD'})
 			raise UserError('INCORRECT_LOGIN')
-		user_id = str(user_obj['_id'])
-		redis_user_key_lookup_key = f"user-{user_id}"
-		redis_user_key = rdb.get(redis_user_key_lookup_key)
-		logged_in = False
-		if redis_user_key :
-			# user already logged in on some other machines
-			redis_user_obj_json_str = rdb.get(redis_user_key)
-			if redis_user_obj_json_str :
-				logged_in = True
-				# reset expire time
-				rdb.set(redis_user_key, redis_user_obj_json_str, ex = UserConfig.LOGIN_EXPIRE_TIME)
-				rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
-
-		if logged_in :
-			return redis_user_key, user_obj['profile']
-
-		common_user_obj = {
-			'_id': user_obj['_id'],
-			'profile': {
-				'username': user_obj['profile']['username'],
-				'image': user_obj['profile']['image'],
-				'desc': user_obj['profile']['desc'],
-				'email': user_obj['profile']['email']
-			},
-			'access_control': user_obj['access_control'],
-			'settings': user_obj['settings']
-		}
-		redis_user_value = dumps(common_user_obj)
-		redis_user_key = binascii.hexlify(bytearray(random_bytes(16))).decode()
-		redis_user_key_lookup_key = f"user-{user_obj['_id']}"
-		rdb.set(redis_user_key, redis_user_value, ex = UserConfig.LOGIN_EXPIRE_TIME)
-		rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
-		log(obj = {'redis_user_key': redis_user_key, 'user': common_user_obj})
-		return redis_user_key, common_user_obj['profile']
+		# bind QQ OpenID if present
+		if session_obj['type'] == 'LOGIN_OR_SIGNUP_OPENID_QQ' :
+			openid_qq = session_obj['openid_qq']
+			bind_qq_openid(user_obj, openid_qq)
+		return do_login(user_obj)
 	raise UserError('INCORRECT_SESSION')
 
 def query_user_batch(uids) :
@@ -159,7 +184,12 @@ def signup(username, password, email, challenge, signup_session_id) :
 		raise UserError('PASSWORD_TOO_LONG')
 	if len(password) < UserConfig.MIN_PASSWORD_LENGTH :
 		raise UserError('PASSWORD_TOO_SHORT')
-	if verify_session(signup_session_id, 'SIGNUP') :
+	session_verified, session_obj = verify_session(signup_session_id, 'SIGNUP')
+	if session_verified :
+		if session_obj['type'] == 'LOGIN_OR_SIGNUP_OPENID_QQ' :
+			openid_qq = session_obj['openid_qq']
+		else :
+			openid_qq = None
 		if email :
 			if len(email) > UserConfig.MAX_EMAIL_LENGTH or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
 				raise UserError('INCORRECT_EMAIL')
@@ -178,7 +208,8 @@ def signup(username, password, email, challenge, signup_session_id) :
 					'desc': 'Write something here',
 					'pubkey': '',
 					'image': 'default',
-					'email': email
+					'email': email,
+					'openid_qq': openid_qq if openid_qq else '' # bind if present
 				},
 				'crypto': {
 					'crypto_method': crypto_method,

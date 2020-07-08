@@ -2,6 +2,8 @@
 import time
 
 import redis
+import base64
+import urllib
 
 from flask import render_template, request, current_app, jsonify, redirect, session
 
@@ -12,6 +14,7 @@ from utils.jsontools import *
 
 from services.user import *
 from config import UserConfig
+import urllib.parse
 
 @app.route('/auth/get_session.do', methods = ['POST'])
 @basePage
@@ -19,6 +22,26 @@ from config import UserConfig
 def ajax_auth_get_session_do(rd, data):
 	ret = require_session(data.type)
 	return "json", makeResponseSuccess(ret)
+
+@app.route('/auth/callback', methods = ['GET'])
+@loginOptional
+def ajax_auth_callback(user, rd, data):
+	# TODO: verify request is from QQ
+	od = data['param']['code'].replace('-', '+').replace(',', '=').replace('_', '/')
+	b64 = base64.b64decode(od)
+	code = urllib.parse.parse_qs(b64.decode('utf-8'))
+	atype = data['param']['type']
+	if atype != 'qq' :
+		raise UserError('NOT_QQ')
+	if user is not None :
+		bind_qq_openid(user, code['openid'])
+		return "redirect", "https://thvideo.tv/#/?bind_qq_openid=succeed"
+	succeed, sid = login_auth_qq(code['openid'], code['nickname'])
+	if succeed :
+		session['sid'] = sid
+		return "redirect", "https://thvideo.tv/"
+	else :
+		return "redirect", "https://thvideo.tv/#/login?session=%s&nickname=%s" % (sid, urllib.parse.quote(code['nickname']))
 
 @app.route('/login.do', methods = ['POST'])
 @basePage
@@ -207,3 +230,5 @@ def ajax_user_list_users(rd, user, data):
 		"page_count": (count - 1) // page_size + 1
 	})
 	return "json", ret
+
+

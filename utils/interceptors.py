@@ -65,6 +65,9 @@ def basePage(func):
 		rd._version = _VERSION
 		rd._version_url = _VERSION_URL
 		kwargs['rd'] = rd
+		if 'data' not in kwargs :
+			kwargs['data'] = {}
+		kwargs['data']['param'] = request.args
 		try:
 			ret = func(*args, **kwargs)
 			return _handle_return(ret, rd)
