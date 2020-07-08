@@ -193,6 +193,44 @@ def loginOptional(func):
 			abort(400)
 	return wrapper
 
+def loginOptionalGET(func):
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		beginEvent(func.__name__, getRealIP(request), request.full_path, request.args)
+		rd = Namespace()
+		if 'sid' in session:
+			kwargs['user'] = _get_user_obj(session['sid'])
+		else :
+			kwargs['user'] = None
+		rd._user = kwargs['user']
+		if rd._user :
+			setEventUser(rd._user)
+		rd._version = _VERSION
+		rd._version_url = _VERSION_URL
+		kwargs['rd'] = rd
+		if 'data' not in kwargs :
+			kwargs['data'] = {}
+		kwargs['data']['param'] = request.args
+		try:
+			ret = func(*args, **kwargs)
+			return _handle_return(ret, rd)
+		except HTTPException as e:
+			log(level = 'WARN', obj = {'ex': e})
+			raise e
+		except UserError as ue :
+			log(level = 'WARN', obj = {'ue': str(ue)})
+			if 'NOT_EXIST' in ue.msg :
+				abort(404)
+			elif ue.msg == 'UNAUTHORISED_OPERATION' :
+				abort(403)
+			else :
+				abort(400)
+		except Exception as ex :
+			import traceback
+			log(level = 'ERR', obj = {'ex': str(ex), 'tb1': repr(traceback.format_exc()), 'tb2': repr(traceback.extract_stack())})
+			abort(400)
+	return wrapper
+
 def jsonRequest(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs):

@@ -9,7 +9,7 @@ from flask import render_template, request, current_app, jsonify, redirect, sess
 
 from init import app
 from utils import getDefaultJSON
-from utils.interceptors import loginOptional, jsonRequest, basePage, loginRequiredJSON
+from utils.interceptors import loginOptional, jsonRequest, basePage, loginRequiredJSON, loginOptionalGET
 from utils.jsontools import *
 
 from services.user import *
@@ -24,8 +24,8 @@ def ajax_auth_get_session_do(rd, data):
 	return "json", makeResponseSuccess(ret)
 
 @app.route('/auth/callback', methods = ['GET'])
-@loginOptional
-def ajax_auth_callback(user, rd, data):
+@loginOptionalGET
+def ajax_auth_callback(rd, user, data):
 	# TODO: verify request is from QQ
 	od = data['param']['code'].replace('-', '+').replace(',', '=').replace('_', '/')
 	b64 = base64.b64decode(od)
