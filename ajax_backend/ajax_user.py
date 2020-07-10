@@ -23,6 +23,15 @@ def ajax_auth_get_session_do(rd, data):
 	ret = require_session(data.type)
 	return "json", makeResponseSuccess(ret)
 
+@app.route('/oauth', methods = ['GET'])
+@loginOptionalGET
+def ajax_oauth(rd, user, data):
+	atype = data['param']['type']
+	if atype == 'qq' :
+		return "redirect", "https://www.alicem.top/oauth?type=qq&transit=1&appid=20200708001"
+	else :
+		raise UserError('NOT_IMPLEMENTED')
+
 @app.route('/auth/callback', methods = ['GET'])
 @loginOptionalGET
 def ajax_auth_callback(rd, user, data):
