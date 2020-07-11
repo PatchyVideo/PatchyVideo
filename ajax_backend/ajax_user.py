@@ -45,8 +45,10 @@ def ajax_auth_callback(rd, user, data):
 	if atype != 'qq' :
 		raise UserError('NOT_QQ')
 	if user is not None :
-		bind_qq_openid(user, openid)
-		return "redirect", "https://thvideo.tv/#/?bind_qq_openid=succeed"
+		if bind_qq_openid(user, openid) :
+			return "redirect", "https://thvideo.tv/#/?bind_qq_openid=succeed"
+		else :
+			return "redirect", "https://thvideo.tv/#/?bind_qq_openid=failed"
 	succeed, sid = login_auth_qq(openid, nickname)
 	if succeed :
 		session['sid'] = sid

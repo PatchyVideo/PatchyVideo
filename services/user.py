@@ -36,14 +36,21 @@ def verify_session(sid, stype) :
 def login_auth_qq(openid, nickname) :
 	user_obj = db.users.find_one({'profile.openid_qq': openid})
 	if user_obj is not None :
-		sid, obj = do_login(user_obj)
+		sid, _ = do_login(user_obj)
 		return True, sid
 	else :
 		reg_sid = require_session('LOGIN_OR_SIGNUP_OPENID_QQ', openid_qq = openid)
 		return False, reg_sid
 
 def bind_qq_openid(user, openid) :
+	binded_user = db.users.find_one({'profile.openid_qq': openid})
+	if binded_user is not None :
+		if str(binded_user['_id']) == str(user['_id']) :
+			return True
+		else :
+			return False
 	db.users.update_one({'_id': ObjectId(user['_id'])}, {'$set': {'profile.openid_qq': openid}})
+	return True
 
 def require_session(session_type, **kwargs) :
 	# TODO: add challenge code to redis
@@ -214,6 +221,10 @@ def signup(username, password, email, challenge, signup_session_id) :
 				user_obj_email = db.users.find_one({'profile.email': email})
 				if user_obj_email is not None :
 					raise UserError('EMAIL_EXIST')
+			if openid_qq :
+				binded_user = db.users.find_one({'profile.openid_qq': openid_qq})
+				if binded_user is not None :
+					raise UserError('QQ_ALREADY_BIND')
 			user_obj = {
 				'profile': {
 					'username': username,
