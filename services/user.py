@@ -323,6 +323,9 @@ def update_email(redis_user_key, user_id, new_email) :
 	obj = db.users.find_one({'_id': ObjectId(user_id)})
 	if obj is None :
 		raise UserError('USER_NOT_EXIST')
+	user_obj_email = db.users.find_one({'profile.email': new_email})
+	if user_obj_email is not None and str(user_obj_email['_id']) != str(obj['_id']) :
+		raise UserError('EMAIL_EXIST')
 	log(obj = {'old_email': obj['profile']['email']})
 	db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'profile.email': new_email}})
 
