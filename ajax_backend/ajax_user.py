@@ -27,8 +27,9 @@ def ajax_auth_get_session_do(rd, data):
 @loginOptionalGET
 def ajax_oauth(rd, user, data):
 	atype = data['param']['type']
+	requesturl = data['param']['requesturl'] if 'requesturl' in data['param'] else ''
 	if atype == 'qq' :
-		return "redirect", "https://www.alicem.top/oauth?type=qq&transit=1&appid=20200708001"
+		return "redirect", "https://www.alicem.top/oauth?type=qq&transit=1&appid=20200708001&requesturl=%s" % requesturl
 	else :
 		raise UserError('NOT_IMPLEMENTED')
 
@@ -42,6 +43,7 @@ def ajax_auth_callback(rd, user, data):
 	nickname = code['nickname'][0]
 	openid = code['openid'][0]
 	atype = data['param']['type']
+	requesturl = data['param']['requesturl'] if 'requesturl' in data['param'] else ''
 	if atype != 'qq' :
 		raise UserError('NOT_QQ')
 	if user is not None :
@@ -52,7 +54,7 @@ def ajax_auth_callback(rd, user, data):
 	succeed, sid = login_auth_qq(openid, nickname)
 	if succeed :
 		session['sid'] = sid
-		return "redirect", "https://thvideo.tv/#/login_redirect"
+		return "redirect", "https://thvideo.tv/#/login_redirect?requesturl=%s" % requesturl
 	else :
 		return "redirect", "https://thvideo.tv/#/login?session=%s&nickname=%s" % (sid, urllib.parse.quote(nickname))
 
