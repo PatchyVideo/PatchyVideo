@@ -159,7 +159,8 @@ def query_user(uid) :
 		del obj['crypto']
 		del obj['settings']
 		del obj['profile']['email']
-		del obj['profile']['openid_qq']
+		if 'openid_qq' in obj['profile'] :
+			del obj['profile']['openid_qq']
 	except :
 		raise UserError('USER_NOT_EXIST')
 	return obj
