@@ -49,6 +49,8 @@ def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_
 		count = ret.count()
 		videos = [item for item in ret]
 		videos = filterVideoList(videos, user)
+		for i in range(len(videos)) :
+			videos[i]['tags'] = list(filter(lambda x: x < 0x80000000, videos[i]['tags']))
 		if hide_placeholder :
 			videos = _filterPlaceholder(videos)
 	except pymongo.errors.OperationFailure as ex:
@@ -96,6 +98,8 @@ def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS'
 	video_count = videos.count()
 	videos = [i for i in videos]
 	videos = filterVideoList(videos, user)
+	for i in range(len(videos)) :
+		videos[i]['tags'] = list(filter(lambda x: x < 0x80000000, videos[i]['tags']))
 	if hide_placeholder :
 		videos = _filterPlaceholder(videos)
 	tags, pops = getPopularTags(user_language)
@@ -117,6 +121,8 @@ def listMyVideo(page_idx, page_size, user, order = 'latest'):
 	video_count = videos.count()
 	videos = [i for i in videos]
 	videos = filterVideoList(videos, user)
+	for i in range(len(videos)) :
+		videos[i]['tags'] = list(filter(lambda x: x < 0x80000000, videos[i]['tags']))
 	return videos, video_count
 
 def listYourVideo(uid, page_idx, page_size, user, order = 'latest'):
@@ -135,4 +141,6 @@ def listYourVideo(uid, page_idx, page_size, user, order = 'latest'):
 	video_count = videos.count()
 	videos = [i for i in videos]
 	videos = filterVideoList(videos, user)
+	for i in range(len(videos)) :
+		videos[i]['tags'] = list(filter(lambda x: x < 0x80000000, videos[i]['tags']))
 	return videos, video_count
