@@ -105,9 +105,8 @@ def ajax_lists_myplaylists(rd, user, data):
 	query = getDefaultJSON(data, 'query', '')
 	query_obj = _buildQueryObj(query)
 	playlists, playlists_count = listMyPlaylists(user, page, page_size, query_obj, order)
-	result = [item for item in playlists]
 	return "json", makeResponseSuccess({
-		"playlists": result,
+		"playlists": playlists,
 		"count": playlists_count,
 		"page_count": (playlists_count - 1) // page_size + 1
 		})
@@ -138,9 +137,8 @@ def ajax_lists_yourplaylists(rd, user, data):
 	query = getDefaultJSON(data, 'query', '')
 	query_obj = _buildQueryObj(query)
 	playlists, playlists_count = listYourPlaylists(user, data.uid, page, page_size, query_obj, order)
-	result = [item for item in playlists]
 	return "json", makeResponseSuccess({
-		"playlists": result,
+		"playlists": playlists,
 		"count": playlists_count,
 		"page_count": (playlists_count - 1) // page_size + 1
 		})
@@ -153,9 +151,8 @@ def ajax_lists_all_do(rd, user, data):
 	page = getDefaultJSON(data, 'page', 1) - 1
 	order = getDefaultJSON(data, 'order', 'last_modified')
 	playlists, playlists_count = listPlaylists(user, page, page_size, '', order, 'text', '')
-	result = [item for item in playlists]
 	return "json", makeResponseSuccess({
-		"playlists": result,
+		"playlists": playlists,
 		"count": playlists_count,
 		"page_count": (playlists_count - 1) // page_size + 1
 		})
@@ -171,9 +168,8 @@ def ajax_lists_search_do(rd, user, data):
 	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
 	assert isinstance(query, str)
 	playlists, playlists_count = listPlaylists(user, page, page_size, query, order, 'text', additional_constraint)
-	result = [item for item in playlists]
 	return "json", makeResponseSuccess({
-		"playlists": result,
+		"playlists": playlists,
 		"count": playlists_count,
 		"page_count": (playlists_count - 1) // page_size + 1
 		})
@@ -189,9 +185,8 @@ def ajax_lists_list_do(rd, user, data):
 	additional_constraints = getDefaultJSON(data, 'additional_constraints', '')
 	query_obj = _buildQueryObj(query)
 	playlists, playlists_count = listPlaylists(user, page, page_size, query_obj, order)
-	result = [item for item in playlists]
 	return "json", makeResponseSuccess({
-		"playlists": result,
+		"playlists": playlists,
 		"count": playlists_count,
 		"page_count": (playlists_count - 1) // page_size + 1
 		})

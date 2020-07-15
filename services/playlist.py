@@ -159,7 +159,11 @@ def listMyPlaylists(user, page_idx = 0, page_size = 10000, query_obj = {}, order
 	if order == 'oldest':
 		result = result.sort([("meta.created_at", 1)])
 	result = result.skip(page_idx * page_size).limit(page_size)
-	return result, result.count()
+	total_count = result.count()
+	result = [i for i in result]
+	for i in range(len(result)) :
+		result[i]['tags'] = list(filter(lambda x: x < 0x80000000, result[i]['tags']))
+	return result, total_count
 
 def listMyPlaylistsAgainstSingleVideo(user, vid, page_idx = 0, page_size = 10000, query_obj = {}, order = 'last_modified') :
 	if order not in ['latest', 'oldest', 'last_modified'] :
@@ -174,6 +178,8 @@ def listMyPlaylistsAgainstSingleVideo(user, vid, page_idx = 0, page_size = 10000
 	result = result.skip(page_idx * page_size).limit(page_size)
 	count = result.count()
 	result = [i for i in result]
+	for i in range(len(result)) :
+		result[i]['tags'] = list(filter(lambda x: x < 0x80000000, result[i]['tags']))
 	result_dict = {str(x['_id']): x for x in result}
 	pids = [i['_id'] for i in result]
 	video_items = db.playlist_items.find({'pid': {'$in': pids}, 'vid': ObjectId(vid)})
@@ -196,7 +202,11 @@ def listYourPlaylists(user, uid, page_idx = 0, page_size = 10000, query_obj = {}
 	if order == 'oldest':
 		result = result.sort([("meta.created_at", 1)])
 	result = result.skip(page_idx * page_size).limit(page_size)
-	return result, result.count()
+	count = result.count()
+	result = [i for i in result]
+	for i in range(len(result)) :
+		result[i]['tags'] = list(filter(lambda x: x < 0x80000000, result[i]['tags']))
+	return result, count
 
 def updatePlaylistCover(pid, cover, user) :
 	log(obj = {'pid': pid, 'cover': cover})
@@ -491,7 +501,10 @@ def listPlaylists(user, page_idx, page_size, query_str = '', order = 'latest', q
 	])
 	ans_obj = [i for i in ans_obj][0]
 	if ans_obj['result'] :
-		return [i for i in ans_obj['result']], ans_obj['count'][0]['count']
+		result = [i for i in ans_obj['result']]
+		for i in range(len(result)) :
+			result[i]['tags'] = list(filter(lambda x: x < 0x80000000, result[i]['tags']))
+		return result, ans_obj['count'][0]['count']
 	else :
 		return [], 0
 
