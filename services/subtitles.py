@@ -17,7 +17,8 @@ import redis_lock
 
 VALID_SUBTITLE_FORMAT = [
     'srt',
-    'vtt'
+    'vtt',
+    'ass'
 ]
 
 def getSubtitle(subid: ObjectId) :
