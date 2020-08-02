@@ -81,3 +81,9 @@ Forums
 """
 class Forums:
     MAX_TITLE_LENGTH = 100
+
+"""
+Subtitles
+"""
+class Subtitles :
+    MAX_WORKER_JOBS = 100

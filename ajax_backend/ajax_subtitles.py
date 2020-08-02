@@ -7,7 +7,7 @@ from utils.jsontools import *
 from utils.exceptions import UserError
 from utils import getDefaultJSON
 
-from services.subtitles import listVideoSubtitles, getSubtitle, postSubtitle, requireSubtitleOCR
+from services.subtitles import *
 from services.tcb import filterOperation
 
 from bson import ObjectId
@@ -33,3 +33,57 @@ def ajax_subtitles_post_subtitle(rd, user, data):
 	subid = postSubtitle(user, ObjectId(data.vid), data.lang, data.format, data.content)
 	return "json", makeResponseSuccess({'subid': subid})
 
+@app.route('/subtitles/request_ocr.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_subtitles_request_ocr(rd, user, data):
+	requestSubtitleOCR(user, ObjectId(data.vid))
+
+@app.route('/subtitles/query_ocr_status.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_subtitles_query_ocr_status(rd, user, data):
+	status = querySubtitleOCRStatus(ObjectId(data.vid))
+	return "json", makeResponseSuccess({'status': status})
+
+@app.route('/subtitles/worker/query_queue.do', methods = ['POST'])
+@loginRequiredJSON # use a dedicated account
+@jsonRequest
+def ajax_subtitles_worker_query_queue(rd, user, data):
+	video_urls = queryAndProcessQueuingRequests(int(data.max_videos), data.worker_id)
+	return "json", makeResponseSuccess({'urls': video_urls})
+
+@app.route('/subtitles/worker/update_status.do', methods = ['POST'])
+@loginRequiredJSON # use a dedicated account
+@jsonRequest
+def ajax_subtitles_worker_update_status(rd, user, data):
+	updateRequestStatus(data.unique_id_status_map, data.worker_id)
+
+@app.route('/subtitles/worker/post_ocr_result.do', methods = ['POST'])
+@loginRequiredJSON # use a dedicated account
+@jsonRequest
+def ajax_subtitles_worker_post_ocr_result(rd, user, data):
+	subid = postSubtitleOCRResult(data.unique_id, data.content, data.format, int(data.version), data.worker_id)
+	return "json", makeResponseSuccess({'subid': subid})
+
+@app.route('/subtitles/admin/list_pending_ocr_requests.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_subtitles_admin_list_pending_ocr_requests(rd, user, data):
+	order = getDefaultJSON(data, 'order', 'oldest')
+	page_idx = getDefaultJSON(data, 'page', 1) - 1
+	page_size = getDefaultJSON(data, 'page_size', 30)
+	result, count = listAllPendingRequest(user, order, page_idx, page_size)
+	return "json", makeResponseSuccess({'items': result, 'total': count})
+
+@app.route('/subtitles/admin/set_request_status.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_subtitles_admin_set_request_status(rd, user, data):
+	setRequestStatus(user, ObjectId(data.vid), data.status)
+
+@app.route('/subtitles/admin/set_all_request_status.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_subtitles_admin_set_all_request_status(rd, user, data):
+	setAllRequestStatus(user, data.status)
