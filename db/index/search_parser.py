@@ -3,14 +3,17 @@ import re
 
 from db import db
 from .textseg import cut_for_index
+import sys
 
 from utils.exceptions import UserError
 
 def _prefix_fallthrough(words) :
+	print('Using _prefix_fallthrough', file = sys.stderr)
 	if not words :
 		return [], 'empty'
 	words_escaped = [re.escape(i) for i in words]
 	found_prefix_word_objs = [db.index_words.find({'word': {'$regex': f'^{word_escaped}.*'}}) for word_escaped in words_escaped] # TODO: replace with aggregate $facet
+	print('founded prefixs:', found_prefix_word_objs, file = sys.stderr)
 	ans = []
 	for match_prefix_objs in found_prefix_word_objs :
 		if match_prefix_objs :
@@ -37,6 +40,7 @@ def parse_search(txt) :
 	#if len(txt) <= 2 :
 	#    return {}
 	words = cut_for_index(txt)
+	print(words, file = sys.stderr)
 	if not words :
 		raise UserError('NO_MATCH_FOUND')
 	found_word_objs = list(db.index_words.find({'word': {'$in': words}}))
