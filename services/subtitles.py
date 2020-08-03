@@ -86,6 +86,7 @@ Subtitle OCR Request Status for a given video:
     7. Processing // OCR running
     8. RecordExists // OCR done, maybe out of date if MMDOCR is updated
     9. RecordOutOfDate // video is updated, need re-OCR
+    10. Error
 One can request re-OCR if video is update(determined by admin) or MMD-OCR is updated(by keeping track of a version)
 """
 
@@ -191,7 +192,7 @@ def queryAndProcessQueuingRequests(max_videos: int, worker_id: str) :
 def updateRequestStatus(video_status_map, worker_id: str) : # map of unique_id to status
     with redis_lock.Lock(rdb, "mmdocr_global_lock"), MongoTransaction(client) as s :
         for unqiue_id, status in video_status_map.items() :
-            if status not in ['PendingDownload', 'Downloading', 'PendingProcess', 'Processing'] :
+            if status not in ['PendingDownload', 'Downloading', 'PendingProcess', 'Processing', 'Error'] :
                 continue
             # step 1: verify videos
             video_item = tagdb.retrive_item({"item.unique_id": unqiue_id}, session = s())
@@ -243,7 +244,7 @@ def listAllPendingRequest(user, order: str, page_idx: int = 0, page_size: int = 
 
 def setRequestStatus(user, vid: ObjectId, status: str) :
     filterOperation('subtitleocr_setRequestStatus', user)
-    if status not in ['PendingDownload', 'Downloading', 'PendingProcess', 'Processing', 'NoRecord', 'RecordExists', 'RecordOutOfDate'] :
+    if status not in ['PendingDownload', 'Downloading', 'PendingProcess', 'Processing', 'NoRecord', 'RecordExists', 'RecordOutOfDate', 'Error'] :
         raise UserError('INCORRECT_STATUS')
     with redis_lock.Lock(rdb, "mmdocr_global_lock") :
         db.subtitle_ocr.update_one({"vid": vid}, {"$set": {"status": status}})
