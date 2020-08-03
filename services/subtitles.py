@@ -86,7 +86,7 @@ Subtitle OCR Request Status for a given video:
     7. Processing // OCR running
     8. RecordExists // OCR done, maybe out of date if MMDOCR is updated
     9. RecordOutOfDate // video is updated, need re-OCR
-    10. Error
+    10. Error // worker failed
 One can request re-OCR if video is update(determined by admin) or MMD-OCR is updated(by keeping track of a version)
 """
 
