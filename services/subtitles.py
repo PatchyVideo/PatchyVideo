@@ -192,7 +192,7 @@ def queryAndProcessQueuingRequests(max_videos: int, worker_id: str) :
 def updateRequestStatus(video_status_map, worker_id: str) : # map of unique_id to status
     with redis_lock.Lock(rdb, "mmdocr_global_lock"), MongoTransaction(client) as s :
         for unqiue_id, status in video_status_map.items() :
-            if status not in ['PendingDownload', 'Downloading', 'PendingProcess', 'Processing', 'Error'] :
+            if status not in ['PendingDownload', 'Downloading', 'PendingProcess', 'Processing', 'Error', 'Queuing'] :
                 continue
             # step 1: verify videos
             video_item = tagdb.retrive_item({"item.unique_id": unqiue_id}, session = s())
@@ -244,7 +244,7 @@ def listAllPendingRequest(user, order: str, page_idx: int = 0, page_size: int = 
 
 def setRequestStatus(user, vid: ObjectId, status: str) :
     filterOperation('subtitleocr_setRequestStatus', user)
-    if status not in ['PendingDownload', 'Downloading', 'PendingProcess', 'Processing', 'NoRecord', 'RecordExists', 'RecordOutOfDate', 'Error'] :
+    if status not in ['Queuing', 'PendingDownload', 'Downloading', 'PendingProcess', 'Processing', 'NoRecord', 'RecordExists', 'RecordOutOfDate', 'Error'] :
         raise UserError('INCORRECT_STATUS')
     with redis_lock.Lock(rdb, "mmdocr_global_lock") :
         db.subtitle_ocr.update_one({"vid": vid}, {"$set": {"status": status}})
