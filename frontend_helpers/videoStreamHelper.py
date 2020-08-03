@@ -16,18 +16,19 @@ else :
     VIDEOSTREAM_ADDRESS = 'http://localhost:5006'
 
 async def dispatch_presite_extraction(info) :
-	if info['extractor'] == 'BiliBili' :
-		ret_info = []
-		for quality in info['streams'] :
-			ret_info.append({
-				'format': quality['container'],
-				'quality_desc': quality['quality'],
-				'size': quality['size'],
-				'src': quality['src']
-			})
-		return makeResponseSuccess(ret_info)
-	else :
-		return makeResponseFailed('UNSUPPORTED_WEBSITE')
+	return makeResponseSuccess(info)
+	# if info['extractor'] == 'BiliBili' :
+	# 	ret_info = []
+	# 	for quality in info['streams'] :
+	# 		ret_info.append({
+	# 			'format': quality['container'],
+	# 			'quality_desc': quality['quality'],
+	# 			'size': quality['size'],
+	# 			'src': quality['src']
+	# 		})
+		
+	# else :
+	# 	return makeResponseFailed('UNSUPPORTED_WEBSITE')
 
 @routes.post("/get_video_stream")
 @asyncJsonRequest
