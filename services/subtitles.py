@@ -153,7 +153,7 @@ def requestSubtitleOCR(user, vid: ObjectId) :
                 else :
                     raise UserError('RECORD_ALREADY_EXISTS')
             else :
-                raise UserError('VIDEO_BEING_PROCESSING')
+                raise UserError('VIDEO_BEING_PROCESSED')
         s.mark_succeed()
 
 def querySubtitleOCRStatus(vid: ObjectId) :
