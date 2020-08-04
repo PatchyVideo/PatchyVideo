@@ -12,9 +12,6 @@ redisrwlock
 beautifulsoup4
 flask_sslify
 apscheduler
-flask-swagger-ui
-flask-restplus
-request
 python-dateutil
 aiohttp
 pyyaml
