@@ -19,3 +19,4 @@
 11. You can access this local version of PatchyVideo by visiting `localhost:5000`
 # Contacts
 Please join our QQ group 757676234 for discussions.
+Or discord server https://discord.gg/FtPPQqz
