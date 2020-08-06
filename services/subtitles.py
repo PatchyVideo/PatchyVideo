@@ -224,6 +224,7 @@ def postSubtitleOCRResult(unique_id: str, content: str, subformat: str, version:
         }, session = s()).inserted_id
         # step 2: update subtitle_ocr
         db.subtitle_ocr.update_one({"vid": video_item['_id']}, {"$set": {"status": "RecordExists", "version": version, "worker_id": worker_id}}, session = s())
+        s.mark_succeed()
         return subid
 
 # admin interface
