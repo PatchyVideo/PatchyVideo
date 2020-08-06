@@ -26,6 +26,9 @@ def getSubtitle(subid: ObjectId) :
     sub_item = db.subtitles.find_one({'_id': subid})
     if sub_item is None :
         raise UserError('ITEM_NOT_FOUND')
+    if sub_item['deleted'] :
+        raise UserError('ITEM_NOT_FOUND')
+    del sub_item['deleted']
     return sub_item
 
 def postSubtitle(user, vid: ObjectId, language: str, subformat: str, content: str) :
@@ -51,6 +54,9 @@ def postSubtitle(user, vid: ObjectId, language: str, subformat: str, content: st
                 'format': subformat,
                 'content': content,
                 'size': size,
+                'deleted': False,
+                'autogen': False,
+                'version': 0,
                 'meta': makeUserMetaObject(user)
             }, session = s()).inserted_id
         else :
@@ -65,11 +71,61 @@ def postSubtitle(user, vid: ObjectId, language: str, subformat: str, content: st
         s.mark_succeed()
         return ObjectId(subid)
 
+def updateSubtitleMeta(user, subid: ObjectId, language: str, subformat: str) :
+    if language not in VALID_LANGUAGES :
+        raise UserError('INVALID_LANGUAGE')
+    subformat = subformat.lower()
+    if subformat not in VALID_SUBTITLE_FORMAT :
+        raise UserError('INVALID_SUBTITLE_FORMAT')
+    with MongoTransaction(client) as s :
+        sub_obj = db.subtitles.find_one({'_id': subid}, session = s())
+        if sub_obj is None :
+            raise UserError('ITEM_NOT_FOUND')
+        filterOperation('updateSubtitleMeta', user, sub_obj)
+        db.subtitles.update_one({'_id': subid}, {'$set': {
+            'format': subformat,
+            'lang': language,
+            'meta.modified_at': datetime.utcnow(),
+            'meta.modified_by': makeUserMeta(user)
+        }}, session = s())
+        s.mark_succeed()
+
+def updateSubtitleContent(user, subid: ObjectId, content: str) :
+    try :
+        size = len(content.encode('utf-8'))
+    except :
+        size = -1
+    with MongoTransaction(client) as s :
+        sub_obj = db.subtitles.find_one({'_id': subid}, session = s())
+        if sub_obj is None :
+            raise UserError('ITEM_NOT_FOUND')
+        filterOperation('updateSubtitleContent', user, sub_obj)
+        db.subtitles.update_one({'_id': subid}, {'$set': {
+            'content': content,
+            'size': size,
+            'meta.modified_at': datetime.utcnow(),
+            'meta.modified_by': makeUserMeta(user)
+        }}, session = s())
+        s.mark_succeed()
+
+def deleteSubtitle(user, subid: ObjectId) :
+    with MongoTransaction(client) as s :
+        sub_obj = db.subtitles.find_one({'_id': subid}, session = s())
+        if sub_obj is None :
+            raise UserError('ITEM_NOT_FOUND')
+        filterOperation('deleteSubtitle', user, sub_obj)
+        db.subtitles.update_one({'_id': subid}, {'$set': {
+            'deleted': True,
+            'meta.modified_at': datetime.utcnow(),
+            'meta.modified_by': makeUserMeta(user)
+        }}, session = s())
+        s.mark_succeed()
+
 def listVideoSubtitles(vid: ObjectId) :
     items = list(db.subtitles.aggregate([
         {'$match': {'vid': vid}},
         {'$lookup': {'from': 'users', 'localField': 'meta.created_by', 'foreignField': '_id', 'as': 'user_obj'}},
-        {'$project': {'_id': 1, 'lang': 1, 'format': 1, 'meta': 1, 'size': 1, 'user_obj._id': 1, 'user_obj.profile.username': 1, 'user_obj.profile.image': 1}},
+        {'$project': {'_id': 1, 'lang': 1, 'format': 1, 'meta': 1, 'autogen': 1, 'version': 1, 'size': 1, 'user_obj._id': 1, 'user_obj.profile.username': 1, 'user_obj.profile.image': 1}},
         {'$sort': {"meta.modified_at": -1}}
     ]))
     return items
@@ -220,6 +276,9 @@ def postSubtitleOCRResult(unique_id: str, content: str, subformat: str, version:
             'format': subformat,
             'content': content,
             'size': size,
+            'deleted': False,
+            'version': version,
+            'autogen': True,
             'meta': makeUserMetaObject(None)
         }, session = s()).inserted_id
         # step 2: update subtitle_ocr

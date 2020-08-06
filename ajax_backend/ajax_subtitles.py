@@ -33,6 +33,24 @@ def ajax_subtitles_post_subtitle(rd, user, data):
 	subid = postSubtitle(user, ObjectId(data.vid), data.lang, data.format, data.content)
 	return "json", makeResponseSuccess({'subid': subid})
 
+@app.route('/subtitles/update_subtitle_meta.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_subtitles_update_subtitle_meta(rd, user, data):
+	updateSubtitleMeta(user, ObjectId(data.subid), data.lang, data.format)
+
+@app.route('/subtitles/update_subtitle_content.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_subtitles_update_subtitle_content(rd, user, data):
+	updateSubtitleContent(user, ObjectId(data.subid), data.content)
+
+@app.route('/subtitles/delete_subtitle.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_subtitles_delete_subtitle(rd, user, data):
+	deleteSubtitle(user, ObjectId(data.subid))
+
 @app.route('/subtitles/request_ocr.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
