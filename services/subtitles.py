@@ -123,7 +123,7 @@ def deleteSubtitle(user, subid: ObjectId) :
 
 def listVideoSubtitles(vid: ObjectId) :
     items = list(db.subtitles.aggregate([
-        {'$match': {'vid': vid}},
+        {'$match': {'vid': vid, 'deleted': False}},
         {'$lookup': {'from': 'users', 'localField': 'meta.created_by', 'foreignField': '_id', 'as': 'user_obj'}},
         {'$project': {'_id': 1, 'lang': 1, 'format': 1, 'meta': 1, 'autogen': 1, 'version': 1, 'size': 1, 'user_obj._id': 1, 'user_obj.profile.username': 1, 'user_obj.profile.image': 1}},
         {'$sort': {"meta.modified_at": -1}}
