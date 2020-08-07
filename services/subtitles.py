@@ -270,6 +270,8 @@ def postSubtitleOCRResult(unique_id: str, content: str, subformat: str, version:
 	except :
 		size = -1
 	with redis_lock.Lock(rdb, "videoEdit:" + video_item['item']['unique_id']), redis_lock.Lock(rdb, "mmdocr_global_lock"), MongoTransaction(client) as s :
+		# delete old versions
+		db.subtitles.delete_many({'vid': video_item['_id'], 'autogen': True}, session = s())
 		subid = db.subtitles.insert_one({
 			'vid': video_item['_id'],
 			'lang': 'UNKNOWN',
