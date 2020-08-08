@@ -15,7 +15,7 @@ from datetime import datetime
 from config import Subtitles
 
 from googletrans import Translator
-translator = Translator()
+gtranslator = Translator()
 
 import webvtt
 import io
@@ -83,7 +83,7 @@ def updateSubtitleMeta(user, subid: ObjectId, language: str, subformat: str) :
 	subformat = subformat.lower()
 	if subformat not in VALID_SUBTITLE_FORMAT :
 		raise UserError('INVALID_SUBTITLE_FORMAT')
-	with MongoTransaction(client) as s :
+	with redis_lock.Lock(rdb, "subtitleEdit:" + str(subid)), MongoTransaction(client) as s :
 		sub_obj = db.subtitles.find_one({'_id': subid}, session = s())
 		if sub_obj is None :
 			raise UserError('ITEM_NOT_FOUND')
@@ -101,7 +101,7 @@ def updateSubtitleContent(user, subid: ObjectId, content: str) :
 		size = len(content.encode('utf-8'))
 	except :
 		size = -1
-	with MongoTransaction(client) as s :
+	with redis_lock.Lock(rdb, "subtitleEdit:" + str(subid)), MongoTransaction(client) as s :
 		sub_obj = db.subtitles.find_one({'_id': subid}, session = s())
 		if sub_obj is None :
 			raise UserError('ITEM_NOT_FOUND')
@@ -115,7 +115,7 @@ def updateSubtitleContent(user, subid: ObjectId, content: str) :
 		s.mark_succeed()
 
 def deleteSubtitle(user, subid: ObjectId) :
-	with MongoTransaction(client) as s :
+	with redis_lock.Lock(rdb, "subtitleEdit:" + str(subid)), MongoTransaction(client) as s :
 		sub_obj = db.subtitles.find_one({'_id': subid}, session = s())
 		if sub_obj is None :
 			raise UserError('ITEM_NOT_FOUND')
@@ -136,23 +136,36 @@ def listVideoSubtitles(vid: ObjectId) :
 	]))
 	return items
 	
-def translateVTT(subid: ObjectId, language: str) :
+def translateVTT(subid: ObjectId, language: str, translator: str = 'googletrans') :
 	sub_obj = db.subtitles.find_one({'_id': subid})
 	if sub_obj is None :
 		raise UserError('ITEM_NOT_FOUND')
 	if sub_obj['format'] != 'vtt' :
 		raise UserError('ONLY_VTT_SUPPORTED')
-	vtt = webvtt.read_buffer(io.StringIO(sub_obj['content']))
-	l = len(vtt)
-	bs = 10
-	for i in range(0, l, bs) :
-		all_texts = '\n\n\n'.join([vtt[j].text for j in range(i, min(i + bs, l))])
-		result = translator.translate(all_texts, dest = language).text.split('\n\n\n')
-		for i2, j in enumerate(range(i, min(i + bs, l))) :
-			vtt[j].text = result[i2]
-	out_file = io.StringIO()
-	vtt.write(out_file)
-	return out_file.getvalue()
+	with redis_lock.Lock(rdb, "subtitleEdit:" + str(subid)), MongoTransaction(client) as s :
+		cache = db.subtitle_translation_cache.find_one({"subid": subid, "lang": language, "translator": translator}, session = s())
+		if cache is None or cache['version'] < sub_obj['meta']['modified_at'] :
+			# cache miss
+			vtt = webvtt.read_buffer(io.StringIO(sub_obj['content']))
+			l = len(vtt)
+			bs = 10
+			for i in range(0, l, bs) :
+				all_texts = '\n\n\n'.join([vtt[j].text for j in range(i, min(i + bs, l))])
+				result = gtranslator.translate(all_texts, dest = language).text.split('\n\n\n')
+				for i2, j in enumerate(range(i, min(i + bs, l))) :
+					vtt[j].text = result[i2]
+			out_file = io.StringIO()
+			vtt.write(out_file)
+			result = out_file.getvalue()
+			if cache is None :
+				db.subtitle_translation_cache.insert_one({'subid': subid, 'translator': translator, 'lang': language, 'version': sub_obj['meta']['modified_at'], 'content': result}, session = s())
+			else :
+				db.subtitle_translation_cache.update_one({'_id': cache['_id']}, {'$set': {'version': sub_obj['meta']['modified_at'], 'content': result}}, session = s())
+			s.mark_succeed()
+			return result
+		else :
+			# cache hit
+			return cache['content']
 
 """
 1.1:
