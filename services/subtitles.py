@@ -251,7 +251,8 @@ def querySubtitleOCRStatus(vid: ObjectId) :
 			return ocr_record['status']
 
 # server side subtitle OCR services
-def queryAndProcessQueuingRequests(max_videos: int, worker_id: str) :
+def queryAndProcessQueuingRequests(user, max_videos: int, worker_id: str) :
+	filterOperation('subtitleocr_queryAndProcessQueuingRequests', user)
 	# step 1: max_videos > 0 and max_videos <= 100
 	if max_videos <= 0 or max_videos > Subtitles.MAX_WORKER_JOBS :
 		raise UserError('TOO_MANY_JOBS')
@@ -269,7 +270,8 @@ def queryAndProcessQueuingRequests(max_videos: int, worker_id: str) :
 		# step 5: return
 		return video_urls
 
-def updateRequestStatus(video_status_map, worker_id: str) : # map of unique_id to status
+def updateRequestStatus(user, video_status_map, worker_id: str) : # map of unique_id to status
+	filterOperation('subtitleocr_updateRequestStatus', user)
 	with redis_lock.Lock(rdb, "mmdocr_global_lock"), MongoTransaction(client) as s :
 		for unqiue_id, status in video_status_map.items() :
 			if status not in ['PendingDownload', 'Downloading', 'PendingProcess', 'Processing', 'Error', 'Queuing'] :
@@ -281,8 +283,9 @@ def updateRequestStatus(video_status_map, worker_id: str) : # map of unique_id t
 				db.subtitle_ocr.update_one({"vid": video_item['_id']}, {"$set": {"status": status, "worker_id": worker_id}}, session = s())
 		s.mark_succeed()
 
-def postSubtitleOCRResult(unique_id: str, content: str, subformat: str, version: int, worker_id: str) :
+def postSubtitleOCRResult(user, unique_id: str, content: str, subformat: str, version: int, worker_id: str) :
 	# step 1: verify and post
+	filterOperation('subtitleocr_postSubtitleOCRResult', user)
 	subformat = subformat.lower()
 	if subformat not in VALID_SUBTITLE_FORMAT :
 		raise UserError('INVALID_SUBTITLE_FORMAT')

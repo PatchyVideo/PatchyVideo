@@ -63,7 +63,7 @@ _DEFAULT_OPS = [
 	'addSubs', 'delSubs', 'updateSubs',
 	'postComment',
 	'postThreadToForum',
-	'postSubtitle']
+	'postSubtitle', 'requestSubtitleOCR']
 
 def _check_object_agnostic(op_name, user, raise_exception = True) :
 	if user['access_control']['access_mode'] == 'blacklist' :

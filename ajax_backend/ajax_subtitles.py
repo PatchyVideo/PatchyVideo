@@ -75,20 +75,20 @@ def ajax_subtitles_query_ocr_status(rd, user, data):
 @loginRequiredJSON # use a dedicated account
 @jsonRequest
 def ajax_subtitles_worker_query_queue(rd, user, data):
-	video_urls = queryAndProcessQueuingRequests(int(data.max_videos), data.worker_id)
+	video_urls = queryAndProcessQueuingRequests(user, int(data.max_videos), data.worker_id)
 	return "json", makeResponseSuccess({'urls': video_urls})
 
 @app.route('/subtitles/worker/update_status.do', methods = ['POST'])
 @loginRequiredJSON # use a dedicated account
 @jsonRequest
 def ajax_subtitles_worker_update_status(rd, user, data):
-	updateRequestStatus(data.unique_id_status_map, data.worker_id)
+	updateRequestStatus(user, data.unique_id_status_map, data.worker_id)
 
 @app.route('/subtitles/worker/post_ocr_result.do', methods = ['POST'])
 @loginRequiredJSON # use a dedicated account
 @jsonRequest
 def ajax_subtitles_worker_post_ocr_result(rd, user, data):
-	subid = postSubtitleOCRResult(data.unique_id, data.content, data.format, int(data.version), data.worker_id)
+	subid = postSubtitleOCRResult(user, data.unique_id, data.content, data.format, int(data.version), data.worker_id)
 	return "json", makeResponseSuccess({'subid': subid})
 
 @app.route('/subtitles/admin/list_pending_ocr_requests.do', methods = ['POST'])
