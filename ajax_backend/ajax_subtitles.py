@@ -26,6 +26,13 @@ def ajax_subtitles_get_single(rd, user, data):
 	item = getSubtitle(ObjectId(data.subid))
 	return "json", makeResponseSuccess({'item': item})
 
+@app.route('/subtitles/get_single_translated.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_subtitles_get_single_translated(rd, user, data):
+	text = translateVTT(ObjectId(data.subid), data.lang)
+	return "json", makeResponseSuccess(text)
+
 @app.route('/subtitles/post_subtitle.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest

@@ -17,3 +17,5 @@ aiohttp
 pyyaml
 pyahocorasick
 bleach
+webvtt-py
+googletrans

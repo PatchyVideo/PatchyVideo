@@ -14,6 +14,12 @@ from db.TagDB_language import VALID_LANGUAGES
 from datetime import datetime
 from config import Subtitles
 
+from googletrans import Translator
+translator = Translator()
+
+import webvtt
+import io
+
 import redis_lock
 
 VALID_SUBTITLE_FORMAT = [
@@ -129,6 +135,21 @@ def listVideoSubtitles(vid: ObjectId) :
 		{'$sort': {"meta.modified_at": -1}}
 	]))
 	return items
+	
+def translateVTT(subid: ObjectId, language: str) :
+	sub_obj = db.subtitles.find_one({'_id': subid})
+	if sub_obj is None :
+		raise UserError('ITEM_NOT_FOUND')
+	if sub_obj['format'] != 'vtt' :
+		raise UserError('ONLY_VTT_SUPPORTED')
+	vtt = webvtt.read_buffer(io.StringIO(sub_obj['content']))
+	all_texts = '\n\n\n'.join([i.text for i in vtt])
+	result = translator.translate(all_texts, dest = language).text.split('\n\n\n')
+	for i in range(len(vtt)) :
+		vtt[i].text = result[i]
+	out_file = io.StringIO()
+	vtt.write(out_file)
+	return out_file.getvalue()
 
 """
 1.1:
