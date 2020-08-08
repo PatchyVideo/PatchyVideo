@@ -214,7 +214,7 @@ def requestSubtitleOCR(user, vid: ObjectId) :
 			record_id = ocr_record['_id']
 			record_version = ocr_record['version']
 			mmdocr_version = int(Config.MMDOCR_VERSION)
-			if status in ['NoRecord', 'RecordOutOfDate'] :
+			if status in ['NoRecord', 'RecordOutOfDate', 'Error'] :
 				assert status != "NoRecord"
 				db.subtitle_ocr.update_one({"_id": record_id}, {"$set": {
 					"status": "Queuing",
