@@ -143,10 +143,13 @@ def translateVTT(subid: ObjectId, language: str) :
 	if sub_obj['format'] != 'vtt' :
 		raise UserError('ONLY_VTT_SUPPORTED')
 	vtt = webvtt.read_buffer(io.StringIO(sub_obj['content']))
-	all_texts = '\n\n\n'.join([i.text for i in vtt])
-	result = translator.translate(all_texts, dest = language).text.split('\n\n\n')
-	for i in range(len(vtt)) :
-		vtt[i].text = result[i]
+	l = len(vtt)
+	bs = 10
+	for i in range(0, l, bs) :
+		all_texts = '\n\n\n'.join([vtt[j].text for j in range(i, min(i + bs, l))])
+		result = translator.translate(all_texts, dest = language).text.split('\n\n\n')
+		for i2, j in enumerate(range(i, min(i + bs, l))) :
+			vtt[j].text = result[i2]
 	out_file = io.StringIO()
 	vtt.write(out_file)
 	return out_file.getvalue()
