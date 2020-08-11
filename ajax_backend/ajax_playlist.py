@@ -88,11 +88,12 @@ def ajax_playlist_set_tags_do(rd, user, data):
 @jsonRequest
 def ajax_lists_new_do(rd, user, data):
 	private = getDefaultJSON(data, 'private', False)
+	privateEdit = getDefaultJSON(data, 'privateEdit', False)
 	if hasattr(data, 'pid') and data.pid :
-		updatePlaylistInfo(data.pid, data.title, data.desc, data.cover, user, private)
+		updatePlaylistInfo(data.pid, data.title, data.desc, data.cover, user, private, privateEdit)
 		return "json", makeResponseSuccess({"pid": data.pid})
 	else :
-		pid = createPlaylist(data.title, data.desc, data.cover, user, private)
+		pid = createPlaylist(data.title, data.desc, data.cover, user, private. privateEdit)
 		return "json", makeResponseSuccess({"pid": str(pid)})
 
 @app.route('/lists/myplaylists', methods = ['POST'])
@@ -238,7 +239,8 @@ def ajax_lists_get_playlist_metadata_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_lists_update_playlist_metadata_do(rd, user, data):
-	updatePlaylistInfo(data.pid, data.title, data.desc, None, user, data.private)
+	privateEdit = getDefaultJSON(data, 'privateEdit', True)
+	updatePlaylistInfo(data.pid, data.title, data.desc, None, user, data.private, data.privateEdit)
 
 @app.route('/lists/del_playlist.do', methods = ['POST'])
 @loginRequiredJSON

@@ -60,7 +60,7 @@ def _is_authorised(pid_or_obj, user, op = 'edit') :
 def isAuthorised(playlist, user) :
 	return _is_authorised(playlist, user)
 
-def createPlaylist(title, desc, cover, user, private = False) :
+def createPlaylist(title, desc, cover, user, private = False, privateEdit = True) :
 	log(obj = {'title': title, 'desc': desc, 'cover': cover, 'private': private})
 	filterOperation('createPlaylist', user)
 	if len(title) > PlaylistConfig.MAX_TITLE_LENGTH :
@@ -81,6 +81,7 @@ def createPlaylist(title, desc, cover, user, private = False) :
 			"title": title,
 			"desc": desc,
 			"private": private,
+			"privateEdit": privateEdit,
 			"views": int(0),
 			"videos": int(0),
 			"cover": cover
@@ -236,7 +237,7 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 		s.mark_succeed()
 		#return {'videos': video_page, 'video_count': video_count, 'page': page}
 
-def updatePlaylistInfo(pid, title, desc, cover, user, private = False) :
+def updatePlaylistInfo(pid, title, desc, cover, user, private = False, privateEdit = True) :
 	log(obj = {'title': title, 'desc': desc, 'cover': cover, 'private': private})
 	if len(title) > PlaylistConfig.MAX_TITLE_LENGTH :
 		raise UserError('TITLE_TOO_LONG')
@@ -256,7 +257,7 @@ def updatePlaylistInfo(pid, title, desc, cover, user, private = False) :
 		filterOperation('editPlaylist', user, list_obj)
 		if cover :
 			playlist_db.update_item_query(list_obj, {'$set': {"item.cover": cover}}, session = s())
-		playlist_db.update_item_query(list_obj, {'$set': {"item.title": title, "item.desc": desc, "item.private": private}}, session = s())
+		playlist_db.update_item_query(list_obj, {'$set': {"item.title": title, "item.desc": desc, "item.private": private, "item.privateEdit": privateEdit}}, session = s())
 		s.mark_succeed()
 
 def updatePlaylistTags(pid, new_tags, user) :
@@ -356,7 +357,7 @@ def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
 		ret_obj['rank'] = obj['rank']
 		ret.append(ret_obj)
 	ret = filterVideoList(ret, user)
-	return ret, playlist['item']['videos'], _is_authorised(playlist, user)
+	return ret, playlist['item']['videos'], filterOperation('editPlaylist', user, playlist)
 
 def listPlaylistVideos(pid, page_idx, page_size, user) :
 	playlist = playlist_db.retrive_item(pid)

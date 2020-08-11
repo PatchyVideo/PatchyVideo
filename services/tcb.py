@@ -90,7 +90,7 @@ def _check_object_specific(op_name, user, item_obj) :
 	if isinstance(item_obj, dict) :
 		if str(item_obj['meta']['created_by']) == str(user['_id']) :
 			return True
-		if 'privateEdit' in item_obj and not item_obj['privateEdit'] :
+		if 'privateEdit' in item_obj and not item_obj['privateEdit'] and not op_name.startswith('remove') and not op_name.startswith('del') :
 			return True
 	elif isinstance(item_obj, str) or isinstance(item_obj, ObjectId) :
 		pass
