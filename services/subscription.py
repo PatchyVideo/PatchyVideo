@@ -54,7 +54,7 @@ def updateSubScription(user, sub_id, query_str : str, qtype : str = '', name = '
 def _filterPlaceholder(videos) :
 	return list(filter(lambda x: not ('placeholder' in x['item'] and x['item']['placeholder']), videos))
 
-def listSubscriptedItems(user, page_idx, page_size, user_language, hide_placeholder = True, order = 'video_latest', visibleSubs = ['']) :
+def listSubscriptedItems(user, page_idx, page_size, user_language, hide_placeholder = True, order = 'video_latest', visibleSubs = [''], additional_constraint = '') :
 	subs = list(db.subs.find({'meta.created_by': makeUserMeta(user)}))
 	q = [(tagdb.compile_query(q['qs'], q['qt']), str(q['_id'])) for q in subs]
 	query_obj = {'$or': []}
@@ -72,13 +72,14 @@ def listSubscriptedItems(user, page_idx, page_size, user_language, hide_placehol
 	if not query_obj['$or'] :
 		return [], subs, [], 0
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
+	query_obj_extra, _ = db.compile_query(additional_constraint, 'tag')
 	if user and 'settings' in user :
 		if user['settings']['blacklist'] == 'default' :
-			query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}]}
+			query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
 		else :
-			query_obj = {'$and': [query_obj, {'tags': {'$nin': user['settings']['blacklist']}}]}
+			query_obj = {'$and': [query_obj, {'tags': {'$nin': user['settings']['blacklist']}}, query_obj_extra]}
 	elif user is None :
-		query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}]}
+		query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
 	result = tagdb.retrive_items(query_obj)
 	if order == 'latest':
 		result = result.sort([("meta.created_at", -1)])
@@ -95,3 +96,40 @@ def listSubscriptedItems(user, page_idx, page_size, user_language, hide_placehol
 	if hide_placeholder :
 		videos = _filterPlaceholder(videos)
 	return videos, subs, getCommonTags(user_language, videos), count
+
+def listSubscriptedItemsRandomized(user, page_size, user_language, visibleSubs = [''], additional_constraint = '') :
+	subs = list(db.subs.find({'meta.created_by': makeUserMeta(user)}))
+	q = [(tagdb.compile_query(q['qs'], q['qt']), str(q['_id'])) for q in subs]
+	query_obj = {'$or': []}
+	if '' in visibleSubs :
+		for (qi, _), _ in q :
+			query_obj['$or'].append(qi)
+	else :
+		for (qi, _), qid in q :
+			if qid in visibleSubs :
+				query_obj['$or'].append(qi)
+	for i in range(len(q)) :
+		(qobj, qtags), _ = q[i]
+		subs[i]['obj'] = qobj
+		subs[i]['obj_tags'] = qtags
+	if not query_obj['$or'] :
+		return [], subs, []
+	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
+	query_obj_extra, _ = tagdb.compile_query(additional_constraint, 'tag')
+	if user and 'settings' in user :
+		if user['settings']['blacklist'] == 'default' :
+			query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
+		else :
+			query_obj = {'$and': [query_obj, {'tags': {'$nin': user['settings']['blacklist']}}, query_obj_extra]}
+	elif user is None :
+		query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
+	videos = list(tagdb.aggregate([
+		{'$match': query_obj},
+		{'$sample': {'size': page_size * 2}}
+	]))
+	videos = filterVideoList(videos, user)
+	for i in range(len(videos)) :
+		videos[i]['tags'] = list(filter(lambda x: x < 0x80000000, videos[i]['tags']))
+	videos = _filterPlaceholder(videos)
+	videos = videos[: page_size]
+	return videos, subs, getCommonTags(user_language, videos)

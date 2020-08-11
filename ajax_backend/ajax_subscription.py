@@ -12,7 +12,7 @@ from utils.jsontools import *
 from utils.exceptions import UserError
 from services.tcb import filterOperation
 
-from services.subscription import listSubscriptions, listSubscriptionTags, addSubscription, removeSubScription, updateSubScription, listSubscriptedItems
+from services.subscription import listSubscriptions, listSubscriptionTags, addSubscription, removeSubScription, updateSubScription, listSubscriptedItems, listSubscriptedItemsRandomized
 
 from dateutil.parser import parse
 from datetime import timezone
@@ -65,6 +65,7 @@ def ajax_subs_list_do(rd, data, user):
 	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	visible = getDefaultJSON(data, 'visible', [''])
+	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
 	videos, sub_objs, tags, count = listSubscriptedItems(
@@ -74,10 +75,32 @@ def ajax_subs_list_do(rd, data, user):
 		lang,
 		hide_placeholder,
 		order,
-		visible)
+		visible,
+		additional_constraint
+		)
 	return "json", makeResponseSuccess({
 		'videos': videos,
 		'objs': sub_objs,
 		'related_tags': tags,
 		'total': count
+		})
+
+@app.route('/subs/list_randomized.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_subs_list_randomized_do(rd, data, user):
+	lang = getDefaultJSON(data, 'lang', 'CHS')
+	visible = getDefaultJSON(data, 'visible', [''])
+	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
+	videos, sub_objs, tags = listSubscriptedItemsRandomized(
+		user,
+		data.page_size,
+		lang,
+		visible,
+		additional_constraint
+		)
+	return "json", makeResponseSuccess({
+		'videos': videos,
+		'objs': sub_objs,
+		'related_tags': tags
 		})

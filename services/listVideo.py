@@ -15,6 +15,29 @@ from services.config import Config
 def _filterPlaceholder(videos) :
 	return list(filter(lambda x: not ('placeholder' in x['item'] and x['item']['placeholder']), videos))
 
+def listVideoRandimzied(user, page_size, query_str = '', user_language = 'CHS', qtype = 'tag', additional_constraint = '') :
+	query_obj, _ = db.compile_query(query_str, qtype)
+	query_obj_extra, _ = db.compile_query(additional_constraint, 'tag')
+	log(obj = {'query': dumps(query_obj)})
+	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
+	if user and 'settings' in user :
+		if user['settings']['blacklist'] == 'default' :
+			query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
+		else :
+			query_obj = {'$and': [query_obj, {'tags': {'$nin': user['settings']['blacklist']}}, query_obj_extra]}
+	else :
+		query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
+	videos = list(db.aggregate([
+		{'$match': query_obj},
+		{'$sample': {'size': page_size * 2}}
+	]))
+	videos = filterVideoList(videos, user)
+	for i in range(len(videos)) :
+		videos[i]['tags'] = list(filter(lambda x: x < 0x80000000, videos[i]['tags']))
+	videos = _filterPlaceholder(videos)
+	videos = videos[: page_size]
+	return videos, getCommonTags(user_language, videos)
+
 def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_language = 'CHS', hide_placeholder = True, qtype = 'tag', additional_constraint = ''):
 	log(obj = {'q': query_str, 'page': page_idx, 'page_size': page_size, 'order': order, 'lang': user_language})
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :

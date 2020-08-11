@@ -11,7 +11,7 @@ from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 from utils.exceptions import UserError
 
-from services.listVideo import listVideo, listVideoQuery, listMyVideo, listYourVideo
+from services.listVideo import listVideo, listVideoQuery, listMyVideo, listYourVideo, listVideoRandimzied
 from services.tagStatistics import getCommonTagsWithCount
 from services.getVideo import getTagCategoryMap
 from config import QueryConfig
@@ -50,6 +50,30 @@ def ajax_listvideo_do(rd, data, user):
 	})
 	return "json", ret
 
+@app.route('/listvideo_randomized.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_listvideo_randomized_do(rd, data, user):
+	query = getDefaultJSON(data, 'query', '')
+	if len(query) > QueryConfig.MAX_QUERY_LENGTH :
+		raise UserError('QUERY_TOO_LONG')
+	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
+	qtype = getDefaultJSON(data, 'qtype', 'tag')
+	lang = getDefaultJSON(data, 'lang', 'CHS')
+	videos, related_tags = listVideoRandimzied(
+		user,
+		data.page_size,
+		query,
+		lang,
+		qtype,
+		additional_constraint)
+	tag_category_map = getTagCategoryMap(related_tags)
+	ret = makeResponseSuccess({
+		"videos": videos,
+		"tags": tag_category_map,
+	})
+	return "json", ret
+
 @app.route('/queryvideo.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
@@ -77,7 +101,7 @@ def ajax_queryvideo_do(rd, data, user):
 	tag_category_map = getTagCategoryMap(related_tags)
 	end = time.time()
 	ret = makeResponseSuccess({
-		"videos": [i for i in videos],
+		"videos": videos,
 		"count": video_count,
 		"page_count": (video_count - 1) // data.page_size + 1,
 		"tags": tag_category_map,
