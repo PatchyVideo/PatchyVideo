@@ -14,8 +14,11 @@ from db.TagDB_language import VALID_LANGUAGES
 from datetime import datetime
 from config import Subtitles
 
-from googletrans import Translator
-gtranslator = Translator()
+from googletrans import Translator as g_trans
+gtranslator = g_trans()
+
+from utils.baidutrans import Translator as baidu_trans
+baidu_translator = baidu_trans()
 
 import webvtt
 import io
@@ -136,7 +139,52 @@ def listVideoSubtitles(vid: ObjectId) :
 	]))
 	return items
 	
-def translateVTT(subid: ObjectId, language: str, translator: str = 'googletrans') :
+def translate_google(vtt, language) :
+	l = len(vtt)
+	bs = 10
+	for i in range(0, l, bs) :
+		all_texts = '\n\n\n'.join([vtt[j].text for j in range(i, min(i + bs, l))])
+		result = gtranslator.translate(all_texts, dest = language).text.split('\n\n\n')
+		for i2, j in enumerate(range(i, min(i + bs, l))) :
+			vtt[j].text = result[i2]
+	out_file = io.StringIO()
+	vtt.write(out_file)
+	return out_file.getvalue()
+
+def translate_baidu(vtt, language) :
+	sentences = []
+	translated_sentences = []
+	for i, v in enumerate(vtt) :
+		for j, s in enumerate(v.text.split('\n')) :
+			sentences.append(s)
+	bs = 50
+	remaining = len(sentences)
+	head = 0
+	while remaining > 0 :
+		batch = min(remaining, bs)
+		to_trans = '\n'.join(sentences[head: head + batch])
+		remaining -= batch
+		head += batch
+		trans_ret = baidu_translator.translate('auto', language, to_trans)
+		if len(trans_ret) < batch :
+			translated_sentences.extend(trans_ret)
+			translated_sentences.extend([''] * (batch - len(trans_ret)))
+		elif len(trans_ret) > batch :
+			translated_sentences.extend(trans_ret[:batch])
+		else :
+			translated_sentences.extend(trans_ret)
+	head = 0
+	for i, v in enumerate(vtt) :
+		lines = v.text.split('\n')
+		n_lines = len(lines)
+		new_lines = translated_sentences[head: head + n_lines]
+		vtt[i].text = '\n'.join(new_lines)
+		head += n_lines
+	out_file = io.StringIO()
+	vtt.write(out_file)
+	return out_file.getvalue()
+
+def translateVTT(subid: ObjectId, language: str, translator: str) :
 	sub_obj = db.subtitles.find_one({'_id': subid})
 	if sub_obj is None :
 		raise UserError('ITEM_NOT_FOUND')
@@ -147,16 +195,12 @@ def translateVTT(subid: ObjectId, language: str, translator: str = 'googletrans'
 		if cache is None or cache['version'] < sub_obj['meta']['modified_at'] :
 			# cache miss
 			vtt = webvtt.read_buffer(io.StringIO(sub_obj['content']))
-			l = len(vtt)
-			bs = 10
-			for i in range(0, l, bs) :
-				all_texts = '\n\n\n'.join([vtt[j].text for j in range(i, min(i + bs, l))])
-				result = gtranslator.translate(all_texts, dest = language).text.split('\n\n\n')
-				for i2, j in enumerate(range(i, min(i + bs, l))) :
-					vtt[j].text = result[i2]
-			out_file = io.StringIO()
-			vtt.write(out_file)
-			result = out_file.getvalue()
+			if translator == 'googletrans' :
+				result = translate_google(vtt, language)
+			elif translator == 'baidutrans' :
+				result = translate_baidu(vtt, language)
+			else :
+				raise UserError('UNSUPPORTED_TRANSLATOR')
 			if cache is None :
 				db.subtitle_translation_cache.insert_one({'subid': subid, 'translator': translator, 'lang': language, 'version': sub_obj['meta']['modified_at'], 'content': result}, session = s())
 			else :
