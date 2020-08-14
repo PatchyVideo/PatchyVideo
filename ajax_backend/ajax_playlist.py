@@ -88,12 +88,12 @@ def ajax_playlist_set_tags_do(rd, user, data):
 @jsonRequest
 def ajax_lists_new_do(rd, user, data):
 	private = getDefaultJSON(data, 'private', False)
-	privateEdit = getDefaultJSON(data, 'privateEdit', False)
+	privateEdit = getDefaultJSON(data, 'privateEdit', True)
 	if hasattr(data, 'pid') and data.pid :
 		updatePlaylistInfo(data.pid, data.title, data.desc, data.cover, user, private, privateEdit)
 		return "json", makeResponseSuccess({"pid": data.pid})
 	else :
-		pid = createPlaylist(data.title, data.desc, data.cover, user, private. privateEdit)
+		pid = createPlaylist(data.title, data.desc, data.cover, user, private, privateEdit)
 		return "json", makeResponseSuccess({"pid": str(pid)})
 
 @app.route('/lists/myplaylists', methods = ['POST'])
