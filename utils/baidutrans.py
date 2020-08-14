@@ -46,6 +46,7 @@ class Translator(object):
 	def translate(self, from_lang, to_lang, query_text):
 		if to_lang not in LANG_MAP :
 			to_lang = 'en'#raise UserError('UNSUPPORTED_LANGUAGE')
+		from_lang = 'jp'
 		url = self.get_url(from_lang, LANG_MAP[to_lang], query_text)
 		try:
 			response = requests.get('https://'+BASE_URL+url).text
