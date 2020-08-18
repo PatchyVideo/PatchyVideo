@@ -92,6 +92,8 @@ def _check_object_specific(op_name, user, item_obj) :
 			return True
 		if 'privateEdit' in item_obj and not item_obj['privateEdit'] and not op_name.startswith('remove') and not op_name.startswith('del') :
 			return True
+		if 'item' in item_obj and 'privateEdit' in item_obj['item'] and not item_obj['item']['privateEdit'] and not op_name.startswith('remove') and not op_name.startswith('del') :
+			return True
 	elif isinstance(item_obj, str) or isinstance(item_obj, ObjectId) :
 		pass
 	return False

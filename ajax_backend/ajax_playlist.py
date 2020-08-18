@@ -186,13 +186,15 @@ def ajax_lists_get_playlist_do(rd, user, data):
 	if playlist["item"]["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) and user['access_control']['status'] != 'admin' :
 		abort(404)
 	playlist_editable = False
+	playlist_owner = False
 	if user:
-		videos, video_count, playlist_editable = listPlaylistVideosWithAuthorizationInfo(data.pid, page, page_size, user)
+		videos, video_count, playlist_editable, playlist_owner = listPlaylistVideosWithAuthorizationInfo(data.pid, page, page_size, user)
 	else:
 		videos, video_count = listPlaylistVideos(data.pid, page, page_size, user)
 	tags = playlist_db.retrive_item_with_tag_category_map(playlist['_id'], lang)
 	return "json", makeResponseSuccess({
 		"editable": playlist_editable,
+		"owner": playlist_owner,
 		"playlist": playlist,
 		"tags": tags,
 		"videos": [item for item in videos],
@@ -210,10 +212,13 @@ def ajax_lists_get_playlist_metadata_do(rd, user, data):
 		abort(404)
 	tags = playlist_db.retrive_item_with_tag_category_map(playlist['_id'], lang)
 	playlist_editable = False
+	playlist_owner = False
 	if user:
-		playlist_editable = isAuthorised(playlist, user)
+		playlist_editable = isAuthorisedToEdit(playlist, user)
+		playlist_owner = isOwner(playlist, user)
 	return "json", makeResponseSuccess({
 		"editable": playlist_editable,
+		"owner": playlist_owner,
 		"tags": tags,
 		"playlist": playlist
 		})

@@ -48,17 +48,17 @@ def getPlaylist(pid, lang) :
 		ret['tags_translated'], ret['tags_category'], ret['tags_tags'] = [], {}, {}
 	return ret
 
-def _is_authorised(pid_or_obj, user, op = 'edit') :
+def isOwner(pid_or_obj, user) :
 	if isinstance(pid_or_obj, str) :
 		obj = playlist_db.retrive_item(pid_or_obj)
 	else :
 		obj = pid_or_obj
 	creator = str(obj['meta']['created_by'])
 	user_id = str(user['_id'])
-	return creator == user_id or (op + 'Playlist' in user['access_control']['allowed_ops']) or user['access_control']['status'] == 'admin'
+	return creator == user_id or ('editPlaylist' in user['access_control']['allowed_ops']) or user['access_control']['status'] == 'admin'
 
-def isAuthorised(playlist, user) :
-	return _is_authorised(playlist, user)
+def isAuthorisedToEdit(playlist, user) :
+	return filterOperation('editPlaylist', user, playlist, raise_exception = False)
 
 def createPlaylist(title, desc, cover, user, private = False, privateEdit = True) :
 	log(obj = {'title': title, 'desc': desc, 'cover': cover, 'private': private})
@@ -366,7 +366,7 @@ def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
 		ret_obj['rank'] = obj['rank']
 		ret.append(ret_obj)
 	ret = filterVideoList(ret, user)
-	return ret, playlist['item']['videos'], filterOperation('editPlaylist', user, playlist)
+	return ret, playlist['item']['videos'], isAuthorisedToEdit(playlist, user), isOwner(playlist, user)
 
 def listPlaylistVideos(pid, page_idx, page_size, user) :
 	playlist = playlist_db.retrive_item(pid)
