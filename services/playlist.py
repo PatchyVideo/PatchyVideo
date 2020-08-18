@@ -149,10 +149,13 @@ def removePlaylist(pid, user) :
 		deletePlaylist(pid, session = s())
 		s.mark_succeed()
 
-def listMyPlaylists(user, page_idx = 0, page_size = 10000, query_obj = {}, order = 'last_modified') :
+def listMyPlaylists(user, page_idx = 0, page_size = 10000, query_str = '', additional_constraint = '', order = 'last_modified') :
 	if order not in ['latest', 'oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')
-	result = playlist_db.retrive_items({'$and': [{'meta.created_by': ObjectId(user['_id'])}, query_obj]})
+	query_obj, _ = tagdb.compile_query(query_str, 'text')
+	query_obj_extra, _ = tagdb.compile_query(additional_constraint, 'tag')
+	query = {'$and': [{'meta.created_by': ObjectId(user['_id'])}, query_obj, query_obj_extra]}
+	result = playlist_db.retrive_items(query)
 	if order == 'last_modified' :
 		result = result.sort([("meta.modified_at", -1)])
 	if order == 'latest':
@@ -166,10 +169,13 @@ def listMyPlaylists(user, page_idx = 0, page_size = 10000, query_obj = {}, order
 		result[i]['tags'] = list(filter(lambda x: x < 0x80000000, result[i]['tags']))
 	return result, total_count
 
-def listMyPlaylistsAgainstSingleVideo(user, vid, page_idx = 0, page_size = 10000, query_obj = {}, order = 'last_modified') :
+def listMyPlaylistsAgainstSingleVideo(user, vid, page_idx = 0, page_size = 10000, query_str = '', additional_constraint = '', order = 'last_modified') :
 	if order not in ['latest', 'oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')
-	result = playlist_db.retrive_items({'$and': [{'meta.created_by': ObjectId(user['_id'])}, query_obj]})
+	query_obj, _ = tagdb.compile_query(query_str, 'text')
+	query_obj_extra, _ = tagdb.compile_query(additional_constraint, 'tag')
+	query = {'$and': [{'meta.created_by': ObjectId(user['_id'])}, query_obj, query_obj_extra]}
+	result = playlist_db.retrive_items(query)
 	if order == 'last_modified' :
 		result = result.sort([("meta.modified_at", -1)])
 	if order == 'latest':
@@ -188,14 +194,17 @@ def listMyPlaylistsAgainstSingleVideo(user, vid, page_idx = 0, page_size = 10000
 		result_dict[str(item['pid'])]['exist'] = True
 	return result_dict.values(), count
 
-def listYourPlaylists(user, uid, page_idx = 0, page_size = 10000, query_obj = {}, order = 'last_modified') :
+def listYourPlaylists(user, uid, page_idx = 0, page_size = 10000, query_str = '', additional_constraint = '', order = 'last_modified') :
 	if order not in ['latest', 'oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')
 	if isObjectAgnosticOperationPermitted('viewPrivatePlaylist', user) :
 		auth_obj = {}
 	else :
 		auth_obj = {'item.private': False}
-	result = playlist_db.retrive_items({'$and': [{'meta.created_by': ObjectId(uid)}, auth_obj, query_obj]})
+	query_obj, _ = tagdb.compile_query(query_str, 'text')
+	query_obj_extra, _ = tagdb.compile_query(additional_constraint, 'tag')
+	query = {'$and': [{'meta.created_by': ObjectId(uid)}, query_obj, query_obj_extra, auth_obj]}
+	result = playlist_db.retrive_items(query)
 	if order == 'last_modified' :
 		result = result.sort([("meta.modified_at", -1)])
 	if order == 'latest':
