@@ -11,8 +11,8 @@ import time
 
 from utils.exceptions import UserError
 
-APP_ID = '20190619000308802' #你的appid
-SECRET_KEY = 'gAuBfGBhy7uCY37JtlYk' #你的密钥
+APP_ID = '20200814000543070' #你的appid
+SECRET_KEY = 'GZWWEwgVh2a0OL7itzA6' #你的密钥
 
 # base api url
 BASE_URL = 'api.fanyi.baidu.com'
@@ -44,12 +44,14 @@ class Translator(object):
 	   pass
 
 	def translate(self, from_lang, to_lang, query_text):
+		import sys
 		if to_lang not in LANG_MAP :
 			to_lang = 'en'#raise UserError('UNSUPPORTED_LANGUAGE')
 		from_lang = 'jp'
 		url = self.get_url(from_lang, LANG_MAP[to_lang], query_text)
 		try:
 			response = requests.get('https://'+BASE_URL+url).text
+			print(response, file = sys.stderr)
 			result = json.loads(response)
 			result_list = []
 			for ret in result["trans_result"]:

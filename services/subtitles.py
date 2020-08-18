@@ -167,6 +167,8 @@ def translate_baidu(vtt, language) :
 		remaining -= batch
 		head += batch
 		trans_ret = baidu_translator.translate('auto', language, to_trans)
+		if trans_ret is None :
+			return "WEBVTT\n\n0\n00:00:00.000 --> 10:00:00.000\n翻译出错，建议使用其他翻译器，并反馈问题\n"
 		if len(trans_ret) < batch :
 			translated_sentences.extend(trans_ret)
 			translated_sentences.extend([''] * (batch - len(trans_ret)))
