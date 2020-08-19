@@ -861,7 +861,7 @@ def insertIntoPlaylistLockFree(pid, vid, rank, user, session) :
 	conflicting_item = db.playlist_items.find_one({'pid': ObjectId(pid), 'vid': ObjectId(vid)}, session = session)
 	if conflicting_item is not None :
 		editPlaylist_MoveLockFree(pid, conflicting_item, rank, session = session)
-		playlist_db.update_item_query(pid, {}, session = s())
+		playlist_db.update_item_query(pid, {}, session = session)
 		if conflicting_item['rank'] >= rank :
 			return True
 		else :
