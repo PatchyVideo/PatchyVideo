@@ -168,7 +168,7 @@ def ajax_lists_list_do(rd, user, data):
 	order = getDefaultJSON(data, 'order', 'last_modified')
 	query = getDefaultJSON(data, 'query', '')
 	additional_constraints = getDefaultJSON(data, 'additional_constraints', '')
-	playlists, playlists_count = listPlaylists(user, page, page_size, query, order)
+	playlists, playlists_count = listPlaylists(user, page, page_size, query, order, additional_constraint = additional_constraints)
 	return "json", makeResponseSuccess({
 		"playlists": playlists,
 		"count": playlists_count,
@@ -228,7 +228,7 @@ def ajax_lists_get_playlist_metadata_do(rd, user, data):
 @jsonRequest
 def ajax_lists_update_playlist_metadata_do(rd, user, data):
 	privateEdit = getDefaultJSON(data, 'privateEdit', True)
-	updatePlaylistInfo(data.pid, data.title, data.desc, None, user, data.private, data.privateEdit)
+	updatePlaylistInfo(data.pid, data.title, data.desc, None, user, data.private, privateEdit)
 
 @app.route('/lists/del_playlist.do', methods = ['POST'])
 @loginRequiredJSON

@@ -467,7 +467,7 @@ def listPlaylists(user, page_idx, page_size, query_str = '', order = 'latest', q
 		auth_obj = {}
 	else :
 		auth_obj = {'$or': [{'meta.created_by': user['_id'] if user else ''}, {'item.private': False, 'item.videos': {'$gt': 1}}]}
-	query_obj, tags = tagdb.compile_query(query_str, qtype)
+	query_obj, _ = tagdb.compile_query(query_str, qtype)
 	query_obj_extra, _ = tagdb.compile_query(additional_constraint, 'tag')
 	query = {'$and': [query_obj, query_obj_extra, auth_obj]}
 	ans_obj = playlist_db.aggregate([
