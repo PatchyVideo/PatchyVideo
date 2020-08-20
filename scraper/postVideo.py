@@ -181,9 +181,9 @@ class _PlaylistReorederHelper() :
 					playlist = playlist_db.retrive_item(dst_playlist, session = s())
 					if playlist is None :
 						raise UserError('PLAYLIST_NOT_EXIST')
-					if playlist["videos"] + len(self.playlist_map[dst_playlist]['succeed']) > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
+					if playlist["item"]["videos"] + len(self.playlist_map[dst_playlist]['succeed']) > PlaylistConfig.MAX_VIDEO_PER_PLAYLIST :
 						raise UserError('VIDEO_LIMIT_EXCEEDED')
-					playlist_videos = playlist['videos']
+					playlist_videos = playlist["item"]['videos']
 					for unique_id in playlist_ordered :
 						if unique_id in self.playlist_map[dst_playlist]['succeed'] :
 							(video_id, _, user) = self.playlist_map[dst_playlist]['succeed'][unique_id]
