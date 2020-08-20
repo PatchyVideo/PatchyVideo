@@ -61,7 +61,7 @@ def isAuthorisedToEdit(playlist, user) :
 	return filterOperation('editPlaylist', user, playlist, raise_exception = False)
 
 def createPlaylist(title, desc, cover, user, private = False, privateEdit = True) :
-	log(obj = {'title': title, 'desc': desc, 'cover': cover, 'private': private})
+	log(obj = {'title': title, 'desc': desc, 'cover': cover, 'private': private, 'privateEdit': privateEdit})
 	filterOperation('createPlaylist', user)
 	if len(title) > PlaylistConfig.MAX_TITLE_LENGTH :
 		raise UserError('TITLE_TOO_LONG')
@@ -247,7 +247,7 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 		#return {'videos': video_page, 'video_count': video_count, 'page': page}
 
 def updatePlaylistInfo(pid, title, desc, cover, user, private = False, privateEdit = True) :
-	log(obj = {'title': title, 'desc': desc, 'cover': cover, 'private': private})
+	log(obj = {'title': title, 'desc': desc, 'cover': cover, 'private': private, 'privateEdit': privateEdit})
 	if len(title) > PlaylistConfig.MAX_TITLE_LENGTH :
 		raise UserError('TITLE_TOO_LONG')
 	if len(desc) > PlaylistConfig.MAX_DESC_LENGTH :
