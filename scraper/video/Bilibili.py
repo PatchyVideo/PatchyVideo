@@ -43,8 +43,8 @@ class _bv2av() :
 class Bilibili( Crawler ) :
 	NAME = 'bilibili'
 	PATTERN = r'^((https:\/\/|http:\/\/)?((www|m)\.)?(bilibili\.com\/video\/([aA][vV][\d]+|BV[a-zA-Z0-9]+)).*|https:\/\/b23\.tv\/\w+)'
-	SHORT_PATTERN = r'^([aA][Vv][\d]+|BV[a-zA-Z0-9]+)$'
-	VID_MATCH_REGEX = r"([aA][Vv][\d]+|BV[a-zA-Z0-9]+)"
+	SHORT_PATTERN = r'^([aA][Vv][\d]+|[Bb][Vv][a-zA-Z0-9]+)$'
+	VID_MATCH_REGEX = r"([aA][Vv][\d]+|[Bb][Vv][a-zA-Z0-9]+)"
 	AID_MATCH_REGEX = r"__INITIAL_STATE__\s*=\s*{\"aid\"\:(\d+),"
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
