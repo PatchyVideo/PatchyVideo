@@ -53,7 +53,6 @@ class Translator(object):
 			req = requests.get('https://'+BASE_URL+url)
 			print('code=',req.status_code, file = sys.stderr)
 			response = req.text
-			print(response, file = sys.stderr)
 			result = json.loads(response)
 			result_list = []
 			for ret in result["trans_result"]:
