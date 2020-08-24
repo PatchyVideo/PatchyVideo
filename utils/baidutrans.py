@@ -50,7 +50,10 @@ class Translator(object):
 		from_lang = 'jp'
 		url = self.get_url(from_lang, LANG_MAP[to_lang], query_text)
 		try:
-			response = requests.get('https://'+BASE_URL+url).text
+			req = requests.get('https://'+BASE_URL+url)
+			print('code=',req.status_code)
+			response = req.text
+			print(response, file = sys.stderr)
 			result = json.loads(response)
 			result_list = []
 			for ret in result["trans_result"]:

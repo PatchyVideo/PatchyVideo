@@ -168,7 +168,7 @@ def translate_baidu(vtt, language) :
 		to_trans = '\n'.join(sentences[head: head + batch])
 		remaining -= batch
 		head += batch
-		try_remain = 4
+		try_remain = 20
 		trans_ret = None
 		while try_remain > 0 :
 			print('[+] Processing %d sentences, %d remaining' % (batch, remaining), file = sys.stderr)
