@@ -51,7 +51,7 @@ class Translator(object):
 		url = self.get_url(from_lang, LANG_MAP[to_lang], query_text)
 		try:
 			req = requests.get('https://'+BASE_URL+url)
-			print('code=',req.status_code)
+			print('code=',req.status_code, file = sys.stderr)
 			response = req.text
 			print(response, file = sys.stderr)
 			result = json.loads(response)
