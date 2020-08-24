@@ -153,21 +153,34 @@ def translate_google(vtt, language) :
 	return out_file.getvalue()
 
 def translate_baidu(vtt, language) :
+	import sys
 	sentences = []
 	translated_sentences = []
 	for i, v in enumerate(vtt) :
 		for j, s in enumerate(v.text.split('\n')) :
 			sentences.append(s)
-	bs = 50
+	bs = 100
 	remaining = len(sentences)
+	print('[+] Translating using baidutrans for %d sentences' % remaining, file = sys.stderr)
 	head = 0
 	while remaining > 0 :
 		batch = min(remaining, bs)
 		to_trans = '\n'.join(sentences[head: head + batch])
 		remaining -= batch
 		head += batch
-		trans_ret = baidu_translator.translate('auto', language, to_trans)
+		try_remain = 4
+		trans_ret = None
+		while try_remain > 0 :
+			print('[+] Processing %d sentences, %d remaining' % (batch, remaining), file = sys.stderr)
+			trans_ret = baidu_translator.translate('auto', language, to_trans)
+			if trans_ret is None :
+				print('[!] Translation failed, retrying %d' % try_remain, file = sys.stderr)
+				try_remain -= 1
+				continue
+			else :
+				break
 		if trans_ret is None :
+			print('[*] Translation utterly failed', file = sys.stderr)
 			return "WEBVTT\n\n0\n00:00:00.000 --> 10:00:00.000\n翻译出错，建议使用其他翻译器，并反馈问题\n"
 		if len(trans_ret) < batch :
 			translated_sentences.extend(trans_ret)
@@ -176,6 +189,7 @@ def translate_baidu(vtt, language) :
 			translated_sentences.extend(trans_ret[:batch])
 		else :
 			translated_sentences.extend(trans_ret)
+	print('[+] Translation done')
 	head = 0
 	for i, v in enumerate(vtt) :
 		lines = v.text.split('\n')
@@ -201,7 +215,8 @@ def translateVTT(subid: ObjectId, language: str, translator: str) :
 			if translator == 'googletrans' :
 				result = translate_google(vtt, language)
 			elif translator == 'baidutrans' :
-				result = translate_baidu(vtt, language)
+				with redis_lock.Lock(rdb, "lock-baidutrans") :
+					result = translate_baidu(vtt, language)
 			else :
 				raise UserError('UNSUPPORTED_TRANSLATOR')
 			if cache is None :
