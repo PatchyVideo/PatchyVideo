@@ -159,7 +159,7 @@ def translate_baidu(vtt, language) :
 	for i, v in enumerate(vtt) :
 		for j, s in enumerate(v.text.split('\n')) :
 			sentences.append(s)
-	bs = 100
+	bs = 50
 	remaining = len(sentences)
 	print('[+] Translating using baidutrans for %d sentences' % remaining, file = sys.stderr)
 	head = 0
