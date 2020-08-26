@@ -72,7 +72,7 @@ def listSubscriptedItems(user, page_idx, page_size, user_language, hide_placehol
 	if not query_obj['$or'] :
 		return [], subs, [], 0
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
-	query_obj_extra, _ = db.compile_query(additional_constraint, 'tag')
+	query_obj_extra, _ = tagdb.compile_query(additional_constraint, 'tag')
 	if user and 'settings' in user :
 		if user['settings']['blacklist'] == 'default' :
 			query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
