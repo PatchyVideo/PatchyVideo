@@ -25,4 +25,4 @@ def find_touhou_words(txt) :
 def cut_for_index(txt) :
 	if isinstance(txt, list) :
 		return list(set(itertools.chain.from_iterable([cut_for_index(i) for i in txt])))
-	return loads(post_raw(TEXTSEG_ADDRESS + 'i/', txt.encode('utf-8')).text)['Words']
+	return loads(post_raw(TEXTSEG_ADDRESS + 'i/', txt.encode('utf-8')).content.decode('utf-8'))['Words']

@@ -8,9 +8,9 @@ import sys
 from utils.exceptions import UserError
 
 def _prefix_fallthrough(words) :
-	print('Using _prefix_fallthrough', file = sys.stderr)
 	if not words :
 		return [], 'empty'
+	print('Using _prefix_fallthrough', file = sys.stderr)
 	words_escaped = [re.escape(i) for i in words]
 	found_prefix_word_objs = [db.index_words.find({'word': {'$regex': f'^{word_escaped}.*'}}) for word_escaped in words_escaped] # TODO: replace with aggregate $facet
 	print('founded prefixs:', found_prefix_word_objs, file = sys.stderr)
