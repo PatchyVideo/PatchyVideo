@@ -64,8 +64,8 @@ phase 2
 #user sees his pending/failed uploads
 #    backend done, need UI
 #create playlist from a single video
-!create playlist from current playlist but with videos from other site in "copies" field
-    lacking UI support
+#create playlist from current playlist but with videos from other site in "copies" field
+#   lacking UI support
 #search playlist
 #beautiful http error page
 #add interactive admin shell
@@ -87,16 +87,16 @@ add wiki/help page and documents/tagging guide
 show tag counts on video detail page
 #use common tags when adding video to playlist
 #add ajax interface for updating internal configs(e.g. bilicookie_SESSDATA) for both scraper and main website
-add clearence level for updating configs
+#add clearence level for updating configs
 #add refresh video detail function
-!logging using MongoDB
-    need log viewing UI
+#logging using MongoDB
+#   need log viewing UI
 #check ajax input(e.g. page/page_size)
-use redis to cache commonly used video pages and tag translation
+#use redis to cache commonly used video pages and tag translation
 add robots.txt
-remove unnecessary fileds from ajax results
-!interface for updating user access control info, remember to update user's access control info in redis db as well
-    lacking UI support
+#remove unnecessary fileds from ajax results
+#interface for updating user access control info, remember to update user's access control info in redis db as well
+#   lacking UI support
 #interface for updating video clearence
 #    lacking UI support
 #add view pending post playlist job interface
@@ -106,8 +106,8 @@ remove unnecessary fileds from ajax results
 #    need UI
 #image upload for cover/user-id photo
 #check user input for IPFS upload and image upload
-!merge tag
-    lacking UI
+#merge tag
+#   lacking UI
 #nico.ms support vue
 #add video to playlist from video detail page
 create video copy from desc automatically
