@@ -615,19 +615,33 @@ class TagDB() :
 				raise UserError('ITEM_NOT_EXIST')
 		else:
 			item = item_id_or_item_object
-		if fields_to_index and '$set' in query and 'item' in query['$set'] :
-			all_reindex = True
+		# if fields_to_index and '$set' in query and 'item' in query['$set'] :
+		# 	all_reindex = True
+		# 	for field in fields_to_index :
+		# 		if field not in query['$set']['item'] :
+		# 			all_reindex = False
+		# 			break
+		# 	if all_reindex :
+		# 		field_texts = [query['$set']['item'][field] for field in fields_to_index]
+		# 		tag_ids = list(filter(lambda x: x < 0x80000000, item['tags']))
+		# 		word_ids = list(filter(lambda x: x >= 0x80000000, item['tags']))
+		# 		remove_index(word_ids, session = session)
+		# 		new_word_ids = build_index(field_texts, session = session)
+		# 		self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': tag_ids + new_word_ids}}, session = session)
+		if fields_to_index and '$set' in query :
+			field_texts = []
+			if 'item' in query['$set'] :
+				for field in fields_to_index :
+					if field in query['$set']['item'] :
+						field_texts.append(query['$set']['item'][field])
 			for field in fields_to_index :
-				if field not in query['$set']['item'] :
-					all_reindex = False
-					break
-			if all_reindex :
-				field_texts = [query['$set']['item'][field] for field in fields_to_index]
-				tag_ids = list(filter(lambda x: x < 0x80000000, item['tags']))
-				word_ids = list(filter(lambda x: x >= 0x80000000, item['tags']))
-				remove_index(word_ids, session = session)
-				new_word_ids = build_index(field_texts, session = session)
-				self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': tag_ids + new_word_ids}}, session = session)
+				if field in query['$set'] :
+					field_texts.append(query['$set'][field])
+			tag_ids = list(filter(lambda x: x < 0x80000000, item['tags']))
+			word_ids = list(filter(lambda x: x >= 0x80000000, item['tags']))
+			remove_index(word_ids, session = session)
+			new_word_ids = build_index(field_texts, session = session)
+			self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': tag_ids + new_word_ids}}, session = session)
 				
 		if query :
 			self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, query, session = session)

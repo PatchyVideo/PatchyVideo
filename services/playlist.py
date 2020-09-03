@@ -266,7 +266,7 @@ def updatePlaylistInfo(pid, title, desc, cover, user, private = False, privateEd
 		filterOperation('editPlaylist', user, list_obj)
 		if cover :
 			playlist_db.update_item_query(list_obj, {'$set': {"item.cover": cover}}, session = s())
-		playlist_db.update_item_query(list_obj, {'$set': {"item.title": title, "item.desc": desc, "item.private": private, "item.privateEdit": privateEdit}}, session = s())
+		playlist_db.update_item_query(list_obj, {'$set': {"item.title": title, "item.desc": desc, "item.private": private, "item.privateEdit": privateEdit}}, fields_to_index = ['item.title', 'item.desc'], session = s())
 		s.mark_succeed()
 
 def updatePlaylistTags(pid, new_tags, user) :

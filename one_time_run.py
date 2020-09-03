@@ -131,6 +131,7 @@ if __name__ == '__main__' :
 		db.playlist_metas.update_one({'_id': item["_id"]}, {'$set': {'meta': item['meta']}})
 """
 
+"""
 if __name__ == '__main__' :
 	kkhta_1 = db.videos.find_one({"item.unique_id":"bilibili:av92261-1"})
 	video_data = kkhta_1['item']
@@ -141,5 +142,19 @@ if __name__ == '__main__' :
 		video_data['title'] = '【東方手書】恋恋的♥心♥跳♥大冒险【PART1-10】(part %d)' % i
 		video_data['unique_id'] = 'bilibili:av92261-%d' % i
 		new_item_id = tagdb.add_item(['已失效视频'], video_data, 3, ['title', 'desc'], kkhta_1['meta']['created_by'])
+"""
 
+if __name__ == '__main__' :
+	from db.index.index_builder import build_index
+	#with MongoTransaction(client) as s :
+	db.playlist_metas.update_many({}, {'$pull': {'tags': {'$gte': 0x80000000}}})
+	db.index_words.delete_many({})
+	#    s.mark_succeed()
+	cursor = db.playlist_metas.find(no_cursor_timeout = True).batch_size(100)
+	#with MongoTransaction(client) as s :
+	for item in cursor :
+		print(item['item']['title'])
+		word_ids = build_index([item['item']['desc'], item['item']['title']])
+		db.playlist_metas.update_one({'_id': item['_id']}, {'$set': {'tags': item['tags'] + word_ids}})
+	#    s.mark_succeed()
 
