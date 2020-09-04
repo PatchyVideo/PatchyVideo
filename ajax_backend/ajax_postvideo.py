@@ -8,7 +8,7 @@ from flask import render_template, request, current_app, jsonify, redirect, sess
 
 from init import app, rdb
 from utils import getDefaultJSON
-from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
+from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON, loginRequiredFallbackJSON
 from utils.jsontools import *
 from utils.http import post_raw
 from utils.exceptions import UserError
@@ -18,7 +18,7 @@ from services.postVideo import postVideo, postVideoBatch, listCurrentTasksWithPa
 from config import VideoConfig, TagsConfig
 
 @app.route('/postvideo.do', methods = ['POST'])
-@loginRequiredJSON
+@loginRequiredFallbackJSON
 @jsonRequest
 def ajax_postvideo_do(rd, user, data):
 	dst_copy = getDefaultJSON(data, 'copy', '')
@@ -31,7 +31,7 @@ def ajax_postvideo_do(rd, user, data):
 	return "json", makeResponseSuccess({"task_id": task_id})
 
 @app.route('/postvideo_batch.do', methods = ['POST'])
-@loginRequiredJSON
+@loginRequiredFallbackJSON
 @jsonRequest
 def ajax_postvideo_batch_do(rd, user, data):
 	dst_copy = getDefaultJSON(data, 'copy', '')

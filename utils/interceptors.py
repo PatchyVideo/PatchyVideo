@@ -10,6 +10,7 @@ from werkzeug.exceptions import HTTPException
 from types import SimpleNamespace as Namespace
 from bson.json_util import dumps, loads
 from init import rdb#, logger
+from bson import ObjectId
 
 from . import Namespace
 
@@ -148,6 +149,32 @@ def loginRequiredJSON(func):
 			if kwargs['user'] is None :
 				log('login_check', level = 'SEC', obj = {'action': 'denied', 'path': request.full_path, 'sid': session['sid']})
 				return jsonResponse(makeResponseError("UNAUTHORISED_OPERATION"))
+			rd._user = kwargs['user']
+			setEventUser(rd._user)
+			kwargs['rd'] = rd
+			ret = func(*args, **kwargs)
+			return _handle_return(ret, rd)
+		else :
+			log('login_check', level = 'SEC', obj = {'action': 'denied', 'path': request.full_path})
+			return jsonResponse(makeResponseError("UNAUTHORISED_OPERATION"))
+	return wrapper
+
+def loginRequiredFallbackJSON(func):
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		beginEvent(func.__name__, getRealIP(request), request.full_path, request.args)
+		if 'sid' in session:
+			rd = Namespace()
+			kwargs['user'] = _get_user_obj(session['sid'])
+			if kwargs['user'] is None :
+				kwargs['user'] = {
+					"_id": ObjectId("5f523932be7b8be2e3b1598c"),
+					"profile": {"username": "AnonymousPost", "image": "default", "desc": "I represent all who didn't login\n匿名发布账号", "email": "", "bind_qq": false},
+					"access_control": {
+						"status": "normal", "access_mode": "blacklist", "allowed_ops": [], "denied_ops": []
+					},
+					"settings": {"blacklist": "default"}
+				}
 			rd._user = kwargs['user']
 			setEventUser(rd._user)
 			kwargs['rd'] = rd
