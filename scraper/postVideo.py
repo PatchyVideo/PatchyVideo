@@ -164,7 +164,7 @@ def _addThiscopy(dst_vid, this_vid, user, session):
 	else :
 		dst_copies.append(ObjectId(this_vid))
 	dst_copies = list(set(dst_copies) - set([ObjectId(dst_vid)]))
-	tagdb.update_item_query(ObjectId(dst_vid), {"$set": {"item.copies": dst_copies}}, user, session = session)
+	tagdb.update_item_query(ObjectId(dst_vid), {"$set": {"item.copies": dst_copies}}, user = user, session = session)
 
 class _PlaylistReorederHelper() :
 	def __init__(self) :
@@ -311,7 +311,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 					ret['data']['repost_type'] = repost_type
 				else :
 					ret['data']['repost_type'] = 'unknown'
-				tagdb.update_item_query(conflicting_item, {'$set': {'item.repost_type': repost_type}})
+				tagdb.update_item_query(conflicting_item, {'$set': {'item.repost_type': repost_type}}, user = makeUserMeta(user))
 			#if hasattr(parsed, 'LOCAL_CRAWLER') :
 			#	url = ret["data"]["url"]
 			#else :
@@ -357,7 +357,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 						for key in new_detail.keys() :
 							old_item[key] = new_detail[key] # overwrite or add new field
 						setEventUserAndID(user, event_id)
-						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item': old_item}}, ['title', 'desc'], makeUserMeta(user), session = s())
+						tagdb.update_item_query(conflicting_item['_id'], {'$set': {'item': old_item}}, ['title', 'desc'], user = makeUserMeta(user), session = s())
 						s.mark_succeed()
 					return 'SUCCEED', conflicting_item['_id']
 

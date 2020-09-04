@@ -226,7 +226,7 @@ def updatePlaylistCover(pid, cover, user) :
 		if list_obj is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
 		filterOperation('editPlaylist', user, list_obj)
-		playlist_db.update_item_query(list_obj, {'$set': {"item.cover": cover}}, session = s())
+		playlist_db.update_item_query(list_obj, {'$set': {"item.cover": cover}}, user = makeUserMeta(user), session = s())
 		s.mark_succeed()
 
 def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
@@ -241,7 +241,7 @@ def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 		if video_obj is None :
 			raise UserError('VIDEO_NOT_EXIST')
 		cover = video_obj['item']['cover_image']
-		playlist_db.update_item_query(list_obj, {'$set': {"item.cover": cover}}, session = s())
+		playlist_db.update_item_query(list_obj, {'$set': {"item.cover": cover}}, user = makeUserMeta(user), session = s())
 		#video_page, video_count = listPlaylistVideos(pid, page - 1, page_size, user)
 		s.mark_succeed()
 		#return {'videos': video_page, 'video_count': video_count, 'page': page}
@@ -265,8 +265,8 @@ def updatePlaylistInfo(pid, title, desc, cover, user, private = False, privateEd
 			raise UserError('PLAYLIST_NOT_EXIST')
 		filterOperation('editPlaylist', user, list_obj)
 		if cover :
-			playlist_db.update_item_query(list_obj, {'$set': {"item.cover": cover}}, session = s())
-		playlist_db.update_item_query(list_obj, {'$set': {"item.title": title, "item.desc": desc, "item.private": private, "item.privateEdit": privateEdit}}, fields_to_index = ['item.title', 'item.desc'], session = s())
+			playlist_db.update_item_query(list_obj, {'$set': {"item.cover": cover}}, user = makeUserMeta(user), session = s())
+		playlist_db.update_item_query(list_obj, {'$set': {"item.title": title, "item.desc": desc, "item.private": private, "item.privateEdit": privateEdit}}, fields_to_index = ['item.title', 'item.desc'], user = makeUserMeta(user), session = s())
 		s.mark_succeed()
 
 def updatePlaylistTags(pid, new_tags, user) :
@@ -294,15 +294,15 @@ def addVideoToPlaylist(pid, vid, user) :
 		conflicting_item = db.playlist_items.find_one({'pid': ObjectId(pid), 'vid': ObjectId(vid)}, session = s())
 		if conflicting_item is not None :
 			editPlaylist_MoveLockFree(pid, conflicting_item, int(playlist['item']["videos"]), session = s())
-			playlist_db.update_item_query(playlist, {}, session = s())
+			playlist_db.update_item_query(playlist, {}, user = makeUserMeta(user), session = s())
 			s.mark_succeed()
 			return
 		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
 		playlists.append(ObjectId(pid))
 		playlists = list(set(playlists))
-		tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, makeUserMeta(user), session = s())
+		tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, user = makeUserMeta(user), session = s())
 		db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": int(playlist['item']["videos"]), "meta": makeUserMeta(user)}, session = s())
-		playlist_db.update_item_query(playlist, {"$inc": {"item.videos": int(1)}}, session = s())
+		playlist_db.update_item_query(playlist, {"$inc": {"item.videos": int(1)}}, user = makeUserMeta(user), session = s())
 		s.mark_succeed()
 
 def addVideoToPlaylistLockFree(pid, vid, user, rank, session) :
@@ -313,14 +313,14 @@ def addVideoToPlaylistLockFree(pid, vid, user, rank, session) :
 	conflicting_item = db.playlist_items.find_one({'pid': ObjectId(pid), 'vid': ObjectId(vid)}, session = session)
 	if conflicting_item is not None :
 		editPlaylist_MoveLockFree(pid, conflicting_item, rank, session = session)
-		playlist_db.update_item_query(pid, {}, session = session)
+		playlist_db.update_item_query(pid, {}, user = makeUserMeta(user), session = session)
 		return False
 	playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = session)['item']['series']
 	playlists.append(ObjectId(pid))
 	playlists = list(set(playlists))
-	tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, makeUserMeta(user), session = session)
+	tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, user = makeUserMeta(user), session = session)
 	db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": int(rank), "meta": makeUserMeta(user)}, session = session)
-	playlist_db.update_item_query(pid, {"$inc": {"item.videos": int(1)}}, session = session)
+	playlist_db.update_item_query(pid, {"$inc": {"item.videos": int(1)}}, user = makeUserMeta(user), session = session)
 	return True
 
 def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
@@ -728,7 +728,7 @@ def removeVideoFromPlaylist(pid, vid, page, page_size, user) :
 				raise UserError('VIDEO_NOT_EXIST_OR_NOT_IN_PLAYLIST')
 			db.playlist_items.update_many({'pid': ObjectId(pid), 'rank': {'$gt': entry['rank']}}, {'$inc': {'rank': int(-1)}}, session = s())
 			db.playlist_items.delete_one({'_id': entry['_id']}, session = s())
-			playlist_db.update_item_query(playlist, {"$inc": {"item.videos": int(-1)}}, session = s())
+			playlist_db.update_item_query(playlist, {"$inc": {"item.videos": int(-1)}}, user = makeUserMeta(user), session = s())
 		else :
 			raise UserError('EMPTY_PLAYLIST')
 		"""
@@ -759,7 +759,7 @@ def editPlaylist_MoveUp(pid, vid, page, page_size, user) :
 			exchange_entry = db.playlist_items.find_one({"pid": ObjectId(pid), "rank": int(entry['rank'] - 1)}, session = s())
 			db.playlist_items.update_one({'_id': entry['_id']}, {'$set': {'rank': int(entry['rank'] - 1)}}, session = s())
 			db.playlist_items.update_one({'_id': exchange_entry['_id']}, {'$set': {'rank': int(entry['rank'])}}, session = s())
-			playlist_db.update_item_query(playlist, {}, session = s())
+			playlist_db.update_item_query(playlist, {}, user = makeUserMeta(user), session = s())
 			#video_page, video_count = listPlaylistVideos(pid, page - 1, page_size, user)
 			s.mark_succeed()
 			#return {'videos': video_page, 'video_count': video_count, 'page': page}
@@ -782,7 +782,7 @@ def editPlaylist_MoveDown(pid, vid, page, page_size, user) :
 			exchange_entry = db.playlist_items.find_one({"pid": ObjectId(pid), "rank": int(entry['rank'] + 1)}, session = s())
 			db.playlist_items.update_one({'_id': entry['_id']}, {'$set': {'rank': int(entry['rank'] + 1)}}, session = s())
 			db.playlist_items.update_one({'_id': exchange_entry['_id']}, {'$set': {'rank': int(entry['rank'])}}, session = s())
-			playlist_db.update_item_query(playlist, {}, session = s())
+			playlist_db.update_item_query(playlist, {}, user = makeUserMeta(user), session = s())
 			#video_page, video_count = listPlaylistVideos(pid, page - 1, page_size, user)
 			s.mark_succeed()
 			#return {'videos': video_page, 'video_count': video_count, 'page': page}
@@ -803,7 +803,7 @@ def editPlaylist_Move(pid, vid, to_rank, user) :
 		if to_rank > playlist['item']['videos'] :
 			to_rank = int(playlist['item']['videos'])
 		editPlaylist_MoveLockFree(pid, vid, to_rank, session = s())
-		playlist_db.update_item_query(playlist, {}, session = s())
+		playlist_db.update_item_query(playlist, {}, user = makeUserMeta(user), session = s())
 		s.mark_succeed()
 
 def editPlaylist_MoveLockFree(pid, vid_or_playlist_item, to_rank, session) :
@@ -837,7 +837,7 @@ def insertIntoPlaylist(pid, vid, rank, user) :
 		conflicting_item = db.playlist_items.find_one({'pid': ObjectId(pid), 'vid': ObjectId(vid)}, session = s())
 		if conflicting_item is not None :
 			editPlaylist_MoveLockFree(pid, conflicting_item, rank, session = s())
-			playlist_db.update_item_query(playlist, {}, session = s())
+			playlist_db.update_item_query(playlist, {}, user = makeUserMeta(user), session = s())
 			s.mark_succeed()
 			return
 		if rank < 0 :
@@ -847,8 +847,8 @@ def insertIntoPlaylist(pid, vid, rank, user) :
 		playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = s())['item']['series']
 		playlists.append(ObjectId(pid))
 		playlists = list(set(playlists))
-		tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, makeUserMeta(user), session = s())
-		playlist_db.update_item_query(playlist, {"$inc": {"item.videos": int(1)}}, session = s())
+		tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, user = makeUserMeta(user), session = s())
+		playlist_db.update_item_query(playlist, {"$inc": {"item.videos": int(1)}}, user = makeUserMeta(user), session = s())
 		db.playlist_items.update_many({'pid': ObjectId(pid), 'rank': {'$gte': rank}}, {'$inc': {'rank': int(1)}}, session = s())
 		db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": int(rank), "meta": makeUserMeta(user)}, session = s())
 		s.mark_succeed()
@@ -861,7 +861,7 @@ def insertIntoPlaylistLockFree(pid, vid, rank, user, session) :
 	conflicting_item = db.playlist_items.find_one({'pid': ObjectId(pid), 'vid': ObjectId(vid)}, session = session)
 	if conflicting_item is not None :
 		editPlaylist_MoveLockFree(pid, conflicting_item, rank, session = session)
-		playlist_db.update_item_query(pid, {}, session = session)
+		playlist_db.update_item_query(pid, {}, user = makeUserMeta(user), session = session)
 		if conflicting_item['rank'] >= rank :
 			return True
 		else :
@@ -869,8 +869,8 @@ def insertIntoPlaylistLockFree(pid, vid, rank, user, session) :
 	playlists = tagdb.retrive_item({'_id': ObjectId(vid)}, session = session)['item']['series']
 	playlists.append(ObjectId(pid))
 	playlists = list(set(playlists))
-	tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, makeUserMeta(user), session = session)
-	playlist_db.update_item_query(pid, {"$inc": {"item.videos": int(1)}}, session = session)
+	tagdb.update_item_query(ObjectId(vid), {'$set': {'item.series': playlists}}, user = makeUserMeta(user), session = session)
+	playlist_db.update_item_query(pid, {"$inc": {"item.videos": int(1)}}, user = makeUserMeta(user), session = session)
 	db.playlist_items.update_many({'pid': ObjectId(pid), 'rank': {'$gte': rank}}, {'$inc': {'rank': int(1)}}, session = session)
 	db.playlist_items.insert_one({"pid": ObjectId(pid), "vid": ObjectId(vid), "rank": int(rank), "meta": makeUserMeta(user)}, session = session)
 	return True
