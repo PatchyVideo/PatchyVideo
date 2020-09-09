@@ -8,6 +8,7 @@ from collections import defaultdict
 from db.index.textseg import cut_for_search, find_touhou_words
 from db.AutocompleteInterface import AutocompleteInterface
 from bson.json_util import loads
+from scraper.video import dispatch
 
 import ahocorasick
 import itertools
@@ -115,12 +116,22 @@ def inferTagidsFromText(text) :
 		th_tagids = []
 	return list(set(tagids + th_tagids))
 
-def inferTagsFromVideo(utags, title, desc, user_language) :
-	log(obj = {'title': title, 'desc': desc, 'utags': utags, 'lang': user_language})
-	utags = [u.lower() for u in utags]
-	utags.append(title)
-	utags.append(desc)
-	all_text = ' 3e7dT2ibT7dM '.join(utags)
-	tagids = inferTagidsFromText(all_text)
+def inferTagsFromVideo(utags, title, desc, user_language, video_url: str = '') :
+	log(obj = {'title': title, 'desc': desc, 'utags': utags, 'lang': user_language, 'video_url': video_url})
+	video_url = video_url.strip()
+	tagids = []
+	if video_url :
+		obj, cleanURL = dispatch(video_url)
+		if obj is not None :
+			uid = obj.unique_id(obj, cleanURL)
+			vid_item = db.retrive_item({'item.unique_id': uid})
+			if vid_item is not None :
+				tagids = list(filter(lambda x: x < 0x80000000, vid_item['tags']))
+	if not tagids :
+		utags = [u.lower() for u in utags]
+		utags.append(title)
+		utags.append(desc)
+		all_text = ' 3e7dT2ibT7dM '.join(utags)
+		tagids = inferTagidsFromText(all_text)
 	return db.translate_tag_ids_to_user_language(tagids, user_language)[0]
 
