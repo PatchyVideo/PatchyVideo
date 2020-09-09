@@ -146,15 +146,17 @@ if __name__ == '__main__' :
 
 if __name__ == '__main__' :
 	from db.index.index_builder import build_index
-	#with MongoTransaction(client) as s :
-	db.playlist_metas.update_many({}, {'$pull': {'tags': {'$gte': 0x80000000}}})
 	db.index_words.delete_many({})
-	#    s.mark_succeed()
+	db.playlist_metas.update_many({}, {'$pull': {'tags': {'$gte': 0x80000000}}})
+	db.videos.update_many({}, {'$pull': {'tags': {'$gte': 0x80000000}}})
 	cursor = db.playlist_metas.find(no_cursor_timeout = True).batch_size(100)
-	#with MongoTransaction(client) as s :
 	for item in cursor :
 		print(item['item']['title'])
 		word_ids = build_index([item['item']['desc'], item['item']['title']])
 		db.playlist_metas.update_one({'_id': item['_id']}, {'$set': {'tags': item['tags'] + word_ids}})
-	#    s.mark_succeed()
+	cursor = db.videos.find(no_cursor_timeout = True).batch_size(100)
+	for item in cursor :
+		print(item['item']['title'])
+		word_ids = build_index([item['item']['desc'], item['item']['title']])
+		db.videos.update_one({'_id': item['_id']}, {'$set': {'tags': item['tags'] + word_ids}})
 

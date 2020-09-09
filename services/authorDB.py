@@ -71,9 +71,9 @@ def getAuthorRecord(tag, language) :
     author_obj['common_tags'] = tagdb.translate_tag_ids_to_user_language(author_obj['common_tagids'], language)
     return author_obj
 
-def matchUserSpace(url) :
+def matchUserSpace(urls) :
     """
-    Given a user space URL from scraper, this function checks if an author in the databases matches that URL
+    Given serval user space URLs from scraper, this function checks if an author in the databases matches that URL
     and return author object so the scraper can add common_tags given by the author object
     """
     # TODO
