@@ -99,6 +99,32 @@ def postVideo(user, url, tags, copy, pid, rank, repost_type):
 	task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], repost_type, user))
 	return task_id
 
+def postVideoNoMerge(user, url, tags, copy, pid, rank, repost_type):
+	log(obj = {'url': url, 'tags': tags, 'copy': copy, 'pid': pid, 'rank': rank})
+	filterOperation('postVideo', user)
+	tags = [tag.strip() for tag in tags]
+	if not url :
+		raise UserError('EMPTY_URL')
+	if len(url) > VideoConfig.MAX_URL_LENGTH :
+		raise UserError('URL_TOO_LONG')
+	if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
+		raise UserError('TAGS_LIMIT_EXCEEDED')
+	obj, cleanURL = dispatch(url)
+	if obj is None:
+		log(level = 'WARN', obj = {'url': url})
+		raise UserError('UNSUPPORTED_WEBSITE')
+	if not cleanURL :
+		raise UserError('EMPTY_URL')
+	uid = obj.unique_id(obj, cleanURL)
+	vid_item = tagdb.retrive_item({'item.unique_id': uid})
+	if vid_item is None :
+		_verifyTags(tags)
+		log(obj = {'url': cleanURL})
+		task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], repost_type, user))
+		return task_id
+	else :
+		return 'no-suck-task'
+
 def postVideoIPFS_new(user, url, tags, copy, pid, rank, desc, title, cover_file_key, repost_type):
 	log(obj = {'url': url, 'tags': tags, 'copy': copy, 'pid': pid, 'rank': rank})
 	filterOperation('postVideo', user)

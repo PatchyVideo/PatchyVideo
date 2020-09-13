@@ -14,7 +14,7 @@ from utils.http import post_raw
 from utils.exceptions import UserError
 from bson.json_util import dumps, loads
 
-from services.postVideo import postVideo, postVideoBatch, listCurrentTasksWithParams, listFailedPosts, postVideoIPFS_new
+from services.postVideo import postVideo, postVideoBatch, listCurrentTasksWithParams, listFailedPosts, postVideoIPFS_new, postVideoNoMerge
 from config import VideoConfig, TagsConfig
 
 @app.route('/postvideo.do', methods = ['POST'])
@@ -28,6 +28,19 @@ def ajax_postvideo_do(rd, user, data):
 	if repost_type not in ['official', 'official_repost', 'authorized_translation', 'authorized_repost', 'translation', 'repost', 'unknown'] :
 		raise UserError('INCORRECT_REPOST_TYPE')
 	task_id = postVideo(user, data.url, data.tags, dst_copy, dst_playlist, dst_rank, repost_type)
+	return "json", makeResponseSuccess({"task_id": task_id})
+
+@app.route('/postvideo_nomerge.do', methods = ['POST'])
+@loginRequiredFallbackJSON
+@jsonRequest
+def ajax_postvideo_nomerge_do(rd, user, data): # will not merge tags
+	dst_copy = getDefaultJSON(data, 'copy', '')
+	dst_playlist = getDefaultJSON(data, 'pid', '')
+	dst_rank = getDefaultJSON(data, 'rank', -1)
+	repost_type = getDefaultJSON(data, 'repost_type', 'repost')
+	if repost_type not in ['official', 'official_repost', 'authorized_translation', 'authorized_repost', 'translation', 'repost', 'unknown'] :
+		raise UserError('INCORRECT_REPOST_TYPE')
+	task_id = postVideoNoMerge(user, data.url, data.tags, dst_copy, dst_playlist, dst_rank, repost_type)
 	return "json", makeResponseSuccess({"task_id": task_id})
 
 @app.route('/postvideo_batch.do', methods = ['POST'])
