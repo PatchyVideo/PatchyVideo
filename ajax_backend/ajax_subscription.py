@@ -12,7 +12,7 @@ from utils.jsontools import *
 from utils.exceptions import UserError
 from services.tcb import filterOperation
 
-from services.subscription import listSubscriptions, listSubscriptionTags, addSubscription, removeSubScription, updateSubScription, listSubscriptedItems, listSubscriptedItemsRandomized
+from services.subscription import listSubscriptions, listSubscriptionTags, addSubscription, removeTagSubScription, removeSubScription, updateSubScription, listSubscriptedItems, listSubscriptedItemsRandomized
 
 from dateutil.parser import parse
 from datetime import timezone
@@ -34,6 +34,13 @@ def ajax_subs_del_do(rd, data, user):
 	filterOperation('delSubs', user)
 	removeSubScription(user, data.subid)
 
+@app.route('/subs/del_tag.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_subs_del_tag_do(rd, data, user):
+	filterOperation('delSubs', user)
+	removeTagSubScription(user, data.tag)
+
 @app.route('/subs/all.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
@@ -45,8 +52,8 @@ def ajax_subs_all_do(rd, data, user):
 @loginRequiredJSON
 @jsonRequest
 def ajax_subs_tags_do(rd, data, user):
-	items = listSubscriptionTags(user)
-	return "json", makeResponseSuccess({'tagids': [i['tagid'] for i in items]})
+	items = listSubscriptionTags(user, data.lang)
+	return "json", makeResponseSuccess({'tags': items})
 
 @app.route('/subs/update.do', methods = ['POST'])
 @loginRequiredJSON

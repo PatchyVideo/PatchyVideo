@@ -16,7 +16,7 @@ def addSubscription(user, query_str : str, qtype = 'tag', name = '') :
 	# TODO: add duplicated query check
 	qobj, qtags = tagdb.compile_query(query_str, qtype)
 	if len(qtags) == 1 and 'tags' in qobj and isinstance(qobj['tags'], int) and qobj['tags'] < 0x80000000:
-		subid = db.subs.insert_one({'qs': query_str, 'qt': qtype, 'name': name, 'tagid': qobj['tags'], 'meta': makeUserMetaObject(user)}).inserted_id
+		subid = db.subs.insert_one({'qs': query_str.strip(), 'qt': qtype, 'name': name, 'tagid': qobj['tags'], 'meta': makeUserMetaObject(user)}).inserted_id
 	else :
 		subid = db.subs.insert_one({'qs': query_str, 'qt': qtype, 'name': name, 'meta': makeUserMetaObject(user)}).inserted_id
 	return str(subid)
@@ -24,14 +24,21 @@ def addSubscription(user, query_str : str, qtype = 'tag', name = '') :
 def listSubscriptions(user) :
 	return list(db.subs.find({'meta.created_by': makeUserMeta(user)}))
 
-def listSubscriptionTags(user) :
-	return list(db.subs.find({'meta.created_by': makeUserMeta(user), 'tagid': {'$exists': True}}))
+def listSubscriptionTags(user, language = 'CHS') :
+	ret = list(db.subs.find({'meta.created_by': makeUserMeta(user), 'tagid': {'$exists': True}}))
+	return tagdb.translate_tag_ids_to_user_language([x['tagid'] for x in ret], language)[0]
 
 def removeSubScription(user, sub_id) :
 	obj = db.subs.find_one({'_id': ObjectId(sub_id)})
 	if obj is None :
 		raise UserError('SUB_NOT_EXIST')
 	db.subs.delete_one({'_id': ObjectId(sub_id)})
+
+def removeTagSubScription(user, tags) :
+	if isinstance(tags, str) :
+		tags = [tags]
+	tagids = tagdb.translate_tags([x.strip() for x in tags])
+	db.subs.delete_many({'tagid': {'$in': tagids}})
 
 def updateSubScription(user, sub_id, query_str : str, qtype : str = '', name = '') :
 	obj = db.subs.find_one({'_id': ObjectId(sub_id)})
