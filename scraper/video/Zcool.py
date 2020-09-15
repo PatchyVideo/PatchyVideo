@@ -57,7 +57,7 @@ class Zcool( Crawler ) :
 			'site': 'zcool',
 			'uploadDate' : upload_time,
 			"unique_id": "zcool:%s" % zcool_id,
-			"user_space_urls": [f"https://www.acfun.cn/u/{user_id}"] if user_id else [],
+			"user_space_urls": [f"https://www.zcool.com.cn/u/{user_id}"] if user_id else [],
 			"utags": []
 		})
 
