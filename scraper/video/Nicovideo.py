@@ -18,6 +18,7 @@ class Nicovideo( Crawler ) :
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.nicovideo.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.nicovideo.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
 	THUMBNAIL_PATTERN = r'\"(https:\\\\/\\\\/img\.cdn\.nimg\.jp\\\\/s\\\\/nicovideo\\\\/thumbnails\\\\/\d+\\\\/\d+\.\w+\\\\/\w+\?key=\w+)\"'
+	USER_ID_MATCHER = r"www\.nicovideo\.jp\\\/user\\\/([\d]+)"
 
 	#def get_cookie(self) :
 	#	return {
@@ -69,6 +70,10 @@ class Nicovideo( Crawler ) :
 		desc_textonly = ''.join(soup.findAll(text = True))
 		uploadDate = parse(uploadDate).astimezone(timezone.utc)
 		utags = try_get_xpath(xpath, ['//meta[@property="og:video:tag"]/@content', '//meta[@itemprop="og:video:tag"]/@content', '//meta[@name="og:video:tag"]/@content'])
+		user_id = ''
+		user_id_match_result = re.search(self.USER_ID_MATCHER, content)
+		if user_id_match_result :
+			user_id = user_id_match_result.group(1)
 		if utags :
 			utags = [str(ut) for ut in utags]
 		else :
@@ -80,6 +85,7 @@ class Nicovideo( Crawler ) :
 			'site': 'nicovideo',
 			'uploadDate' : uploadDate,
 			"unique_id": "nicovideo:%s" % vidid,
+			"user_space_urls": [f"https://www.nicovideo.jp/user/{user_id}"] if user_id else [],
 			"utags": utags
 		})
 		

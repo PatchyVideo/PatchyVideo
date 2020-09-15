@@ -76,6 +76,7 @@ class Twitter( Crawler ) :
 			'uploadDate' : uploadDate,
 			"unique_id": "twitter:%s" % item_id,
 			"url_overwrite": f'https://twitter.com/{screen_name}/status/{item_id}',
+			"user_space_urls": [f'https://twitter.com/{screen_name}'],
 			"utags": []
 		})
 		
@@ -125,5 +126,6 @@ class Twitter( Crawler ) :
 			'uploadDate' : uploadDate,
 			"unique_id": "twitter:%s" % item_id,
 			"url_overwrite": f'https://twitter.com/{screen_name}/status/{item_id}',
+			"user_space_urls": [f'https://twitter.com/{screen_name}'],
 			"utags": []
 		})

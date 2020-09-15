@@ -9,7 +9,7 @@ from datetime import timedelta, datetime
 from services.config import Config
 import aiohttp
 import re
-
+import json
 import os
 
 from utils.exceptions import UserError
@@ -46,6 +46,8 @@ class Bilibili( Crawler ) :
 	SHORT_PATTERN = r'^([aA][Vv][\d]+|[Bb][Vv][a-zA-Z0-9]+)$'
 	VID_MATCH_REGEX = r"([aA][Vv][\d]+|[Bb][Vv][a-zA-Z0-9]+)"
 	AID_MATCH_REGEX = r"__INITIAL_STATE__\s*=\s*{\"aid\"\:(\d+),"
+	USER_ID_MATCHER = r"\"owner\":{\"mid\":([\d]+)"
+	MULTISTAFF_MATCHER = r"\"staff\":(\[{.*?}\])"
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
 	BV2AV = _bv2av()
@@ -126,6 +128,15 @@ class Bilibili( Crawler ) :
 			utags = xpath.xpath( '//meta[@itemprop="keywords"]/@content' )[0]
 			utags = list(filter(None, utags.split(',')[1: -4]))
 			part_name = title
+			user_space_urls = []
+			multistaff_match_result = re.search(self.MULTISTAFF_MATCHER, content)
+			if multistaff_match_result :
+				staff_json = json.loads(multistaff_match_result.group(1))
+				user_space_urls = ['https://space.bilibili.com/%d' % x['mid'] for x in staff_json]
+			else :
+				user_space_match_result = re.search(self.USER_ID_MATCHER, content)
+				if user_space_match_result :
+					user_space_urls = ['https://space.bilibili.com/%s' % user_space_match_result.group(1)]
 			cid = 0
 			async with aiohttp.ClientSession() as session:
 				async with session.get(f'https://api.bilibili.com/x/player/pagelist?aid={aid}&jsonp=jsonp') as resp:
@@ -162,5 +173,6 @@ class Bilibili( Crawler ) :
 			"unique_id": uid,
 			"utags": utags,
 			"url_overwrite": new_url,
+			"user_space_urls": user_space_urls,
 			'extra': {'part_name': part_name, 'cid': cid}
 		})

@@ -20,6 +20,7 @@ class Acfun( Crawler ) :
 	#THUMBNAIL_URL = re.compile(r'https:\/\/imgs\.aixifan\.com\/[\w\-]{8,}')
 	THUMBNAIL_URL_2 = re.compile(r'https:\/\/cdn\.aixifan\.com\/dotnet\/[\/\w]+\.(jpg|png|jpeg)')
 	EXTRACT_NUM = re.compile(r'^[\d]+')
+	USER_ID_MATCHER = r"\/u\/(\d+)"
 
 	def normalize_url( self, link ) :
 		link = link.lower()
@@ -45,12 +46,20 @@ class Acfun( Crawler ) :
 				thumbnailURL = thumbnailURL[0]
 			else :
 				thumbnailURL = ''
-		title = xpath.xpath('//h1[@class="title"]/text()')[0]
+		title = try_get_xpath(xpath, ['//h1[@class="title"]/text()', '//h1[@class="title"]/span/text()'])[0]
 		desc = try_get_xpath(xpath, ['//div[@class="description-container"]/text()', '//div[@class="J_description"]/text()', '//div[@class="sp1 J_description"]/text()'])[0]
 		desc = re.sub(r'<br\s*?\/?>', '\n', desc)
-		uploadDate = xpath.xpath('//div[@class="publish-time"]/text()')[0]
+		uploadDate = xpath.xpath('//div[@class="publish-time"]/text()')[0].split('\xa0')
+		if len(uploadDate) == 2 :
+			uploadDate = uploadDate[1]
+		else :
+			uploadDate = uploadDate[0]
 		utags = xpath.xpath( '//meta[@name="keywords"]/@content' )[0]
 		utags = list(filter(None, utags.split(',')[1: -4]))
+		user_id = ''
+		user_id_match_result = re.search(self.USER_ID_MATCHER, content)
+		if user_id_match_result :
+			user_id = user_id_match_result.group(1)
 		try :
 			uploadDate = parse(uploadDate) - timedelta(hours = 8)
 		except :
@@ -67,6 +76,7 @@ class Acfun( Crawler ) :
 			'site': 'acfun',
 			'uploadDate' : uploadDate,
 			"unique_id": "acfun:%s" % vidid,
+			"user_space_urls": [f"https://www.acfun.cn/u/{user_id}"] if user_id else [],
 			"utags": utags
 		})
 

@@ -19,6 +19,7 @@ class Zcool( Crawler ) :
 	DESC_REGEX_OBJ = re.compile(r"share_description\s*=\s*\'(.*)\'\s*;", re.MULTILINE)
 	COVER_REGEX_OBJ = re.compile(r'share_description_split,\s*title:\s*\".*\",\s*pic:\s*\"(.*)\"', re.MULTILINE)
 	UID_REGEX_OBJ = re.compile(r"^https:\/\/www\.zcool\.com\.cn\/work\/([0-9a-zA-Z=]*)\.html", re.MULTILINE)
+	USER_ID_MATCHER = r"(https:\/\/|http:\/\/)?www\.zcool\.com\.cn\/u\/([\d]+)"
 
 	def normalize_url( self, link ) :
 		return link
@@ -43,6 +44,11 @@ class Zcool( Crawler ) :
 
 		cover = self.COVER_REGEX_OBJ.search(content).group(1)
 		cover = cover.split('|')[0].strip().split('@')[0]
+
+		user_id = ''
+		user_id_match_result = re.search(self.USER_ID_MATCHER, content)
+		if user_id_match_result :
+			user_id = user_id_match_result.group(2)
 		
 		return makeResponseSuccess({
 			'thumbnailURL': cover,
@@ -51,6 +57,7 @@ class Zcool( Crawler ) :
 			'site': 'zcool',
 			'uploadDate' : upload_time,
 			"unique_id": "zcool:%s" % zcool_id,
+			"user_space_urls": [f"https://www.acfun.cn/u/{user_id}"] if user_id else [],
 			"utags": []
 		})
 

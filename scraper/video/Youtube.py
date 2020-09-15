@@ -101,6 +101,7 @@ class Youtube( Crawler ) :
 			'site': 'youtube',
             'uploadDate' : uploadDate,
 			"unique_id": "youtube:%s" % vidid,
+			"user_space_urls": [f"https://www.youtube.com/channel/{player_response['channelId']}"],
 			"utags": utags
 		})
 		
@@ -147,5 +148,6 @@ class Youtube( Crawler ) :
 			'site': 'youtube',
             'uploadDate' : uploadDate,
 			"unique_id": "youtube:%s" % vidid,
+			"user_space_urls": [f"https://www.youtube.com/channel/{player_response['channelId']}"],
 			"utags": utags
 		})

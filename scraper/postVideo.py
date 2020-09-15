@@ -104,6 +104,7 @@ async def _make_video_data(data, copies, playlists, url, user, event_id) :
 		'views': -1,
 		'rating': -1.0,
 		"utags": _cleanUtags(data['utags']) if 'utags' in data else [],
+		"user_space_urls": data['user_space_urls'] if 'user_space_urls' in data else [],
 		"placeholder": data["placeholder"] if 'placeholder' in data else False
 	}
 	if 'extra' in data :
@@ -128,6 +129,7 @@ async def _make_video_data_update(data, url, user, event_id, thumbnail_url = Non
 		'views': -1,
 		'rating': -1.0,
 		"utags": _cleanUtags(data['utags']) if 'utags' in data else [],
+		"user_space_urls": data['user_space_urls'] if 'user_space_urls' in data else [],
 		"placeholder": data["placeholder"] if 'placeholder' in data else False
 	}
 	if 'extra' in data :
