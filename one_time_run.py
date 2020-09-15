@@ -144,6 +144,7 @@ if __name__ == '__main__' :
 		new_item_id = tagdb.add_item(['已失效视频'], video_data, 3, ['title', 'desc'], kkhta_1['meta']['created_by'])
 """
 
+"""
 if __name__ == '__main__' :
 	from db.index.index_builder import build_index
 	db.index_words.delete_many({})
@@ -159,4 +160,11 @@ if __name__ == '__main__' :
 		print(item['item']['title'])
 		word_ids = build_index([item['item']['desc'], item['item']['title']])
 		db.videos.update_one({'_id': item['_id']}, {'$set': {'tags': item['tags'] + word_ids}})
+"""
+
+if __name__ == '__main__' :
+	from services.authorDB import createUserSpaceIds
+	cursor = db.authors.find(no_cursor_timeout = True).batch_size(100)
+	for author in cursor :
+		db.authors.update_one({"_id": author["_id"]}, {"$set": {"user_space_ids": createUserSpaceIds(author['urls'])}})
 
