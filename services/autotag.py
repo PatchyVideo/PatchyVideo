@@ -134,8 +134,8 @@ def inferTagsFromVideo(utags, title, desc, user_language, video_url: str = '', u
 		utags.append(desc)
 		all_text = ' 3e7dT2ibT7dM '.join(utags)
 		tagids = inferTagidsFromText(all_text)
-		matched_author_records, matched_author_tags = matchUserSpace(user_urls)
-		# TODO: use tag in matched_author_records
-		tagids = list(set(tagids) | set([x['id'] for x in matched_author_tags]))
+	matched_author_records, matched_author_tags = matchUserSpace(user_urls)
+	# TODO: use tag in matched_author_records
+	tagids = list(set(tagids) | set([x['id'] for x in matched_author_tags]))
 	return db.translate_tag_ids_to_user_language(tagids, user_language)[0]
 
