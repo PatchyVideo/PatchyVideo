@@ -32,7 +32,8 @@ def ajax_autotag_do(rd, user, data) :
 	title = getDefaultJSON(data, 'title', '')
 	desc = getDefaultJSON(data, 'desc', '')
 	video_url = getDefaultJSON(data, 'url', '')
-	tags = inferTagsFromVideo(data.utags, title, desc, data.lang, video_url)
+	user_urls = getDefaultJSON(data, 'user_urls', [])
+	tags = inferTagsFromVideo(data.utags, title, desc, data.lang, video_url, user_urls)
 	return "json", makeResponseSuccess({'tags': tags})
 
 @app.route('/tags/get_tag.do', methods = ['POST'])

@@ -10,6 +10,8 @@ from utils.rwlock import usingResource, modifyingResource
 
 from bson import ObjectId
 
+import re
+
 @modifyingResource('tags')
 def createOrModifyAuthorRecord(user, author_type, tagid, common_tags, user_spaces, desc, avatar_file_key = None) :
     filterOperation('createOrModifyAuthorRecord', user)
@@ -18,6 +20,7 @@ def createOrModifyAuthorRecord(user, author_type, tagid, common_tags, user_space
         raise UserError('INCORRECT_AUTHOR_TYPE')
     if not isinstance(user_spaces, list) :
         raise UserError('INCORRECT_REQUEST_USER_SPACES')
+    user_space_ids = createUserSpaceIds(user_spaces)
     if len(desc) > AuthorDB.DESC_MAX_LENGTH :
         raise UserError('DESC_TOO_LONG')
     with MongoTransaction(client) as s :
@@ -45,6 +48,7 @@ def createOrModifyAuthorRecord(user, author_type, tagid, common_tags, user_space
                 'tagid': tagid,
                 'common_tagids': common_tagids,
                 'urls': user_spaces,
+                'user_space_ids': user_space_ids,
                 'desc': desc,
                 'avatar': avatar_file
             }}, session = s())
@@ -54,6 +58,7 @@ def createOrModifyAuthorRecord(user, author_type, tagid, common_tags, user_space
                 'tagid': tagid,
                 'common_tagids': common_tagids,
                 'urls': user_spaces,
+                'user_space_ids': user_space_ids,
                 'desc': desc,
                 'avatar': avatar_file
             }, session = s()).inserted_id
@@ -61,6 +66,79 @@ def createOrModifyAuthorRecord(user, author_type, tagid, common_tags, user_space
         db.tags.update_one({'_id': tag_obj['_id']}, {'$set': {'author': record_id}})
         s.mark_succeed()
         return str(record_id)
+
+BILIBILI_USER_SPACE = r"(https:\/\/|http:\/\/)?space\.bilibili\.com\/([\d]+)"
+ACFUN_USER_SPACE = r"(https:\/\/|http:\/\/)?www\.acfun\.cn\/u\/([\d]+)"
+NICOVIDEO_USER_SPACE = r"(https:\/\/|http:\/\/)?(www\.|m\.)?nicovideo\.jp\/user\/([\d]+)"
+YOUTUBE_USER_SPACE = r"(https:\/\/|http:\/\/)?(www\.|m\.)?youtube\.com\/channel\/([\d\w]+)"
+TWITTER_USER_SPACE = r"(https:\/\/|http:\/\/)?(www\.|m\.)?twitter\.com\/([\d\w]+)"
+ZCOOL_USER_SPACE = r"(https:\/\/|http:\/\/)?www\.zcool\.com\.cn\/u\/([\d]+)"
+
+class Bilibili() :
+    PATTERN = r"(https:\/\/|http:\/\/)?space\.bilibili\.com\/([\d]+)"
+    def extract(self, url) :
+        m = re.match(self.PATTERN, url)
+        if m :
+            return True, 'bilibili-%s' % m.group(2)
+        else :
+            return False, ''
+
+class Acfun() :
+    PATTERN = r"(https:\/\/|http:\/\/)?www\.acfun\.cn\/u\/([\d]+)"
+    def extract(self, url) :
+        m = re.match(self.PATTERN, url)
+        if m :
+            return True, 'bilibili-%s' % m.group(2)
+        else :
+            return False, ''
+
+class Nicovideo() :
+    PATTERN = r"(https:\/\/|http:\/\/)?(www\.|m\.)?nicovideo\.jp\/user\/([\d]+)"
+    def extract(self, url) :
+        m = re.match(self.PATTERN, url)
+        if m :
+            return True, 'nicovideo-%s' % m.group(3)
+        else :
+            return False, ''
+
+class Youtube() :
+    PATTERN = r"(https:\/\/|http:\/\/)?(www\.|m\.)?youtube\.com\/channel\/([\d\w]+)"
+    def extract(self, url) :
+        m = re.match(self.PATTERN, url)
+        if m :
+            return True, 'youtube-%s' % m.group(3)
+        else :
+            return False, ''
+
+class Twitter() :
+    PATTERN = r"(https:\/\/|http:\/\/)?(www\.|m\.)?twitter\.com\/([\d\w]+)"
+    def extract(self, url) :
+        m = re.match(self.PATTERN, url)
+        if m :
+            return True, 'twitter-%s' % m.group(3)
+        else :
+            return False, ''
+
+class Zcool() :
+    PATTERN = r"(https:\/\/|http:\/\/)?www\.zcool\.com\.cn\/u\/([\d]+)"
+    def extract(self, url) :
+        m = re.match(self.PATTERN, url)
+        if m :
+            return True, 'zcool-%s' % m.group(2)
+        else :
+            return False, ''
+
+ALL_MATCHERS = [Bilibili(), Acfun(), Nicovideo(), Youtube(), Twitter(), Zcool()]
+
+def createUserSpaceIds(urls) :
+    matched_ids = []
+    for url in urls :
+        for matcher in ALL_MATCHERS :
+            matched, userid = matcher.extract(url)
+            if matched :
+                matched_ids.append(userid)
+                break
+    return list(set(matched_ids))
 
 def getAuthorRecord(tag, language) :
     tag_obj = tagdb._tag(tag)
@@ -76,5 +154,9 @@ def matchUserSpace(urls) :
     Given serval user space URLs from scraper, this function checks if an author in the databases matches that URL
     and return author object so the scraper can add common_tags given by the author object
     """
-    # TODO
-    pass
+    if not urls :
+        return [], []
+    all_matched_ids = createUserSpaceIds(urls)
+    all_matched_records = list(db.authors.find({'user_space_ids': {'$in': all_matched_ids}}))
+    all_matched_author_tag_objs = list(db.tags.find({'author': {'$in': [x['_id'] for x in all_matched_records]}}))
+    return all_matched_records, all_matched_author_tag_objs

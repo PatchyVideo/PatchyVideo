@@ -9,6 +9,7 @@ from db.index.textseg import cut_for_search, find_touhou_words
 from db.AutocompleteInterface import AutocompleteInterface
 from bson.json_util import loads
 from scraper.video import dispatch
+from .authorDB import matchUserSpace
 
 import ahocorasick
 import itertools
@@ -116,8 +117,8 @@ def inferTagidsFromText(text) :
 		th_tagids = []
 	return list(set(tagids + th_tagids))
 
-def inferTagsFromVideo(utags, title, desc, user_language, video_url: str = '') :
-	log(obj = {'title': title, 'desc': desc, 'utags': utags, 'lang': user_language, 'video_url': video_url})
+def inferTagsFromVideo(utags, title, desc, user_language, video_url: str = '', user_urls: [str] = []) :
+	log(obj = {'title': title, 'desc': desc, 'utags': utags, 'lang': user_language, 'video_url': video_url, 'user_urls': user_urls})
 	video_url = video_url.strip()
 	tagids = []
 	if video_url :
@@ -133,5 +134,8 @@ def inferTagsFromVideo(utags, title, desc, user_language, video_url: str = '') :
 		utags.append(desc)
 		all_text = ' 3e7dT2ibT7dM '.join(utags)
 		tagids = inferTagidsFromText(all_text)
+		matched_author_records, matched_author_tags = matchUserSpace(user_urls)
+		# TODO: use tag in matched_author_records
+		tagids = list(set(tagids) | set([x['id'] for x in matched_author_tags]))
 	return db.translate_tag_ids_to_user_language(tagids, user_language)[0]
 
