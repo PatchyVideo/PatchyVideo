@@ -229,6 +229,26 @@ def updatePlaylistCover(pid, cover, user) :
 		playlist_db.update_item_query(list_obj, {'$set': {"item.cover": cover}}, user = makeUserMeta(user), session = s())
 		s.mark_succeed()
 
+def updatePlaylistCoverFromFile(pid, user, file_key) :
+	log(obj = {'pid': pid, 'file_key': file_key})
+
+	photo_file = None
+	if file_key.startswith("upload-image-") :
+		filename = rdb.get(file_key)
+		if filename :
+			photo_file = filename.decode('ascii')
+	if photo_file is None :
+		raise UserError('NO_COVER')
+
+	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
+		list_obj = playlist_db.retrive_item(pid)
+		log(obj = {'playlist': list_obj})
+		if list_obj is None :
+			raise UserError('PLAYLIST_NOT_EXIST')
+		filterOperation('editPlaylist', user, list_obj)
+		playlist_db.update_item_query(list_obj, {'$set': {"item.cover": photo_file}}, user = makeUserMeta(user), session = s())
+		s.mark_succeed()
+
 def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
 	log(obj = {'pid': pid, 'vid': vid})
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :

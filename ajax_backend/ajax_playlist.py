@@ -31,6 +31,12 @@ def ajax_playlist_setcommontags_do(rd, user, data):
 def ajax_playlist_setcover_do(rd, user, data):
 	updatePlaylistCoverVID(data.pid, data.vid, int(data.page), int(data.page_size), user)
 
+@app.route('/list/setcover_custom.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_playlist_setcover_custom_do(rd, user, data):
+	updatePlaylistCoverFromFile(data.pid, user, data.file_key)
+
 @app.route('/list/delete.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
