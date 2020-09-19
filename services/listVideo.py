@@ -15,7 +15,7 @@ from services.config import Config
 def _filterPlaceholder(videos) :
 	return list(filter(lambda x: not ('placeholder' in x['item'] and x['item']['placeholder']), videos))
 
-def listVideoRandimzied(user, page_size, query_str = '', user_language = 'CHS', qtype = 'tag', additional_constraint = '') :
+def listVideoRandimzied(user, page_size, query_str = '', user_language = 'CHS', qtype = 'tag', additional_constraint = '', human_readable_tag = False) :
 	query_obj, _ = db.compile_query(query_str, qtype)
 	query_obj_extra, _ = db.compile_query(additional_constraint, 'tag')
 	log(obj = {'query': dumps(query_obj)})
@@ -34,11 +34,13 @@ def listVideoRandimzied(user, page_size, query_str = '', user_language = 'CHS', 
 	videos = filterVideoList(videos, user)
 	for i in range(len(videos)) :
 		videos[i]['tags'] = list(filter(lambda x: x < 0x80000000, videos[i]['tags']))
+		if human_readable_tag :
+			videos[i]['tags_readable'] = db.translate_tag_ids_to_user_language(videos[i]['tags'], user_language)[0]
 	videos = _filterPlaceholder(videos)
 	videos = videos[: page_size]
 	return videos, getCommonTags(user_language, videos)
 
-def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_language = 'CHS', hide_placeholder = True, qtype = 'tag', additional_constraint = ''):
+def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_language = 'CHS', hide_placeholder = True, qtype = 'tag', additional_constraint = '', human_readable_tag = False):
 	log(obj = {'q': query_str, 'page': page_idx, 'page_size': page_size, 'order': order, 'lang': user_language})
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
@@ -74,6 +76,8 @@ def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_
 		videos = filterVideoList(videos, user)
 		for i in range(len(videos)) :
 			videos[i]['tags'] = list(filter(lambda x: x < 0x80000000, videos[i]['tags']))
+			if human_readable_tag :
+				videos[i]['tags_readable'] = db.translate_tag_ids_to_user_language(videos[i]['tags'], user_language)[0]
 		if hide_placeholder :
 			videos = _filterPlaceholder(videos)
 	except pymongo.errors.OperationFailure as ex:
@@ -84,7 +88,7 @@ def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_
 			raise UserError('FAILED_UNKNOWN')
 	return videos, getCommonTags(user_language, videos), count, query_obj, exStats1, exStats2
 
-def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS', hide_placeholder = True, additional_constraint = ''):
+def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS', hide_placeholder = True, additional_constraint = '', human_readable_tag = False):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
@@ -123,12 +127,14 @@ def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS'
 	videos = filterVideoList(videos, user)
 	for i in range(len(videos)) :
 		videos[i]['tags'] = list(filter(lambda x: x < 0x80000000, videos[i]['tags']))
+		if human_readable_tag :
+			videos[i]['tags_readable'] = db.translate_tag_ids_to_user_language(videos[i]['tags'], user_language)[0]
 	if hide_placeholder :
 		videos = _filterPlaceholder(videos)
 	tags, pops = getPopularTags(user_language)
 	return videos, video_count, tags, pops, query_obj, exStats1, exStats2
 
-def listMyVideo(page_idx, page_size, user, order = 'latest'):
+def listMyVideo(page_idx, page_size, user, order = 'latest', human_readable_tag = False):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	result = db.retrive_items({'meta.created_by': ObjectId(user['_id'])})
@@ -146,9 +152,11 @@ def listMyVideo(page_idx, page_size, user, order = 'latest'):
 	videos = filterVideoList(videos, user)
 	for i in range(len(videos)) :
 		videos[i]['tags'] = list(filter(lambda x: x < 0x80000000, videos[i]['tags']))
+		if human_readable_tag :
+			videos[i]['tags_readable'] = db.translate_tag_ids_to_user_language(videos[i]['tags'], user_language)[0]
 	return videos, video_count
 
-def listYourVideo(uid, page_idx, page_size, user, order = 'latest'):
+def listYourVideo(uid, page_idx, page_size, user, order = 'latest', human_readable_tag = False):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	result = db.retrive_items({'meta.created_by': ObjectId(uid)})
@@ -166,4 +174,6 @@ def listYourVideo(uid, page_idx, page_size, user, order = 'latest'):
 	videos = filterVideoList(videos, user)
 	for i in range(len(videos)) :
 		videos[i]['tags'] = list(filter(lambda x: x < 0x80000000, videos[i]['tags']))
+		if human_readable_tag :
+			videos[i]['tags_readable'] = db.translate_tag_ids_to_user_language(videos[i]['tags'], user_language)[0]
 	return videos, video_count
