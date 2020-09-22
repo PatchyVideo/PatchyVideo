@@ -29,6 +29,7 @@ from bson import ObjectId
 
 from services.playlist import addVideoToPlaylist, addVideoToPlaylistLockFree, insertIntoPlaylist, insertIntoPlaylistLockFree
 from services.tcb import filterOperation
+from services.autotag import inferTagsFromVideo
 from config import VideoConfig
 from PIL import Image, ImageSequence
 from utils.logger import log_e, setEventUserAndID, setEventOp
@@ -261,7 +262,7 @@ class _PlaylistReorederHelper() :
 _playlist_reorder_helper = _PlaylistReorederHelper()
 
 @usingResourceAsync('tags')
-async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, repost_type, playlist_ordered, user, update_video_detail, event_id, field_override = None):
+async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, repost_type, playlist_ordered, user, update_video_detail, event_id, field_override = None, use_autotag = False):
 	parsed = None
 	try :
 		dst_playlist = str(dst_playlist)
@@ -444,6 +445,8 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 					async with MongoTransaction(client) as s :
 						video_data = await _make_video_data(ret["data"], [], playlists, url, user, event_id)
 						setEventUserAndID(user, event_id)
+						if use_autotag :
+							tags.extend(inferTagsFromVideo(video_data['utags'], video_data['title'], video_data['desc'], 'CHS', video_data['url'], video_data['user_space_urls']))
 						new_item_id = tagdb.add_item(tags, video_data, 3, ['title', 'desc'], makeUserMeta(user), session = s())
 						log_e(event_id, user, 'scraper', level = 'MSG', obj = {'msg': 'New video added to database', 'vid': new_item_id})
 						s.mark_succeed()
@@ -489,7 +492,8 @@ async def postVideoAsyncJSON(param_json) :
 	repost_type = param_json['repost_type']
 	field_overrides = param_json['field_overrides'] if 'field_overrides' in param_json else None
 	update_video_detail = param_json['update_video_detail'] if 'update_video_detail' in param_json else False
-	ret, ret_obj = await postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, repost_type, playlist_ordered, user, update_video_detail, event_id, field_overrides)
+	use_autotag = param_json['use_autotag'] if 'use_autotag' in param_json else False
+	ret, ret_obj = await postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, repost_type, playlist_ordered, user, update_video_detail, event_id, field_overrides, use_autotag)
 	return {'result' : ret, 'result_obj' : ret_obj}
 
 def verifyUniqueness(postingId):

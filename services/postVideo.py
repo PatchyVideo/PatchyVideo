@@ -34,7 +34,7 @@ def postTask(json_str) :
 	ret_obj = loads(post_raw(SCRAPER_ADDRESS + "/video", json_str.encode('utf-8')).text)
 	return ret_obj['task_id']
 
-def _createJsonForPosting(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, repost_type, user, playlist_ordered = None, field_overrides = None) :
+def _createJsonForPosting(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, repost_type, user, playlist_ordered = None, field_overrides = None, use_autotag = False) :
 	return dumps({
 		'url' : url,
 		'tags' : tags,
@@ -46,7 +46,8 @@ def _createJsonForPosting(url, tags, dst_copy, dst_playlist, dst_rank, other_cop
 		'user' : user,
 		'playlist_ordered' : playlist_ordered,
 		'event_id': getEventID(),
-		'field_overrides': field_overrides
+		'field_overrides': field_overrides,
+		'use_autotag': use_autotag
 	})
 
 def getTaskParamas(task_id) :
@@ -120,7 +121,7 @@ def postVideoNoMerge(user, url, tags, copy, pid, rank, repost_type):
 	if vid_item is None :
 		_verifyTags(tags)
 		log(obj = {'url': cleanURL})
-		task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], repost_type, user))
+		task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], repost_type, user, use_autotag = True))
 		return task_id
 	else :
 		return 'no-suck-task'

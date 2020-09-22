@@ -38,7 +38,8 @@ def _createJsonForPosting(url, dst_playlist, playlist_ordered, use_autotag, user
 		'playlist_ordered' : playlist_ordered,
 		'event_id': event_id,
 		'field_overrides': field_overrides,
-		'repost_type': 'unknown'
+		'repost_type': 'unknown',
+		'use_autotag': use_autotag
 	}
 
 async def _postVideosBatch(videos, pid, use_autotag, user, event_id) :
