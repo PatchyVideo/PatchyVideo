@@ -92,7 +92,16 @@ def _lex( query ) :
 			ss.append( tag )
 		return ''
 	for ch in query :
-		if ch in [' ', '\n', '\r', '\v', '\f', '\t'] :
+		if state == 'in_quote' :
+			if ch != '\"' :
+				tag += ch
+				continue
+		if ch == '\"' :
+			if state == 'normal' :
+				state = "in_quote"
+			elif state == 'in_quote' :
+				state = "normal"
+		elif ch in [' ', '\n', '\r', '\v', '\f', '\t'] :
 			if state == 'normal' or state == 'pre()' :
 				tag = add_symbol(tag)
 			elif state == 'in()' :
@@ -161,9 +170,9 @@ _REPOST_TRANSLATE = {
 }
 
 def _prepare_attributes(name, value):
-	value = value.lower()
 	name = name.lower()
 	if name == 'site':
+		value = value.lower()
 		query = ''
 		if value == 'acfun':
 			query = 'acfun'
@@ -212,6 +221,7 @@ def _prepare_attributes(name, value):
 		else :
 			return {}
 	elif name == 'placeholder':
+		value = value.lower()
 		if value == 'true' :
 			return { 'item.placeholder' : True }
 		elif value == 'false' :
