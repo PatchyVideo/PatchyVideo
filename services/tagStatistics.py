@@ -115,8 +115,8 @@ def getRelatedTagsFixedMainTags(user_language, tags, exclude = [], max_count = 1
 		'线下活动',
 		'Cosplay',
 		'绘画过程',
-		'meme',      # exclude
-		'Shitpost',  # exclude
+		'模因',      # exclude
+		#'Shitpost',  # exclude
 		'手工艺',
 		'VTuber',
 		'图集',
