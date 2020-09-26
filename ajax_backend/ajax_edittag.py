@@ -115,25 +115,25 @@ def ajax_transfer_category(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_rename_tag(rd, user, data):
-	renameTagOrAddTagLanguage(user, data.tag, data.new_tag, data.language)
+	renameTagOrAddTagLanguage(user, data.tag, data.new_tag.strip(), data.language)
 
 @app.route('/tags/rename_alias.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_rename_alias(rd, user, data):
-	renameOrAddAlias(user, data.tag, data.new_tag)
+	renameOrAddAlias(user, data.tag, data.new_tag.strip())
 
 @app.route('/tags/add_alias.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_add_alias(rd, user, data):
-	renameOrAddAlias(user, int(data.tag), data.new_tag)
+	renameOrAddAlias(user, int(data.tag), data.new_tag.strip())
 
 @app.route('/tags/add_tag_language.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_add_tag_language(rd, user, data):
-	renameTagOrAddTagLanguage(user, int(data.tag), data.new_tag, data.language)
+	renameTagOrAddTagLanguage(user, int(data.tag), data.new_tag.strip(), data.language)
 
 @app.route('/tags/remove_alias.do', methods = ['POST'])
 @loginRequiredJSON
