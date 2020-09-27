@@ -27,8 +27,8 @@ else :
 	SCRAPER_ADDRESS = 'http://localhost:5003'
 
 @usingResource('tags')
-def _verifyTags(tags) :
-	tagdb.verify_tags(tags)
+def filterTags(tags) :
+	return tagdb.filter_tags(tags)
 
 def postTask(json_str) :
 	ret_obj = loads(post_raw(SCRAPER_ADDRESS + "/video", json_str.encode('utf-8')).text)
@@ -95,7 +95,7 @@ def postVideo(user, url, tags, copy, pid, rank, repost_type):
 		raise UserError('UNSUPPORTED_WEBSITE')
 	if not cleanURL :
 		raise UserError('EMPTY_URL')
-	_verifyTags(tags)
+	tags = filterTags(tags)
 	log(obj = {'url': cleanURL})
 	task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], repost_type, user))
 	return task_id
@@ -119,7 +119,7 @@ def postVideoNoMerge(user, url, tags, copy, pid, rank, repost_type):
 	uid = obj.unique_id(obj, cleanURL)
 	vid_item = tagdb.retrive_item({'item.unique_id': uid})
 	if vid_item is None :
-		_verifyTags(tags)
+		tags = filterTags(tags)
 		log(obj = {'url': cleanURL})
 		task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], repost_type, user, use_autotag = True))
 		return task_id
@@ -156,7 +156,7 @@ def postVideoIPFS_new(user, url, tags, copy, pid, rank, desc, title, cover_file_
 		raise UserError('EMPTY_URL')
 	if obj.NAME != 'ipfs' :
 		raise UserError('NOT_IPFS')
-	_verifyTags(tags)
+	tags = filterTags(tags)
 	log(obj = {'url': cleanURL})
 	task_id = postTask(_createJsonForPosting(cleanURL, tags, copy, pid, rank, [], repost_type, user, field_overrides = {'title': title, 'desc': desc, 'cover_image_override': cover_file, '__condition': 'any'}))
 	return task_id
@@ -171,7 +171,7 @@ def postVideoBatch(user, videos, tags, copy, pid, rank, as_copies, repost_type):
 		raise UserError('POST_LIMIT_EXCEEDED')
 	if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
 		raise UserError('TAGS_LIMIT_EXCEEDED')
-	_verifyTags(tags)
+	tags = filterTags(tags)
 	cleanURL_objs = []
 	unique_ids = []
 	for url in videos :

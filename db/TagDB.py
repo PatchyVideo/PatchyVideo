@@ -598,12 +598,10 @@ class TagDB() :
 		self.db[self.db_name].delete_one({'_id': item['_id']}, session = session)
 		self.aci.SetCountDiff([(tagid, -1) for tagid in tag_ids])
 
-	def verify_tags(self, tags, session = None) :
+	def filter_tags(self, tags, session = None) :
 		found_tags = self.db.tag_alias.find({'tag': {'$in': tags}}, session = session)
 		tm = [tag['tag'] for tag in found_tags]
-		for tag in tags :
-			if tag not in tm :
-				raise UserError('TAG_NOT_EXIST', tag)
+		return tm
 
 	def update_item(self, item_id, item, user = '', session = None):
 		item = self.db[self.db_name].find_one({'_id': ObjectId(item_id)}, session = session)
