@@ -502,9 +502,6 @@ def verifyUniqueness(postingId):
 	val = tagdb.retrive_item({"item.unique_id": postingId})
 	return val is None, val
 
-def verifyTags(tags):
-	return tagdb.verify_tags([tag.strip() for tag in tags])
-
 async def func_with_write_result(func, task_id, param_json) :
 	ret = await func(param_json)
 	key = 'posttasks-' + str(param_json['user']['_id'])

@@ -22,7 +22,7 @@ def editVideoTags(vid, tags, user):
 	filterSingleVideo(vid, user)
 	if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
 		raise UserError('TAGS_LIMIT_EXCEEDED')
-	tagdb.verify_tags(tags)
+	tags = tagdb.filter_tags(tags)
 	item = tagdb.db.videos.find_one({'_id': ObjectId(vid)})
 	if item is None:
 		raise UserError('ITEM_NOT_EXIST')
