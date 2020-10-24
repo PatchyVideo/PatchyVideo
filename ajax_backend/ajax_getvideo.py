@@ -49,6 +49,28 @@ def ajax_getvideo(rd, user, data):
 		"tag_by_category": tag_by_category
 	})
 
+@app.route('/getvideo_basic.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_getvideo_basic(rd, user, data):
+	vidid = data.vid
+	try:
+		obj, tags, category_tag_map, tag_category_map = getVideoDetailWithTags(vidid, data.lang, user)
+	except UserError:
+		abort(404)
+
+	tag_by_category = category_tag_map
+	for category in tag_by_category :
+		tag_by_category[category] = list(sorted(tag_by_category[category]))
+
+	return "json", makeResponseSuccess({
+		"title" : obj['item']['title'],
+		"desc" : obj['item']['desc'],
+		"cover": "https://thvideo.tv/images/covers/" + obj['item']['cover_image'],
+		"url": obj['item']['url'],
+		"tag_by_category": tag_by_category
+	})
+
 @app.route('/getvideo_url.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
