@@ -7,10 +7,23 @@ from scraper.video import dispatch
 from utils.logger import log
 
 def getVideoDetail(vid, user, raise_error = False):
-	return filterSingleVideo(vid, user, raise_error)
+	try :
+		vid = ObjectId(vid)
+	except :
+		raise UserError("INCORRECT_VIDEO_ID")
+	video_obj = filterSingleVideo(vid, user, raise_error)
+	if video_obj is None :
+		raise UserError('VIDEO_NOT_EXIST')
+	return video_obj
 
 def getVideoDetailWithTags(vid, language, user) :
+	try :
+		vid = ObjectId(vid)
+	except :
+		raise UserError("INCORRECT_VIDEO_ID")
 	video_obj = filterSingleVideo(vid, user)
+	if video_obj is None :
+		raise UserError('VIDEO_NOT_EXIST')
 	return db.retrive_item_with_tag_category_map(video_obj, language)
 
 def getTagCategoryMap(tags) :
