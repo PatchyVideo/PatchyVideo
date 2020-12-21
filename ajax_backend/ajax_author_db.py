@@ -34,7 +34,7 @@ def ajax_authors_get_record(rd, user, data):
 @app.route('/authors/get_record_raw.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
-def ajax_authors_get_record(rd, user, data):
+def ajax_authors_get_record_raw(rd, user, data):
 	return "json", makeResponseSuccess({"record": getAuthorRecordTranslationFree(data.tag)})
 
 
