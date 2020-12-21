@@ -149,8 +149,8 @@ def getAuthorRecord(tag, language) :
     author_obj['common_tags'] = tagdb.translate_tag_ids_to_user_language(author_obj['common_tagids'], language)
     return author_obj
 
-def getAuthorRecordTranslationFree(tag) :
-    tag_obj = tagdb._tag(tag)
+def getAuthorRecordTranslationFree(tagid) :
+    tag_obj = tagdb._tag(tagid)
     if not 'author' in tag_obj :
         raise UserError('RECORD_NOT_FOUND')
     author_obj = db.authors.find_one({'_id': tag_obj['author']})

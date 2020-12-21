@@ -35,7 +35,7 @@ def ajax_authors_get_record(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_authors_get_record_raw(rd, user, data):
-	return "json", makeResponseSuccess({"record": getAuthorRecordTranslationFree(data.tag)})
+	return "json", makeResponseSuccess({"record": getAuthorRecordTranslationFree(int(data.tagid))})
 
 
 
