@@ -29,6 +29,8 @@ def getTag(tag_or_tagid) :
 			tag_or_tagid = tag_or_tagid[0]
 	obj = tagdb.db.tags.find_one({'id': tag_or_tagid})
 	if obj :
+		if 'icon' in obj and not obj['icon'] :
+			obj['icon'] = "none"
 		return obj
 	raise UserError('TAG_NOT_FOUND')
 

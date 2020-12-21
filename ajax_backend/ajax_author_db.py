@@ -7,7 +7,7 @@ from utils.jsontools import *
 from utils.exceptions import UserError
 from utils import getDefaultJSON
 
-from services.authorDB import createOrModifyAuthorRecord, getAuthorRecord
+from services.authorDB import createOrModifyAuthorRecord, getAuthorRecord, getAuthorRecordTranslationFree
 from services.tcb import filterOperation
 
 @app.route('/authors/create_or_modify.do', methods = ['POST'])
@@ -30,6 +30,13 @@ def ajax_authors_create_or_modify(rd, user, data):
 @jsonRequest
 def ajax_authors_get_record(rd, user, data):
 	return "json", makeResponseSuccess({"record": getAuthorRecord(data.tag, data.lang)})
+
+@app.route('/authors/get_record_raw.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_authors_get_record(rd, user, data):
+	return "json", makeResponseSuccess({"record": getAuthorRecordTranslationFree(data.tag)})
+
 
 
 

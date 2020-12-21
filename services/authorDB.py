@@ -149,6 +149,14 @@ def getAuthorRecord(tag, language) :
     author_obj['common_tags'] = tagdb.translate_tag_ids_to_user_language(author_obj['common_tagids'], language)
     return author_obj
 
+def getAuthorRecordTranslationFree(tag) :
+    tag_obj = tagdb._tag(tag)
+    if not 'author' in tag_obj :
+        raise UserError('RECORD_NOT_FOUND')
+    author_obj = db.authors.find_one({'_id': tag_obj['author']})
+    assert author_obj
+    return author_obj
+
 def matchUserSpace(urls) :
     """
     Given serval user space URLs from scraper, this function checks if an author in the databases matches that URL
