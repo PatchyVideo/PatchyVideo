@@ -105,6 +105,8 @@ class Youtube( Crawler ) :
 			"utags": utags
 		})
 		
+	async def youtube_api_fallback( self, content, xpath, link, update_video_detail, vidid ) :
+		pass
 
 	async def run_async( self, content, xpath, link, update_video_detail ) :
 		if 'youtube.com' in link:
@@ -115,6 +117,7 @@ class Youtube( Crawler ) :
 			else:
 				vidid = link[link.rfind('/') + 1:]
 		
+		apirespond = None
 		keys = Config.YOUTUBE_API_KEYS.split(",")
 		while keys :
 			key = random.choice(keys)
@@ -128,6 +131,8 @@ class Youtube( Crawler ) :
 						log_ne(op = 'youtube_run_async', level = 'WARN', obj = {'msg': 'FETCH_FAILED', 'key': key, 'resp': apirespond, 'url': api_url})
 			keys.remove(key)
 
+		if apirespond is None :
+			return await self.youtube_api_fallback(content = content, xpath = xpath, link = link, update_video_detail = update_video_detail, vidid = vidid)
 		player_response = loads(apirespond)
 		player_response = player_response['items'][0]
 		player_response = player_response['snippet']

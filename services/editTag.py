@@ -45,7 +45,7 @@ def _getBlacklistTagids(user) :
 		blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST_POPULAR_TAG.split(',')]
 	return blacklist_tagids
 
-def queryTags(category, page_idx, page_size, order = 'none', user = None):
+def queryTags(category, offset, limit, order = 'none', user = None):
 	blacklist_tagids = _getBlacklistTagids(user)
 	result = tagdb.list_category_tags(category, blacklist_tagids)
 	if isinstance(result, str):
@@ -60,20 +60,20 @@ def queryTags(category, page_idx, page_size, order = 'none', user = None):
 		result = result.sort([("count", 1)])
 	elif order == 'count_inv':
 		result = result.sort([("count", -1)])
-	return result.skip(page_idx * page_size).limit(page_size)
+	return result.skip(offset).limit(limit)
 
-def queryTagsWildcard(query, category, page_idx, page_size, order, user):
+def queryTagsWildcard(query, category, offset, limit, order, user):
 	blacklist_tagids = _getBlacklistTagids(user)
-	ret = tagdb.find_tags_wildcard(query, category, page_idx, page_size, order, blacklist_tagids)
+	ret = tagdb.find_tags_wildcard(query, category, offset, limit, order, blacklist_tagids)
 	result = [i for i in ret][0]
 	if result['tags_found'] :
 		return [i for i in result['result']], result['tags_found'][0]['tags_found']
 	else :
 		return [], 0
 
-def queryTagsRegex(query, category, page_idx, page_size, order, user):
+def queryTagsRegex(query, category, offset, limit, order, user):
 	blacklist_tagids = _getBlacklistTagids(user)
-	ret = tagdb.find_tags_regex(query, category, page_idx, page_size, order, blacklist_tagids)
+	ret = tagdb.find_tags_regex(query, category, offset, limit, order, blacklist_tagids)
 	result = [i for i in ret][0]
 	if result['tags_found'] :
 		return [i for i in result['result']], result['tags_found'][0]['tags_found']

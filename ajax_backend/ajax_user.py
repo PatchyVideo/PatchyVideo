@@ -8,7 +8,7 @@ import urllib
 from flask import render_template, request, current_app, jsonify, redirect, session
 
 from init import app
-from utils import getDefaultJSON
+from utils import getDefaultJSON, getOffsetLimitJSON
 from utils.interceptors import loginOptional, jsonRequest, basePage, loginRequiredJSON, loginOptionalGET
 from utils.jsontools import *
 
@@ -240,15 +240,14 @@ def ajax_user_update_deniedops(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_user_list_users(rd, user, data):
-	page_idx = getDefaultJSON(data, 'page', 1) - 1
-	page_size = getDefaultJSON(data, 'page_size', 20)
+	offset, limit = getOffsetLimitJSON(data)
 	query = getDefaultJSON(data, 'query', '')
 	order = getDefaultJSON(data, 'order', 'latest')
-	users, count = listUsers(user, page_idx, page_size, query, order)
+	users, count = listUsers(user, offset, limit, query, order)
 	ret = makeResponseSuccess({
 		"users": users,
 		"count": count,
-		"page_count": (count - 1) // page_size + 1
+		"page_count": (count - 1) // limit + 1
 	})
 	return "json", ret
 

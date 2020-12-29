@@ -59,18 +59,20 @@ def postThreadToForum(user, forum_id : ObjectId, title : str, text: str, use_ble
 		s.mark_succeed()
 		return str(ftid)
 
-def listForumThreads(forum_id : ObjectId, page_idx : int = 0, page_size : int = 30, order = 'last_modified') :
+def listForumThreads(forum_id : ObjectId, offset : int = 0, limit : int = 30, order = 'last_modified') :
 	if db.forum_metas.find_one({'_id': forum_id}) is None :
 		raise UserError('FORUM_NOT_EXIST')
 	if order not in ['last_modified'] :
 		raise UserError('INCORRECT_ORDER')
 	if order == 'last_modified' :
 		sort_obj = {"meta.modified_at": -1}
+	else :
+		sort_obj = {}
 	all_items = list(db.forum_threads.aggregate([
 		{'$match': {'forum_id': forum_id, 'deleted': False, 'pinned': False}},
 		{'$sort': sort_obj},
-		{'$skip': page_idx * page_size},
-		{'$limit': page_size},
+		{'$skip': offset},
+		{'$limit': limit},
 		{'$lookup': {'from': 'comment_threads', 'localField': 'tid', 'foreignField': '_id', 'as': 'thread_obj'}}
 	]))
 	all_pinned_items = list(db.forum_threads.aggregate([

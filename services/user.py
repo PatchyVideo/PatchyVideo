@@ -493,7 +493,7 @@ def updateUserDeniedOps(user_id, denied_ops, user) :
 	
 	_updateUserRedisValue(user_id, updater)
 
-def listUsers(user, page_idx, page_size, query = None, order = 'latest') :
+def listUsers(user, offset, limit, query = None, order = 'latest') :
 	filterOperation('listUsers', user)
 	if order not in ['latest', 'oldest'] :
 		raise UserError('INCORRECT_ORDER')
@@ -508,7 +508,7 @@ def listUsers(user, page_idx, page_size, query = None, order = 'latest') :
 		result = result.sort([("meta.created_at", -1)])
 	if order == 'oldest':
 		result = result.sort([("meta.created_at", 1)])
-	items = result.skip(page_idx * page_size).limit(page_size)
+	items = result.skip(offset).limit(limit)
 	count = items.count()
 	items = [i for i in items]
 	for i in range(len(items)) :

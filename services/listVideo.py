@@ -15,7 +15,7 @@ from services.config import Config
 def _filterPlaceholder(videos) :
 	return list(filter(lambda x: not ('placeholder' in x['item'] and x['item']['placeholder']), videos))
 
-def listVideoRandimzied(user, page_size, query_str = '', user_language = 'CHS', qtype = 'tag', additional_constraint = '', human_readable_tag = False) :
+def listVideoRandimzied(user, limit, query_str = '', user_language = 'CHS', qtype = 'tag', additional_constraint = '', human_readable_tag = False) :
 	query_obj, _ = db.compile_query(query_str, qtype)
 	query_obj_extra, _ = db.compile_query(additional_constraint, 'tag')
 	log(obj = {'query': dumps(query_obj)})
@@ -29,7 +29,7 @@ def listVideoRandimzied(user, page_size, query_str = '', user_language = 'CHS', 
 		query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
 	videos = list(db.aggregate([
 		{'$match': query_obj},
-		{'$sample': {'size': page_size * 2}}
+		{'$sample': {'size': limit * 2}}
 	]))
 	videos = filterVideoList(videos, user)
 	for i in range(len(videos)) :
@@ -37,11 +37,11 @@ def listVideoRandimzied(user, page_size, query_str = '', user_language = 'CHS', 
 		if human_readable_tag :
 			videos[i]['tags_readable'] = db.translate_tag_ids_to_user_language(videos[i]['tags'], user_language)[0]
 	videos = _filterPlaceholder(videos)
-	videos = videos[: page_size]
+	videos = videos[: limit]
 	return videos, getCommonTags(user_language, videos)
 
-def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_language = 'CHS', hide_placeholder = True, qtype = 'tag', additional_constraint = '', human_readable_tag = False):
-	log(obj = {'q': query_str, 'page': page_idx, 'page_size': page_size, 'order': order, 'lang': user_language})
+def listVideoQuery(user, query_str, offset, limit, order = 'latest', user_language = 'CHS', hide_placeholder = True, qtype = 'tag', additional_constraint = '', human_readable_tag = False):
+	log(obj = {'q': query_str, 'offset': offset, 'limit': limit, 'order': order, 'lang': user_language})
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	query_obj, tags = db.compile_query(query_str, qtype)
@@ -69,7 +69,7 @@ def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_
 			result = result.sort([("item.upload_time", -1)])
 		if order == 'video_oldest':
 			result = result.sort([("item.upload_time", 1)])
-		ret = result.skip(page_idx * page_size).limit(page_size)
+		ret = result.skip(offset).limit(limit)
 		exStats2 = ret.explain()
 		count = ret.count()
 		videos = [item for item in ret]
@@ -88,7 +88,7 @@ def listVideoQuery(user, query_str, page_idx, page_size, order = 'latest', user_
 			raise UserError('FAILED_UNKNOWN')
 	return videos, getCommonTags(user_language, videos), count, query_obj, exStats1, exStats2
 
-def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS', hide_placeholder = True, additional_constraint = '', human_readable_tag = False):
+def listVideo(offset, limit, user, order = 'latest', user_language = 'CHS', hide_placeholder = True, additional_constraint = '', human_readable_tag = False):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
@@ -120,7 +120,7 @@ def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS'
 		result = result.sort([("item.upload_time", -1)])
 	if order == 'video_oldest':
 		result = result.sort([("item.upload_time", 1)])
-	videos = result.skip(page_idx * page_size).limit(page_size)
+	videos = result.skip(offset).limit(limit)
 	exStats2 = videos.explain()
 	video_count = videos.count()
 	videos = [i for i in videos]
@@ -134,7 +134,7 @@ def listVideo(page_idx, page_size, user, order = 'latest', user_language = 'CHS'
 	tags, pops = getPopularTags(user_language)
 	return videos, video_count, tags, pops, query_obj, exStats1, exStats2
 
-def listMyVideo(page_idx, page_size, user, order = 'latest', human_readable_tag = False):
+def listMyVideo(offset, limit, user, order = 'latest', human_readable_tag = False):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	result = db.retrive_items({'meta.created_by': ObjectId(user['_id'])})
@@ -146,7 +146,7 @@ def listMyVideo(page_idx, page_size, user, order = 'latest', human_readable_tag 
 		result = result.sort([("item.upload_time", -1)])
 	if order == 'video_oldest':
 		result = result.sort([("item.upload_time", 1)])
-	videos = result.skip(page_idx * page_size).limit(page_size)
+	videos = result.skip(offset).limit(limit)
 	video_count = videos.count()
 	videos = [i for i in videos]
 	videos = filterVideoList(videos, user)
@@ -156,7 +156,7 @@ def listMyVideo(page_idx, page_size, user, order = 'latest', human_readable_tag 
 			videos[i]['tags_readable'] = db.translate_tag_ids_to_user_language(videos[i]['tags'], user_language)[0]
 	return videos, video_count
 
-def listYourVideo(uid, page_idx, page_size, user, order = 'latest', human_readable_tag = False):
+def listYourVideo(uid, offset, limit, user, order = 'latest', human_readable_tag = False):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise UserError('INCORRECT_ORDER')
 	result = db.retrive_items({'meta.created_by': ObjectId(uid)})
@@ -168,7 +168,7 @@ def listYourVideo(uid, page_idx, page_size, user, order = 'latest', human_readab
 		result = result.sort([("item.upload_time", -1)])
 	if order == 'video_oldest':
 		result = result.sort([("item.upload_time", 1)])
-	videos = result.skip(page_idx * page_size).limit(page_size)
+	videos = result.skip(offset).limit(limit)
 	video_count = videos.count()
 	videos = [i for i in videos]
 	videos = filterVideoList(videos, user)

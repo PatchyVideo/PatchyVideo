@@ -6,7 +6,7 @@ from flask import render_template, request, jsonify, redirect, session, abort
 
 from db import tagdb, playlist_db
 from init import app
-from utils import getDefaultJSON
+from utils import getDefaultJSON, getOffsetLimitJSON
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.tagtools import translateTagsToPreferredLanguage, getTagObjects
 from services.playlist import *
@@ -29,7 +29,8 @@ def ajax_playlist_setcommontags_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_playlist_setcover_do(rd, user, data):
-	updatePlaylistCoverVID(data.pid, data.vid, int(data.page), int(data.page_size), user)
+	offset, limit = getOffsetLimitJSON(data)
+	updatePlaylistCoverVID(data.pid, data.vid, offset, limit, user)
 
 @app.route('/list/setcover_custom.do', methods = ['POST'])
 @loginRequiredJSON
@@ -41,19 +42,22 @@ def ajax_playlist_setcover_custom_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_playlist_deletevideo_do(rd, user, data):
-	removeVideoFromPlaylist(data.pid, data.vid, int(data.page), int(data.page_size), user)
+	offset, limit = getOffsetLimitJSON(data)
+	removeVideoFromPlaylist(data.pid, data.vid, offset, limit, user)
 
 @app.route('/list/moveup.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_playlist_moveup_do(rd, user, data):
-	editPlaylist_MoveUp(data.pid, data.vid, int(data.page), int(data.page_size), user)
+	offset, limit = getOffsetLimitJSON(data)
+	editPlaylist_MoveUp(data.pid, data.vid, offset, limit, user)
 
 @app.route('/list/movedown.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_playlist_movedown_do(rd, user, data):
-	editPlaylist_MoveDown(data.pid, data.vid, int(data.page), int(data.page_size), user)
+	offset, limit = getOffsetLimitJSON(data)
+	editPlaylist_MoveDown(data.pid, data.vid, offset, limit, user)
 
 @app.route('/list/move.do', methods = ['POST'])
 @loginRequiredJSON
@@ -90,103 +94,96 @@ def ajax_lists_new_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_lists_myplaylists(rd, user, data):
-	page_size = getDefaultJSON(data, 'page_size', 20)
-	page = getDefaultJSON(data, 'page', 1) - 1
+	offset, limit = getOffsetLimitJSON(data)
 	order = getDefaultJSON(data, 'order', 'last_modified')
 	query = getDefaultJSON(data, 'query', '')
 	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
-	playlists, playlists_count = listMyPlaylists(user, page, page_size, query, additional_constraint, order)
+	playlists, playlists_count = listMyPlaylists(user, offset, limit, query, additional_constraint, order)
 	return "json", makeResponseSuccess({
 		"playlists": playlists,
 		"count": playlists_count,
-		"page_count": (playlists_count - 1) // page_size + 1
+		"page_count": (playlists_count - 1) // limit + 1
 		})
 
 @app.route('/lists/myplaylists_vid', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_lists_myplaylists_vid(rd, user, data):
-	page_size = getDefaultJSON(data, 'page_size', 20)
-	page = getDefaultJSON(data, 'page', 1) - 1
+	offset, limit = getOffsetLimitJSON(data)
 	order = getDefaultJSON(data, 'order', 'last_modified')
 	query = getDefaultJSON(data, 'query', '')
 	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
-	playlists, playlists_count = listMyPlaylistsAgainstSingleVideo(user, data.vid, page, page_size, query, additional_constraint, order)
+	playlists, playlists_count = listMyPlaylistsAgainstSingleVideo(user, data.vid, offset, limit, query, additional_constraint, order)
 	return "json", makeResponseSuccess({
 		"playlists": playlists,
 		"count": playlists_count,
-		"page_count": (playlists_count - 1) // page_size + 1
+		"page_count": (playlists_count - 1) // limit + 1
 		})
 
 @app.route('/lists/yourplaylists', methods = ['POST'])
 @loginOptional
 @jsonRequest
 def ajax_lists_yourplaylists(rd, user, data):
-	page_size = getDefaultJSON(data, 'page_size', 20)
-	page = getDefaultJSON(data, 'page', 1) - 1
+	offset, limit = getOffsetLimitJSON(data)
 	order = getDefaultJSON(data, 'order', 'last_modified')
 	query = getDefaultJSON(data, 'query', '')
 	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
-	playlists, playlists_count = listYourPlaylists(user, data.uid, page, page_size, query, additional_constraint, order)
+	playlists, playlists_count = listYourPlaylists(user, data.uid, offset, limit, query, additional_constraint, order)
 	return "json", makeResponseSuccess({
 		"playlists": playlists,
 		"count": playlists_count,
-		"page_count": (playlists_count - 1) // page_size + 1
+		"page_count": (playlists_count - 1) // limit + 1
 		})
 
 @app.route('/lists/all.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
 def ajax_lists_all_do(rd, user, data):
-	page_size = getDefaultJSON(data, 'page_size', 20)
-	page = getDefaultJSON(data, 'page', 1) - 1
+	offset, limit = getOffsetLimitJSON(data)
 	order = getDefaultJSON(data, 'order', 'last_modified')
-	playlists, playlists_count = listPlaylists(user, page, page_size, '', order, 'text', '')
+	playlists, playlists_count = listPlaylists(user, offset, limit, '', order, 'text', '')
 	return "json", makeResponseSuccess({
 		"playlists": playlists,
 		"count": playlists_count,
-		"page_count": (playlists_count - 1) // page_size + 1
+		"page_count": (playlists_count - 1) // limit + 1
 		})
 
 @app.route('/lists/search.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
 def ajax_lists_search_do(rd, user, data):
-	page_size = getDefaultJSON(data, 'page_size', 20)
-	page = getDefaultJSON(data, 'page', 1) - 1
+	offset, limit = getOffsetLimitJSON(data)
 	order = getDefaultJSON(data, 'order', 'last_modified')
 	query = getDefaultJSON(data, 'query', '')
 	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
 	assert isinstance(query, str)
-	playlists, playlists_count = listPlaylists(user, page, page_size, query, order, 'text', additional_constraint)
+	playlists, playlists_count = listPlaylists(user, offset, limit, query, order, 'text', additional_constraint)
 	return "json", makeResponseSuccess({
 		"playlists": playlists,
 		"count": playlists_count,
-		"page_count": (playlists_count - 1) // page_size + 1
+		"page_count": (playlists_count - 1) // limit + 1
 		})
 
 @app.route('/lists/list.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
 def ajax_lists_list_do(rd, user, data):
-	page_size = getDefaultJSON(data, 'page_size', 20)
-	page = getDefaultJSON(data, 'page', 1) - 1
+	offset, limit = getOffsetLimitJSON(data)
 	order = getDefaultJSON(data, 'order', 'last_modified')
 	query = getDefaultJSON(data, 'query', '')
 	additional_constraints = getDefaultJSON(data, 'additional_constraints', '')
-	playlists, playlists_count = listPlaylists(user, page, page_size, query, order, additional_constraint = additional_constraints)
+	playlists, playlists_count = listPlaylists(user, offset, limit, query, order, additional_constraint = additional_constraints)
 	return "json", makeResponseSuccess({
 		"playlists": playlists,
 		"count": playlists_count,
-		"page_count": (playlists_count - 1) // page_size + 1
+		"page_count": (playlists_count - 1) // limit + 1
 		})
 
 @app.route('/lists/get_playlist.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
 def ajax_lists_get_playlist_do(rd, user, data):
-	page_size = getDefaultJSON(data, 'page_size', 20)
-	page = getDefaultJSON(data, 'page', 1) - 1
+	offset, limit = getOffsetLimitJSON(data)
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	playlist = getPlaylist(data.pid, lang)
 	if playlist["item"]["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) and user['access_control']['status'] != 'admin' :
@@ -194,9 +191,9 @@ def ajax_lists_get_playlist_do(rd, user, data):
 	playlist_editable = False
 	playlist_owner = False
 	if user:
-		videos, video_count, playlist_editable, playlist_owner = listPlaylistVideosWithAuthorizationInfo(data.pid, page, page_size, user)
+		videos, video_count, playlist_editable, playlist_owner = listPlaylistVideosWithAuthorizationInfo(data.pid, offset, limit, user)
 	else:
-		videos, video_count = listPlaylistVideos(data.pid, page, page_size, user)
+		videos, video_count = listPlaylistVideos(data.pid, offset, limit, user)
 	tags = playlist_db.retrive_item_with_tag_category_map(playlist['_id'], lang)
 	return "json", makeResponseSuccess({
 		"editable": playlist_editable,
@@ -205,7 +202,7 @@ def ajax_lists_get_playlist_do(rd, user, data):
 		"tags": tags,
 		"videos": [item for item in videos],
 		"count": video_count,
-		"page_count": (video_count - 1) // page_size + 1
+		"page_count": (video_count - 1) // limit + 1
 		})
 
 @app.route('/lists/get_playlist_metadata.do', methods = ['POST'])

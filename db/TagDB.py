@@ -168,7 +168,7 @@ class TagDB() :
 		self.aci.AddWord([(tag_id, tag, language)])
 		return tag_id
 
-	def find_tags_wildcard(self, query, category, page_idx, page_size, order, blacklist_tagids = []) :
+	def find_tags_wildcard(self, query, category, offset, limit, order, blacklist_tagids = []) :
 		assert isinstance(query, str)
 		query = query.strip()
 		if ' ' in query :
@@ -179,9 +179,9 @@ class TagDB() :
 			query = re.escape(query)
 			#query = query.replace('\\*', '.*')
 			query = f'^.*{query}.*$'
-		return self.find_tags_regex(query, category, page_idx, page_size, order, blacklist_tagids)
+		return self.find_tags_regex(query, category, offset, limit, order, blacklist_tagids)
 
-	def find_tags_regex(self, query, category, page_idx, page_size, order, blacklist_tagids = []) :
+	def find_tags_regex(self, query, category, offset, limit, order, blacklist_tagids = []) :
 		assert isinstance(query, str)
 		if category :
 			match_obj = {'$and': [{'category': category}, {'id': {'$nin': blacklist_tagids}}]}
@@ -211,8 +211,8 @@ class TagDB() :
 			{
 				'result': [
 					{'$sort': sort_obj},
-					{'$skip': page_idx * page_size},
-					{'$limit': page_size}
+					{'$skip': offset},
+					{'$limit': limit}
 				],
 				'tags_found': [
 					{'$count': 'tags_found'}

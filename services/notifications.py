@@ -23,8 +23,8 @@ def listMyNotificationUnread(user) :
     objs = db.notes.find({'to': user['_id'], 'read': False}).sort([("time", -1)])
     return [i for i in objs]
 
-def listMyNotificationAll(user, page_idx, page_size) :
-    objs = db.notes.find({'to': user['_id']}).sort([("time", -1)]).skip(page_idx * page_size).limit(page_size)
+def listMyNotificationAll(user, offset, limit) :
+    objs = db.notes.find({'to': user['_id']}).sort([("time", -1)]).skip(offset).limit(limit)
     return [i for i in objs]
 
 def markRead(user, note_ids) :

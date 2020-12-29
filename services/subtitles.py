@@ -395,7 +395,7 @@ def postSubtitleOCRResult(user, unique_id: str, content: str, subformat: str, ve
 		return subid
 
 # admin interface
-def listAllPendingRequest(user, order: str, page_idx: int = 0, page_size: int = 30) :
+def listAllPendingRequest(user, order: str, offset: int = 0, limit: int = 30) :
 	# list subtitle_ocr with status not in ['NoRecord', 'RecordExists', 'RecordOutOfDate']
 	filterOperation('subtitleocr_listAllPendingRequest', user)
 	with redis_lock.Lock(rdb, "mmdocr_global_lock") :
@@ -407,7 +407,7 @@ def listAllPendingRequest(user, order: str, page_idx: int = 0, page_size: int = 
 		if order == 'oldest':
 			result = result.sort([("meta.created_at", 1)])
 		result_count = result.count()
-		result = [i for i in result.skip(page_idx * page_size).limit(page_size)]
+		result = [i for i in result.skip(offset).limit(limit)]
 		return result, result_count
 
 def setRequestStatus(user, vid: ObjectId, status: str) :

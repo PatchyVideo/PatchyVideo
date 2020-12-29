@@ -6,7 +6,7 @@ import redis
 from flask import render_template, request, current_app, jsonify, redirect, session
 
 from init import app
-from utils import getDefaultJSON
+from utils import getDefaultJSON, getOffsetLimitJSON
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 from utils.exceptions import UserError
@@ -75,10 +75,11 @@ def ajax_subs_list_do(rd, data, user):
 	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
+	offset, limit = getOffsetLimitJSON(data)
 	videos, sub_objs, tags, count = listSubscriptedItems(
 		user,
-		data.page - 1,
-		data.page_size,
+		offset,
+		limit,
 		lang,
 		hide_placeholder,
 		order,
@@ -98,10 +99,11 @@ def ajax_subs_list_do(rd, data, user):
 def ajax_subs_list_randomized_do(rd, data, user):
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	visible = getDefaultJSON(data, 'visible', [''])
+	offset, limit = getOffsetLimitJSON(data)
 	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
 	videos, sub_objs, tags = listSubscriptedItemsRandomized(
 		user,
-		data.page_size,
+		limit,
 		lang,
 		visible,
 		additional_constraint

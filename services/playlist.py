@@ -149,7 +149,7 @@ def removePlaylist(pid, user) :
 		deletePlaylist(pid, session = s())
 		s.mark_succeed()
 
-def listMyPlaylists(user, page_idx = 0, page_size = 10000, query_str = '', additional_constraint = '', order = 'last_modified') :
+def listMyPlaylists(user, offset = 0, limit = 10000, query_str = '', additional_constraint = '', order = 'last_modified') :
 	if order not in ['latest', 'oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')
 	query_obj, _ = tagdb.compile_query(query_str, 'text')
@@ -162,14 +162,14 @@ def listMyPlaylists(user, page_idx = 0, page_size = 10000, query_str = '', addit
 		result = result.sort([("meta.created_at", -1)])
 	if order == 'oldest':
 		result = result.sort([("meta.created_at", 1)])
-	result = result.skip(page_idx * page_size).limit(page_size)
+	result = result.skip(offset).limit(limit)
 	total_count = result.count()
 	result = [i for i in result]
 	for i in range(len(result)) :
 		result[i]['tags'] = list(filter(lambda x: x < 0x80000000, result[i]['tags']))
 	return result, total_count
 
-def listMyPlaylistsAgainstSingleVideo(user, vid, page_idx = 0, page_size = 10000, query_str = '', additional_constraint = '', order = 'last_modified') :
+def listMyPlaylistsAgainstSingleVideo(user, vid, offset = 0, limit = 10000, query_str = '', additional_constraint = '', order = 'last_modified') :
 	if order not in ['latest', 'oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')
 	query_obj, _ = tagdb.compile_query(query_str, 'text')
@@ -182,7 +182,7 @@ def listMyPlaylistsAgainstSingleVideo(user, vid, page_idx = 0, page_size = 10000
 		result = result.sort([("meta.created_at", -1)])
 	if order == 'oldest':
 		result = result.sort([("meta.created_at", 1)])
-	result = result.skip(page_idx * page_size).limit(page_size)
+	result = result.skip(offset).limit(limit)
 	count = result.count()
 	result = [i for i in result]
 	for i in range(len(result)) :
@@ -194,7 +194,7 @@ def listMyPlaylistsAgainstSingleVideo(user, vid, page_idx = 0, page_size = 10000
 		result_dict[str(item['pid'])]['exist'] = True
 	return result_dict.values(), count
 
-def listYourPlaylists(user, uid, page_idx = 0, page_size = 10000, query_str = '', additional_constraint = '', order = 'last_modified') :
+def listYourPlaylists(user, uid, offset = 0, limit = 10000, query_str = '', additional_constraint = '', order = 'last_modified') :
 	if order not in ['latest', 'oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')
 	if isObjectAgnosticOperationPermitted('viewPrivatePlaylist', user) :
@@ -211,7 +211,7 @@ def listYourPlaylists(user, uid, page_idx = 0, page_size = 10000, query_str = ''
 		result = result.sort([("meta.created_at", -1)])
 	if order == 'oldest':
 		result = result.sort([("meta.created_at", 1)])
-	result = result.skip(page_idx * page_size).limit(page_size)
+	result = result.skip(offset).limit(limit)
 	count = result.count()
 	result = [i for i in result]
 	for i in range(len(result)) :
@@ -249,7 +249,7 @@ def updatePlaylistCoverFromFile(pid, user, file_key) :
 		playlist_db.update_item_query(list_obj, {'$set': {"item.cover": photo_file}}, user = makeUserMeta(user), session = s())
 		s.mark_succeed()
 
-def updatePlaylistCoverVID(pid, vid, page, page_size, user) :
+def updatePlaylistCoverVID(pid, vid, offset, limit, user) :
 	log(obj = {'pid': pid, 'vid': vid})
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		list_obj = playlist_db.retrive_item(pid)
@@ -343,7 +343,7 @@ def addVideoToPlaylistLockFree(pid, vid, user, rank, session) :
 	playlist_db.update_item_query(pid, {"$inc": {"item.videos": int(1)}}, user = makeUserMeta(user), session = session)
 	return True
 
-def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
+def listPlaylistVideosWithAuthorizationInfo(pid, offset, limit, user) :
 	playlist = playlist_db.retrive_item(pid)
 	if playlist is None :
 		raise UserError('PLAYLIST_NOT_EXIST')
@@ -374,10 +374,10 @@ def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
 			}
 		},
 		{
-			'$skip' : page_idx * page_size,
+			'$skip' : offset,
 		},
 		{
-			'$limit' : page_size
+			'$limit' : limit
 		}
 	])
 	ret = []
@@ -388,7 +388,7 @@ def listPlaylistVideosWithAuthorizationInfo(pid, page_idx, page_size, user) :
 	ret = filterVideoList(ret, user)
 	return ret, playlist['item']['videos'], isAuthorisedToEdit(playlist, user), isOwner(playlist, user)
 
-def listPlaylistVideos(pid, page_idx, page_size, user) :
+def listPlaylistVideos(pid, offset, limit, user) :
 	playlist = playlist_db.retrive_item(pid)
 	if playlist is None :
 		raise UserError('PLAYLIST_NOT_EXIST')
@@ -419,10 +419,10 @@ def listPlaylistVideos(pid, page_idx, page_size, user) :
 			}
 		},
 		{
-			'$skip' : page_idx * page_size,
+			'$skip' : offset,
 		},
 		{
-			'$limit' : page_size
+			'$limit' : limit
 		}
 	])
 	ret = []
@@ -473,7 +473,7 @@ def listAllPlaylistVideosOrdered(pid, user) :
 	])
 	return [i for i in ans_obj], playlist['item']['videos'], playlist
 
-def listPlaylists(user, page_idx, page_size, query_str = '', order = 'latest', qtype = 'tag', additional_constraint = '') :
+def listPlaylists(user, offset, limit, query_str = '', order = 'latest', qtype = 'tag', additional_constraint = '') :
 	sort_obj = { "meta.created_at" : 1 }
 	if order == 'latest':
 		sort_obj = { "meta.created_at" : -1 }
@@ -520,8 +520,8 @@ def listPlaylists(user, page_idx, page_size, query_str = '', order = 'latest', q
 		{
 			'result': [
 				{'$sort': sort_obj},
-				{'$skip': page_idx * page_size},
-				{'$limit': page_size}
+				{'$skip': offset},
+				{'$limit': limit}
 			],
 			'count': [
 				{'$count': 'count'}
@@ -735,7 +735,7 @@ def listPlaylistsForVideoNoAuth(vid) :
 		ans.append(playlist_obj)
 	return ans
 
-def removeVideoFromPlaylist(pid, vid, page, page_size, user) :
+def removeVideoFromPlaylist(pid, vid, offset, limit, user) :
 	log(obj = {'pid': pid, 'vid': vid})
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		playlist = playlist_db.retrive_item(pid, session = s())
@@ -762,7 +762,7 @@ def removeVideoFromPlaylist(pid, vid, page, page_size, user) :
 		s.mark_succeed()
 		#return {'videos': video_page, 'video_count': video_count, 'page': page}
 
-def editPlaylist_MoveUp(pid, vid, page, page_size, user) :
+def editPlaylist_MoveUp(pid, vid, offset, limit, user) :
 	log(obj = {'pid': pid, 'vid': vid})
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		playlist = playlist_db.retrive_item(pid, session = s())
@@ -786,7 +786,7 @@ def editPlaylist_MoveUp(pid, vid, page, page_size, user) :
 		else :
 			raise UserError('EMPTY_PLAYLIST')
 
-def editPlaylist_MoveDown(pid, vid, page, page_size, user) :
+def editPlaylist_MoveDown(pid, vid, offset, limit, user) :
 	log(obj = {'pid': pid, 'vid': vid})
 	with redis_lock.Lock(rdb, "playlistEdit:" + str(pid)), MongoTransaction(client) as s :
 		playlist = playlist_db.retrive_item(pid, session = s())

@@ -6,7 +6,7 @@ import redis
 from flask import render_template, request, current_app, jsonify, redirect, session
 
 from init import app
-from utils import getDefaultJSON
+from utils import getDefaultJSON, getOffsetLimitJSON
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 from utils.exceptions import UserError
@@ -28,9 +28,10 @@ def ajax_listvideo_do(rd, data, user):
 	human_readable_tag = getDefaultJSON(data, 'human_readable_tag', False)
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
+	offset, limit = getOffsetLimitJSON(data)
 	videos, video_count, related_tags, related_tags_popularity, query_obj, exStats1, exStats2 = listVideo(
-		data.page - 1,
-		data.page_size,
+		offset,
+		limit,
 		user,
 		order,
 		hide_placeholder = hide_placeholder,
@@ -42,7 +43,7 @@ def ajax_listvideo_do(rd, data, user):
 	ret = makeResponseSuccess({
 		"videos": videos,
 		"count": video_count,
-		"page_count": (video_count - 1) // data.page_size + 1,
+		"page_count": (video_count - 1) // limit + 1,
 		"tags": tag_category_map,
 		"tag_pops": related_tags_popularity,
 		'time_used_ms': int((end - start) * 1000),
@@ -63,9 +64,10 @@ def ajax_listvideo_randomized_do(rd, data, user):
 	human_readable_tag = getDefaultJSON(data, 'human_readable_tag', False)
 	qtype = getDefaultJSON(data, 'qtype', 'tag')
 	lang = getDefaultJSON(data, 'lang', 'CHS')
+	_, limit = getOffsetLimitJSON(data)
 	videos, related_tags = listVideoRandimzied(
 		user,
-		data.page_size,
+		limit,
 		query,
 		lang,
 		qtype,
@@ -93,11 +95,12 @@ def ajax_queryvideo_do(rd, data, user):
 	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
+	offset, limit = getOffsetLimitJSON(data)
 	videos, related_tags, video_count, query_obj, exStats1, exStats2 = listVideoQuery(
 		user,
 		data.query,
-		data.page - 1,
-		data.page_size,
+		offset,
+		limit,
 		order,
 		hide_placeholder = hide_placeholder,
 		qtype = qtype,
@@ -109,7 +112,7 @@ def ajax_queryvideo_do(rd, data, user):
 	ret = makeResponseSuccess({
 		"videos": videos,
 		"count": video_count,
-		"page_count": (video_count - 1) // data.page_size + 1,
+		"page_count": (video_count - 1) // limit + 1,
 		"tags": tag_category_map,
 		'time_used_ms': int((end - start) * 1000),
 		"query_obj": query_obj#,
@@ -125,12 +128,13 @@ def ajax_listmyvideo_do(rd, data, user):
 	order = getDefaultJSON(data, 'order', 'latest')
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, video_count = listMyVideo(data.page - 1, data.page_size, user, order)
+	offset, limit = getOffsetLimitJSON(data)
+	videos, video_count = listMyVideo(offset, limit, user, order)
 	ret = makeResponseSuccess({
 		"videos": videos,
 		"count": video_count,
 		"tags": getCommonTagsWithCount(data.lang, videos),
-		"page_count": (video_count - 1) // data.page_size + 1,
+		"page_count": (video_count - 1) // limit + 1,
 	})
 	return "json", ret
 
@@ -141,11 +145,12 @@ def ajax_listyourvideo_do(rd, data, user):
 	order = getDefaultJSON(data, 'order', 'latest')
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
 		raise AttributeError()
-	videos, video_count = listYourVideo(data.uid, data.page - 1, data.page_size, user, order)
+	offset, limit = getOffsetLimitJSON(data)
+	videos, video_count = listYourVideo(data.uid, offset, limit, user, order)
 	ret = makeResponseSuccess({
 		"videos": videos,
 		"count": video_count,
 		"tags": getCommonTagsWithCount(data.lang, videos),
-		"page_count": (video_count - 1) // data.page_size + 1,
+		"page_count": (video_count - 1) // limit + 1,
 	})
 	return "json", ret

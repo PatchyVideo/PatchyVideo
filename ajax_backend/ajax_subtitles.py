@@ -5,7 +5,7 @@ from init import app
 from utils.interceptors import jsonRequest, loginRequiredJSON, loginOptional
 from utils.jsontools import *
 from utils.exceptions import UserError
-from utils import getDefaultJSON
+from utils import getDefaultJSON, getOffsetLimitJSON
 
 from services.subtitles import *
 from services.tcb import filterOperation
@@ -97,9 +97,8 @@ def ajax_subtitles_worker_post_ocr_result(rd, user, data):
 @jsonRequest
 def ajax_subtitles_admin_list_pending_ocr_requests(rd, user, data):
 	order = getDefaultJSON(data, 'order', 'oldest')
-	page_idx = getDefaultJSON(data, 'page', 1) - 1
-	page_size = getDefaultJSON(data, 'page_size', 30)
-	result, count = listAllPendingRequest(user, order, page_idx, page_size)
+	offset, limit = getOffsetLimitJSON(data)
+	result, count = listAllPendingRequest(user, order, offset, limit)
 	return "json", makeResponseSuccess({'items': result, 'total': count})
 
 @app.route('/subtitles/admin/set_request_status.do', methods = ['POST'])

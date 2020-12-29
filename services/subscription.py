@@ -61,7 +61,7 @@ def updateSubScription(user, sub_id, query_str : str, qtype : str = '', name = '
 def _filterPlaceholder(videos) :
 	return list(filter(lambda x: not ('placeholder' in x['item'] and x['item']['placeholder']), videos))
 
-def listSubscriptedItems(user, page_idx, page_size, user_language, hide_placeholder = True, order = 'video_latest', visibleSubs = [''], additional_constraint = '') :
+def listSubscriptedItems(user, offset, limit, user_language, hide_placeholder = True, order = 'video_latest', visibleSubs = [''], additional_constraint = '') :
 	subs = list(db.subs.find({'meta.created_by': makeUserMeta(user)}))
 	q = [(tagdb.compile_query(q['qs'], q['qt']), str(q['_id'])) for q in subs]
 	query_obj = {'$or': []}
@@ -96,7 +96,7 @@ def listSubscriptedItems(user, page_idx, page_size, user_language, hide_placehol
 		result = result.sort([("item.upload_time", -1)])
 	if order == 'video_oldest':
 		result = result.sort([("item.upload_time", 1)])
-	ret = result.skip(page_idx * page_size).limit(page_size)
+	ret = result.skip(offset).limit(limit)
 	count = ret.count()
 	videos = [item for item in ret]
 	videos = filterVideoList(videos, user)
@@ -104,7 +104,7 @@ def listSubscriptedItems(user, page_idx, page_size, user_language, hide_placehol
 		videos = _filterPlaceholder(videos)
 	return videos, subs, getCommonTags(user_language, videos), count
 
-def listSubscriptedItemsRandomized(user, page_size, user_language, visibleSubs = [''], additional_constraint = '') :
+def listSubscriptedItemsRandomized(user, limit, user_language, visibleSubs = [''], additional_constraint = '') :
 	subs = list(db.subs.find({'meta.created_by': makeUserMeta(user)}))
 	q = [(tagdb.compile_query(q['qs'], q['qt']), str(q['_id'])) for q in subs]
 	query_obj = {'$or': []}
@@ -132,11 +132,11 @@ def listSubscriptedItemsRandomized(user, page_size, user_language, visibleSubs =
 		query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
 	videos = list(tagdb.aggregate([
 		{'$match': query_obj},
-		{'$sample': {'size': page_size * 2}}
+		{'$sample': {'size': limit * 2}}
 	]))
 	videos = filterVideoList(videos, user)
 	for i in range(len(videos)) :
 		videos[i]['tags'] = list(filter(lambda x: x < 0x80000000, videos[i]['tags']))
 	videos = _filterPlaceholder(videos)
-	videos = videos[: page_size]
+	videos = videos[: limit]
 	return videos, subs, getCommonTags(user_language, videos)

@@ -5,9 +5,10 @@ from datetime import timedelta
 from datetime import datetime
 from bson import ObjectId
 
-def viewLogs(page_idx, page_size, date_from = None, date_to = None, order = 'latest', op = '', level = ['MSG', 'WARN', 'SEC', 'ERR']) :
+def viewLogs(offset, limit, date_from = None, date_to = None, order = 'latest', op = '', level = ['MSG', 'WARN', 'SEC', 'ERR']) :
 	if order not in ['latest', 'oldest'] :
 		raise UserError('INCORRECT_ORDER')
+	sort_obj = {}
 	if order == 'latest':
 		sort_obj = ("time", -1)
 	if order == 'oldest':
@@ -23,11 +24,12 @@ def viewLogs(page_idx, page_size, date_from = None, date_to = None, order = 'lat
 	date_obj = {'$and': [date_obj, {'level': {'$in': level}}]}
 	if op :
 		date_obj['$and'].append({'op': op})
-	return [i for i in db.logs.find(date_obj).sort([sort_obj]).skip(page_idx * page_size).limit(page_size)]
+	return [i for i in db.logs.find(date_obj).sort([sort_obj]).skip(offset).limit(limit)]
 
-def viewLogsAggregated(page_idx, page_size, date_from = None, date_to = None, order = 'latest', op = '', level = ['MSG', 'WARN', 'SEC', 'ERR']) :
+def viewLogsAggregated(offset, limit, date_from = None, date_to = None, order = 'latest', op = '', level = ['MSG', 'WARN', 'SEC', 'ERR']) :
 	if order not in ['latest', 'oldest'] :
 		raise UserError('INCORRECT_ORDER')
+	sort_obj = {}
 	if order == 'latest':
 		sort_obj = {"time": -1}
 	if order == 'oldest':
@@ -48,15 +50,15 @@ def viewLogsAggregated(page_idx, page_size, date_from = None, date_to = None, or
 		{'$match': date_obj2},
 		{'$sort': sort_obj},
 		#{'$skip': page_idx * page_size},
-		{'$limit': page_size * 20},
+		{'$limit': limit * 20},
 		{'$lookup': {'from': 'logs', 'let': {'event_id': '$_id', 'time': '$time'}, 'pipeline':[
 			{'$match': date_obj},
 			{'$sort': sort_obj},
 			#{'$skip': page_idx * page_size},
-			{'$limit': page_size * 20},
+			{'$limit': limit * 20},
 			{'$match': {'$expr': {'$eq': ["$id", "$$event_id"]}}},
 			], 'as': 'subevents'}},
-		{'$limit': page_size}
+		{'$limit': limit}
 	])
 	return [i for i in ret]
 
@@ -91,11 +93,11 @@ def rankTagContributor(hrs = 24, n = 20) :
 	])
 	return list(ans)
 
-def viewRawTagHistory(page, page_size, language) :
+def viewRawTagHistory(offset, limit, language) :
 	all_items = db.tag_history.aggregate([
 		{'$sort': {"time": -1}},
-		{'$skip': page * page_size},
-		{'$limit': page_size},
+		{'$skip': offset},
+		{'$limit': limit},
 		{'$lookup': {'from': 'users', 'localField': 'user', 'foreignField': '_id', 'as': 'user_obj'}},
 		{'$project': {'vid': 1, 'user_obj._id': 1, 'user_obj.profile.username': 1, 'user_obj.profile.image': 1, 'tags': 1, 'del': 1, 'add': 1, 'time': 1}},
 		{'$lookup': {'from': 'videos', 'localField': 'vid', 'foreignField': '_id', 'as': 'video_obj'}},

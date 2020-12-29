@@ -5,7 +5,7 @@ from init import app
 from utils.interceptors import jsonRequest, loginRequiredJSON, loginOptional
 from utils.jsontools import *
 from utils.exceptions import UserError
-from utils import getDefaultJSON
+from utils import getDefaultJSON, getOffsetLimitJSON
 
 from services.notifications import listMyNotificationUnread, listMyNotificationAll, getUnreadNotificationCount, markRead, markAllRead
 from services.tcb import filterOperation
@@ -23,9 +23,8 @@ def ajax_notes_list_unread(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_notes_list_all(rd, user, data):
-	page_idx = getDefaultJSON(data, 'page', 1) - 1
-	page_size = getDefaultJSON(data, 'page_size', 100) - 1
-	ans = listMyNotificationAll(user, page_idx, page_size)
+	offset, limit = getOffsetLimitJSON(data)
+	ans = listMyNotificationAll(user, offset, limit)
 	return "json", makeResponseSuccess({'notes': ans})
 
 @app.route('/notes/unread_count.do', methods = ['POST'])

@@ -7,7 +7,7 @@ import redis
 from flask import render_template, request, current_app, jsonify, redirect, session
 
 from init import app, rdb
-from utils import getDefaultJSON
+from utils import getDefaultJSON, getOffsetLimitJSON
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON, loginRequiredFallbackJSON
 from utils.jsontools import *
 from utils.http import post_raw
@@ -82,19 +82,20 @@ def ajax_postvideo_ipfs_do(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_post_list_pending_do(rd, user, data):
-	result = listCurrentTasksWithParams(user, int(data.page) - 1, int(data.page_size))
+	offset, limit = getOffsetLimitJSON(data)
+	result = listCurrentTasksWithParams(user, offset, limit)
 	return "json", makeResponseSuccess(result)
 
 @app.route('/posts/list_failed.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_post_list_failed_do(rd, user, data):
-	page_size = getDefaultJSON(data, 'page_size', 20)
-	page = getDefaultJSON(data, 'page', 1) - 1
-	result, counts = listFailedPosts(user, page, page_size)
+	offset, limit = getOffsetLimitJSON(data)
+	result, counts = listFailedPosts(user, offset, limit)
 	return "json", makeResponseSuccess({
 		"posts": result,
 		"count": counts,
-		"page": page + 1,
-		"page_count": (counts - 1) // page_size + 1,
+		"offset": offset,
+		"page": offset // limit + 1,
+		"page_count": (counts - 1) // limit + 1,
 	})

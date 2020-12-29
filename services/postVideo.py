@@ -59,12 +59,12 @@ def getTaskParamas(task_id) :
 	else :
 		return None
 
-def listCurrentTasks(user, page = 0, page_size = 100) :
+def listCurrentTasks(user, offset = 0, limit = 100) :
 	key = 'posttasks-' + str(user['_id'])
-	return rdb.lrange(key, page * page_size, (page + 1) * page_size)
+	return rdb.lrange(key, offset, offset + limit)
 
-def listCurrentTasksWithParams(user, page = 0, page_size = 100) :
-	task_ids = listCurrentTasks(user, page, page_size)
+def listCurrentTasksWithParams(user, offset = 0, limit = 100) :
+	task_ids = listCurrentTasks(user, offset, limit)
 	ret_map = {}
 	for tid in task_ids :
 		tid = tid.decode('ascii')
@@ -73,10 +73,10 @@ def listCurrentTasksWithParams(user, page = 0, page_size = 100) :
 			ret_map[tid] = param
 	return ret_map
 
-def listFailedPosts(user, page = 0, page_size = 100000) :
+def listFailedPosts(user, offset = 0, limit = 100000) :
 	uid = ObjectId(user['_id'])
 	result = tagdb.db.failed_posts.find({'uid': uid})
-	result = result.skip(page * page_size).limit(page_size)
+	result = result.skip(offset).limit(limit)
 	return result, result.count()
 
 def postVideo(user, url, tags, copy, pid, rank, repost_type):

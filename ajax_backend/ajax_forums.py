@@ -5,7 +5,7 @@ from init import app
 from utils.interceptors import jsonRequest, loginRequiredJSON, loginOptional
 from utils.jsontools import *
 from utils.exceptions import UserError
-from utils import getDefaultJSON
+from utils import getDefaultJSON, getOffsetLimitJSON
 
 from services.forums import postThreadToForum, viewSingleForumThread, listForumThreads, addToThread, addReplyToThread, deleteThread, pinThread
 
@@ -48,9 +48,8 @@ def ajax_forums_pin(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_forums_view_forum(rd, user, data):
-	page_idx = getDefaultJSON(data, 'page', 1) - 1
-	page_size = getDefaultJSON(data, 'page_size', 30)
-	threads_pinned, threads = listForumThreads(ObjectId(data.forum_id), page_idx, page_size)
+	offset, limit = getOffsetLimitJSON(data)
+	threads_pinned, threads = listForumThreads(ObjectId(data.forum_id), offset, limit)
 	return "json", makeResponseSuccess({'threads': threads, 'threads_pinned': threads_pinned})
 
 @app.route('/forums/add_to_thread.do', methods = ['POST'])
