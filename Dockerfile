@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.7-slim
+FROM python:3.9-slim
 
 # Set the working directory to /webapp
 WORKDIR /webapp
