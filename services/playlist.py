@@ -297,7 +297,7 @@ def updatePlaylistTags(pid, new_tags, user) :
 		if list_obj is None :
 			raise UserError('PLAYLIST_NOT_EXIST')
 		#filterOperation('editPlaylist', user, list_obj)
-		playlist_db.update_item_tags(list_obj, new_tags, user, session = s())
+		playlist_db.update_item_tags(list_obj, new_tags, makeUserMeta(user), session = s())
 		s.mark_succeed()
 
 def addVideoToPlaylist(pid, vid, user) :

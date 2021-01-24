@@ -6,7 +6,7 @@ def makeUserMeta(user):
     if user is None :
         return ''
     else :
-        return user['_id']
+        return ObjectId(user['_id'])
 
 def makeUserMetaObject(user):
     date = datetime.utcnow()

@@ -665,7 +665,7 @@ class TagDB() :
 					'time': datetime.now()
 				}, session = session)
 
-	def update_item_tags(self, item_id_or_item_object, new_tags, user = '', session = None):
+	def update_item_tags(self, item_id_or_item_object, new_tags, user: ObjectId = '', session = None):
 		new_tag_ids = self.filter_and_translate_tags(new_tags)
 		if isinstance(item_id_or_item_object, ObjectId) or isinstance(item_id_or_item_object, str):
 			item = self.db[self.db_name].find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
