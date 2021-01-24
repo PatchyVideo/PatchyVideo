@@ -686,6 +686,7 @@ def listPlaylistsForVideo(user, vid) :
 			playlist_obj['prev'] = str(db.playlist_items.find_one({'pid': playlist_obj['_id'], 'rank': int(rank - 1)})['vid'])
 		if rank + 1 < playlist_obj['item']['videos'] :
 			playlist_obj['next'] = str(db.playlist_items.find_one({'pid': playlist_obj['_id'], 'rank': int(rank + 1)})['vid'])
+		playlist_obj['rank'] = rank
 		ans.append(playlist_obj)
 	return ans
 
