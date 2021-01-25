@@ -6,7 +6,7 @@ import redis
 from flask import render_template, request, current_app, jsonify, redirect, session
 
 from init import app
-from utils import getOffsetLimitJSON
+from utils import getDefaultJSON, getOffsetLimitJSON
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 
@@ -37,10 +37,7 @@ def ajax_query_tag_categories(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_query_tags(rd, user, data):
-	if hasattr(data, 'order') :
-		order = data.order
-	else :
-		order = 'latest'
+	order = getDefaultJSON(data, 'order', 'latest')
 	if order not in ['latest', 'oldest', 'count', 'count_inv'] :
 		raise AttributeError()
 	offset, limit = getOffsetLimitJSON(data)
@@ -57,16 +54,10 @@ def ajax_query_tags(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_query_tags_wildcard(rd, user, data):
-	if hasattr(data, 'order') :
-		order = data.order
-	else :
-		order = 'latest'
+	order = getDefaultJSON(data, 'order', 'latest')
 	if order not in ['latest', 'oldest', 'count', 'count_inv'] :
 		raise AttributeError()
-	if hasattr(data, 'category') :
-		category = data.category
-	else :
-		category = ''
+	category = getDefaultJSON(data, 'category', '')
 	offset, limit = getOffsetLimitJSON(data)
 	tags, tag_count = queryTagsWildcard(data.query, category, offset, limit, order, user)
 	ret = makeResponseSuccess({
@@ -80,14 +71,8 @@ def ajax_query_tags_wildcard(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_query_tags_regex(rd, user, data):
-	if hasattr(data, 'order') :
-		order = data.order
-	else :
-		order = 'latest'
-	if hasattr(data, 'category') :
-		category = data.category
-	else :
-		category = ''
+	order = getDefaultJSON(data, 'order', 'latest')
+	category = getDefaultJSON(data, 'category', '')
 	offset, limit = getOffsetLimitJSON(data)
 	tags, tag_count = queryTagsRegex(data.query, category, offset, limit, order, user)
 	ret = makeResponseSuccess({

@@ -59,10 +59,7 @@ def ajax_folder_view(rd, data, user) :
 	if user is None :
 		return "json", makeResponseSuccess(listFolder(user, data.uid, data.path))
 	else :
-		if hasattr(data, 'uid') :
-			uid = data.uid
-		else :
-			uid = user['_id']
+		uid = getDefaultJSON(data, 'uid', user['_id'])
 		if uid == 'me' :
 			uid = user['_id']
 		return "json", makeResponseSuccess(listFolder(user, uid, data.path))
