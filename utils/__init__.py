@@ -24,14 +24,14 @@ def getDefaultJSON(data, name, default_value) :
 
 def getOffsetLimitJSON(data) :
     if hasattr(data, 'page') and (hasattr(data, 'page_size') or hasattr(data, 'pageSize')) :
-        page = int(getattr(data, 'page'))
-        page_size = int(getattr(data, 'page_size') or getattr(data, 'pageSize'))
+        page = int(getattr(data, 'page') or 0)
+        page_size = int(getattr(data, 'page_size') or getattr(data, 'pageSize') or 1)
         return max(page - 1, 0) * page_size, page_size
     if hasattr(data, 'offset') and hasattr(data, 'limit') :
-        offset = int(getattr(data, 'offset'))
-        limit = int(getattr(data, 'limit'))
+        offset = int(getattr(data, 'offset') or 0)
+        limit = int(getattr(data, 'limit') or 1)
         return offset, limit
     elif hasattr(data, 'limit') :
-        limit = int(getattr(data, 'limit'))
+        limit = int(getattr(data, 'limit') or 1)
         return 0, limit
     return 0, 1
