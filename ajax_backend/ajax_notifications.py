@@ -16,16 +16,16 @@ from bson import ObjectId
 @loginRequiredJSON
 @jsonRequest
 def ajax_notes_list_unread(rd, user, data):
-	ans = listMyNotificationUnread(user)
-	return "json", makeResponseSuccess({'notes': ans})
+	ans, count = listMyNotificationUnread(user)
+	return "json", makeResponseSuccess({'notes': ans, 'count': count})
 
 @app.route('/notes/list_all.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_notes_list_all(rd, user, data):
 	offset, limit = getOffsetLimitJSON(data)
-	ans = listMyNotificationAll(user, offset, limit)
-	return "json", makeResponseSuccess({'notes': ans})
+	ans, count = listMyNotificationAll(user, offset, limit)
+	return "json", makeResponseSuccess({'notes': ans, 'count': count})
 
 @app.route('/notes/unread_count.do', methods = ['POST'])
 @loginRequiredJSON

@@ -21,11 +21,13 @@ def getUnreadNotificationCount(user) :
 
 def listMyNotificationUnread(user) :
     objs = db.notes.find({'to': user['_id'], 'read': False}).sort([("time", -1)])
-    return [i for i in objs]
+    note_count = objs.count()
+    return [i for i in objs], note_count
 
 def listMyNotificationAll(user, offset, limit) :
     objs = db.notes.find({'to': user['_id']}).sort([("time", -1)]).skip(offset).limit(limit)
-    return [i for i in objs]
+    note_count = objs.count()
+    return [i for i in objs], note_count
 
 def markRead(user, note_ids) :
     if isinstance(note_ids, str) :
@@ -34,7 +36,7 @@ def markRead(user, note_ids) :
     note_ids = [ObjectId(i) for i in note_ids]
     with MongoTransaction(client) as s :
         # TODO: one can mark other's notifications as read here, add filtering later
-        db.notes.update_many({'_id': {'$in': note_ids}}, {'$set': {'read': True}}, session = s())
+        db.notes.update_many({'_id': {'$in': note_ids}, 'to': user['_id']}, {'$set': {'read': True}}, session = s())
         s.mark_succeed()
 
 def markAllRead(user) :
