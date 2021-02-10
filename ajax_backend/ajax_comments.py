@@ -101,5 +101,5 @@ def ajax_comments_pin(rd, user, data):
 @loginOptional
 @jsonRequest
 def ajax_comments_view(rd, user, data):
-	comments, users = listThread(ObjectId(data.thread_id))
-	return "json", makeResponseSuccess({'comments': comments, 'users': users})
+	comments, users, thread = listThread(ObjectId(data.thread_id))
+	return "json", makeResponseSuccess({'comments': comments, 'users': users, 'thread': thread})
