@@ -56,7 +56,7 @@ def createThread(obj_type: str, obj_id : ObjectId, owner : ObjectId, session = N
 
 def addComment(user, thread_id : ObjectId, text : str, notification_type : str = 'comment_reply', use_bleach = True) : # user can add comments
 	filterOperation('postComment', user)
-	if bleach :
+	if use_bleach :
 		text = bleach.clean(text, tags = [], attributes = [], styles = [])
 	l = len(text)
 	if l > Comments.MAX_COMMENT_LENGTH_LONG :
