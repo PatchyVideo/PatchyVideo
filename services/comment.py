@@ -251,7 +251,8 @@ def pinComment(user, comment_id : ObjectId, pinned : bool) :
 	db.comment_items.update_one({'_id': comment_id}, {'$set': {'pinned': pinned}})
 
 def listThread(thread_id : ObjectId) :
-	if db.comment_threads.find_one({'_id': thread_id}) is None :
+	thread_obj = db.comment_threads.find_one({'_id': thread_id})
+	if thread_obj is None :
 		raise UserError('THREAD_NOT_EXIST')
 	ret = list(db.comment_items.aggregate([
 		{'$match': {'thread': thread_id, 'pinned': False}},
@@ -275,7 +276,7 @@ def listThread(thread_id : ObjectId) :
 		{'$match': {'_id': {'$in': users}}},
 		{'$project': {'profile.username': 1, 'profile.desc': 1, 'profile.image': 1}}
 	])
-	return all_items, list(users)
+	return all_items, list(users), thread_obj
 
 def addToVideo(user, vid : ObjectId, text : str, use_bleach = True) :
 	filterOperation('postComment', user)

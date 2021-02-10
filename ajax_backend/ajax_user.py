@@ -103,8 +103,8 @@ def ajax_user_myprofile(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_user_view_opinion(rd, user, data):
-	thread, users = viewOpinion(user)
-	return "json", makeResponseSuccess({'comments': thread, 'users': users})
+	thread, users, thread = viewOpinion(user)
+	return "json", makeResponseSuccess({'comments': thread, 'users': users, 'thread': thread})
 
 @app.route('/user/profile.do', methods = ['POST'])
 @loginOptional

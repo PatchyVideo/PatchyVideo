@@ -93,8 +93,8 @@ def viewSingleForumThread(ftid : ObjectId) :
 	if ft_obj['deleted'] :
 		raise UserError('THREAD_NOT_EXIST') # deleted counts as non-exist
 	title = ft_obj['title']
-	replys, users = listThread(ft_obj['tid'])
-	return replys, users, title, ft_obj['pinned']
+	replys, users, thread = listThread(ft_obj['tid'])
+	return replys, users, title, ft_obj['pinned'], thread
 
 def addToThread(user, ftid : ObjectId, content : str, use_bleach = True) :
 	ft_obj = db.forum_threads.find_one({'_id': ftid})
