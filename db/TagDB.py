@@ -529,7 +529,7 @@ class TagDB() :
 		return item_obj, tags, category_tag_map, tag_category_map
 
 	def set_item_clearence(self, item_id, clearence, user = '', session = None) :
-		self.update_item_query(item_id, {'$set': {'clearence': clearence}}, session = session)
+		self.update_item_query(item_id, {'$set': {'clearence': int(clearence)}}, session = session)
 
 	def add_item(self, tags, item, clearence, fields_to_index = [], user = '', session = None, id_override = '') :
 		tag_ids = self.filter_and_translate_tags(tags)
@@ -538,7 +538,7 @@ class TagDB() :
 		if id_override :
 			item_id = self.db[self.db_name].insert_one({
 				'_id': id_override,
-				'clearence': clearence,
+				'clearence': int(clearence),
 				'tags': tag_ids + word_ids,
 				'item': item,
 				'tag_count': int(len(tag_ids)),
@@ -551,7 +551,7 @@ class TagDB() :
 			}, session = session).inserted_id
 		else :
 			item_id = self.db[self.db_name].insert_one({
-				'clearence': clearence,
+				'clearence': int(clearence),
 				'tags': tag_ids + word_ids,
 				'item': item,
 				'tag_count': int(len(tag_ids)),
