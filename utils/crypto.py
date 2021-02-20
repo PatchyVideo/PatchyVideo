@@ -2,9 +2,13 @@
 import os
 import binascii
 import hmac
+import hashlib
 from pbkdf2 import PBKDF2
 from Crypto.Cipher import AES
 from struct import pack, unpack
+
+def md5(s: str) :
+    return hashlib.md5(s.encode('utf-8')).hexdigest()
 
 def random_bytes(length) :
     bytes = os.urandom(length)

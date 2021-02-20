@@ -158,6 +158,10 @@ def query_user(uid) :
 		del obj['access_control']
 		del obj['crypto']
 		del obj['settings']
+		if 'email' in obj['profile'] and obj['profile']['email'] :
+			em: str = obj['profile']['email']
+			gravatar = md5(em.strip().lower())
+			obj['profile']['gravatar'] = gravatar
 		del obj['profile']['email']
 		if 'openid_qq' in obj['profile'] :
 			del obj['profile']['openid_qq']
