@@ -26,7 +26,7 @@ def AES_Encrypt(key, plaintext, salt) :
     else :
         kdf = PBKDF2(key, salt)
         key_mac = kdf.read(32)
-    mac = hmac.new(key_mac)
+    mac = hmac.new(key_mac, digestmod = hashlib.md5)
     mac.update(iv)
     cipher = AES.new(key, AES.MODE_CBC, iv)
     data_len = len(plaintext)
@@ -50,7 +50,7 @@ def AES_Decrypt(key, ciphertext, salt) :
     mac_correct = ciphertext[16+8:16+8+16]
     encrypted_data = ciphertext[16+8+16:]
 
-    mac = hmac.new(key_mac)
+    mac = hmac.new(key_mac, digestmod = hashlib.md5)
     mac.update(iv)
     mac.update(encrypted_data)
     mac_calculated = mac.digest()
