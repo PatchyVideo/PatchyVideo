@@ -26,8 +26,6 @@ def ajax_listvideo_do(rd, data, user):
 	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	human_readable_tag = getDefaultJSON(data, 'human_readable_tag', False)
-	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
-		raise AttributeError()
 	offset, limit = getOffsetLimitJSON(data)
 	videos, video_count, related_tags, related_tags_popularity, query_obj, exStats1, exStats2 = listVideo(
 		offset,
