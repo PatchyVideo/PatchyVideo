@@ -93,8 +93,6 @@ def ajax_queryvideo_do(rd, data, user):
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	human_readable_tag = getDefaultJSON(data, 'human_readable_tag', False)
 	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
-	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
-		raise AttributeError()
 	offset, limit = getOffsetLimitJSON(data)
 	videos, related_tags, video_count, query_obj, exStats1, exStats2 = listVideoQuery(
 		user,
@@ -126,14 +124,13 @@ def ajax_queryvideo_do(rd, data, user):
 @jsonRequest
 def ajax_listmyvideo_do(rd, data, user):
 	order = getDefaultJSON(data, 'order', 'latest')
-	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
-		raise AttributeError()
+	lang = getDefaultJSON(data, 'lang', 'CHS')
 	offset, limit = getOffsetLimitJSON(data)
-	videos, video_count = listMyVideo(offset, limit, user, order)
+	videos, video_count = listMyVideo(offset, limit, user, order, user_language = lang)
 	ret = makeResponseSuccess({
 		"videos": videos,
 		"count": video_count,
-		"tags": getCommonTagsWithCount(data.lang, videos),
+		"tags": getCommonTagsWithCount(lang, videos),
 		"page_count": (video_count - 1) // limit + 1,
 	})
 	return "json", ret
@@ -143,14 +140,13 @@ def ajax_listmyvideo_do(rd, data, user):
 @jsonRequest
 def ajax_listyourvideo_do(rd, data, user):
 	order = getDefaultJSON(data, 'order', 'latest')
-	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
-		raise AttributeError()
+	lang = getDefaultJSON(data, 'lang', 'CHS')
 	offset, limit = getOffsetLimitJSON(data)
-	videos, video_count = listYourVideo(data.uid, offset, limit, user, order)
+	videos, video_count = listYourVideo(data.uid, offset, limit, user, order, user_language = lang)
 	ret = makeResponseSuccess({
 		"videos": videos,
 		"count": video_count,
-		"tags": getCommonTagsWithCount(data.lang, videos),
+		"tags": getCommonTagsWithCount(lang, videos),
 		"page_count": (video_count - 1) // limit + 1,
 	})
 	return "json", ret

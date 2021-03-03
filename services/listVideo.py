@@ -42,7 +42,7 @@ def listVideoRandimzied(user, limit, query_str = '', user_language = 'CHS', qtyp
 
 def listVideoQuery(user, query_str, offset, limit, order = 'latest', user_language = 'CHS', hide_placeholder = True, qtype = 'tag', additional_constraint = '', human_readable_tag = False):
 	log(obj = {'q': query_str, 'offset': offset, 'limit': limit, 'order': order, 'lang': user_language})
-	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
+	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')
 	query_obj, tags = db.compile_query(query_str, qtype)
 	query_obj_extra, _ = db.compile_query(additional_constraint, 'tag')
@@ -63,12 +63,14 @@ def listVideoQuery(user, query_str, offset, limit, order = 'latest', user_langua
 		exStats1 = result.explain()
 		if order == 'latest':
 			result = result.sort([("meta.created_at", -1)])
-		if order == 'oldest':
+		elif order == 'oldest':
 			result = result.sort([("meta.created_at", 1)])
-		if order == 'video_latest':
+		elif order == 'video_latest':
 			result = result.sort([("item.upload_time", -1)])
-		if order == 'video_oldest':
+		elif order == 'video_oldest':
 			result = result.sort([("item.upload_time", 1)])
+		elif order == 'last_modified':
+			result = result.sort([("meta.modified_at", -1)])
 		ret = result.skip(offset).limit(limit)
 		exStats2 = ret.explain()
 		count = ret.count()
@@ -89,7 +91,7 @@ def listVideoQuery(user, query_str, offset, limit, order = 'latest', user_langua
 	return videos, getCommonTags(user_language, videos), count, query_obj, exStats1, exStats2
 
 def listVideo(offset, limit, user, order = 'latest', user_language = 'CHS', hide_placeholder = True, additional_constraint = '', human_readable_tag = False):
-	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
+	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
 	query_obj_extra, _ = db.compile_query(additional_constraint, 'tag')
@@ -114,12 +116,14 @@ def listVideo(offset, limit, user, order = 'latest', user_language = 'CHS', hide
 	exStats1 = result.explain()
 	if order == 'latest':
 		result = result.sort([("meta.created_at", -1)])
-	if order == 'oldest':
+	elif order == 'oldest':
 		result = result.sort([("meta.created_at", 1)])
-	if order == 'video_latest':
+	elif order == 'video_latest':
 		result = result.sort([("item.upload_time", -1)])
-	if order == 'video_oldest':
+	elif order == 'video_oldest':
 		result = result.sort([("item.upload_time", 1)])
+	elif order == 'last_modified':
+		result = result.sort([("meta.modified_at", -1)])
 	videos = result.skip(offset).limit(limit)
 	exStats2 = videos.explain()
 	video_count = videos.count()
@@ -134,18 +138,20 @@ def listVideo(offset, limit, user, order = 'latest', user_language = 'CHS', hide
 	tags, pops = getPopularTags(user_language)
 	return videos, video_count, tags, pops, query_obj, exStats1, exStats2
 
-def listMyVideo(offset, limit, user, order = 'latest', human_readable_tag = False):
-	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
+def listMyVideo(offset, limit, user, order = 'latest', human_readable_tag = False, user_language = 'CHS'):
+	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')
 	result = db.retrive_items({'meta.created_by': ObjectId(user['_id'])})
 	if order == 'latest':
 		result = result.sort([("meta.created_at", -1)])
-	if order == 'oldest':
+	elif order == 'oldest':
 		result = result.sort([("meta.created_at", 1)])
-	if order == 'video_latest':
+	elif order == 'video_latest':
 		result = result.sort([("item.upload_time", -1)])
-	if order == 'video_oldest':
+	elif order == 'video_oldest':
 		result = result.sort([("item.upload_time", 1)])
+	elif order == 'last_modified':
+		result = result.sort([("meta.modified_at", -1)])
 	videos = result.skip(offset).limit(limit)
 	video_count = videos.count()
 	videos = [i for i in videos]
@@ -156,18 +162,20 @@ def listMyVideo(offset, limit, user, order = 'latest', human_readable_tag = Fals
 			videos[i]['tags_readable'] = db.translate_tag_ids_to_user_language(videos[i]['tags'], user_language)[0]
 	return videos, video_count
 
-def listYourVideo(uid, offset, limit, user, order = 'latest', human_readable_tag = False):
-	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
+def listYourVideo(uid, offset, limit, user, order = 'latest', human_readable_tag = False, user_language = 'CHS'):
+	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')
 	result = db.retrive_items({'meta.created_by': ObjectId(uid)})
 	if order == 'latest':
 		result = result.sort([("meta.created_at", -1)])
-	if order == 'oldest':
+	elif order == 'oldest':
 		result = result.sort([("meta.created_at", 1)])
-	if order == 'video_latest':
+	elif order == 'video_latest':
 		result = result.sort([("item.upload_time", -1)])
-	if order == 'video_oldest':
+	elif order == 'video_oldest':
 		result = result.sort([("item.upload_time", 1)])
+	elif order == 'last_modified':
+		result = result.sort([("meta.modified_at", -1)])
 	videos = result.skip(offset).limit(limit)
 	video_count = videos.count()
 	videos = [i for i in videos]
