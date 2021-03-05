@@ -53,7 +53,7 @@ class Xigua( Crawler ) :
 			'thumbnailURL': cover,
 			'title' : title,
 			'desc' : desc,
-			'site': 'zcool',
+			'site': 'xigua',
 			'uploadDate' : upload_time,
 			"unique_id": self.unique_id(self = self, link = link),
 			"user_space_urls": [f"https://www.ixigua.com/home/{user_id}"] if user_id else [],
