@@ -73,7 +73,7 @@ def ajax_subs_list_do(rd, data, user):
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	visible = getDefaultJSON(data, 'visible', [''])
 	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
-	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest'] :
+	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest', 'last_modified'] :
 		raise AttributeError()
 	offset, limit = getOffsetLimitJSON(data)
 	videos, sub_objs, tags, count = listSubscriptedItems(

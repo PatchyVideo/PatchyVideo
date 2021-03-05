@@ -90,12 +90,14 @@ def listSubscriptedItems(user, offset, limit, user_language, hide_placeholder = 
 	result = tagdb.retrive_items(query_obj)
 	if order == 'latest':
 		result = result.sort([("meta.created_at", -1)])
-	if order == 'oldest':
+	elif order == 'oldest':
 		result = result.sort([("meta.created_at", 1)])
-	if order == 'video_latest':
+	elif order == 'video_latest':
 		result = result.sort([("item.upload_time", -1)])
-	if order == 'video_oldest':
+	elif order == 'video_oldest':
 		result = result.sort([("item.upload_time", 1)])
+	elif order == 'last_modified':
+		result = result.sort([("meta.modified_at", -1)])
 	ret = result.skip(offset).limit(limit)
 	count = ret.count()
 	videos = [item for item in ret]
