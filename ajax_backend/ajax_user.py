@@ -56,6 +56,7 @@ def ajax_auth_callback(rd, user, data):
 		session['sid'] = sid
 		return "redirect", "https://thvideo.tv/#/login_redirect?requesturl=%s" % requesturl
 	else :
+		# TODO: replace this with new user creation
 		return "redirect", "https://thvideo.tv/#/login?session=%s&nickname=%s" % (sid, urllib.parse.quote(nickname))
 
 @app.route('/login.do', methods = ['POST'])
