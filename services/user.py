@@ -30,7 +30,10 @@ def query_user_basic_info(uid) :
 
 def verify_session(sid, stype) :
 	session_obj = loads(rdb.get(sid).decode('utf-8'))
-	ret = session_obj['type'] == stype
+	if isinstance(stype, list) :
+		ret = session_obj['type'] in stype
+	else :
+		ret = session_obj['type'] == stype
 	return ret, session_obj
 
 def login_auth_qq(openid, nickname) :
@@ -127,7 +130,7 @@ def login(username, password, challenge, login_session_id) :
 		raise UserError('PASSWORD_TOO_LONG')
 	if len(password) < UserConfig.MIN_PASSWORD_LENGTH :
 		raise UserError('PASSWORD_TOO_SHORT')
-	session_verified, session_obj = verify_session(login_session_id, 'LOGIN')
+	session_verified, session_obj = verify_session(login_session_id, ['LOGIN', 'LOGIN_OR_SIGNUP_OPENID_QQ'])
 	if session_verified :
 		user_obj = db.users.find_one({'profile.username': username})
 		if not user_obj :
