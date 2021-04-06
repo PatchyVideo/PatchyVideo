@@ -32,7 +32,7 @@ def _str(s):
 
 class Youtube( Crawler ) :
 	NAME = 'youtube'
-	PATTERN = r'^((https:\/\/)?(www\.|m\.)?youtube\.com\/watch\?v=[-\w]+|(https:\/\/)?youtu\.be\/(watch\?v=[-\w]+|[-\w]+))'
+	PATTERN = r'^((https:\/\/)?(www\.|m\.)?youtube\.com\/watch\?v=[-\w]+|(https:\/\/)?youtu\.be\/(watch\?v=[-\w]+|[-\w]+))|(https:\/\/)?(www\.|m\.)?youtube\.com\/tv#\/(watch\?v=[-\w]+|[-\w]+)'
 	SHORT_PATTERN = r''
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.youtube.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.youtube.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
