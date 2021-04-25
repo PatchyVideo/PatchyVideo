@@ -786,10 +786,7 @@ class TagDB() :
 		if item is None :
 			raise UserError('ITEM_NOT_EXIST')
 		old_tag_ids = list(filter(lambda x: x < 0x80000000, item['tags']))
-		new_tag_ids = set(new_tag_ids)
-		remove_tagids = set(remove_tagids)
-		remove_tagids = remove_tagids - new_tag_ids
-		merged_tag_ids = list((set(old_tag_ids) | new_tag_ids) - remove_tagids)
+		merged_tag_ids = list((set(old_tag_ids) - set(remove_tagids)) | set(new_tag_ids))
 		merged_tag_ids = self._trigger_tag_rule_and_action(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
 		self._log_tag_update(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
 		self.db[self.db_name].update_one({'_id': ObjectId(item_id)}, {
