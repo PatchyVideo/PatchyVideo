@@ -276,6 +276,9 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 		await _playlist_reorder_helper.post_video_failed(url, dst_playlist, playlist_ordered, dst_rank, user, event_id)
 		return "PARSE_FAILED", {}
 	unique_id = await parsed.unique_id_async(self = parsed, link = url) # empty unique_id for b23.tv posts, fuck bilibli
+	if not unique_id :
+		ret = await parsed.get_metadata_async(parsed, url, update_video_detail)
+		unique_id = ret['data']['unique_id']
 	log_e(event_id, user, 'scraper', 'MSG', {'url': url, 'dst_copy': dst_copy, 'other_copies': other_copies, 'dst_playlist': dst_playlist})
 	setEventOp('scraper')
 	try :
