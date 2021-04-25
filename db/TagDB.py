@@ -789,10 +789,18 @@ class TagDB() :
 		merged_tag_ids = list((set(old_tag_ids) - set(remove_tagids)) | set(new_tag_ids))
 		merged_tag_ids = self._trigger_tag_rule_and_action(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
 		self._log_tag_update(user, item['_id'], old_tag_ids, merged_tag_ids, session = session)
+		tags_added, tags_removed = _diff(old_tag_ids, merged_tag_ids)
+		self.db[self.db_name].update_one({'_id': ObjectId(item_id)}, {
+			'$pullAll': {'tags': tags_removed},
+			'$set': {'tag_count': int(len(merged_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		self.db[self.db_name].update_one({'_id': ObjectId(item_id)}, {
 			'$addToSet': {'tags': {'$each': merged_tag_ids}},
 			'$set': {'tag_count': int(len(merged_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
-		tags_added, _ = _diff(old_tag_ids, merged_tag_ids)
+		new_tag_count_diff = [(tagid, -1) for tagid in tags_removed]
+		for (tag, diff) in new_tag_count_diff:
+			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
+		self.aci.SetCountDiff(new_tag_count_diff)
+
 		new_tag_count_diff = [(tagid, 1) for tagid in tags_added]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
