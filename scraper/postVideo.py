@@ -407,7 +407,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 				async with MongoTransaction(client) as s :
 					log_e(event_id, user, 'scraper', level = 'MSG', obj = 'Merging tags')
 					setEventUserAndID(user, event_id)
-					tagdb.update_item_tags_merge(conflicting_item['_id'], tags, makeUserMeta(user), session = s())
+					tagdb.update_item_tags_merge(conflicting_item['_id'], tags, makeUserMeta(user), session = s(), remove_tagids = [354])
 					s.mark_succeed()
 				#if playlist_lock :
 				#    playlist_lock.release()
