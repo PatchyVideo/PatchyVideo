@@ -25,9 +25,15 @@ def ajax_postvideo_do(rd, user, data):
 	dst_playlist = getDefaultJSON(data, 'pid', '')
 	dst_rank = getDefaultJSON(data, 'rank', -1)
 	repost_type = getDefaultJSON(data, 'repost_type', 'repost')
+	tag_merge_behaviour = getDefaultJSON(data, 'tag_merge_behaviour', 'merge')
+	if tag_merge_behaviour not in ['merge', 'keep_existing'] :
+		raise UserError('INCORRECT_TAG_MERGE_BEHAVIOUR')
 	if repost_type not in ['official', 'official_repost', 'authorized_translation', 'authorized_repost', 'translation', 'repost', 'unknown'] :
 		raise UserError('INCORRECT_REPOST_TYPE')
-	task_id = postVideo(user, data.url, data.tags, dst_copy, dst_playlist, dst_rank, repost_type)
+	if tag_merge_behaviour == 'merge' :
+		task_id = postVideo(user, data.url, data.tags, dst_copy, dst_playlist, dst_rank, repost_type)
+	elif tag_merge_behaviour == 'keep_existing' :
+		task_id = postVideoNoMerge(user, data.url, data.tags, dst_copy, dst_playlist, dst_rank, repost_type)
 	return "json", makeResponseSuccess({"task_id": task_id})
 
 @app.route('/postvideo_nomerge.do', methods = ['POST'])
