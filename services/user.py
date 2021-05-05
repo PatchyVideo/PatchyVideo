@@ -109,7 +109,9 @@ def do_login(user_obj) :
 	rdb.set(redis_user_key, redis_user_value, ex = UserConfig.LOGIN_EXPIRE_TIME)
 	rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
 	log(obj = {'redis_user_key': redis_user_key, 'user': common_user_obj})
-	return redis_user_key, common_user_obj['profile']
+	profile = common_user_obj['profile']
+	profile['access_control_status'] = user_obj['access_control']['status']
+	return redis_user_key, profile
 
 def unbind_qq(user) :
 	def updater(obj) :
