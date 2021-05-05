@@ -88,7 +88,9 @@ def do_login(user_obj) :
 			rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
 
 	if logged_in :
-		return redis_user_key, user_obj['profile']
+		profile = user_obj['profile']
+		profile['access_control_status'] = user_obj['access_control']['status']
+		return redis_user_key, profile
 
 	openid_qq = user_obj['profile']['openid_qq'] if 'openid_qq' in user_obj['profile'] else None
 	common_user_obj = {
