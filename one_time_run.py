@@ -74,6 +74,7 @@ if __name__ == '__main__' :
 		})
 """
 
+"""
 if __name__ == '__main__' :
 	from db.index.index_builder import build_index
 	#with MongoTransaction(client) as s :
@@ -87,7 +88,7 @@ if __name__ == '__main__' :
 		word_ids = build_index([item['item']['desc'], item['item']['title']])
 		db.videos.update_one({'_id': item['_id']}, {'$set': {'tags': item['tags'] + word_ids}})
 	#    s.mark_succeed()
-
+"""
 
 """
 if __name__ == '__main__' :
@@ -168,3 +169,11 @@ if __name__ == '__main__' :
 	for author in cursor :
 		db.authors.update_one({"_id": author["_id"]}, {"$set": {"user_space_ids": createUserSpaceIds(author['urls'])}})
 """
+
+if __name__ == '__main__' :
+	users = list(db.users.find({}))
+	for u in users :
+		uid = u['_id']
+		if 'email' in u['profile'] and u['profile']['email'] :
+			email = u['profile']['email'].lower()
+			db.users.update_one({'_id': uid}, {'$set': {'profile.email': email}})

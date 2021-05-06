@@ -138,7 +138,7 @@ def login(username, password, challenge, login_session_id) :
 	if session_verified :
 		user_obj = db.users.find_one({'profile.username': username})
 		if not user_obj :
-			user_obj = db.users.find_one({'profile.email': username})
+			user_obj = db.users.find_one({'profile.email': username.lower()})
 			if not user_obj :
 				log(level = 'SEC', obj = {'msg': 'USER_NOT_EXIST'})
 				raise UserError('INCORRECT_LOGIN')
@@ -202,6 +202,12 @@ def checkIfUserExists(username) :
 		return True
 	return False
 
+def checkIfEmailExists(email: str) :
+	user_obj_find = db.users.find_one({'profile.email': email.lower()})
+	if user_obj_find is not None :
+		return True
+	return False
+
 def checkIsAuthorized(user, op) :
 	filterOperation(op, user)
 
@@ -230,7 +236,7 @@ def signup(username, password, email, challenge, signup_session_id) :
 			if user_obj_find is not None :
 				raise UserError('USER_EXIST')
 			if email :
-				user_obj_email = db.users.find_one({'profile.email': email})
+				user_obj_email = db.users.find_one({'profile.email': email.lower()})
 				if user_obj_email is not None :
 					raise UserError('EMAIL_EXIST')
 			if openid_qq :

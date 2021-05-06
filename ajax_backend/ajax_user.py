@@ -94,6 +94,12 @@ def ajax_signup(rd, data):
 def ajax_user_exists(rd, data):
 	return "json", makeResponseSuccess(checkIfUserExists(data.username))
 
+@app.route('/user/email_avail.do', methods = ['POST'])
+@basePage
+@jsonRequest
+def ajax_user_email_avail(rd, data):
+	return "json", makeResponseSuccess(checkIfEmailExists(data.email))
+
 @app.route('/user/myprofile.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
