@@ -3,8 +3,14 @@ from db import db, client
 from bson import ObjectId
 from datetime import datetime
 from utils.dbtools import MongoTransaction
+from utils.exceptions import UserError
 
 def createNotification(note_type : str, dst_user : ObjectId, session = None, other = None) :
+    """
+    create a Notification
+    params:
+        note_type: one of 'forum_reply', 'comment_reply', 'system_message', 'dm'
+    """
     obj = {
         "type": note_type,
         "time": datetime.now(),
@@ -15,6 +21,20 @@ def createNotification(note_type : str, dst_user : ObjectId, session = None, oth
         for (k, v) in other.items() :
             obj[k] = v
     return db.notes.insert_one(obj, session = session).inserted_id
+
+def createDirectMessage(src_user: ObjectId, dst_user: ObjectId, other = None) :
+    obj = {
+        "type": 'dm',
+        "time": datetime.now(),
+        "read": False,
+        "to": dst_user,
+        "src": src_user,
+    }
+    if other :
+        for (k, v) in other.items() :
+            obj[k] = v
+    with MongoTransaction(client) as s :
+        return db.notes.insert_one(obj, session = s()).inserted_id
 
 def getUnreadNotificationCount(user) :
     return db.notes.find({'to': user['_id'], 'read': False}).count()
@@ -43,3 +63,20 @@ def markAllRead(user) :
     with MongoTransaction(client) as s :
         db.notes.update_many({'to': user['_id']}, {'$set': {'read': True}}, session = s())
         s.mark_succeed()
+
+def broadcastNotification(session = None, other = None) :
+    """
+    similar to createNotification but does so for everyone!
+    """
+    for u in db.users.find({}) :
+        createNotification('system_message', ObjectId(u['_id']), session = session, other = other)
+
+def broadcastNotificationWithContent(content: str) :
+    """
+    similar to createNotification but does so for everyone!
+    """
+    if len(content) > 65536 :
+        raise UserError('CONTENT_TOO_LONG')
+    with MongoTransaction(client) as s :
+        for u in db.users.find({}) :
+            createNotification('system_message', ObjectId(u['_id']), session = s(), other = {'content': content})

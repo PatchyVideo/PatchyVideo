@@ -7,7 +7,7 @@ from utils.jsontools import *
 from utils.exceptions import UserError
 from utils import getDefaultJSON, getOffsetLimitJSON
 
-from services.notifications import listMyNotificationUnread, listMyNotificationAll, getUnreadNotificationCount, markRead, markAllRead
+from services.notifications import listMyNotificationUnread, listMyNotificationAll, getUnreadNotificationCount, markRead, markAllRead, broadcastNotificationWithContent, createDirectMessage
 from services.tcb import filterOperation
 
 from bson import ObjectId
@@ -44,3 +44,19 @@ def ajax_notes_mark_read(rd, user, data):
 @jsonRequest
 def ajax_notes_mark_all_read(rd, user, data):
 	markAllRead(user)
+
+@app.route('/notes/admin/broadcast.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_notes_admin_broadcast(rd, user, data):
+	filterOperation('broadcastNotification', user)
+	broadcastNotificationWithContent(data.content)
+
+@app.route('/notes/send_dm.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_notes_send_dm(rd, user, data):
+	filterOperation('sendDM', user)
+	if len(data.content) > 65536 :
+		raise UserError('CONTENT_TOO_LONG')
+	createDirectMessage(user['_id'], ObjectId(data.dst_user), other = {'content': data.content})

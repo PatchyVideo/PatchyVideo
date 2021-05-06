@@ -13,11 +13,13 @@ def makeResponseFailed(data):
 	if isinstance(data, str) :
 		return {
 			"status": "FAILED",
+			"data": ".",
 			"dataerr": {"reason": data}
 		}
 	else :
 		return {
 			"status": "FAILED",
+			"data": ".",
 			"dataerr": data
 		}
 
@@ -25,11 +27,13 @@ def makeResponseError(data):
 	if isinstance(data, str) :
 		return {
 			"status": "ERROR",
+			"data": ".",
 			"dataerr": {"reason": data}
 		}
 	else :
 		return {
 			"status": "ERROR",
+			"data": ".",
 			"dataerr": data
 		}
 		
