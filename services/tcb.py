@@ -7,7 +7,7 @@ from bson import ObjectId
 """
 Level 0: Only (authorised) admin level user can view
 Level 1: admin level user and uploader can view
-Level 2: Only geistered used can view
+Level 2: Only registered used can view
 Level 3: Everyone can view
 """
 
