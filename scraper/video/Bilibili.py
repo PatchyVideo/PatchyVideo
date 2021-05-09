@@ -5,7 +5,7 @@ from utils.encodings import makeUTF8
 from utils.html import getInnerText
 from urllib.parse import urlparse, parse_qs
 from dateutil.parser import parse
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from services.config import Config
 import aiohttp
 import re
@@ -46,8 +46,6 @@ class Bilibili( Crawler ) :
 	SHORT_PATTERN = r'^([aA][Vv][\d]+|[Bb][Vv][a-zA-Z0-9]+)$'
 	VID_MATCH_REGEX = r"([aA][Vv][\d]+|[Bb][Vv][a-zA-Z0-9]+)"
 	AID_MATCH_REGEX = r"__INITIAL_STATE__\s*=\s*{\"aid\"\:(\d+),"
-	USER_ID_MATCHER = r"\"owner\":{\"mid\":([\d]+)"
-	MULTISTAFF_MATCHER = r"\"staff\":(\[{.*?}\])"
 	HEADERS = makeUTF8( { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' } )
 	HEADERS_NO_UTF8 = { 'Referer' : 'https://www.bilibili.com/', 'User-Agent': '"Mozilla/5.0 (X11; Ubuntu; Linu…) Gecko/20100101 Firefox/65.0"' }
 	BV2AV = _bv2av()
@@ -121,22 +119,35 @@ class Bilibili( Crawler ) :
 				new_url = link
 				uid = self.unique_id(self = self, link = link)
 			aid = aid[2:] # remove 'av'
-			thumbnailURL = xpath.xpath( '//meta[@itemprop="thumbnailUrl"]/@content' )[0]
-			title = xpath.xpath( '//h1[@class="video-title"]/@title' )[0]
-			desc = getInnerText(xpath.xpath( '//div[@class="info open"]/node()' ))
-			uploadDate = parse(xpath.xpath( '//meta[@itemprop="uploadDate"]/@content' )[0]) - timedelta(hours = 8) # convert from Beijing time to UTC
-			utags = xpath.xpath( '//meta[@itemprop="keywords"]/@content' )[0]
-			utags = list(filter(None, utags.split(',')[1: -4]))
-			part_name = title
-			user_space_urls = []
-			multistaff_match_result = re.search(self.MULTISTAFF_MATCHER, content)
-			if multistaff_match_result :
-				staff_json = json.loads(multistaff_match_result.group(1))
-				user_space_urls = ['https://space.bilibili.com/%d' % x['mid'] for x in staff_json]
+
+			api_url = f'http://api.bilibili.com/x/web-interface/view?aid={aid}'
+			async with aiohttp.ClientSession() as session:
+				async with session.get(api_url) as resp :
+					api_content = await resp.json()
+			code = api_content['code']
+			if code != 0 or 'data' not in api_content :
+				raise Exception(f'api request failed, message:\n{api_content}')
+			data = api_content['data']
+			thumbnailURL = data['pic']
+			title = data['title']
+			desc = data['desc']
+			uploadDate = datetime.fromtimestamp(data['pubdate']).astimezone(timezone.utc)
+
+			api_url = f'http://api.bilibili.com/x/tag/archive/tags?aid={aid}'
+			async with aiohttp.ClientSession() as session:
+				async with session.get(api_url) as resp :
+					api_content = await resp.json()
+			code = api_content['code']
+			if code != 0 or 'data' not in api_content :
+				utags = []
 			else :
-				user_space_match_result = re.search(self.USER_ID_MATCHER, content)
-				if user_space_match_result :
-					user_space_urls = ['https://space.bilibili.com/%s' % user_space_match_result.group(1)]
+				utags = [item['tag_name'] for item in api_content['data']]
+
+			if 'staff' in data :
+				user_space_urls = ['https://space.bilibili.com/%d' % x['mid'] for x in data['staff']]
+			elif 'owner' in data :
+				user_space_urls = ['https://space.bilibili.com/%d' % data['owner']['mid']]
+
 			cid = 0
 			async with aiohttp.ClientSession() as session:
 				async with session.get(f'https://api.bilibili.com/x/player/pagelist?aid={aid}&jsonp=jsonp') as resp:
