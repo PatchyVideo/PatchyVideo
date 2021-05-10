@@ -399,7 +399,7 @@ def request_password_reset(email, user_language) :
 		raise UserError('EMAIL_NOT_EXIST')
 	reset_key = random_bytes_str(16)
 	rdb.set('passreset-' + reset_key, email)
-	send_noreply(email, '找回密码', '点击下方的链接重置密码:\n%s%s' % ('https://patchyvideo.com/#/resetpassword?key=', reset_key))
+	send_noreply(email, 'PatchyVideo-找回密码', f'点击下方的链接重置密码:\n（旧版页面）https://patchyvideo.com/#/resetpassword?key={reset_key}\n（新版页面）https://platinum.vercel.app/user/reset-password?key={reset_key}\n')
 
 def reset_password(reset_key, new_pass) :
 	if len(new_pass) > UserConfig.MAX_PASSWORD_LENGTH or len(new_pass) < UserConfig.MIN_PASSWORD_LENGTH:
