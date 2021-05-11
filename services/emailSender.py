@@ -7,7 +7,7 @@ from email.header import Header
 
 from datetime import datetime
 
-def send_noreply(dst, title, body) :
+def send_noreply(dst, title, body, mime = 'plain') :
 	smtp = smtplib.SMTP()
 	smtp.connect('172.17.0.1')
 
@@ -15,7 +15,7 @@ def send_noreply(dst, title, body) :
 	msgRoot['Subject'] = Header(title, "utf-8")
 	msgRoot['From'] = "PatchyVideo"
 	msgRoot['To'] = dst
-	text = MIMEText(body, "plain", "utf-8")
+	text = MIMEText(body, mime, "utf-8")
 	msgRoot.attach(text)
 	smtp.sendmail("noreply@patchyvideo.com", dst, msgRoot.as_string())
 

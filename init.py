@@ -3,7 +3,7 @@ import os
 
 from flask import Flask, session
 from flask_sslify import SSLify
-app = Flask('PatchyVideo')
+app = Flask('PatchyVideo', template_folder = 'pages')
 if os.getenv("FLASK_ENV", "development") == "production" :
     sslify = SSLify(app)
 app.config.from_object("config.BaseConfig")
