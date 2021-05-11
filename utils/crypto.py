@@ -3,9 +3,11 @@ import os
 import binascii
 import hmac
 import hashlib
+import argon2
 from pbkdf2 import PBKDF2
 from Crypto.Cipher import AES
 from struct import pack, unpack
+from argon2 import PasswordHasher
 
 def md5(s: str) :
     return hashlib.md5(s.encode('utf-8')).hexdigest()
@@ -91,6 +93,41 @@ def update_crypto_PBKDF2_password_only(new_password, salt2, master_key_encrypted
     password_hashed = PBKDF2(new_password, salt1).read(32)
     return 'PBKDF2', password_hashed, salt1, salt2, master_key_encrypted
 
+
+def generate_user_crypto_Argon2(password) :
+    salt1 = random_bytes(16)
+    salt2 = random_bytes(16)
+    ph = PasswordHasher()
+    password_hashed = ph.hash(password)
+    master_key = random_bytes(32)
+    master_key_encrypted = AES_Encrypt(password, master_key, salt2)
+    return 'Argon2', password_hashed, salt1, salt2, master_key_encrypted
+
+def verify_password_Argon2(password, salt1, password_hashed) :
+    try :
+        ph = PasswordHasher()
+        return ph.verify(password_hashed, password)
+    except argon2.exceptions.VerifyMismatchError :
+        return False
+
+def update_crypto_Argon2(old_password, new_password, salt2, master_key_encrypted) :
+    if old_password is None :
+        return update_crypto_Argon2_password_only(new_password, salt2, master_key_encrypted)
+    ret, master_key = AES_Decrypt(old_password, master_key_encrypted, salt2)
+    salt1 = random_bytes(16)
+    salt2 = random_bytes(16)
+    ph = PasswordHasher()
+    password_hashed = ph.hash(new_password)
+    master_key_encrypted = AES_Encrypt(new_password, master_key, salt2)
+    return 'Argon2', password_hashed, salt1, salt2, master_key_encrypted
+
+def update_crypto_Argon2_password_only(new_password, salt2, master_key_encrypted) :
+    salt1 = random_bytes(16)
+    salt2 = random_bytes(16)
+    ph = PasswordHasher()
+    password_hashed = ph.hash(new_password)
+    return 'Argon2', password_hashed, salt1, salt2, master_key_encrypted
+
 if __name__ == "__main__":
     key = '123'
     text = b'abc'
@@ -98,3 +135,6 @@ if __name__ == "__main__":
     encrypted = AES_Encrypt(key ,text, salt)
     decrypted = AES_Decrypt(key, encrypted, salt)
     print(text, decrypted)
+    _, hashed, _, _, _ = generate_user_crypto_Argon2('s3kr3tp4ssw0rd')
+    print(verify_password_Argon2('s3kr3tp4ssw0rd', None, hashed))
+    print(verify_password_Argon2('t0t411ywr0ng', None, hashed))

@@ -144,9 +144,24 @@ def login(username, password, challenge, login_session_id) :
 			if not user_obj :
 				log(level = 'SEC', obj = {'msg': 'USER_NOT_EXIST'})
 				raise UserError('INCORRECT_LOGIN')
-		if not verify_password_PBKDF2(password, user_obj['crypto']['salt1'], user_obj['crypto']['password_hashed']) :
-			log(level = 'SEC', obj = {'msg': 'WRONG_PASSWORD'})
-			raise UserError('INCORRECT_LOGIN')
+		crypto_method = user_obj['crypto']['crypto_method']
+		if crypto_method == 'PBKDF2' :
+			if not verify_password_PBKDF2(password, user_obj['crypto']['salt1'], user_obj['crypto']['password_hashed']) :
+				log(level = 'SEC', obj = {'msg': 'WRONG_PASSWORD'})
+				raise UserError('INCORRECT_LOGIN')
+			# update crypto to Argon2
+			crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = generate_user_crypto_Argon2(password)
+			db.users.update_one({}, {'$set': {'crypto': {
+					'crypto_method': crypto_method,
+					'password_hashed': password_hashed,
+					'salt1': salt1,
+					'salt2': salt2,
+					'master_key_encryptyed': master_key_encryptyed
+				}}})
+		elif crypto_method == 'Argon2' :
+			if not verify_password_Argon2(password, user_obj['crypto']['salt1'], user_obj['crypto']['password_hashed']) :
+				log(level = 'SEC', obj = {'msg': 'WRONG_PASSWORD'})
+				raise UserError('INCORRECT_LOGIN')
 		# bind QQ OpenID if present
 		if session_obj['type'] == 'LOGIN_OR_SIGNUP_OPENID_QQ' :
 			openid_qq = session_obj['openid_qq']
@@ -232,7 +247,7 @@ def signup(username, password, email, challenge, signup_session_id) :
 		if email :
 			if len(email) > UserConfig.MAX_EMAIL_LENGTH or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
 				raise UserError('INCORRECT_EMAIL')
-		crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = generate_user_crypto_PBKDF2(password)
+		crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = generate_user_crypto_Argon2(password)
 		with redis_lock.Lock(rdb, 'signup:' + username) :
 			user_obj_find = db.users.find_one({'profile.username': username})
 			if user_obj_find is not None :
@@ -383,16 +398,30 @@ def update_password(user_id, old_pass, new_pass) :
 	obj = db.users.find_one({'_id': ObjectId(user_id)})
 	if obj is None :
 		raise UserError('USER_NOT_EXIST')
-	if not verify_password_PBKDF2(old_pass, obj['crypto']['salt1'], obj['crypto']['password_hashed']) :
-		raise UserError('INCORRECT_PASSWORD')
-	crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = update_crypto_PBKDF2(old_pass, new_pass, obj['crypto']['salt2'], obj['crypto']['master_key_encryptyed'])
-	crypto = {
-		'crypto_method': crypto_method,
-		'password_hashed': password_hashed,
-		'salt1': salt1,
-		'salt2': salt2,
-		'master_key_encryptyed': master_key_encryptyed
-	}
+	crypto_method = obj['crypto']['crypto_method']
+	if crypto_method == 'PBKDF2' :
+		if not verify_password_PBKDF2(old_pass, obj['crypto']['salt1'], obj['crypto']['password_hashed']) :
+			raise UserError('INCORRECT_PASSWORD')
+		# generate a new Argon2 security context
+		crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = generate_user_crypto_Argon2(new_pass)
+		crypto = {
+			'crypto_method': crypto_method,
+			'password_hashed': password_hashed,
+			'salt1': salt1,
+			'salt2': salt2,
+			'master_key_encryptyed': master_key_encryptyed
+		}
+	elif crypto_method == 'Argon2' :
+		if not verify_password_Argon2(old_pass, obj['crypto']['salt1'], obj['crypto']['password_hashed']) :
+			raise UserError('INCORRECT_PASSWORD')
+		crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = update_crypto_Argon2(old_pass, new_pass, obj['crypto']['salt2'], obj['crypto']['master_key_encryptyed'])
+		crypto = {
+			'crypto_method': crypto_method,
+			'password_hashed': password_hashed,
+			'salt1': salt1,
+			'salt2': salt2,
+			'master_key_encryptyed': master_key_encryptyed
+		}
 	db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'crypto': crypto}})
 
 def request_password_reset(email, user_language) :
@@ -419,7 +448,8 @@ def reset_password(reset_key, new_pass) :
 		assert obj is not None
 	except :
 		raise UserError('INCORRECT_KEY')
-	crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = update_crypto_PBKDF2(None, new_pass, obj['crypto']['salt2'], obj['crypto']['master_key_encryptyed'])
+	# generate a new Argon2 security context
+	crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = generate_user_crypto_Argon2(new_pass)
 	crypto = {
 		'crypto_method': crypto_method,
 		'password_hashed': password_hashed,
