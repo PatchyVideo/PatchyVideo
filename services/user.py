@@ -430,8 +430,8 @@ def request_password_reset(email, user_language) :
 		raise UserError('EMAIL_NOT_EXIST')
 	reset_key = random_bytes_str(16)
 	rdb.set('passreset-' + reset_key, email)
-	if user_language not in ['CHS'] :
-		user_language = 'CHS'
+	if user_language not in ['CHS', 'ENG'] :
+		user_language = 'ENG'
 	template_file = f'PatchyVideo-passreset-{user_language}.html'
 	title = get_template_attribute(template_file, 'get_title')
 	html_doc = render_template(template_file, key = reset_key)
