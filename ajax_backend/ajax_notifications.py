@@ -16,7 +16,8 @@ from bson import ObjectId
 @loginRequiredJSON
 @jsonRequest
 def ajax_notes_list_unread(rd, user, data):
-	ans, count = listMyNotificationUnread(user)
+	note_type = getDefaultJSON(data, 'note_type', 'all')
+	ans, count = listMyNotificationUnread(user, note_type)
 	return "json", makeResponseSuccess({'notes': ans, 'count': count})
 
 @app.route('/notes/list_all.do', methods = ['POST'])
@@ -24,14 +25,16 @@ def ajax_notes_list_unread(rd, user, data):
 @jsonRequest
 def ajax_notes_list_all(rd, user, data):
 	offset, limit = getOffsetLimitJSON(data)
-	ans, count = listMyNotificationAll(user, offset, limit)
+	note_type = getDefaultJSON(data, 'note_type', 'all')
+	ans, count = listMyNotificationAll(user, offset, limit, note_type)
 	return "json", makeResponseSuccess({'notes': ans, 'count': count})
 
 @app.route('/notes/unread_count.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
 def ajax_notes_unread_count(rd, user, data):
-	return "json", makeResponseSuccess(getUnreadNotificationCount(user))
+	note_type = getDefaultJSON(data, 'note_type', 'all')
+	return "json", makeResponseSuccess(getUnreadNotificationCount(user, note_type))
 
 @app.route('/notes/mark_read.do', methods = ['POST'])
 @loginRequiredJSON
@@ -43,7 +46,8 @@ def ajax_notes_mark_read(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_notes_mark_all_read(rd, user, data):
-	markAllRead(user)
+	note_type = getDefaultJSON(data, 'note_type', 'all')
+	markAllRead(user, note_type)
 
 @app.route('/notes/admin/broadcast.do', methods = ['POST'])
 @loginRequiredJSON
