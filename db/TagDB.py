@@ -256,8 +256,8 @@ class TagDB() :
 
 	def remove_tag(self, tag_name_or_tag_obj, user = '', session = None) :
 		tag_obj = self._tag(tag_name_or_tag_obj, session = session)
-		if tag_obj['category'] == 'Author' and 'author' in tag_obj :
-			raise UserError('AUTHOR_TAG_DELETION_DISABLED')
+		# if tag_obj['category'] == 'Author' and 'author' in tag_obj :
+		# 	raise UserError('AUTHOR_TAG_DELETION_DISABLED')
 		tagid = tag_obj['id']
 		self.db.tag_alias.delete_many({'dst': tag_obj['_id']}, session = session)
 		self.db.tags.delete_one({'_id': tag_obj['_id']}, session = session)
