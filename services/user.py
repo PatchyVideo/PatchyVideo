@@ -398,6 +398,7 @@ def update_password(user_id, old_pass, new_pass) :
 	obj = db.users.find_one({'_id': ObjectId(user_id)})
 	if obj is None :
 		raise UserError('USER_NOT_EXIST')
+	log(obj = {'username': obj['profile']['username']})
 	crypto_method = obj['crypto']['crypto_method']
 	if crypto_method == 'PBKDF2' :
 		if not verify_password_PBKDF2(old_pass, obj['crypto']['salt1'], obj['crypto']['password_hashed']) :
