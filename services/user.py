@@ -151,7 +151,7 @@ def login(username, password, challenge, login_session_id) :
 				raise UserError('INCORRECT_LOGIN')
 			# update crypto to Argon2
 			crypto_method, password_hashed, salt1, salt2, master_key_encryptyed = generate_user_crypto_Argon2(password)
-			db.users.update_one({}, {'$set': {'crypto': {
+			db.users.update_one({'_id': user_obj['_id']}, {'$set': {'crypto': {
 					'crypto_method': crypto_method,
 					'password_hashed': password_hashed,
 					'salt1': salt1,
