@@ -85,6 +85,9 @@ def queryCategories():
 
 @modifyingResource('tags')
 def addTag(user, tag, category, language):
+	addTag_impl(user, tag, category, language)
+
+def addTag_impl(user, tag, category, language):
 	ret, sanitized_tag = verifyAndSanitizeTagOrAlias(tag)
 	log(obj = {'tag': sanitized_tag, 'cat': category, 'lang': language})
 	filterOperation('addTag', user)

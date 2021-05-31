@@ -1,3 +1,4 @@
+from config import VideoConfig
 from datetime import datetime
 from utils.exceptions import UserError
 from collections import deque
@@ -253,6 +254,10 @@ class TagDB() :
 
 	def translate_text(self, terms, session = None) :
 		return [self._translate_text_search(term) for term in terms]
+
+	def lock_tag(self, tag_name_or_tag_obj, locked = True, user = '', session = None) :
+		tag_obj = self._tag(tag_name_or_tag_obj, session = session)
+		self.db.tags.update_one({'_id': tag_obj['_id']}, {'$set': {'locked': locked}}, session = session)
 
 	def remove_tag(self, tag_name_or_tag_obj, user = '', session = None) :
 		tag_obj = self._tag(tag_name_or_tag_obj, session = session)
@@ -603,6 +608,11 @@ class TagDB() :
 		tm = [tag['tag'] for tag in found_tags]
 		return tm
 
+	def filter_tags_ext(self, tags, session = None) :
+		found_tags = self.db.tag_alias.find({'tag': {'$in': tags}}, session = session)
+		tm = [tag['tag'] for tag in found_tags]
+		return _diff(tm, tags)[0], tm
+
 	def update_item(self, item_id, item, user = '', session = None):
 		item = self.db[self.db_name].find_one({'_id': ObjectId(item_id)}, session = session)
 		if item is None:
@@ -665,7 +675,7 @@ class TagDB() :
 					'time': datetime.now()
 				}, session = session)
 
-	def update_item_tags(self, item_id_or_item_object, new_tags, user: ObjectId = '', session = None):
+	def update_item_tags(self, item_id_or_item_object, new_tags, user: ObjectId = '', session = None, behaviour = 'replace'):
 		new_tag_ids = self.filter_and_translate_tags(new_tags)
 		if isinstance(item_id_or_item_object, ObjectId) or isinstance(item_id_or_item_object, str):
 			item = self.db[self.db_name].find_one({'_id': ObjectId(item_id_or_item_object)}, session = session)
@@ -675,13 +685,20 @@ class TagDB() :
 			item = item_id_or_item_object
 		index_tags = list(filter(lambda x: x >= 0x80000000, item['tags']))
 		real_tags = list(filter(lambda x: x < 0x80000000, item['tags']))
+		if behaviour == 'append' :
+			new_tag_ids = list(set(new_tag_ids) | set(real_tags))
+		elif behaviour == 'remove' :
+			new_tag_ids = list(set(real_tags) - set(new_tag_ids))
 		new_tag_ids = self._trigger_tag_rule_and_action(user, item_id_or_item_object['_id'], real_tags, new_tag_ids, session = session)
+		if len(new_tag_ids) > VideoConfig.MAX_TAGS_PER_VIDEO :
+			raise UserError('TAGS_LIMIT_EXCEEDED')
 		self._log_tag_update(user, item_id_or_item_object['_id'], real_tags, new_tag_ids, session = session)
 		self.db.tags.update_many({'id': {'$in': real_tags}}, {'$inc': {'count': -1}}, session = session)
 		self.db.tags.update_many({'id': {'$in': new_tag_ids}}, {'$inc': {'count': 1}}, session = session)
 		self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': new_tag_ids + index_tags, 'tag_count': int(len(new_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		self.aci.SetCountDiff([(t, -1) for t in item['tags']])
 		self.aci.SetCountDiff([(t, 1) for t in new_tag_ids])
+		return new_tag_ids
 
 	def _get_many_tag_counts(self, item_ids = None, tags = None, user = '', session = None):
 		id_match_obj = { '_id' : { '$in': item_ids } } if item_ids else {}

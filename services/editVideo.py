@@ -6,6 +6,7 @@ from utils.exceptions import UserError
 from utils.tagtools import translateTagsToPreferredLanguage
 from services.postVideo import postTask
 from services.tcb import filterSingleVideo, filterOperation
+from services.editTag import addTag_impl
 
 import pymongo
 from init import rdb
@@ -15,22 +16,44 @@ from config import VideoConfig, TagsConfig
 from bson.json_util import dumps, loads
 from utils.logger import log, getEventID
 
-@usingResource('tags')
-def editVideoTags(vid, tags, user):
-	log(obj = {'tags': tags, 'vid': vid})
+
+def editVideoTags_impl(item, tags, user, session) :
+	tagdb.update_item_tags(item, tags, makeUserMeta(user), session = session)
+
+def editVideoTags(vid, tags, user, edit_behaviour = 'replace', not_found_behaviour = 'ignore', user_lang = 'ENG'):
+	log(obj = {'tags': tags, 'vid': vid, 'edit_behaviour': edit_behaviour, 'not_found_behaviour': not_found_behaviour})
 	filterOperation('editVideoTags', user, vid)
+	if edit_behaviour not in ['replace', 'append', 'remove'] :
+		raise UserError('INCORRECT_edit_behaviour')
+	if not_found_behaviour not in ['ignore', 'error', 'append'] :
+		raise UserError('INCORRECT_non_found_behaviour')
+	if edit_behaviour == 'remove' and not_found_behaviour == 'append' :
+		raise UserError('INCORRECT_REQUEST')
 	filterSingleVideo(vid, user)
 	if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO :
 		raise UserError('TAGS_LIMIT_EXCEEDED')
-	tags = tagdb.filter_tags(tags)
 	item = tagdb.db.videos.find_one({'_id': ObjectId(vid)})
 	if item is None:
 		raise UserError('ITEM_NOT_EXIST')
-	if len(tags) > VideoConfig.MAX_TAGS_PER_VIDEO:
-		raise UserError('TOO_MANY_TAGS')
+	if not_found_behaviour == 'append' :
+		tags = editTags_append_impl(tags, user, user_lang)
+	else :
+		tags = tagdb.filter_tags(tags)
+	return editTags_impl(item, tags, user, edit_behaviour)
+
+def editTags_append_impl(tags, user, user_lang) :
+	not_found_tags, found_tags = tagdb.filter_tags_ext(tags)
+	for tag in not_found_tags :
+		addTag_impl(user, tag, 'General', user_lang)
+	tags = not_found_tags + found_tags
+	return tags
+
+@usingResource('tags')
+def editTags_impl(item, tags, user, edit_behaviour) :
 	with redis_lock.Lock(rdb, "videoEdit:" + item['item']['unique_id']), MongoTransaction(client) as s :
-		tagdb.update_item_tags(item, tags, makeUserMeta(user), session = s())
+		new_tagids = tagdb.update_item_tags(item, tags, makeUserMeta(user), session = s(), behaviour = edit_behaviour)
 		s.mark_succeed()
+		return new_tagids
 
 def getVideoTags(vid, user_language, user) :
 	filterSingleVideo(vid, user)
