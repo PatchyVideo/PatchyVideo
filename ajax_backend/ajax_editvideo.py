@@ -54,7 +54,9 @@ def ajax_videos_refresh_url(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_videos_set_clearence(rd, user, data):
-	setVideoClearence(data.vid, int(data.clearence), user)
+	clearence = getDefaultJSON(data, 'clearence', 0)
+	setVideoClearence(data.vid, clearence, user)
+	return "json", makeResponseSuccess({'clearence': clearence})
 
 @app.route('/videos/set_repost_type.do', methods = ['POST'])
 @loginRequiredJSON
