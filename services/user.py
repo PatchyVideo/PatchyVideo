@@ -98,6 +98,7 @@ def do_login(user_obj) :
 	common_user_obj = {
 		'_id': user_obj['_id'],
 		'profile': {
+			'uid': str(user_obj['_id']),
 			'username': user_obj['profile']['username'],
 			'image': user_obj['profile']['image'],
 			'desc': user_obj['profile']['desc'],
