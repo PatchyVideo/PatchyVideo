@@ -20,7 +20,7 @@ ENV FLASK_ENV production
 ENV FLASK_DEBUG 0
 
 # Make port 80 available to the world outside this container
-EXPOSE 5000
+#EXPOSE 5000
 
 # Run main.py when the container launches
 CMD ["flask", "run"]
