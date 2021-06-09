@@ -83,7 +83,7 @@ def queryTagsRegex(query, category, offset, limit, order, user):
 def queryCategories():
 	return tagdb.list_categories()
 
-@modifyingResource('tags')
+#@modifyingResource('tags')
 def addTag(user, tag, category, language):
 	addTag_impl(user, tag, category, language)
 

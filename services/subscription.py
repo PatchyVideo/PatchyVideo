@@ -104,7 +104,7 @@ def listSubscriptedItems(user, offset, limit, user_language, hide_placeholder = 
 	videos = filterVideoList(videos, user)
 	if hide_placeholder :
 		videos = _filterPlaceholder(videos)
-	return videos, subs, getCommonTags(user_language, videos), count
+	return videos, subs, *getCommonTags(user_language, videos), count
 
 def listSubscriptedItemsRandomized(user, limit, user_language, visibleSubs = [''], additional_constraint = '') :
 	subs = list(db.subs.find({'meta.created_by': makeUserMeta(user)}))
@@ -141,4 +141,4 @@ def listSubscriptedItemsRandomized(user, limit, user_language, visibleSubs = [''
 		videos[i]['tags'] = list(filter(lambda x: x < 0x80000000, videos[i]['tags']))
 	videos = _filterPlaceholder(videos)
 	videos = videos[: limit]
-	return videos, subs, getCommonTags(user_language, videos)
+	return videos, subs, *getCommonTags(user_language, videos)

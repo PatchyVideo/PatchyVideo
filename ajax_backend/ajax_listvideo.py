@@ -27,7 +27,7 @@ def ajax_listvideo_do(rd, data, user):
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	human_readable_tag = getDefaultJSON(data, 'human_readable_tag', False)
 	offset, limit = getOffsetLimitJSON(data)
-	videos, video_count, related_tags, related_tags_popularity, query_obj, exStats1, exStats2 = listVideo(
+	videos, video_count, related_tags, related_tags_popularity, query_obj, pop_tagid_map, exStats1, exStats2 = listVideo(
 		offset,
 		limit,
 		user,
@@ -43,6 +43,7 @@ def ajax_listvideo_do(rd, data, user):
 		"count": video_count,
 		"page_count": (video_count - 1) // limit + 1,
 		"tags": tag_category_map,
+		"tagid_popmap": pop_tagid_map,
 		"tag_pops": related_tags_popularity,
 		'time_used_ms': int((end - start) * 1000),
 		"query_obj": query_obj#,
@@ -63,7 +64,7 @@ def ajax_listvideo_randomized_do(rd, data, user):
 	qtype = getDefaultJSON(data, 'qtype', 'tag')
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	_, limit = getOffsetLimitJSON(data)
-	videos, related_tags = listVideoRandimzied(
+	videos, related_tags, related_tagids = listVideoRandimzied(
 		user,
 		limit,
 		query,
@@ -75,6 +76,7 @@ def ajax_listvideo_randomized_do(rd, data, user):
 	ret = makeResponseSuccess({
 		"videos": videos,
 		"tags": tag_category_map,
+		"related_tagids": related_tagids
 	})
 	return "json", ret
 
@@ -92,7 +94,7 @@ def ajax_queryvideo_do(rd, data, user):
 	human_readable_tag = getDefaultJSON(data, 'human_readable_tag', False)
 	hide_placeholder = getDefaultJSON(data, 'hide_placeholder', True)
 	offset, limit = getOffsetLimitJSON(data)
-	videos, related_tags, video_count, query_obj, exStats1, exStats2 = listVideoQuery(
+	videos, related_tags, related_tagids, video_count, query_obj, exStats1, exStats2 = listVideoQuery(
 		user,
 		data.query,
 		offset,
@@ -110,6 +112,7 @@ def ajax_queryvideo_do(rd, data, user):
 		"count": video_count,
 		"page_count": (video_count - 1) // limit + 1,
 		"tags": tag_category_map,
+		"related_tagids": related_tagids,
 		'time_used_ms': int((end - start) * 1000),
 		"query_obj": query_obj#,
 		# "ex_stats_1": exStats1,

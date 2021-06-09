@@ -38,7 +38,7 @@ def listVideoRandimzied(user, limit, query_str = '', user_language = 'CHS', qtyp
 			videos[i]['tags_readable'] = db.translate_tag_ids_to_user_language(videos[i]['tags'], user_language)[0]
 	videos = _filterPlaceholder(videos)
 	videos = videos[: limit]
-	return videos, getCommonTags(user_language, videos)
+	return videos, *getCommonTags(user_language, videos)
 
 def listVideoQuery(user, query_str, offset, limit, order = 'latest', user_language = 'CHS', hide_placeholder = True, qtype = 'tag', additional_constraint = '', human_readable_tag = False):
 	log(obj = {'q': query_str, 'offset': offset, 'limit': limit, 'order': order, 'lang': user_language})
@@ -88,7 +88,7 @@ def listVideoQuery(user, query_str, offset, limit, order = 'latest', user_langua
 		else :
 			log(level = 'ERR', obj = {'ex': str(ex)})
 			raise UserError('FAILED_UNKNOWN')
-	return videos, getCommonTags(user_language, videos), count, query_obj, exStats1, exStats2
+	return videos, *getCommonTags(user_language, videos), count, query_obj, exStats1, exStats2
 
 def listVideo(offset, limit, user, order = 'latest', user_language = 'CHS', hide_placeholder = True, additional_constraint = '', human_readable_tag = False):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest', 'last_modified'] :
@@ -135,8 +135,8 @@ def listVideo(offset, limit, user, order = 'latest', user_language = 'CHS', hide
 			videos[i]['tags_readable'] = db.translate_tag_ids_to_user_language(videos[i]['tags'], user_language)[0]
 	if hide_placeholder :
 		videos = _filterPlaceholder(videos)
-	tags, pops = getPopularTags(user_language)
-	return videos, video_count, tags, pops, query_obj, exStats1, exStats2
+	tags, pops, pop_tagid_map = getPopularTags(user_language)
+	return videos, video_count, tags, pops, query_obj, pop_tagid_map, exStats1, exStats2
 
 def listMyVideo(offset, limit, user, order = 'latest', human_readable_tag = False, user_language = 'CHS'):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest', 'last_modified'] :

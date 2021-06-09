@@ -10,7 +10,7 @@ from utils import getDefaultJSON
 from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 
-from services.tagStatistics import getRelatedTagsExperimental, getRelatedTagsFixedMainTags
+from services.tagStatistics import getRelatedTagsExperimental, getRelatedTagsFixedMainTags, getPopularTags
 from services.autotag import inferTagsFromVideo
 from services.editTag import getTag, getDefaultBlacklist
 
@@ -59,3 +59,12 @@ def ajax_tags_get_tag_batch_do(rd, user, data) :
 @jsonRequest
 def ajax_tags_get_default_blacklist_do(rd, user, data) :
 	return "json", makeResponseSuccess({'tags': getDefaultBlacklist(data.lang)})
+
+@app.route('/tags/popular_tags.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_popular_tags_do(rd, user, data) :
+	lang = getDefaultJSON(data, 'lang', 'ENG')
+	count = getDefaultJSON(data, 'count', 20)
+	tags, tags_popmap, tagids_popmap = getPopularTags(lang, count)
+	return "json", makeResponseSuccess({'tags': tags, 'tags_popmap': tags_popmap, 'tagids_popmap': tagids_popmap})

@@ -49,8 +49,8 @@ def modifyingResource(name):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            with WriterLock(name) :
-                return func(*args, **kwargs)
+            #with WriterLock(name) :
+            return func(*args, **kwargs)
         return wrapper
     return decorator
 
@@ -58,8 +58,8 @@ def usingResource(name):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            with ReaderLock(name) :
-                return func(*args, **kwargs)
+            #with ReaderLock(name) :
+            return func(*args, **kwargs)
         return wrapper
     return decorator
 

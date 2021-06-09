@@ -48,7 +48,7 @@ def editTags_append_impl(tags, user, user_lang) :
 	tags = not_found_tags + found_tags
 	return tags
 
-@usingResource('tags')
+#@usingResource('tags')
 def editTags_impl(item, tags, user, edit_behaviour) :
 	with redis_lock.Lock(rdb, "videoEdit:" + item['item']['unique_id']), MongoTransaction(client) as s :
 		new_tagids = tagdb.update_item_tags(item, tags, makeUserMeta(user), session = s(), behaviour = edit_behaviour)

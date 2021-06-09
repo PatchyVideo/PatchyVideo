@@ -76,7 +76,7 @@ def ajax_subs_list_do(rd, data, user):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest', 'last_modified'] :
 		raise AttributeError()
 	offset, limit = getOffsetLimitJSON(data)
-	videos, sub_objs, tags, count = listSubscriptedItems(
+	videos, sub_objs, tags, tagids, count = listSubscriptedItems(
 		user,
 		offset,
 		limit,
@@ -90,6 +90,7 @@ def ajax_subs_list_do(rd, data, user):
 		'videos': videos,
 		'objs': sub_objs,
 		'related_tags': tags,
+		'related_tagids': tagids,
 		'total': count
 		})
 
@@ -101,7 +102,7 @@ def ajax_subs_list_randomized_do(rd, data, user):
 	visible = getDefaultJSON(data, 'visible', [''])
 	offset, limit = getOffsetLimitJSON(data)
 	additional_constraint = getDefaultJSON(data, 'additional_constraint', '')
-	videos, sub_objs, tags = listSubscriptedItemsRandomized(
+	videos, sub_objs, tags, tagids = listSubscriptedItemsRandomized(
 		user,
 		limit,
 		lang,
@@ -111,5 +112,6 @@ def ajax_subs_list_randomized_do(rd, data, user):
 	return "json", makeResponseSuccess({
 		'videos': videos,
 		'objs': sub_objs,
-		'related_tags': tags
+		'related_tags': tags,
+		'related_tagids': tagids
 		})
