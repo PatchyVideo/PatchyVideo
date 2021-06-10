@@ -26,7 +26,7 @@ def getPopularTags(user_language, max_count = 20) :
 
 def getCommonTags(user_language, videos, max_count = 20) :
 	if len(videos) <= 0 :
-		return []
+		return [], []
 	all_tags = list(itertools.chain(*[vid['tags'] for vid in videos]))
 	tag_map = Counter(all_tags).most_common(n = max_count)
 	tag_ids = [item[0] for item in tag_map]
