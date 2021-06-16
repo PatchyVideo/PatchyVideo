@@ -29,3 +29,4 @@ from . import ajax_notifications
 from . import ajax_ranking
 from . import ajax_forums
 from . import ajax_subtitles
+from . import ajax_stats
