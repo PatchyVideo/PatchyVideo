@@ -104,7 +104,10 @@ def listVideo(offset, limit, user, order = 'latest', user_language = 'CHS', hide
 		else :
 			if user['settings']['blacklist'] or query_obj_extra :
 				empty_query = False
-			query_obj = {'$and': [{'tags': {'$nin': user['settings']['blacklist']}}, query_obj_extra]}
+			if user['settings']['blacklist'] :
+				query_obj = {'$and': [{'tags': {'$nin': user['settings']['blacklist']}}, query_obj_extra]}
+			else :
+				query_obj = query_obj_extra
 	else :
 		empty_query = False
 		if default_blacklist_tagids :
