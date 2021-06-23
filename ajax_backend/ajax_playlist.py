@@ -186,7 +186,7 @@ def ajax_lists_get_playlist_do(rd, user, data):
 	offset, limit = getOffsetLimitJSON(data)
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	playlist = getPlaylist(data.pid, lang)
-	if playlist["item"]["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) and user['access_control']['status'] != 'admin' :
+	if not isAuthorisedToView(playlist, user) :
 		abort(404)
 	playlist_editable = False
 	playlist_owner = False
@@ -211,7 +211,7 @@ def ajax_lists_get_playlist_do(rd, user, data):
 def ajax_lists_get_playlist_metadata_do(rd, user, data):
 	lang = getDefaultJSON(data, 'lang', 'CHS')
 	playlist = getPlaylist(data.pid, lang)
-	if playlist["item"]["private"] and str(playlist["meta"]["created_by"]) != str(user['_id']) :
+	if not isAuthorisedToView(playlist, user) :
 		abort(404)
 	tags = playlist_db.retrive_item_with_tag_category_map(playlist['_id'], lang)
 	playlist_editable = False
@@ -224,6 +224,23 @@ def ajax_lists_get_playlist_metadata_do(rd, user, data):
 		"owner": playlist_owner,
 		"tags": tags,
 		"playlist": playlist
+		})
+
+@app.route('/lists/list_adjacent_videos.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_lists_list_adjacent_videos_do(rd, user, data):
+	if not isAuthorisedToView(data.pid, user) :
+		abort(404)
+	k = int(getDefaultJSON(data, 'k', 200))
+	if k <= 0 :
+		raise UserError('NON_POSITIVE_K')
+	rank = int(data.rank)
+	if rank < 0 :
+		raise UserError('NEGATIVE_RANK')
+	videos = listAdjacentVideos(user, data.rank, k, ObjectId(data.pid))
+	return "json", makeResponseSuccess({
+		"videos": videos
 		})
 
 @app.route('/lists/update_playlist_metadata.do', methods = ['POST'])

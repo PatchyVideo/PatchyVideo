@@ -48,6 +48,17 @@ def getPlaylist(pid, lang) :
 		ret['tags_translated'], ret['tags_category'], ret['tags_tags'] = [], {}, {}
 	return ret
 
+def isAuthorisedToView(pid_or_obj, user) :
+	if isinstance(pid_or_obj, str) :
+		obj = playlist_db.retrive_item(pid_or_obj)
+	else :
+		obj = pid_or_obj
+	if not obj["item"]["private"] or (user and user['access_control']['status'] == 'admin') :
+		return True
+	if user and str(obj["meta"]["created_by"]) == str(user['_id']) :
+		return True
+	return False
+
 def isOwner(pid_or_obj, user) :
 	if isinstance(pid_or_obj, str) :
 		obj = playlist_db.retrive_item(pid_or_obj)
@@ -55,7 +66,13 @@ def isOwner(pid_or_obj, user) :
 		obj = pid_or_obj
 	creator = str(obj['meta']['created_by'])
 	user_id = str(user['_id'])
-	return creator == user_id or ('editPlaylist' in user['access_control']['allowed_ops']) or user['access_control']['status'] == 'admin'
+	if user and user['access_control']['status'] == 'admin' :
+		return True
+	if creator == user_id :
+		return True
+	if (user and 'editPlaylist' in user['access_control']['allowed_ops']) and not obj["item"]["private"] :
+		return True
+	return False
 
 def isAuthorisedToEdit(playlist, user) :
 	return filterOperation('editPlaylist', user, playlist, raise_exception = False)
@@ -636,6 +653,19 @@ def updateCommonTags(pid, tags, user) :
 			tagdb.update_many_items_tags_merge(all_video_ids, tags_added, makeUserMeta(user), session = s())
 		s.mark_succeed()
 
+def listAdjacentVideos(user, rank: int, k: int, pid: ObjectId) :
+	playlist_obj = playlist_db.retrive_item(pid)
+	if playlist_obj is None :
+		raise UserError('PLAYLIST_NOT_EXIST')
+	start = int(max(0, rank - k))
+	end = int(min(playlist_obj['item']['videos'] - 1, rank + k))
+	videos = db.playlist_items.aggregate([
+		{'$match': {'pid': pid, 'rank': {'$lte': end, '$gte': start}}},
+		{'$lookup': {'from': 'videos', 'localField': 'vid', 'foreignField': '_id', 'as': 'video' }},
+		{'$unwind': {'path': '$video'}},
+	])
+	return [item['video'] for item in videos]
+
 def listPlaylistsForVideo(user, vid) :
 	video = tagdb.retrive_item({'_id': ObjectId(vid)})
 	if video is None :
@@ -679,6 +709,7 @@ def listPlaylistsForVideo(user, vid) :
 	ans = []
 	for obj in result :
 		playlist_obj = obj['playlist']
+		playlist_obj['vid'] = ObjectId(vid)
 		playlist_obj['prev'] = ''
 		playlist_obj['next'] = ''
 		rank = obj['rank']
