@@ -666,6 +666,23 @@ def listAdjacentVideos(user, rank: int, k: int, pid: ObjectId) :
 	])
 	return [item['video'] for item in videos]
 
+def listAdjacentVideosVID(user, vid: ObjectId, k: int, pid: ObjectId) :
+	playlist_obj = playlist_db.retrive_item(pid)
+	if playlist_obj is None :
+		raise UserError('PLAYLIST_NOT_EXIST')
+	item = db.playlist_items.find_one({'pid': pid, 'vid': vid})
+	if item is None :
+		raise UserError('NOT_FOUND')
+	rank = item['rank']
+	start = int(max(0, rank - k))
+	end = int(min(playlist_obj['item']['videos'] - 1, rank + k))
+	videos = db.playlist_items.aggregate([
+		{'$match': {'pid': pid, 'rank': {'$lte': end, '$gte': start}}},
+		{'$lookup': {'from': 'videos', 'localField': 'vid', 'foreignField': '_id', 'as': 'video' }},
+		{'$unwind': {'path': '$video'}},
+	])
+	return [item['video'] for item in videos]
+
 def listPlaylistsForVideo(user, vid) :
 	video = tagdb.retrive_item({'_id': ObjectId(vid)})
 	if video is None :

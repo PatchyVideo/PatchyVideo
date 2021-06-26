@@ -95,6 +95,7 @@ class TagDB() :
 		self.db_name = db_name
 
 	def aggregate(self, *args, **kwargs) :
+		#return self.db.command('aggregate', self.db_name, pipeline=pipeline, **kwargs)
 		return self.db[self.db_name].aggregate(*args, **kwargs)
 	
 	def init_autocomplete(self) :

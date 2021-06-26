@@ -235,10 +235,14 @@ def ajax_lists_list_adjacent_videos_do(rd, user, data):
 	k = int(getDefaultJSON(data, 'k', 200))
 	if k <= 0 :
 		raise UserError('NON_POSITIVE_K')
-	rank = int(data.rank)
-	if rank < 0 :
-		raise UserError('NEGATIVE_RANK')
-	videos = listAdjacentVideos(user, data.rank, k, ObjectId(data.pid))
+	videos = []
+	if hasattr(data, 'rank') and data.rank is not None :
+		rank = int(data.rank)
+		if rank < 0 :
+			raise UserError('NEGATIVE_RANK')
+		videos = listAdjacentVideos(user, data.rank, k, ObjectId(data.pid))
+	elif hasattr(data, 'vid') and data.vid is not None :
+		videos = listAdjacentVideosVID(user, ObjectId(data.vid), k, ObjectId(data.pid))
 	return "json", makeResponseSuccess({
 		"videos": videos
 		})

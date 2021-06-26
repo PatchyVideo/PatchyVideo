@@ -118,21 +118,49 @@ def listVideo(offset, limit, user, order = 'latest', user_language = 'CHS', hide
 		query_obj = {}
 	exStats1 = None
 	exStats2 = None
-	result = db.retrive_items(query_obj)
-	exStats1 = result.explain()
+	# result = db.retrive_items(query_obj)
+	# exStats1 = result.explain()
+	# if order == 'latest':
+	# 	result = result.sort([("meta.created_at", -1)])
+	# elif order == 'oldest':
+	# 	result = result.sort([("meta.created_at", 1)])
+	# elif order == 'video_latest':
+	# 	result = result.sort([("item.upload_time", -1)])
+	# elif order == 'video_oldest':
+	# 	result = result.sort([("item.upload_time", 1)])
+	# elif order == 'last_modified':
+	# 	result = result.sort([("meta.modified_at", -1)])
+	# videos = result.skip(offset).limit(limit)
+	# exStats2 = videos.explain()
+	sort_obj = {}
 	if order == 'latest':
-		result = result.sort([("meta.created_at", -1)])
+		sort_obj = {"meta.created_at": -1}
 	elif order == 'oldest':
-		result = result.sort([("meta.created_at", 1)])
+		sort_obj ={"meta.created_at": 1}
 	elif order == 'video_latest':
-		result = result.sort([("item.upload_time", -1)])
+		sort_obj = {"item.upload_time": -1}
 	elif order == 'video_oldest':
-		result = result.sort([("item.upload_time", 1)])
+		sort_obj = {"item.upload_time": 1}
 	elif order == 'last_modified':
-		result = result.sort([("meta.modified_at", -1)])
-	videos = result.skip(offset).limit(limit)
-	exStats2 = videos.explain()
-	video_count = videos.count()
+		sort_obj = {"meta.modified_at": -1}
+	videos = db.aggregate([
+		{'$match': query_obj},
+		{'$facet':
+			{
+				'result': [
+					{'$sort': sort_obj},
+					{'$skip': offset},
+					{'$limit': limit}
+				],
+				'videos_found': [
+					{'$count': 'videos_found'}
+				]
+			}
+		}
+	])
+	videos = [i for i in videos][0]
+	video_count = videos['videos_found'][0]['videos_found']
+	videos = videos['result']
 	videos = [i for i in videos]
 	videos = filterVideoList(videos, user)
 	for i in range(len(videos)) :
