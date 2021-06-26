@@ -664,7 +664,7 @@ def listAdjacentVideos(user, rank: int, k: int, pid: ObjectId) :
 		{'$lookup': {'from': 'videos', 'localField': 'vid', 'foreignField': '_id', 'as': 'video' }},
 		{'$unwind': {'path': '$video'}},
 	])
-	return [item['video'] for item in videos]
+	return [{'video': item['video'], 'rank': item['rank']} for item in videos]
 
 def listAdjacentVideosVID(user, vid: ObjectId, k: int, pid: ObjectId) :
 	playlist_obj = playlist_db.retrive_item(pid)
@@ -681,7 +681,7 @@ def listAdjacentVideosVID(user, vid: ObjectId, k: int, pid: ObjectId) :
 		{'$lookup': {'from': 'videos', 'localField': 'vid', 'foreignField': '_id', 'as': 'video' }},
 		{'$unwind': {'path': '$video'}},
 	])
-	return [item['video'] for item in videos]
+	return [{'video': item['video'], 'rank': item['rank']} for item in videos]
 
 def listPlaylistsForVideo(user, vid) :
 	video = tagdb.retrive_item({'_id': ObjectId(vid)})
