@@ -59,22 +59,36 @@ def listVideoQuery(user, query_str, offset, limit, order = 'latest', user_langua
 	exStats1 = None
 	exStats2 = None
 	try :
-		result = db.retrive_items(query_obj)
-		exStats1 = result.explain()
+		sort_obj = {}
 		if order == 'latest':
-			result = result.sort([("meta.created_at", -1)])
+			sort_obj = {"meta.created_at": -1}
 		elif order == 'oldest':
-			result = result.sort([("meta.created_at", 1)])
+			sort_obj ={"meta.created_at": 1}
 		elif order == 'video_latest':
-			result = result.sort([("item.upload_time", -1)])
+			sort_obj = {"item.upload_time": -1}
 		elif order == 'video_oldest':
-			result = result.sort([("item.upload_time", 1)])
+			sort_obj = {"item.upload_time": 1}
 		elif order == 'last_modified':
-			result = result.sort([("meta.modified_at", -1)])
-		ret = result.skip(offset).limit(limit)
-		exStats2 = ret.explain()
-		count = ret.count()
-		videos = [item for item in ret]
+			sort_obj = {"meta.modified_at": -1}
+		videos = db.aggregate([
+			{'$match': query_obj},
+			{'$facet':
+				{
+					'result': [
+						{'$sort': sort_obj},
+						{'$skip': offset},
+						{'$limit': limit}
+					],
+					'videos_found': [
+						{'$count': 'videos_found'}
+					]
+				}
+			}
+		], allowDiskUse = True, hint = {'$natural': 1})
+		videos = [i for i in videos][0]
+		video_count = videos['videos_found'][0]['videos_found']
+		videos = videos['result']
+		videos = [i for i in videos]
 		videos = filterVideoList(videos, user)
 		for i in range(len(videos)) :
 			videos[i]['tags'] = list(filter(lambda x: x < 0x80000000, videos[i]['tags']))
@@ -88,7 +102,7 @@ def listVideoQuery(user, query_str, offset, limit, order = 'latest', user_langua
 		else :
 			log(level = 'ERR', obj = {'ex': str(ex)})
 			raise UserError('FAILED_UNKNOWN')
-	return videos, *getCommonTags(user_language, videos), count, query_obj, exStats1, exStats2
+	return videos, *getCommonTags(user_language, videos), video_count, query_obj, exStats1, exStats2
 
 def listVideo(offset, limit, user, order = 'latest', user_language = 'CHS', hide_placeholder = True, additional_constraint = '', human_readable_tag = False):
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest', 'last_modified'] :
@@ -118,20 +132,6 @@ def listVideo(offset, limit, user, order = 'latest', user_language = 'CHS', hide
 		query_obj = {}
 	exStats1 = None
 	exStats2 = None
-	# result = db.retrive_items(query_obj)
-	# exStats1 = result.explain()
-	# if order == 'latest':
-	# 	result = result.sort([("meta.created_at", -1)])
-	# elif order == 'oldest':
-	# 	result = result.sort([("meta.created_at", 1)])
-	# elif order == 'video_latest':
-	# 	result = result.sort([("item.upload_time", -1)])
-	# elif order == 'video_oldest':
-	# 	result = result.sort([("item.upload_time", 1)])
-	# elif order == 'last_modified':
-	# 	result = result.sort([("meta.modified_at", -1)])
-	# videos = result.skip(offset).limit(limit)
-	# exStats2 = videos.explain()
 	sort_obj = {}
 	if order == 'latest':
 		sort_obj = {"meta.created_at": -1}
@@ -157,7 +157,7 @@ def listVideo(offset, limit, user, order = 'latest', user_language = 'CHS', hide
 				]
 			}
 		}
-	])
+	], allowDiskUse = True, hint = {'$natural': 1})
 	videos = [i for i in videos][0]
 	video_count = videos['videos_found'][0]['videos_found']
 	videos = videos['result']
