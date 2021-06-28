@@ -55,6 +55,11 @@ def _cleanUtags(utags) :
 
 _download_sem = asyncio.Semaphore(10)
 
+async def notify_video_update(vid) :
+	async with ClientSession() as session:
+		async with session.post("http://patchyvideo-related-video-finder:5010/insert", json = {'vid': {'$oid': str(vid)}}) as resp:
+			return
+
 async def _download_thumbnail(url, user, event_id) :
 	filename = ""
 	if url :
@@ -497,6 +502,11 @@ async def postVideoAsyncJSON(param_json) :
 	update_video_detail = param_json['update_video_detail'] if 'update_video_detail' in param_json else False
 	use_autotag = param_json['use_autotag'] if 'use_autotag' in param_json else False
 	ret, ret_obj = await postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copies, repost_type, playlist_ordered, user, update_video_detail, event_id, field_overrides, use_autotag)
+	if not isinstance(ret_obj, dict) :
+		try :
+			await notify_video_update(ObjectId(ret_obj))
+		except Exception as e :
+			pass
 	return {'result' : ret, 'result_obj' : ret_obj}
 
 def verifyUniqueness(postingId):
