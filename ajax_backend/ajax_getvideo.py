@@ -1,4 +1,6 @@
 import time
+from utils import getDefaultJSON
+from bson.objectid import ObjectId
 
 import redis
 
@@ -9,7 +11,7 @@ from utils.interceptors import loginOptional, jsonRequest, loginRequiredJSON
 from utils.jsontools import *
 from utils.exceptions import UserError
 
-from services.getVideo import getVideoDetail, getVideoDetailWithTags, getVideoByURL, getVideosByURLs
+from services.getVideo import getRelatedVideo, getVideoDetail, getVideoDetailWithTags, getVideoByURL, getVideosByURLs
 from services.playlist import listPlaylistsForVideo
 from config import TagsConfig, VideoConfig
 
@@ -83,3 +85,12 @@ def ajax_getvideo_url(rd, user, data) :
 @jsonRequest
 def ajax_getvideo_url_batch(rd, user, data) :
 	return "json", makeResponseSuccess(getVideosByURLs(data.urls))
+
+@app.route('/get_related_videos.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_get_related_videos(rd, user, data) :
+	sort_title = getDefaultJSON(data, 'sort_title', True)
+	top_k = getDefaultJSON(data, 'k', 20)
+	return "json", makeResponseSuccess({'videos': getRelatedVideo(user, ObjectId(data.vid), sort_title, top_k)})
+

@@ -1,8 +1,9 @@
 
+import requests
 from db import tagdb as db
 from bson import ObjectId
 from utils.exceptions import UserError
-from services.tcb import filterSingleVideo
+from services.tcb import filterSingleVideo, filterVideoList
 from scraper.video import dispatch
 from utils.logger import log
 
@@ -62,3 +63,10 @@ def getVideosByURLs(urls) :
 		else :
 			ret.append({'url': url, 'exist': False, 'reason': 'VIDEO_NOT_EXIST'})
 	return ret
+
+def getRelatedVideo(user, vid: ObjectId, sort_title: bool = True, top_k: int = 20) :
+	obj = {'vid': {'$oid': str(vid)}, 'sort_title': sort_title, 'top_k': top_k}
+	if user :
+		obj['uid'] = {'$oid': str(user["_id"])}
+	videos = requests.post("http://patchyvideo-related-video-finder:5010/query", json = obj).json()['videos']
+	return filterVideoList(videos, user)
