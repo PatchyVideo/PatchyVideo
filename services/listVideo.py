@@ -86,7 +86,10 @@ def listVideoQuery(user, query_str, offset, limit, order = 'latest', user_langua
 			}
 		], allowDiskUse = True, hint = {'$natural': 1})
 		videos = [i for i in videos][0]
-		video_count = videos['videos_found'][0]['videos_found']
+		if videos['videos_found'] :
+			video_count = videos['videos_found'][0]['videos_found']
+		else :
+			video_count = 0
 		videos = videos['result']
 		videos = [i for i in videos]
 		videos = filterVideoList(videos, user)
