@@ -37,13 +37,13 @@ def createDirectMessage(src_user: ObjectId, dst_user: ObjectId, other = None) :
 		return db.notes.insert_one(obj, session = s()).inserted_id
 
 def getUnreadNotificationCount(user, note_type: str = 'all') :
-	if note_type == 'all ':
+	if note_type == 'all' :
 		return db.notes.find({'to': user['_id'], 'read': False}).count()
 	else :
 		return db.notes.find({'to': user['_id'], 'read': False, 'type': note_type}).count()
 
 def listMyNotificationUnread(user, note_type: str = 'all') :
-	if note_type == 'all ':
+	if note_type == 'all' :
 		objs = db.notes.find({'to': user['_id'], 'read': False}).sort([("time", -1)])
 	else :
 		objs = db.notes.find({'to': user['_id'], 'read': False, 'type': note_type}).sort([("time", -1)])
@@ -51,7 +51,7 @@ def listMyNotificationUnread(user, note_type: str = 'all') :
 	return [i for i in objs], note_count
 
 def listMyNotificationAll(user, offset, limit, note_type: str = 'all') :
-	if note_type == 'all ':
+	if note_type == 'all' :
 		objs = db.notes.find({'to': user['_id']}).sort([("time", -1)]).skip(offset).limit(limit)
 	else :
 		objs = db.notes.find({'to': user['_id'], 'type': note_type}).sort([("time", -1)]).skip(offset).limit(limit)
@@ -70,7 +70,7 @@ def markRead(user, note_ids) :
 
 def markAllRead(user, note_type: str = 'all') :
 	with MongoTransaction(client) as s :
-		if note_type == 'all ':
+		if note_type == 'all' :
 			db.notes.update_many({'to': user['_id']}, {'$set': {'read': True}}, session = s())
 		else :
 			db.notes.update_many({'to': user['_id'], 'type': note_type}, {'$set': {'read': True}}, session = s())
