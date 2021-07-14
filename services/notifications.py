@@ -22,6 +22,20 @@ def createNotification(note_type : str, dst_user : ObjectId, session = None, oth
 			obj[k] = v
 	return db.notes.insert_one(obj, session = session).inserted_id
 
+def createSystemNotification(dst_user : ObjectId, title: str, content: str, session = None, other = None) :
+	obj = {
+		"type": "system_message",
+		"time": datetime.now(),
+		"read": False,
+		"title": title,
+		"content": content,
+		"to": dst_user
+	}
+	if other :
+		for (k, v) in other.items() :
+			obj[k] = v
+	return db.notes.insert_one(obj, session = session).inserted_id
+
 def createDirectMessage(src_user: ObjectId, dst_user: ObjectId, other = None) :
 	obj = {
 		"type": 'dm',

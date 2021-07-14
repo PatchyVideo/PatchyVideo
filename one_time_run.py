@@ -170,6 +170,7 @@ if __name__ == '__main__' :
 		db.authors.update_one({"_id": author["_id"]}, {"$set": {"user_space_ids": createUserSpaceIds(author['urls'])}})
 """
 
+"""
 if __name__ == '__main__' :
 	users = list(db.users.find({}))
 	for u in users :
@@ -177,3 +178,4 @@ if __name__ == '__main__' :
 		if 'email' in u['profile'] and u['profile']['email'] :
 			email = u['profile']['email'].lower()
 			db.users.update_one({'_id': uid}, {'$set': {'profile.email': email}})
+"""
