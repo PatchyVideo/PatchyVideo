@@ -62,7 +62,9 @@ def listMyNotificationUnread(user, note_type: str = 'all') :
 	else :
 		objs = db.notes.find({'to': user['_id'], 'read': False, 'type': note_type}).sort([("time", -1)])
 	note_count = objs.count()
-	return [i for i in objs], note_count
+	count_unread = db.notes.find({'to': user['_id'], 'read': False}).count()
+	count_all = db.notes.find({'to': user['_id']}).count()
+	return [i for i in objs], note_count, count_unread, count_all
 
 def listMyNotificationAll(user, offset, limit, note_type: str = 'all') :
 	if note_type == 'all' :
@@ -70,7 +72,9 @@ def listMyNotificationAll(user, offset, limit, note_type: str = 'all') :
 	else :
 		objs = db.notes.find({'to': user['_id'], 'type': note_type}).sort([("time", -1)]).skip(offset).limit(limit)
 	note_count = objs.count()
-	return [i for i in objs], note_count
+	count_unread = db.notes.find({'to': user['_id'], 'read': False}).count()
+	count_all = db.notes.find({'to': user['_id']}).count()
+	return [i for i in objs], note_count, count_unread, count_all
 
 def markRead(user, note_ids) :
 	if isinstance(note_ids, str) :
