@@ -15,6 +15,7 @@ _color_map = {
 
 def verifyAndSanitizeTagOrAlias(alias):
 	alias = alias.strip()
+	alias = alias.strip('_')
 	try:
 		ts, ss = _lex(alias)
 	except:
