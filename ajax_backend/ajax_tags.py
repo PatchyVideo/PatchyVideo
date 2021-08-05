@@ -44,6 +44,7 @@ def ajax_tags_get_tag_do(rd, user, data) :
 		return "json", makeResponseSuccess({'tag_obj': getTag(data.tagid)})
 	if hasattr(data, 'tag') and data.tag :
 		return "json", makeResponseSuccess({'tag_obj': getTag(data.tag)})
+	return "json", makeResponseSuccess({'tag_obj': None})
 
 @app.route('/tags/get_tag_batch.do', methods = ['POST'])
 @loginOptional
@@ -53,6 +54,7 @@ def ajax_tags_get_tag_batch_do(rd, user, data) :
 		return "json", makeResponseSuccess({'tag_objs': [getTag(i) for i in data.tagid]})
 	if hasattr(data, 'tag') and data.tag :
 		return "json", makeResponseSuccess({'tag_objs': [getTag(i) for i in data.tag]})
+	return "json", makeResponseSuccess({'tag_objs': []})
 
 @app.route('/tags/get_default_blacklist.do', methods = ['POST'])
 @loginOptional
