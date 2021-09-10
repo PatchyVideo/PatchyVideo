@@ -13,6 +13,7 @@ from services.config import Config
 from db.TagDB_language import VALID_LANGUAGES
 from datetime import datetime
 from config import Subtitles
+import sys
 
 from googletrans import Translator as g_trans
 gtranslator = g_trans()
@@ -193,7 +194,6 @@ def translate_baidu(vtt, language) :
 			translated_sentences.extend(trans_ret[:batch])
 		else :
 			translated_sentences.extend(trans_ret)
-	print('[+] Translation done')
 	head = 0
 	for i, v in enumerate(vtt) :
 		lines = v.text.split('\n')
@@ -211,25 +211,27 @@ def translateVTT(subid: ObjectId, language: str, translator: str) :
 		raise UserError('ITEM_NOT_FOUND')
 	if sub_obj['format'] != 'vtt' :
 		raise UserError('ONLY_VTT_SUPPORTED')
-	with redis_lock.Lock(rdb, "subtitleEdit:" + str(subid)), MongoTransaction(client) as s :
-		cache = db.subtitle_translation_cache.find_one({"subid": subid, "lang": language, "translator": translator}, session = s())
+	with redis_lock.Lock(rdb, "subtitleEdit:" + str(subid)) :
+		cache = db.subtitle_translation_cache.find_one({"subid": subid, "lang": language, "translator": translator})
 		if cache is None or cache['version'] < sub_obj['meta']['modified_at'] :
+			print(f'Translating {str(subid)}, cache miss', file = sys.stderr)
 			# cache miss
 			vtt = webvtt.read_buffer(io.StringIO(sub_obj['content']))
 			if translator == 'googletrans' :
 				result = translate_google(vtt, language)
 			elif translator == 'baidutrans' :
-				with redis_lock.Lock(rdb, "lock-baidutrans") :
-					result = translate_baidu(vtt, language)
+				#with redis_lock.Lock(rdb, "lock-baidutrans") :
+				result = translate_baidu(vtt, language)
 			else :
 				raise UserError('UNSUPPORTED_TRANSLATOR')
+			print('[+] Translation done', file = sys.stderr)
 			if cache is None :
-				db.subtitle_translation_cache.insert_one({'subid': subid, 'translator': translator, 'lang': language, 'version': sub_obj['meta']['modified_at'], 'content': result}, session = s())
+				db.subtitle_translation_cache.insert_one({'subid': subid, 'translator': translator, 'lang': language, 'version': sub_obj['meta']['modified_at'], 'content': result})
 			else :
-				db.subtitle_translation_cache.update_one({'_id': cache['_id']}, {'$set': {'version': sub_obj['meta']['modified_at'], 'content': result}}, session = s())
-			s.mark_succeed()
+				db.subtitle_translation_cache.update_one({'_id': cache['_id']}, {'$set': {'version': sub_obj['meta']['modified_at'], 'content': result}})
 			return result
 		else :
+			print(f'Translating {str(subid)}, cache hit', file = sys.stderr)
 			# cache hit
 			return cache['content']
 

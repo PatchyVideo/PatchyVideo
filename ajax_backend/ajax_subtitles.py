@@ -105,7 +105,7 @@ def ajax_subtitles_admin_list_pending_ocr_requests(rd, user, data):
 @loginRequiredJSON
 @jsonRequest
 def ajax_subtitles_admin_set_request_status(rd, user, data):
-	setRequestStatus(user, ObjectId(data.vid), data.status)
+	setRequestStatus(user, ObjectId(data.vid['$oid']), data.status)
 
 @app.route('/subtitles/admin/set_all_request_status.do', methods = ['POST'])
 @loginRequiredJSON
