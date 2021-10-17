@@ -37,7 +37,7 @@ class Crawler :
 						tree = html.fromstring(page_content)
 						return await self.run_async( self = self, content = page_content, xpath = tree, link = link, update_video_detail = update_video_detail )
 					else :	
-						return makeResponseFailed({'status_code': resp.status})
+						return makeResponseFailed({'status_code': resp.status, 'resp': await resp.text(), 'link': link})
 		except Exception as ex :
 			import traceback
 			print(traceback.format_exc(), file = sys.stderr)

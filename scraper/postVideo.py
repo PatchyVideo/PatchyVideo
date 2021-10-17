@@ -293,6 +293,10 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 			if unique or update_video_detail :
 				async with _download_sem :
 					ret = await parsed.get_metadata_async(parsed, url, update_video_detail)
+					print('-------------------', file = sys.stderr)
+					print(ret, file = sys.stderr)
+					print(ret['data'], file = sys.stderr)
+					print('-------------------', file = sys.stderr)
 					if repost_type :
 						ret['data']['repost_type'] = repost_type
 					else :
@@ -475,17 +479,17 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 				return 'SUCCEED', new_item_id
 	except UserError as ue :
 		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
-		log_e(event_id, user, 'scraper', level = 'WARN', obj = {'ue': str(ue)})
+		log_e(event_id, user, 'scraper', level = 'WARN', obj = {'ue': str(ue), 'tb': traceback.format_exc()})
 		return ue.msg, {"aux": ue.aux, "traceback": traceback.format_exc()}
 	except Exception as ex:
 		await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
-		log_e(event_id, user, 'scraper', level = 'ERR', obj = {'ex': str(ex)})
+		log_e(event_id, user, 'scraper', level = 'ERR', obj = {'ex': str(ex), 'tb': traceback.format_exc()})
 		try :
 			problematic_lock = RedisLockAsync(rdb, 'editLink')
 			problematic_lock.reset()
-		except:
+		except Exception :
 			pass
-		return "UNKNOWN", '\n'.join([repr(traceback.format_exc()), repr(traceback.extract_stack())])
+		return "UNKNOWN", {"aux": "none", "traceback": traceback.format_exc()}#'\n'.join([repr(traceback.format_exc()), repr(traceback.extract_stack())])
 
 async def postVideoAsyncJSON(param_json) :
 	url = param_json['url']

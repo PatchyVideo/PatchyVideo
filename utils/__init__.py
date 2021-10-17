@@ -19,7 +19,10 @@ def getDefaultJSON(data, name, default_value) :
     if hasattr(data, name) :
         val = getattr(data, name)
         if val is not None :
-            return type(default_value)(val)
+            try :
+                return type(default_value)(val)
+            except Exception :
+                return val
     return default_value
 
 def getOffsetLimitJSON(data) :
