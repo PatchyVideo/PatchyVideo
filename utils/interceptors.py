@@ -169,7 +169,7 @@ def loginRequiredFallbackJSON(func):
 			if kwargs['user'] is None :
 				kwargs['user'] = {
 					"_id": ObjectId("5f523932be7b8be2e3b1598c"),
-					"profile": {"username": "AnonymousPost", "image": "default", "desc": "I represent all who didn't login\n匿名发布账号", "email": "", "bind_qq": false},
+					"profile": {"username": "AnonymousPost", "image": "default", "desc": "I represent all who didn't login\n匿名发布账号", "email": "", "bind_qq": False},
 					"access_control": {
 						"status": "normal", "access_mode": "blacklist", "allowed_ops": [], "denied_ops": []
 					},
