@@ -76,7 +76,6 @@ def basePage(func):
 			log(level = 'WARN', obj = {'ex': e})
 			raise e
 		except Exception as ex:
-			import traceback
 			log(level = 'ERR', obj = {'ex': str(ex), 'tb1': repr(traceback.format_exc()), 'tb2': repr(traceback.extract_stack())})
 			abort(400)
 	return wrapper
@@ -131,7 +130,6 @@ def loginRequired(func):
 				else :
 					abort(400)
 			except Exception as ex:
-				import traceback
 				log(level = 'ERR', obj = {'ex': str(ex), 'tb1': repr(traceback.format_exc()), 'tb2': repr(traceback.extract_stack())})
 				abort(400)
 		else :
@@ -203,9 +201,9 @@ def loginOptional(func):
 		try:
 			ret = func(*args, **kwargs)
 			return _handle_return(ret, rd)
-		except HTTPException as e:
-			log(level = 'WARN', obj = {'ex': e})
-			raise e
+		except HTTPException as ex:
+			log(level = 'WARN', obj = {'ex': str(ex), 'tb1': repr(traceback.format_exc()), 'tb2': repr(traceback.extract_stack())})
+			raise ex
 		except UserError as ue :
 			log(level = 'WARN', obj = {'ue': str(ue)})
 			if 'NOT_EXIST' in ue.msg :
@@ -215,7 +213,6 @@ def loginOptional(func):
 			else :
 				abort(400)
 		except Exception as ex :
-			import traceback
 			log(level = 'ERR', obj = {'ex': str(ex), 'tb1': repr(traceback.format_exc()), 'tb2': repr(traceback.extract_stack())})
 			abort(400)
 	return wrapper
@@ -253,7 +250,6 @@ def loginOptionalGET(func):
 			else :
 				abort(400)
 		except Exception as ex :
-			import traceback
 			log(level = 'ERR', obj = {'ex': str(ex), 'tb1': repr(traceback.format_exc()), 'tb2': repr(traceback.extract_stack())})
 			abort(400)
 	return wrapper
@@ -268,10 +264,10 @@ def jsonRequest(func):
 		try:
 			ret = func(*args, **kwargs)
 		except AttributeError as ex:
-			log(level = 'WARN', obj = {'ex': str(ex)})
+			log(level = 'WARN', obj = {'ex': str(ex), 'tb1': repr(traceback.format_exc()), 'tb2': repr(traceback.extract_stack())})
 			return jsonResponse(makeResponseFailed("INCORRECT_REQUEST"))
 		except ValueError as ex:
-			log(level = 'WARN', obj = {'ex': str(ex)})
+			log(level = 'WARN', obj = {'ex': str(ex), 'tb1': repr(traceback.format_exc()), 'tb2': repr(traceback.extract_stack())})
 			return jsonResponse(makeResponseFailed("INCORRECT_REQUEST"))
 		except HTTPException as e:
 			raise e
@@ -279,7 +275,6 @@ def jsonRequest(func):
 			log(level = 'WARN', obj = {'ue': str(ue)})
 			return jsonResponse(makeResponseFailed({"reason": ue.msg, "aux": ue.aux}))
 		except Exception as ex:
-			import traceback
 			log(level = 'ERR', obj = {'ex': str(ex), 'tb1': repr(traceback.format_exc()), 'tb2': repr(traceback.extract_stack())})
 			abort(400)
 		if not ret :

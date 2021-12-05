@@ -13,7 +13,7 @@ def send_noreply(dst, title, body, mime = 'plain') :
 
 	msgRoot = MIMEMultipart("alternative")
 	msgRoot['Subject'] = Header(title, "utf-8")
-	msgRoot['From'] = "PatchyVideo"
+	msgRoot['From'] = "PatchyVideo<noreply@patchyvideo.com>"
 	msgRoot['To'] = dst
 	text = MIMEText(body, mime, "utf-8")
 	msgRoot.attach(text)

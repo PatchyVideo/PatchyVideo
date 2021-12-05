@@ -191,7 +191,7 @@ class TagDB() :
 			match_obj = {'id': {'$nin': blacklist_tagids}}
 			
 		if order not in ['latest', 'oldest', 'count', 'count_inv'] :
-	   		raise UserError('INCORRECT_ORDER')
+			raise UserError('INCORRECT_ORDER')
 
 		if order == 'latest':
 			sort_obj = {"meta.created_at": -1}
