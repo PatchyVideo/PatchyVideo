@@ -58,6 +58,14 @@ def ajax_videos_set_clearence(rd, user, data):
 	setVideoClearence(data.vid, clearence, user)
 	return "json", makeResponseSuccess({'clearence': clearence})
 
+@app.route('/videos/condemn_video.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_videos_condemn_video(rd, user, data):
+	setVideoClearence(data.vid, 0, user)
+	editVideoTags(data.vid, [], user, 'replace', 'ignore', 'CHS')
+	return "json", makeResponseSuccess({})
+
 @app.route('/videos/set_repost_type.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest

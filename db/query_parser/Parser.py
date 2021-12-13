@@ -10,8 +10,8 @@ from bson.json_util import loads
 		  | <query> OR <and-query>
 
 <and-query> ::= <unary-query>
-	    	  | <and-query> ' ' <unary-query>
-	     	  | <and-query> AND <unary-query>
+			  | <and-query> ' ' <unary-query>
+		 	  | <and-query> AND <unary-query>
 
 <unary-query> ::= <primary-query>
 				| NOT <primary-query>
@@ -21,9 +21,9 @@ from bson.json_util import loads
 				  | ANY ( <and-query> )
 
 <tag-list> ::= <tag>
-	    	 | ANY : <tag>
-	    	 | ALL : <tag>
-	    	 | <tag> : <tag> // special query term
+			 | ANY : <tag>
+			 | ALL : <tag>
+			 | <tag> : <tag> // special query term
 
 """
 
@@ -295,7 +295,7 @@ def _parse_tree(node, groups, tag_translator, wildcard_translator, any_node = Fa
 		else:
 			struct, tree = _parse_tree(node.children[2], groups, tag_translator, wildcard_translator, any_node = True)
 			if struct == 'any-tags' or struct == 'single-tag':
-			    return struct, tree
+				return struct, tree
 			if len(tree) == 1 :
 				return 'complex-query', tree
 			else :
