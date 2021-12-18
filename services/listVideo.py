@@ -8,7 +8,7 @@ from db import tagdb as db
 from .tagStatistics import getPopularTags, getCommonTags, updateTagSearch
 from utils.exceptions import UserError
 from utils.logger import log
-from services.tcb import filterVideoList
+from services.tcb import filterVideoList, generate_clearence_search_term
 from bson.json_util import dumps
 from services.config import Config
 
@@ -44,17 +44,18 @@ def listVideoQuery(user, query_str, offset, limit, order = 'latest', user_langua
 	log(obj = {'q': query_str, 'offset': offset, 'limit': limit, 'order': order, 'lang': user_language})
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')
+	query_obj_clearence = generate_clearence_search_term(user)
 	query_obj, tags = db.compile_query(query_str, qtype)
 	query_obj_extra, _ = db.compile_query(additional_constraint, 'tag')
 	log(obj = {'query': dumps(query_obj)})
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
 	if user and 'settings' in user :
 		if user['settings']['blacklist'] == 'default' :
-			query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
+			query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra, query_obj_clearence]}
 		else :
-			query_obj = {'$and': [query_obj, {'tags': {'$nin': user['settings']['blacklist']}}, query_obj_extra]}
+			query_obj = {'$and': [query_obj, {'tags': {'$nin': user['settings']['blacklist']}}, query_obj_extra, query_obj_clearence]}
 	else :
-		query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
+		query_obj = {'$and': [query_obj, {'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra, query_obj_clearence]}
 	updateTagSearch(tags)
 	exStats1 = None
 	exStats2 = None
@@ -111,28 +112,29 @@ def listVideo(offset, limit, user, order = 'latest', user_language = 'CHS', hide
 	if order not in ['latest', 'oldest', 'video_latest', 'video_oldest', 'last_modified'] :
 		raise UserError('INCORRECT_ORDER')
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
+	query_obj_clearence = generate_clearence_search_term(user)
 	query_obj_extra, _ = db.compile_query(additional_constraint, 'tag')
 	query_obj = {}
 	empty_query = True
 	if user and 'settings' in user :
 		if user['settings']['blacklist'] == 'default' :
 			empty_query = False
-			query_obj = {'$and': [{'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
+			query_obj = {'$and': [{'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra, query_obj_clearence]}
 		else :
 			if user['settings']['blacklist'] or query_obj_extra :
 				empty_query = False
 			if user['settings']['blacklist'] :
-				query_obj = {'$and': [{'tags': {'$nin': user['settings']['blacklist']}}, query_obj_extra]}
+				query_obj = {'$and': [{'tags': {'$nin': user['settings']['blacklist']}}, query_obj_extra, query_obj_clearence]}
 			else :
 				query_obj = query_obj_extra
 	else :
 		empty_query = False
 		if default_blacklist_tagids :
-			query_obj = {'$and': [{'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra]}
+			query_obj = {'$and': [{'tags': {'$nin': default_blacklist_tagids}}, query_obj_extra, query_obj_clearence]}
 		else :
-			query_obj = query_obj_extra
+			query_obj = {'$and': [query_obj_extra, query_obj_clearence]}
 	if empty_query :
-		query_obj = {}
+		query_obj = query_obj_clearence
 	exStats1 = None
 	exStats2 = None
 	sort_obj = {}

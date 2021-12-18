@@ -11,6 +11,9 @@ Level 2: Only registered used can view
 Level 3: Everyone can view
 """
 
+def generate_clearence_search_term(user) :
+	return {'clearence': {'$gte': 3}}
+
 def _is_authorised(item, user) :
 	item_clearence = item['clearence']
 	if not user :
