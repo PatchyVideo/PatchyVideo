@@ -12,6 +12,8 @@ Level 3: Everyone can view
 """
 
 def generate_clearence_search_term(user) :
+	if user and user['access_control']['status'] == 'admin' :
+		return {}
 	return {'clearence': {'$gte': 3}}
 
 def _is_authorised(item, user) :

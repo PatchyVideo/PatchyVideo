@@ -7,7 +7,7 @@ from utils.jsontools import *
 from utils.exceptions import UserError
 from utils import getDefaultJSON, getOffsetLimitJSON
 
-from services.notifications import listMyNotificationUnread, listMyNotificationAll, getUnreadNotificationCount, markRead, markAllRead, broadcastNotificationWithContent, createDirectMessage
+from services.notifications import listMyNotificationUnread, listMyNotificationAll, createSystemNotification, getUnreadNotificationCount, markRead, markAllRead, broadcastNotificationWithContent, createDirectMessage
 from services.tcb import filterOperation
 
 from bson import ObjectId
@@ -55,6 +55,13 @@ def ajax_notes_mark_all_read(rd, user, data):
 def ajax_notes_admin_broadcast(rd, user, data):
 	filterOperation('broadcastNotification', user)
 	broadcastNotificationWithContent(data.content)
+
+@app.route('/notes/admin/system_dm.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_notes_admin_system_dm(rd, user, data):
+	filterOperation('createSystemNotification', user)
+	createSystemNotification(ObjectId(data.dst_user), data.title, data.content)
 
 @app.route('/notes/send_dm.do', methods = ['POST'])
 @loginRequiredJSON

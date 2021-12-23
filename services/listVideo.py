@@ -114,7 +114,7 @@ def listVideo(offset, limit, user, order = 'latest', user_language = 'CHS', hide
 	default_blacklist_tagids = [int(i) for i in Config.DEFAULT_BLACKLIST.split(',')]
 	query_obj_clearence = generate_clearence_search_term(user)
 	query_obj_extra, _ = db.compile_query(additional_constraint, 'tag')
-	query_obj = {}
+	query_obj = query_obj_clearence
 	empty_query = True
 	if user and 'settings' in user :
 		if user['settings']['blacklist'] == 'default' :
@@ -126,7 +126,7 @@ def listVideo(offset, limit, user, order = 'latest', user_language = 'CHS', hide
 			if user['settings']['blacklist'] :
 				query_obj = {'$and': [{'tags': {'$nin': user['settings']['blacklist']}}, query_obj_extra, query_obj_clearence]}
 			else :
-				query_obj = query_obj_extra
+				query_obj = {'$and': [query_obj_extra, query_obj_clearence]}
 	else :
 		empty_query = False
 		if default_blacklist_tagids :
