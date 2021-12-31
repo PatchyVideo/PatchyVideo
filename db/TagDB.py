@@ -99,6 +99,8 @@ class TagDB() :
 		return self.db[self.db_name].aggregate(*args, **kwargs)
 	
 	def init_autocomplete(self) :
+		# push is no longer needed
+		return
 		all_tags = [i for i in self.db.tags.find()]
 		tags_tuple = [(item['id'], item['count'], _CATEGORY_MAP[item['category']]) for item in all_tags]
 		words_tuple = deque([])
@@ -114,7 +116,7 @@ class TagDB() :
 		cat = self.db.cats.find_one({'name': category}, session = session)
 		if cat is not None:
 			raise UserError("CATEGORY_ALREADY_EXIST")
-		self.db.cats.insert_one({'name': category, 'count': 0, 'color': color, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session)
+		self.db.cats.insert_one({'name': category, 'count': int(0), 'color': color, 'meta': {'created_by': user, 'created_at': datetime.now()}}, session = session)
 
 	def list_categories(self, session = None) :
 		return [item for item in self.db.cats.find({}, session = session)]
@@ -128,8 +130,8 @@ class TagDB() :
 		cat = self._check_category(new_category, session)
 		tag_obj = self._tag(tag, session = session)
 		self.db.tags.update_one({'_id': tag_obj['_id']}, {'$set': {'category': new_category, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
-		self.db.cats.update_one({'name': cat['name']}, {'$inc': {'count': -1}}, session = session)
-		self.db.cats.update_one({'name': new_category}, {'$inc': {'count': 1}}, session = session)
+		self.db.cats.update_one({'name': cat['name']}, {'$inc': {'count': int(-1)}}, session = session)
+		self.db.cats.update_one({'name': new_category}, {'$inc': {'count': int(1)}}, session = session)
 		self.aci.SetCat([(tag_obj['id'], _CATEGORY_MAP[new_category])])
 
 	def _get_free_tag_id(self, session) :
@@ -150,11 +152,11 @@ class TagDB() :
 		tag_obj = self._tag(tag, return_none = True, session = session)
 		if tag_obj is not None :
 			raise UserError('TAG_ALREADY_EXIST')
-		tag_id = self._get_free_tag_id(session)
+		tag_id = int(self._get_free_tag_id(session))
 		item_id = self.db.tags.insert_one({
 			'id': tag_id,
 			'category': category,
-			'count': 0,
+			'count': int(0),
 			'icon': '',
 			'languages': {language: tag},
 			'alias': [],
@@ -165,7 +167,7 @@ class TagDB() :
 			'dst': item_id,
 			'meta': {'created_by': user, 'created_at': datetime.now(), 'modified_by': user, 'modified_at': datetime.now()}
 		}, session = session)
-		self.db.cats.update_one({'name': category}, {'$inc': {'count': 1}}, session = session)
+		self.db.cats.update_one({'name': category}, {'$inc': {'count': int(1)}}, session = session)
 		self.aci.AddTag([(tag_id, 0, _CATEGORY_MAP[category])])
 		self.aci.AddWord([(tag_id, tag, language)])
 		return tag_id
@@ -267,7 +269,7 @@ class TagDB() :
 		tagid = tag_obj['id']
 		self.db.tag_alias.delete_many({'dst': tag_obj['_id']}, session = session)
 		self.db.tags.delete_one({'_id': tag_obj['_id']}, session = session)
-		self.db.cats.update_one({'name': tag_obj['category']}, {'$inc': {'count': -1}}, session = session)
+		self.db.cats.update_one({'name': tag_obj['category']}, {'$inc': {'count': int(-1)}}, session = session)
 		history_items = list(self.db[self.db_name].aggregate([
 			{'$match': {'tags': {'$in': [tagid]}}},
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
@@ -694,8 +696,8 @@ class TagDB() :
 		if len(new_tag_ids) > VideoConfig.MAX_TAGS_PER_VIDEO :
 			raise UserError('TAGS_LIMIT_EXCEEDED')
 		self._log_tag_update(user, item_id_or_item_object['_id'], real_tags, new_tag_ids, session = session)
-		self.db.tags.update_many({'id': {'$in': real_tags}}, {'$inc': {'count': -1}}, session = session)
-		self.db.tags.update_many({'id': {'$in': new_tag_ids}}, {'$inc': {'count': 1}}, session = session)
+		self.db.tags.update_many({'id': {'$in': real_tags}}, {'$inc': {'count': int(-1)}}, session = session)
+		self.db.tags.update_many({'id': {'$in': new_tag_ids}}, {'$inc': {'count': int(1)}}, session = session)
 		self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': new_tag_ids + index_tags, 'tag_count': int(len(new_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		self.aci.SetCountDiff([(t, -1) for t in item['tags']])
 		self.aci.SetCountDiff([(t, 1) for t in new_tag_ids])
@@ -749,7 +751,7 @@ class TagDB() :
 		num_items = len(item_ids)
 		new_tag_count_diff = [(tag, num_items - prior_tag_counts.get(tag, 0)) for tag in new_tag_ids]
 		for (tag, diff) in new_tag_count_diff:
-			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session) # $inc is atomic, no locking needed
+			self.db.tags.update_one({'id': tag}, {'$inc': {'count': int(diff)}}, session = session) # $inc is atomic, no locking needed
 		item_objs = self.db[self.db_name].aggregate([
 			{'$match': {'_id': {'$in': item_ids}}},
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
@@ -784,7 +786,7 @@ class TagDB() :
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		new_tag_count_diff = [(tag, -prior_tag_counts.get(tag, 0)) for tag in tag_ids_to_remove]
 		for (tag, diff) in new_tag_count_diff:
-			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
+			self.db.tags.update_one({'id': tag}, {'$inc': {'count': int(diff)}}, session = session)
 			item_objs = self.db[self.db_name].aggregate([
 			{'$match': {'_id': {'$in': item_ids}}},
 			{'$project': {'vid': '$_id', 'tags': {'$filter': {'input': '$tags', 'as': 'tag', 'cond': {'$lt': ['$$tag', 0x80000000]}}}}},
@@ -816,12 +818,12 @@ class TagDB() :
 			'$set': {'tag_count': int(len(merged_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		new_tag_count_diff = [(tagid, -1) for tagid in tags_removed]
 		for (tag, diff) in new_tag_count_diff:
-			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
+			self.db.tags.update_one({'id': tag}, {'$inc': {'count': int(diff)}}, session = session)
 		self.aci.SetCountDiff(new_tag_count_diff)
 
 		new_tag_count_diff = [(tagid, 1) for tagid in tags_added]
 		for (tag, diff) in new_tag_count_diff:
-			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
+			self.db.tags.update_one({'id': tag}, {'$inc': {'count': int(diff)}}, session = session)
 		self.aci.SetCountDiff(new_tag_count_diff)
 
 	def update_item_tags_pull(self, item_id, tags_to_remove, user = '', session = None):
@@ -844,7 +846,7 @@ class TagDB() :
 		_, tags_removed = _diff(old_tag_ids, merged_tag_ids)
 		new_tag_count_diff = [(tagid, -1) for tagid in tags_removed]
 		for (tag, diff) in new_tag_count_diff:
-			self.db.tags.update_one({'id': tag}, {'$inc': {'count': diff}}, session = session)
+			self.db.tags.update_one({'id': tag}, {'$inc': {'count': int(diff)}}, session = session)
 		self.aci.SetCountDiff(new_tag_count_diff)
 
 	def remove_alias(self, alias_name, user = '', session = None) :
