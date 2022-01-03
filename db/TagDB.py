@@ -226,8 +226,16 @@ class TagDB() :
 		])
 
 	def filter_and_translate_tags(self, tags, session = None) :
+		"""
+		Input: either strings, tagids or just tag objects
+		Output: tag ids
+		"""
 		if not tags :
 			return []
+		if isinstance(tags[0], int) :
+			return list(set(tags))
+		if isinstance(tags[0], dict) and 'id' in tags[0] :
+			return list(set([int(item['id']) for item in tags]))
 		found = self.db.tag_alias.aggregate([
 			{'$match': {'tag': {'$in': tags}}},
 			{'$lookup': {"from" : "tags", "localField" : "dst", "foreignField" : "_id", "as" : "tag_obj"}},
@@ -610,6 +618,11 @@ class TagDB() :
 		found_tags = self.db.tag_alias.find({'tag': {'$in': tags}}, session = session)
 		tm = [tag['tag'] for tag in found_tags]
 		return tm
+
+	def filter_tagids(self, tags, session = None) :
+		found_tags = self.db.tags.find({'id': {'$in': tags}}, session = session)
+		tag_objects = [tag for tag in found_tags]
+		return tag_objects
 
 	def filter_tags_ext(self, tags, session = None) :
 		found_tags = self.db.tag_alias.find({'tag': {'$in': tags}}, session = session)

@@ -23,6 +23,16 @@ def ajax_videos_edittags(rd, user, data):
 	new_tagids = editVideoTags(data.video_id, data.tags, user, edit_behaviour, not_found_behaviour, user_lang)
 	return "json", makeResponseSuccess({'tagids': new_tagids})
 
+@app.route('/videos/edittagids.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_videos_edittags(rd, user, data):
+	user_lang = getDefaultJSON(data, 'user_language', 'ENG')
+	edit_behaviour = getDefaultJSON(data, 'edit_behaviour', 'replace')
+	not_found_behaviour = getDefaultJSON(data, 'not_found_behaviour', 'ignore')
+	new_tagids = editVideoTags(data.video_id, [int(item) & 0x7fffffff for item in data.tags], user, edit_behaviour, not_found_behaviour, user_lang, is_tagids = True)
+	return "json", makeResponseSuccess({'tagids': new_tagids})
+
 @app.route('/videos/edittags_batch.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest

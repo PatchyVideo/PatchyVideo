@@ -20,7 +20,7 @@ from utils.logger import log, getEventID
 def editVideoTags_impl(item, tags, user, session) :
 	tagdb.update_item_tags(item, tags, makeUserMeta(user), session = session)
 
-def editVideoTags(vid, tags, user, edit_behaviour = 'replace', not_found_behaviour = 'ignore', user_lang = 'ENG'):
+def editVideoTags(vid, tags, user, edit_behaviour = 'replace', not_found_behaviour = 'ignore', user_lang = 'ENG', is_tagids = False):
 	log(obj = {'tags': tags, 'vid': vid, 'edit_behaviour': edit_behaviour, 'not_found_behaviour': not_found_behaviour})
 	filterOperation('editVideoTags', user, vid)
 	if edit_behaviour not in ['replace', 'append', 'remove'] :
@@ -35,10 +35,16 @@ def editVideoTags(vid, tags, user, edit_behaviour = 'replace', not_found_behavio
 	item = tagdb.db.videos.find_one({'_id': ObjectId(vid)})
 	if item is None:
 		raise UserError('ITEM_NOT_EXIST')
-	if not_found_behaviour == 'append' :
-		tags = editTags_append_impl(tags, user, user_lang)
+	if is_tagids :
+		if not_found_behaviour == 'append' :
+			raise UserError('INCORRECT_non_found_behaviour', aux = {'msg': '"append" is only applicable for non-tagid updates'})
+		else :
+			tags = tagdb.filter_tags(tags)
 	else :
-		tags = tagdb.filter_tags(tags)
+		if not_found_behaviour == 'append' :
+			tags = editTags_append_impl(tags, user, user_lang)
+		else :
+			tags = tagdb.filter_tags(tags)
 	return editTags_impl(item, tags, user, edit_behaviour)
 
 def editTags_append_impl(tags, user, user_lang) :
