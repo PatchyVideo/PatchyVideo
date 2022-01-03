@@ -26,7 +26,7 @@ def ajax_videos_edittags(rd, user, data):
 @app.route('/videos/edittagids.do', methods = ['POST'])
 @loginRequiredJSON
 @jsonRequest
-def ajax_videos_edittags(rd, user, data):
+def ajax_videos_edittagids(rd, user, data):
 	user_lang = getDefaultJSON(data, 'user_language', 'ENG')
 	edit_behaviour = getDefaultJSON(data, 'edit_behaviour', 'replace')
 	not_found_behaviour = getDefaultJSON(data, 'not_found_behaviour', 'ignore')
