@@ -11,14 +11,17 @@ else :
     AUTOCOMPLETE_ADDRESS = 'http://localhost:5002'
 
 class AutocompleteInterface() :
-	def __init__(self, retry_count = 3) :
+	def __init__(self, retry_count = 1) :
 		self.retry_count = retry_count
 
 	def _post(self, func, endpoint, payload) :
 		err_msg = ''
+		print(payload, file = sys.stderr)
 		for _ in range(self.retry_count) :
 			try :
-				return post_raw(AUTOCOMPLETE_ADDRESS + "/" + endpoint, payload.encode('utf-8'))
+				a = post_raw(AUTOCOMPLETE_ADDRESS + "/" + endpoint, payload.encode('utf-8'))
+				print(a.text, file = sys.stderr)
+				return a.text
 			except Exception as e :
 				err_msg = str(e)
 		print('FAILED: %s message=%s' % (func, err_msg), file = sys.stderr)
@@ -28,7 +31,7 @@ class AutocompleteInterface() :
 			return
 		payload = "%d " % len(list_of_tuple_of_tagid_count_category)
 		for (tagid, count, category) in list_of_tuple_of_tagid_count_category :
-			payload += "%d %d %d " % (tagid, count, category)
+			payload += "%d %d %s " % (tagid, count, category)
 		self._post("AddTag", "addtag", payload)
 
 	def AddWord(self, list_of_tuple_of_tagid_word_lang) :
@@ -60,15 +63,15 @@ class AutocompleteInterface() :
 			return
 		payload = "%d " % len(list_of_tuple_of_tagid_cat)
 		for (tagid, cat) in list_of_tuple_of_tagid_cat :
-			payload += "%d %d " % (tagid, cat)
+			payload += "%d %s " % (tagid, cat)
 		self._post("SetCat", "setcat", payload)
 
 	def DeleteTag(self, tagid) :
-		payload = "%d " % tagid
+		payload = "%d" % tagid
 		self._post("DeleteTag", "deltag", payload)
 
 	def DeleteWord(self, word) :
-		payload = word + " "
+		payload = word
 		self._post("DeleteWord", "delword", payload)
 
 	def MatchFirstTag(self, list_of_querys) :

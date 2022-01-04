@@ -132,7 +132,7 @@ class TagDB() :
 		self.db.tags.update_one({'_id': tag_obj['_id']}, {'$set': {'category': new_category, 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		self.db.cats.update_one({'name': cat['name']}, {'$inc': {'count': int(-1)}}, session = session)
 		self.db.cats.update_one({'name': new_category}, {'$inc': {'count': int(1)}}, session = session)
-		self.aci.SetCat([(tag_obj['id'], _CATEGORY_MAP[new_category])])
+		self.aci.SetCat([(tag_obj['id'], new_category)])
 
 	def _get_free_tag_id(self, session) :
 		obj = self.db.free_tags.find_one()
@@ -168,7 +168,7 @@ class TagDB() :
 			'meta': {'created_by': user, 'created_at': datetime.now(), 'modified_by': user, 'modified_at': datetime.now()}
 		}, session = session)
 		self.db.cats.update_one({'name': category}, {'$inc': {'count': int(1)}}, session = session)
-		self.aci.AddTag([(tag_id, 0, _CATEGORY_MAP[category])])
+		self.aci.AddTag([(tag_id, 0, category)])
 		self.aci.AddWord([(tag_id, tag, language)])
 		return tag_id
 
@@ -588,7 +588,7 @@ class TagDB() :
 				'del': [],
 				'time': datetime.now()
 			}, session = session)
-		self.aci.SetCountDiff([(tagid, 1) for tagid in tag_ids])
+		self.aci.SetCountDiff([(tagid, 1) for tagid in tag_ids if tagid < 0x80000000])
 		return item_id
 
 	def remove_item(self, item_id_or_item_object, user = '', session = None) :
@@ -612,7 +612,7 @@ class TagDB() :
 				'time': datetime.now()
 			}, session = session)
 		self.db[self.db_name].delete_one({'_id': item['_id']}, session = session)
-		self.aci.SetCountDiff([(tagid, -1) for tagid in tag_ids])
+		self.aci.SetCountDiff([(tagid, -1) for tagid in tag_ids if tagid < 0x80000000])
 
 	def filter_tags(self, tags, session = None) :
 		found_tags = self.db.tag_alias.find({'tag': {'$in': tags}}, session = session)
@@ -712,8 +712,8 @@ class TagDB() :
 		self.db.tags.update_many({'id': {'$in': real_tags}}, {'$inc': {'count': int(-1)}}, session = session)
 		self.db.tags.update_many({'id': {'$in': new_tag_ids}}, {'$inc': {'count': int(1)}}, session = session)
 		self.db[self.db_name].update_one({'_id': ObjectId(item['_id'])}, {'$set': {'tags': new_tag_ids + index_tags, 'tag_count': int(len(new_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
-		self.aci.SetCountDiff([(t, -1) for t in item['tags']])
-		self.aci.SetCountDiff([(t, 1) for t in new_tag_ids])
+		self.aci.SetCountDiff([(t, -1) for t in item['tags'] if t < 0x80000000])
+		self.aci.SetCountDiff([(t, 1) for t in new_tag_ids if t < 0x80000000])
 		return new_tag_ids
 
 	def _get_many_tag_counts(self, item_ids = None, tags = None, user = '', session = None):
@@ -762,7 +762,7 @@ class TagDB() :
 			'$addToSet': {'tags': {'$each': new_tag_ids}},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		num_items = len(item_ids)
-		new_tag_count_diff = [(tag, num_items - prior_tag_counts.get(tag, 0)) for tag in new_tag_ids]
+		new_tag_count_diff = [(tag, num_items - prior_tag_counts.get(tag, 0)) for tag in new_tag_ids if tag < 0x80000000]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': int(diff)}}, session = session) # $inc is atomic, no locking needed
 		item_objs = self.db[self.db_name].aggregate([
@@ -797,7 +797,7 @@ class TagDB() :
 		self.db[self.db_name].update_many({'_id': {'$in': item_ids}}, {
 			'$pullAll': {'tags': tag_ids_to_remove},
 			'$set': {'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
-		new_tag_count_diff = [(tag, -prior_tag_counts.get(tag, 0)) for tag in tag_ids_to_remove]
+		new_tag_count_diff = [(tag, -prior_tag_counts.get(tag, 0)) for tag in tag_ids_to_remove if tag < 0x80000000]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': int(diff)}}, session = session)
 			item_objs = self.db[self.db_name].aggregate([
@@ -829,12 +829,12 @@ class TagDB() :
 		self.db[self.db_name].update_one({'_id': ObjectId(item_id)}, {
 			'$addToSet': {'tags': {'$each': merged_tag_ids}},
 			'$set': {'tag_count': int(len(merged_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
-		new_tag_count_diff = [(tagid, -1) for tagid in tags_removed]
+		new_tag_count_diff = [(tagid, -1) for tagid in tags_removed if tagid < 0x80000000]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': int(diff)}}, session = session)
 		self.aci.SetCountDiff(new_tag_count_diff)
 
-		new_tag_count_diff = [(tagid, 1) for tagid in tags_added]
+		new_tag_count_diff = [(tagid, 1) for tagid in tags_added if tagid < 0x80000000]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': int(diff)}}, session = session)
 		self.aci.SetCountDiff(new_tag_count_diff)
@@ -857,7 +857,7 @@ class TagDB() :
 			'$pullAll': {'tags': tag_ids_to_remove},
 			'$set': {'tag_count': int(len(merged_tag_ids)), 'meta.modified_by': user, 'meta.modified_at': datetime.now()}}, session = session)
 		_, tags_removed = _diff(old_tag_ids, merged_tag_ids)
-		new_tag_count_diff = [(tagid, -1) for tagid in tags_removed]
+		new_tag_count_diff = [(tagid, -1) for tagid in tags_removed if tagid < 0x80000000]
 		for (tag, diff) in new_tag_count_diff:
 			self.db.tags.update_one({'id': tag}, {'$inc': {'count': int(diff)}}, session = session)
 		self.aci.SetCountDiff(new_tag_count_diff)
