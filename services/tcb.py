@@ -137,8 +137,8 @@ def setVideoClearence(vid, clearence, user) :
 		item = filterSingleVideo(vid, user)
 		if item is None:
 			raise UserError('ITEM_NOT_FOUND')
-		if item['clearence'] < clearence :
-			raise UserError('ITEM_NOT_FOUND')
+		# if item['clearence'] < clearence :
+		# 	raise UserError('ITEM_NOT_FOUND')
 		with MongoTransaction(client) as s :
 			tagdb.set_item_clearence(vid, clearence, user, session = s())
 			s.mark_succeed()
