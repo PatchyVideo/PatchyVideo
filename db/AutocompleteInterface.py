@@ -19,9 +19,7 @@ class AutocompleteInterface() :
 		print(payload, file = sys.stderr)
 		for _ in range(self.retry_count) :
 			try :
-				a = post_raw(AUTOCOMPLETE_ADDRESS + "/" + endpoint, payload.encode('utf-8'))
-				print(a.text, file = sys.stderr)
-				return a.text
+				return post_raw(AUTOCOMPLETE_ADDRESS + "/" + endpoint, payload.encode('utf-8'))
 			except Exception as e :
 				err_msg = str(e)
 		print('FAILED: %s message=%s' % (func, err_msg), file = sys.stderr)

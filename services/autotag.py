@@ -1,4 +1,5 @@
 
+from typing import List
 from db import tagdb as db
 from db import client
 from db.TagDB_language import translateTagToPreferredLanguage
@@ -117,7 +118,7 @@ def inferTagidsFromText(text) :
 		th_tagids = []
 	return list(set(tagids + th_tagids))
 
-def inferTagsFromVideo(utags, title, desc, user_language, video_url: str = '', user_urls: [str] = []) :
+def inferTagsFromVideo(utags, title, desc, user_language, video_url: str = '', user_urls: List[str] = []) :
 	log(obj = {'title': title, 'desc': desc, 'utags': utags, 'lang': user_language, 'video_url': video_url, 'user_urls': user_urls})
 	video_url = video_url.strip()
 	tagids = []
