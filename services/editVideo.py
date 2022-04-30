@@ -39,7 +39,7 @@ def editVideoTags(vid, tags, user, edit_behaviour = 'replace', not_found_behavio
 		if not_found_behaviour == 'append' :
 			raise UserError('INCORRECT_non_found_behaviour', aux = {'msg': '"append" is only applicable for non-tagid updates'})
 		else :
-			tags = tagdb.filter_tags(tags)
+			tags = tagdb.filter_tagids(tags)
 	else :
 		if not_found_behaviour == 'append' :
 			tags = editTags_append_impl(tags, user, user_lang)

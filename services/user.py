@@ -1,3 +1,4 @@
+import sys
 import time
 import os
 import binascii
@@ -31,7 +32,11 @@ def query_user_basic_info(uid) :
 	return obj['profile']
 
 def verify_session(sid, stype) :
-	session_obj = loads(rdb.get(sid).decode('utf-8'))
+	sess = rdb.get(sid)
+	if sess is None :
+		print('verify_session', sid, file = sys.stderr)
+		raise UserError('INCORRECT_SESSION')
+	session_obj = loads(sess.decode('utf-8'))
 	if isinstance(stype, list) :
 		ret = session_obj['type'] in stype
 	else :

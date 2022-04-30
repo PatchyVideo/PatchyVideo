@@ -619,8 +619,8 @@ class TagDB() :
 		tm = [tag['tag'] for tag in found_tags]
 		return tm
 
-	def filter_tagids(self, tags, session = None) :
-		found_tags = self.db.tags.find({'id': {'$in': tags}}, session = session)
+	def filter_tagids(self, tagids, session = None) :
+		found_tags = self.db.tags.find({'id': {'$in': tagids}}, session = session)
 		tag_objects = [tag for tag in found_tags]
 		return tag_objects
 
