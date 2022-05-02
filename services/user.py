@@ -94,11 +94,6 @@ def do_login(user_obj) :
 			rdb.set(redis_user_key, redis_user_obj_json_str, ex = UserConfig.LOGIN_EXPIRE_TIME)
 			rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
 
-	if logged_in :
-		profile = user_obj['profile']
-		profile['access_control_status'] = user_obj['access_control']['status']
-		return redis_user_key, profile
-
 	openid_qq = user_obj['profile']['openid_qq'] if 'openid_qq' in user_obj['profile'] else None
 	common_user_obj = {
 		'_id': user_obj['_id'],
@@ -113,14 +108,19 @@ def do_login(user_obj) :
 		'access_control': user_obj['access_control'],
 		'settings': user_obj['settings']
 	}
+
+	profile = common_user_obj['profile']
+	profile['access_control_status'] = user_obj['access_control']['status']
+
+	if logged_in :
+		return redis_user_key, profile
+
 	redis_user_value = dumps(common_user_obj)
 	redis_user_key = binascii.hexlify(bytearray(random_bytes(16))).decode()
 	redis_user_key_lookup_key = f"user-{user_obj['_id']}"
 	rdb.set(redis_user_key, redis_user_value, ex = UserConfig.LOGIN_EXPIRE_TIME)
 	rdb.set(redis_user_key_lookup_key, redis_user_key, ex = UserConfig.LOGIN_EXPIRE_TIME)
 	log(obj = {'redis_user_key': redis_user_key, 'user': common_user_obj})
-	profile = common_user_obj['profile']
-	profile['access_control_status'] = user_obj['access_control']['status']
 	return redis_user_key, profile
 
 def unbind_qq(user) :
