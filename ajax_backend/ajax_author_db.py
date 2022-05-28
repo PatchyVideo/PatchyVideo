@@ -7,7 +7,9 @@ from utils.jsontools import *
 from utils.exceptions import UserError
 from utils import getDefaultJSON
 
-from services.authorDB import createOrModifyAuthorRecord, getAuthorRecord, getAuthorRecordTranslationFree
+from bson import ObjectId
+
+from services.authorDB import associateWithPvUser, createOrModifyAuthorRecord, disassociateWithPvUser, findTagByUser, getAuthorRecord, getAuthorRecordTranslationFree
 from services.tcb import filterOperation
 
 @app.route('/authors/create_or_modify.do', methods = ['POST'])
@@ -36,6 +38,25 @@ def ajax_authors_get_record(rd, user, data):
 @jsonRequest
 def ajax_authors_get_record_raw(rd, user, data):
 	return "json", makeResponseSuccess({"record": getAuthorRecordTranslationFree(int(data.tagid))})
+
+@app.route('/authors/associate_with_pv_user.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_authors_associate_with_pv_user(rd, user, data):
+	associateWithPvUser(user, data.tagid, ObjectId(data.uid))
+
+@app.route('/authors/disassociate_with_pv_user.do', methods = ['POST'])
+@loginRequiredJSON
+@jsonRequest
+def ajax_authors_disassociate_with_pv_user(rd, user, data):
+	disassociateWithPvUser(user, data.tagid, ObjectId(data.uid))
+
+
+# @app.route('/authors/find_tag_by_pv_uid.do', methods = ['POST'])
+# @loginOptional
+# @jsonRequest
+# def ajax_authors_find_tag_by_pv_uid(rd, user, data):
+# 	return "json", makeResponseSuccess(findTagByUser(ObjectId(data.uid)))
 
 
 

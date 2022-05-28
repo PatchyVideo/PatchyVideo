@@ -17,6 +17,8 @@ from utils.logger import log
 from services.tcb import filterOperation
 from services.config import Config
 
+from .authorDB import tagRemoval as authorDbTagRemoval
+
 def getDefaultBlacklist(language) :
 	return tagdb.translate_tag_ids_to_user_language([int(i) for i in Config.DEFAULT_BLACKLIST_POPULAR_TAG.split(',')], language)[0]
 
@@ -120,6 +122,7 @@ def removeTag(user, tag) :
 		log(obj = {'tag_obj': tag_obj})
 		if tag_obj :
 			filterOperation('tagAdmin', user, tag_obj)
+		authorDbTagRemoval(tag_obj, session = s())
 		tagdb.remove_tag(tag_obj, makeUserMeta(user), session = s())
 		s.mark_succeed()
 

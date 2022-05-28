@@ -32,7 +32,7 @@ def postThreadToForum(user, forum_id : ObjectId, title : str, text: str, use_ble
 	elif l > Comments.MAX_COMMENT_LENGTH_REGULAR and not filterOperation('postLongComment', user, raise_exception = False) :
 		raise UserError('COMMENT_TOO_LONG')
 	if use_bleach :
-		text = bleach.clean(text, tags = [], attributes = [], styles = [])
+		text = bleach.clean(text, tags = [], attributes = [])
 
 	with MongoTransaction(client) as s :
 		thread_id = createThread('forum', None, user['_id'], session = s())
