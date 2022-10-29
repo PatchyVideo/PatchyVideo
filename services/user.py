@@ -113,6 +113,8 @@ def do_login(user_obj) :
 	profile['access_control_status'] = user_obj['access_control']['status']
 
 	if logged_in :
+		if isinstance(redis_user_key, bytes) :
+			redis_user_key = redis_user_key.decode('utf-8')
 		return redis_user_key, profile
 
 	redis_user_value = dumps(common_user_obj)

@@ -2,6 +2,7 @@
 import os
 import sys
 import json
+import jwt
 import urllib
 import traceback
 from functools import wraps
@@ -27,6 +28,26 @@ else :
 from utils.logger import beginEvent, setEventUser, log, log_e
 from utils.http import getRealIP
 
+def get_jwt_key() -> str :
+	k = os.getenv("JWT_KEY", "")
+	if k == "" :
+		raise Exception("No JWT_KEY provided")
+	return k
+
+def _get_sid(session, headers) -> str :
+	if 'sid' in session :
+		return session['sid']
+	try :
+		auth_header = headers.get('Authorization')
+		if auth_header != '' :
+			if auth_header.startswith('Bearer '):
+				auth_header = auth_header.replace('Bearer ', '')
+			deccoded = jwt.decode(auth_header, get_jwt_key(), algorithms="HS256")
+			return deccoded['sid']
+	except Exception :
+		return ''
+	return ''
+
 def _handle_return(ret, rd):
 	if isinstance(ret, str):
 		s = ret.split(':')
@@ -38,16 +59,25 @@ def _handle_return(ret, rd):
 		elif len(s) == 1:
 			return render_template(ret, **rd.__dict__)
 	elif isinstance(ret, tuple):
-		if len(ret) == 2:
-			command, param = ret
+		if len(ret) == 2 or len(ret) == 3 :
+			header_fields = {}
+			if len(ret) == 2 :
+				command, param = ret
+			elif len(ret) == 3 :
+				command, param, header_fields = ret
+			r = None
 			if command == 'redirect':
-				return redirect(param)
+				r = redirect(param)
 			if command == 'render':
-				return render_template(param, **rd.__dict__)
+				r = render_template(param, **rd.__dict__)
 			if command == 'data':
-				return param
+				r = param
 			if command == "json":
-				return jsonResponse(param)
+				r = jsonResponse(param)
+			if r is not None :
+				for (k, v) in header_fields.items() :
+					r.headers[k] = v
+				return r
 			return ""
 	else :
 		return ret
@@ -104,13 +134,14 @@ def loginRequired(func):
 		if path[-1] == '?' :
 			path = path[:-1]
 		encoded_url = urllib.parse.quote(path)
-		if 'sid' in session:
+		sid = _get_sid(session, request.headers)
+		if sid :
 			rd = Namespace()
 			rd._version = _VERSION
 			rd._version_url = _VERSION_URL
-			kwargs['user'] = _get_user_obj(session['sid'])
+			kwargs['user'] = _get_user_obj(sid)
 			if kwargs['user'] is None :
-				log('login_check', level = 'SEC', obj = {'action': 'denied', 'path': request.full_path, 'sid': session['sid']})
+				log('login_check', level = 'SEC', obj = {'action': 'denied', 'path': request.full_path, 'sid': sid})
 				return redirect('/login?redirect_url=' + encoded_url)
 			rd._user = kwargs['user']
 			setEventUser(rd._user)
@@ -141,11 +172,12 @@ def loginRequiredJSON(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs):
 		beginEvent(func.__name__, getRealIP(request), request.full_path, request.args)
-		if 'sid' in session:
+		sid = _get_sid(session, request.headers)
+		if sid :
 			rd = Namespace()
-			kwargs['user'] = _get_user_obj(session['sid'])
+			kwargs['user'] = _get_user_obj(sid)
 			if kwargs['user'] is None :
-				log('login_check', level = 'SEC', obj = {'action': 'denied', 'path': request.full_path, 'sid': session['sid']})
+				log('login_check', level = 'SEC', obj = {'action': 'denied', 'path': request.full_path, 'sid': sid})
 				return jsonResponse(makeResponseError("UNAUTHORISED_OPERATION"))
 			rd._user = kwargs['user']
 			setEventUser(rd._user)
@@ -161,9 +193,10 @@ def loginRequiredFallbackJSON(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs):
 		beginEvent(func.__name__, getRealIP(request), request.full_path, request.args)
-		if 'sid' in session:
+		sid = _get_sid(session, request.headers)
+		if sid :
 			rd = Namespace()
-			kwargs['user'] = _get_user_obj(session['sid'])
+			kwargs['user'] = _get_user_obj(sid)
 			if kwargs['user'] is None :
 				kwargs['user'] = {
 					"_id": ObjectId("5f523932be7b8be2e3b1598c"),
@@ -188,8 +221,9 @@ def loginOptional(func):
 	def wrapper(*args, **kwargs):
 		beginEvent(func.__name__, getRealIP(request), request.full_path, request.args)
 		rd = Namespace()
-		if 'sid' in session:
-			kwargs['user'] = _get_user_obj(session['sid'])
+		sid = _get_sid(session, request.headers)
+		if sid :
+			kwargs['user'] = _get_user_obj(sid)
 		else :
 			kwargs['user'] = None
 		rd._user = kwargs['user']
@@ -222,8 +256,9 @@ def loginOptionalGET(func):
 	def wrapper(*args, **kwargs):
 		beginEvent(func.__name__, getRealIP(request), request.full_path, request.args)
 		rd = Namespace()
-		if 'sid' in session:
-			kwargs['user'] = _get_user_obj(session['sid'])
+		sid = _get_sid(session, request.headers)
+		if sid :
+			kwargs['user'] = _get_user_obj(sid)
 		else :
 			kwargs['user'] = None
 		rd._user = kwargs['user']

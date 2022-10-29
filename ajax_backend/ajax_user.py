@@ -4,12 +4,13 @@ import time
 import redis
 import base64
 import urllib
+import jwt
 
 from flask import render_template, request, current_app, jsonify, redirect, session
 
 from init import app
 from utils import getDefaultJSON, getOffsetLimitJSON
-from utils.interceptors import loginOptional, jsonRequest, basePage, loginRequiredJSON, loginOptionalGET
+from utils.interceptors import loginOptional, jsonRequest, basePage, loginRequiredJSON, loginOptionalGET, get_jwt_key
 from utils.jsontools import *
 
 from services.user import *
@@ -65,7 +66,8 @@ def ajax_auth_callback(rd, user, data):
 def ajax_login(rd, data):
 	sid, obj = login(data.username, data.password, '', data.session)
 	session['sid'] = sid
-	return "json", makeResponseSuccess(obj)
+	jwt_token = jwt.encode({'sid': sid}, key = get_jwt_key(), algorithm = "HS256")
+	return "json", makeResponseSuccess(obj), {'Authorization': f'Bearer {jwt_token}'}
 
 @app.route('/logout.do', methods = ['POST'])
 @loginRequiredJSON
