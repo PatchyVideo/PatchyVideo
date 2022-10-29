@@ -20,3 +20,4 @@ bleach
 webvtt-py
 googletrans
 argon2-cffi
+pyjwt
