@@ -119,9 +119,10 @@ class Bilibili( Crawler ) :
 				new_url = link
 				uid = self.unique_id(self = self, link = link)
 			aid = aid[2:] # remove 'av'
+			cookie = self.get_cookie(self = self)
 
 			api_url = f'http://api.bilibili.com/x/web-interface/view?aid={aid}'
-			async with aiohttp.ClientSession() as session:
+			async with aiohttp.ClientSession(cookies = cookie) as session:
 				async with session.get(api_url) as resp :
 					api_content = await resp.json()
 			code = api_content['code']
@@ -134,7 +135,7 @@ class Bilibili( Crawler ) :
 			uploadDate = datetime.fromtimestamp(data['pubdate']).astimezone(timezone.utc)
 
 			api_url = f'http://api.bilibili.com/x/tag/archive/tags?aid={aid}'
-			async with aiohttp.ClientSession() as session:
+			async with aiohttp.ClientSession(cookies = cookie) as session:
 				async with session.get(api_url) as resp :
 					api_content = await resp.json()
 			code = api_content['code']
@@ -149,7 +150,7 @@ class Bilibili( Crawler ) :
 				user_space_urls = ['https://space.bilibili.com/%d' % data['owner']['mid']]
 
 			cid = 0
-			async with aiohttp.ClientSession() as session:
+			async with aiohttp.ClientSession(cookies = cookie) as session:
 				async with session.get(f'https://api.bilibili.com/x/player/pagelist?aid={aid}&jsonp=jsonp') as resp:
 					api_content = await resp.text()
 					if resp.status == 200 :
@@ -163,7 +164,7 @@ class Bilibili( Crawler ) :
 						raise Exception(f'api request failed, message:\n{api_content}')
 		except UserError as ex :
 			raise ex
-		except :
+		except Exception as ex :
 			return makeResponseSuccess({
 				'thumbnailURL': '',
 				'title' : '已失效视频',

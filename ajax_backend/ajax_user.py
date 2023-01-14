@@ -67,7 +67,9 @@ def ajax_login(rd, data):
 	sid, obj = login(data.username, data.password, '', data.session)
 	session['sid'] = sid
 	jwt_token = jwt.encode({'sid': sid}, key = get_jwt_key(), algorithm = "HS256")
-	return "json", makeResponseSuccess(obj), {'Authorization': f'Bearer {jwt_token}'}
+	token_header = f'Bearer {jwt_token}'
+	obj['auth_token'] = jwt_token
+	return "json", makeResponseSuccess(obj), {'Authorization': token_header}
 
 @app.route('/logout.do', methods = ['POST'])
 @loginRequiredJSON

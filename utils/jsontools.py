@@ -39,9 +39,9 @@ def makeResponseError(data):
 		
 def jsonResponse(json_obj_or_str) :
 	if isinstance(json_obj_or_str, str) :
-		return current_app.response_class(json_obj_or_str + '\n', mimetype = current_app.config['JSONIFY_MIMETYPE'])
+		return current_app.response_class(json_obj_or_str + '\n', mimetype = "application/json")
 	else :
-		return current_app.response_class(dumps(json_obj_or_str) + '\n', mimetype = current_app.config['JSONIFY_MIMETYPE'])
+		return current_app.response_class(dumps(json_obj_or_str) + '\n', mimetype = "application/json")
 
 makeObject = Namespace.create_from_dict
 
