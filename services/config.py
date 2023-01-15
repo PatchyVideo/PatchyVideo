@@ -32,7 +32,11 @@ class ConfigCls(object) :
 Config = ConfigCls()
 
 def _config(attr, default = '') :
-	Config.SetValue(attr, default)
+	value = Config.__getattr__(attr)
+	if not value :
+		Config.SetValue(attr, default)
+	else :
+		Config.keys[attr] = value
 
 def _config_env(attr, envvar, default = '') :
 	default = os.getenv(envvar, default)
