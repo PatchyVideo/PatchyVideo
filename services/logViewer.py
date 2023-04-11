@@ -76,6 +76,20 @@ def viewTaghistory(vid, language) :
 		item['add'], _, _ = tagdb.translate_tag_ids_to_user_language(item['add'], language)
 	return all_items
 
+def viewTaghistoryRetId(vid) :
+	all_items = db.tag_history.aggregate([
+		{'$match': {'vid': ObjectId(vid)}},
+		{'$lookup': {'from': 'users', 'localField': 'user', 'foreignField': '_id', 'as': 'user_obj'}},
+		{'$project': {'user_obj._id': 1, 'user_obj.profile.username': 1, 'user_obj.profile.image': 1, 'tags': 1, 'del': 1, 'add': 1, 'time': 1}},
+		{'$sort': {"time": -1}}
+	])
+	all_items = list(all_items)
+	for item in all_items :
+		item['tags'], _, _ = item['tags']
+		item['del'], _, _ = item['del']
+		item['add'], _, _ = item['add']
+	return all_items
+
 def rankTagContributor(hrs = 24, n = 20) :
 	"""
 	List top `n` user who contibuted the most tag updates in the last `hrs` hours
@@ -119,4 +133,31 @@ def viewRawTagHistory(offset, limit, language) :
 		item['tags'], _, _ = tagdb.translate_tag_ids_to_user_language(item['tags'], language)
 		item['del'], _, _ = tagdb.translate_tag_ids_to_user_language(item['del'], language)
 		item['add'], _, _ = tagdb.translate_tag_ids_to_user_language(item['add'], language)
+	return all_items
+
+def viewRawTagHistoryRetId(offset, limit) :
+	all_items = db.tag_history.aggregate([
+		{'$sort': {"time": -1}},
+		{'$skip': offset},
+		{'$limit': limit},
+		{'$lookup': {'from': 'users', 'localField': 'user', 'foreignField': '_id', 'as': 'user_obj'}},
+		{'$project': {'vid': 1, 'user_obj._id': 1, 'user_obj.profile.username': 1, 'user_obj.profile.image': 1, 'tags': 1, 'del': 1, 'add': 1, 'time': 1}},
+		{'$lookup': {'from': 'videos', 'localField': 'vid', 'foreignField': '_id', 'as': 'video_obj'}},
+		{'$project': {
+			'vid': 1,
+			'user_obj._id': 1,
+			'user_obj.profile.username': 1,
+			'user_obj.profile.image': 1,
+			'tags': 1,
+			'del': 1,
+			'add': 1,
+			'time': 1,
+			'video_obj': 1
+			}
+		},
+	])
+	all_items = list(all_items)
+	for item in all_items :
+		item['user_id'] = str(item['user_obj'][0]['_id'])
+		item['video_obj'] = item['video_obj'][0]
 	return all_items

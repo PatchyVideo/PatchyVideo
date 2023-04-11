@@ -106,13 +106,16 @@ async def _make_video_data(data, copies, playlists, url, user, event_id) :
 		'series': playlists,
 		'copies': copies,
 		'upload_time': data['uploadDate'],
-		'repost_type': data['repost_type'],
 		'views': -1,
 		'rating': -1.0,
 		"utags": _cleanUtags(data['utags']) if 'utags' in data else [],
 		"user_space_urls": data['user_space_urls'] if 'user_space_urls' in data else [],
 		"placeholder": data["placeholder"] if 'placeholder' in data else False
 	}
+	if 'repost_type' in data :
+		ret['repost_type'] = data['repost_type']
+	else :
+		ret['repost_type'] = 'unknown'
 	if 'extra' in data :
 		for k, v in data['extra'].items() :
 			ret[k] = v
@@ -131,13 +134,14 @@ async def _make_video_data_update(data, url, user, event_id, thumbnail_url = Non
 		'site': data['site'],
 		"unique_id": data['unique_id'],
 		'upload_time': data['uploadDate'],
-		'repost_type': data['repost_type'],
 		'views': -1,
 		'rating': -1.0,
 		"utags": _cleanUtags(data['utags']) if 'utags' in data else [],
 		"user_space_urls": data['user_space_urls'] if 'user_space_urls' in data else [],
 		"placeholder": data["placeholder"] if 'placeholder' in data else False
 	}
+	if 'repost_type' in data :
+		ret['repost_type'] = data['repost_type']
 	if 'extra' in data :
 		for k, v in data['extra'].items() :
 			ret[k] = v
@@ -299,8 +303,6 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 					print('-------------------', file = sys.stderr)
 					if repost_type :
 						ret['data']['repost_type'] = repost_type
-					else :
-						ret['data']['repost_type'] = 'unknown'
 				if ret["status"] == 'FAILED' :
 					log_e(event_id, user, 'downloader', 'WARN', {'msg': 'FETCH_FAILED', 'ret': ret})
 					await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
@@ -324,9 +326,7 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 					ret['part_name'] = conflicting_item['item']['part_name']
 				if 'repost_type' in conflicting_item['item'] and conflicting_item['item']['repost_type'] :
 					ret['data']['repost_type'] = repost_type
-				else :
-					ret['data']['repost_type'] = 'unknown'
-				tagdb.update_item_query(conflicting_item, {'$set': {'item.repost_type': repost_type}}, user = makeUserMeta(user))
+					tagdb.update_item_query(conflicting_item, {'$set': {'item.repost_type': repost_type}}, user = makeUserMeta(user))
 			#if hasattr(parsed, 'LOCAL_CRAWLER') :
 			#	url = ret["data"]["url"]
 			#else :
