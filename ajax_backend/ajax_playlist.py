@@ -205,6 +205,31 @@ def ajax_lists_get_playlist_do(rd, user, data):
 		"page_count": (video_count - 1) // limit + 1
 		})
 
+@app.route('/lists/get_playlist_url_only.do', methods = ['POST'])
+@loginOptional
+@jsonRequest
+def ajax_lists_get_playlist_url_only_do(rd, user, data):
+	offset, limit = 0, 10000000
+	lang = getDefaultJSON(data, 'lang', 'CHS')
+	playlist = getPlaylist(data.pid, lang)
+	if not isAuthorisedToView(playlist, user) :
+		abort(404)
+	playlist_editable = False
+	playlist_owner = False
+	if user:
+		videos, video_count, playlist_editable, playlist_owner = listPlaylistVideosWithAuthorizationInfo(data.pid, offset, limit, user)
+	else:
+		videos, video_count = listPlaylistVideos(data.pid, offset, limit, user)
+	tags = playlist_db.retrive_item_with_tag_category_map(playlist['_id'], lang)
+	return "json", makeResponseSuccess({
+		"editable": playlist_editable,
+		"owner": playlist_owner,
+		"playlist": playlist,
+		"tags": tags,
+		"urls": [item['item']['url'] for item in videos],
+		"count": video_count,
+		})
+
 @app.route('/lists/get_playlist_metadata.do', methods = ['POST'])
 @loginOptional
 @jsonRequest
