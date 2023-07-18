@@ -56,7 +56,7 @@ def try_get_xpath(xpath_obj, paths):
             continue
         except:
             continue
-    return None
+    return ['']
 
 def html_to_plain_text(html):
     text = re.sub('<head.*?>.*?</head>', '', html, flags=re.M | re.S | re.I)
