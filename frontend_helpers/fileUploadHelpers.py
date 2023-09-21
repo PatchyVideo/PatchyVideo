@@ -27,7 +27,7 @@ _USERPHOTO_PATH = os.getenv('IMAGE_PATH', "/images") + "/userphotos/"
 def _gif_thumbnails(frames, resolution = (320, 200)):
 	for frame in frames:
 		thumbnail = frame.copy()
-		thumbnail.thumbnail(resolution, Image.ANTIALIAS)
+		thumbnail.thumbnail(resolution, PIL.Image.Resampling.LANCZOS)
 		yield thumbnail
 
 @routes.post("/upload_image_url.do")
@@ -59,7 +59,7 @@ async def upload_image_url(request) :
 						om.save(dst + filename, save_all = True, append_images = list(frames), loop = 0)
 					else :
 						filename = random_bytes_str(24) + ".png"
-						img.thumbnail(resolution, Image.ANTIALIAS)
+						img.thumbnail(resolution, PIL.Image.Resampling.LANCZOS)
 						img.save(dst + filename)
 				except :
 					return web.json_response(makeResponseFailed('INCORRECT_UPLOAD_TYPE'), dumps = dumps)
@@ -104,7 +104,7 @@ async def upload_image(request):
 		om.save(dst + filename, save_all = True, append_images = list(frames), loop = 0)
 	else :
 		filename = random_bytes_str(24) + ".png"
-		img.thumbnail(resolution, Image.ANTIALIAS)
+		img.thumbnail(resolution, PIL.Image.Resampling.LANCZOS)
 		img.save(dst + filename)
 	file_key = "upload-image-" + random_bytes_str(16)
 	rdb.set(file_key, filename)

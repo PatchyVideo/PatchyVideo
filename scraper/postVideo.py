@@ -44,7 +44,7 @@ _COVER_PATH = os.getenv('IMAGE_PATH', "/images") + "/covers/"
 def _gif_thumbnails(frames):
 	for frame in frames:
 		thumbnail = frame.copy()
-		thumbnail.thumbnail((320, 200), Image.ANTIALIAS)
+		thumbnail.thumbnail((320, 200), PIL.Image.Resampling.LANCZOS)
 		yield thumbnail
 
 # TODO: maybe make save image async?
@@ -63,7 +63,7 @@ async def notify_video_update(vid) :
 async def _download_thumbnail(url, user, event_id) :
 	filename = ""
 	if url :
-		for attemp in range(3) :
+		for attempt in range(3) :
 			try :
 				async with _download_sem :
 					async with ClientSession() as session:
@@ -79,14 +79,16 @@ async def _download_thumbnail(url, user, event_id) :
 									om.save(_COVER_PATH + filename, save_all = True, append_images = list(frames), loop = 0)
 								else :
 									filename = random_bytes_str(24) + ".png"
-									img.thumbnail((320, 200), Image.ANTIALIAS)
+									img.thumbnail((320, 200), PIL.Image.Resampling.LANCZOS)
 									img.save(_COVER_PATH + filename)
 								log_e(event_id, user, 'download_cover', obj = {'filename': filename})
 								break
 							else :
-								log_e(event_id, user, 'download_cover', 'WARN', {'status_code': resp.status, 'attemp': attemp})
+								log_e(event_id, user, 'download_cover', 'WARN', {'status_code': resp.status, 'attempt': attempt})
 			except Exception as ex :
-				log_e(event_id, user, 'download_cover', 'WARN', {'ex': str(ex), 'attemp': attemp})
+				import traceback
+				traceback.print_exc()
+				log_e(event_id, user, 'download_cover', 'WARN', {'ex': str(ex), 'attempt': attempt})
 				continue
 	return filename
 
@@ -301,8 +303,14 @@ async def postVideoAsync(url, tags, dst_copy, dst_playlist, dst_rank, other_copi
 					print(ret, file = sys.stderr)
 					print(ret['data'], file = sys.stderr)
 					print('-------------------', file = sys.stderr)
-					if repost_type :
-						ret['data']['repost_type'] = repost_type
+					try :
+						if repost_type :
+							ret['data']['repost_type'] = repost_type
+					except Exception :
+						print('---------xxxxxxxxxx----------', file = sys.stderr)
+						print(ret, file = sys.stderr)
+						print(ret['data'], file = sys.stderr)
+						print('----------xxxxxxxxxx---------', file = sys.stderr)
 				if ret["status"] == 'FAILED' :
 					log_e(event_id, user, 'downloader', 'WARN', {'msg': 'FETCH_FAILED', 'ret': ret})
 					await _playlist_reorder_helper.post_video_failed(unique_id, dst_playlist, playlist_ordered, dst_rank, user, event_id)
