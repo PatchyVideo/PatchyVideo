@@ -1,15 +1,29 @@
 
+from functools import partial
+import sys
 from . import Crawler
 from utils.jsontools import *
 from utils.encodings import makeUTF8
 from utils.html import getInnerText
 from .impl.twitter_video_download import match1, r1, get_content, post_content
+from .yt_dlp.extractor.twitter import TwitterIE
+from .yt_dlp.YoutubeDL import YoutubeDL
+from .yt_dlp.utils import ExtractorError
 from dateutil.parser import parse
 from datetime import timezone
 
 import re
 import json
 import aiohttp
+import asyncio
+
+async def adownload_with_yt_dlp(tid: str, tIE) :
+	loop = asyncio.get_event_loop()
+	pfunc = partial(tIE.extract, f'https://twitter.com/i/status/{tid}')
+	return await loop.run_in_executor(None, pfunc)
+
+def download_with_yt_dlp(tid: str, tIE: TwitterIE) :
+	return tIE.extract(f'https://twitter.com/i/status/{tid}')
 
 class Twitter( Crawler ) :
 	NAME = 'twitter'
@@ -50,20 +64,15 @@ class Twitter( Crawler ) :
 		item_id = r1(r'twitter\.com/[^/]+/status/(\d+)', link) or r1(r'data-item-id="([^"]*)"', content) or \
 			r1(r'<meta name="twitter:site:id" content="([^"]*)"', content)
 		
-		authorization = 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
+		
+		dl = YoutubeDL()
+		t = TwitterIE(dl)
 
-		ga_url = 'https://api.twitter.com/1.1/guest/activate.json'
-		ga_content = post_content(ga_url, headers={'authorization': authorization})
-		guest_token = json.loads(ga_content)['guest_token']
-
-		api_url = 'https://api.twitter.com/1.1/statuses/show.json?id=%s' % item_id
-		api_content = get_content(api_url, headers={'authorization': authorization, 'x-guest-token': guest_token})
-
-		info = json.loads(api_content)
+		info = download_with_yt_dlp(item_id, t)
 		if 'extended_entities' not in info :
 			return makeResponseFailed('Not a twitter video')
-		desc = info['text']
-		cover = info['extended_entities']['media'][0]['media_url']
+		desc = info['full_text']
+		cover = info['entities']['media'][0]['media_url_https']
 		user_name = info['user']['name']
 		screen_name = info['user']['screen_name']
 		uploadDate = parse(info['created_at']).astimezone(timezone.utc)
@@ -91,32 +100,18 @@ class Twitter( Crawler ) :
 		item_id = r1(r'twitter\.com/[^/]+/status/(\d+)', link) or r1(r'data-item-id="([^"]*)"', content) or \
 			r1(r'<meta name="twitter:site:id" content="([^"]*)"', content)
 		
-		authorization = 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
 
-		ga_url = 'https://api.twitter.com/1.1/guest/activate.json'
-		async with aiohttp.ClientSession() as session:
-			async with session.post(ga_url, headers = {'authorization': authorization}) as resp:
-				ga_content = await resp.text()
-			guest_token = json.loads(ga_content)['guest_token']
+		dl = YoutubeDL()
+		t = TwitterIE(dl)
 
-			# get screen name and created_at
-			api_url = 'https://api.twitter.com/1.1/statuses/show.json?id=%s' % item_id
-			async with session.get(api_url, headers = {'authorization': authorization, 'x-guest-token': guest_token}) as resp:
-				api_content = await resp.text()
-			info = json.loads(api_content)
-			user_name = info['user']['name']
-			screen_name = info['user']['screen_name']
-			uploadDate = parse(info['created_at']).astimezone(timezone.utc)
-
-			# get desc and cover
-			api_url = 'https://api.twitter.com/2/timeline/conversation/%s.json?tweet_mode=extended' % item_id
-			async with session.get(api_url, headers = {'authorization': authorization, 'x-guest-token': guest_token}) as resp:
-				api_content = await resp.text()
-			info = json.loads(api_content)['globalObjects']['tweets'][item_id]
-			if 'extended_entities' not in info :
-				return makeResponseFailed('Not a twitter video')
-			desc = info['full_text']
-			cover = info['extended_entities']['media'][0]['media_url']
+		info = await adownload_with_yt_dlp(item_id, t)
+		if 'extended_entities' not in info :
+			return makeResponseFailed('Not a twitter video')
+		desc = info['full_text']
+		cover = info['entities']['media'][0]['media_url_https']
+		user_name = info['user']['name']
+		screen_name = info['user']['screen_name']
+		uploadDate = parse(info['created_at']).astimezone(timezone.utc)
 
 		return makeResponseSuccess({
 			'thumbnailURL': cover,
