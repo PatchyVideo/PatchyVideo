@@ -31,7 +31,10 @@ class _bv2av() :
 		r = 0
 		for i in range(6):
 			r += self.tr[x[self.s[i]]] * 58 ** i
-		return (r - self.add) ^ self.xor
+		r = (r - self.add) ^ self.xor
+		if r < 0 :
+			r += 2 ** 31
+		return r
 
 	def enc(self, x) :
 		x = (x ^ self.xor) + self.add
