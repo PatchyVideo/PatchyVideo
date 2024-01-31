@@ -12,6 +12,22 @@ import re
 import json
 import os
 
+HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Cache-Control': 'max-age=0',
+    'Connection': 'keep-alive',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': 'none',
+    'Sec-Fetch-User': '?1',
+    'Upgrade-Insecure-Requests': '1',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/534.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'sec-ch-ua': '"Chromium";v="120", "Google Chrome";v="120", "Not=A?Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"Windows"'
+}
+
 from utils.exceptions import UserError
 
 """
@@ -124,21 +140,21 @@ class Bilibili( Crawler ) :
 			aid = aid[2:] # remove 'av'
 			cookie = self.get_cookie(self = self)
 
-			api_url = f'http://api.bilibili.com/x/web-interface/view?aid={aid}'
-			async with aiohttp.ClientSession(cookies = cookie) as session:
+			api_url = f'https://api.bilibili.com/x/web-interface/view?aid={aid}'
+			async with aiohttp.ClientSession(headers = HEADERS) as session:
 				async with session.get(api_url) as resp :
 					api_content = await resp.json()
 			code = api_content['code']
 			if code != 0 or 'data' not in api_content :
-				raise Exception(f'api request failed, message:\n{api_content}')
+				raise Exception(f'api request failed {api_url}, message:\n{api_content}')
 			data = api_content['data']
 			thumbnailURL = data['pic']
 			title = data['title']
 			desc = data['desc']
 			uploadDate = datetime.fromtimestamp(data['pubdate']).astimezone(timezone.utc)
 
-			api_url = f'http://api.bilibili.com/x/tag/archive/tags?aid={aid}'
-			async with aiohttp.ClientSession(cookies = cookie) as session:
+			api_url = f'https://api.bilibili.com/x/tag/archive/tags?aid={aid}'
+			async with aiohttp.ClientSession(headers = HEADERS) as session:
 				async with session.get(api_url) as resp :
 					api_content = await resp.json()
 			code = api_content['code']
@@ -153,7 +169,7 @@ class Bilibili( Crawler ) :
 				user_space_urls = ['https://space.bilibili.com/%d' % data['owner']['mid']]
 
 			cid = 0
-			async with aiohttp.ClientSession(cookies = cookie) as session:
+			async with aiohttp.ClientSession(headers = HEADERS) as session:
 				async with session.get(f'https://api.bilibili.com/x/player/pagelist?aid={aid}&jsonp=jsonp') as resp:
 					api_content = await resp.text()
 					if resp.status == 200 :
@@ -168,6 +184,8 @@ class Bilibili( Crawler ) :
 		except UserError as ex :
 			raise ex
 		except Exception as ex :
+			import traceback
+			traceback.print_exc()
 			return makeResponseSuccess({
 				'thumbnailURL': '',
 				'title' : '已失效视频',

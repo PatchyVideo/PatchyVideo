@@ -21,3 +21,5 @@ webvtt-py
 googletrans
 argon2-cffi
 pyjwt
+aiohttp_socks
+pydantic
