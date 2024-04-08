@@ -1,5 +1,5 @@
 Flask
-pymongo==3.11.2
+pymongo==4.6.3
 anytree
 redis
 lxml
