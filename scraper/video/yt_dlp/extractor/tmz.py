@@ -155,7 +155,7 @@ class TMZIE(InfoExtractor):
                 "thumbnail": "https://pbs.twimg.com/media/EnMmfT8XYAExgxJ.jpg?name=small",
                 "like_count": int,
                 "duration": 11.812,
-                "uploader_url": "https://twitter.com/TheMacLife",
+                "uploader_url": "https://x.com/TheMacLife",
                 "age_limit": 0,
                 "repost_count": int,
                 "tags": [],

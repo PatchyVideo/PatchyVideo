@@ -2764,7 +2764,7 @@ class GenericIE(InfoExtractor):
             # Try to find twitter cards info
             # twitter:player:stream should be checked before twitter:player since
             # it is expected to contain a raw stream (see
-            # https://dev.twitter.com/cards/types/player#On_twitter.com_via_desktop_browser)
+            # https://dev.x.com/cards/types/player#On_x.com_via_desktop_browser)
             found = filter_video(re.findall(
                 r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage))
             if found:
@@ -2800,7 +2800,7 @@ class GenericIE(InfoExtractor):
         if not found:
             # twitter:player is a https URL to iframe player that may or may not
             # be supported by yt-dlp thus this is checked the very last (see
-            # https://dev.twitter.com/cards/types/player#On_twitter.com_via_desktop_browser)
+            # https://dev.x.com/cards/types/player#On_x.com_via_desktop_browser)
             embed_url = self._html_search_meta('twitter:player', webpage, default=None)
             if embed_url and embed_url != url:
                 self.report_detected('twitter:player iframe')

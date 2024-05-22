@@ -108,7 +108,7 @@ class KinjaEmbedIE(InfoExtractor):
         'soundcloud-playlist': ('api.soundcloud.com/playlists/', 'SoundcloudPlaylist'),
         'tumblr-post': ('%s.tumblr.com/post/%s', 'Tumblr'),
         'twitch-stream': ('twitch.tv/', 'TwitchStream'),
-        'twitter': ('twitter.com/i/cards/tfw/v1/', 'TwitterCard'),
+        'twitter': ('x.com/i/cards/tfw/v1/', 'TwitterCard'),
         'ustream-channel': ('ustream.tv/embed/', 'Ustream'),
         'vimeo': ('vimeo.com/', 'Vimeo'),
         'vine': ('vine.co/v/', 'Vine'),

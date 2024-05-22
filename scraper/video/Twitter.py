@@ -19,11 +19,11 @@ import asyncio
 
 async def adownload_with_yt_dlp(tid: str, tIE) :
 	loop = asyncio.get_event_loop()
-	pfunc = partial(tIE.extract, f'https://twitter.com/i/status/{tid}')
+	pfunc = partial(tIE.extract, f'https://x.com/i/status/{tid}')
 	return await loop.run_in_executor(None, pfunc)
 
 def download_with_yt_dlp(tid: str, tIE: TwitterIE) :
-	return tIE.extract(f'https://twitter.com/i/status/{tid}')
+	return tIE.extract(f'https://x.com/i/status/{tid}')
 
 class Twitter( Crawler ) :
 	NAME = 'twitter'
@@ -48,7 +48,7 @@ class Twitter( Crawler ) :
 		if re.match(r'https?://mobile', link): # normalize mobile URL
 			link = 'https://' + match1(link, r'//mobile\.(.+)')
 		item_id = r1(r'twitter\.com/[^/]+/status/(\d+)', link)
-		return "https://twitter.com/i/status/" + item_id
+		return "https://x.com/i/status/" + item_id
 
 	def unique_id( self, link ) :
 		if re.match(r'https?://mobile', link): # normalize mobile URL
@@ -84,8 +84,8 @@ class Twitter( Crawler ) :
 			'site': 'twitter',
 			'uploadDate' : uploadDate,
 			"unique_id": "twitter:%s" % item_id,
-			"url_overwrite": f'https://twitter.com/{screen_name}/status/{item_id}',
-			"user_space_urls": [f'https://twitter.com/{screen_name}'],
+			"url_overwrite": f'https://x.com/{screen_name}/status/{item_id}',
+			"user_space_urls": [f'https://x.com/{screen_name}'],
 			"utags": []
 		})
 		
@@ -120,7 +120,7 @@ class Twitter( Crawler ) :
 			'site': 'twitter',
 			'uploadDate' : uploadDate,
 			"unique_id": "twitter:%s" % item_id,
-			"url_overwrite": f'https://twitter.com/{screen_name}/status/{item_id}',
-			"user_space_urls": [f'https://twitter.com/{screen_name}'],
+			"url_overwrite": f'https://x.com/{screen_name}/status/{item_id}',
+			"user_space_urls": [f'https://x.com/{screen_name}'],
 			"utags": []
 		})

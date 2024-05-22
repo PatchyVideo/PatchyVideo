@@ -349,11 +349,11 @@ def download_twitter(url, output_dir='.', merge=True, info_only=False, **kwargs)
 
 	authorization = 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA'
 
-	ga_url = 'https://api.twitter.com/1.1/guest/activate.json'
+	ga_url = 'https://api.x.com/1.1/guest/activate.json'
 	ga_content = post_content(ga_url, headers={'authorization': authorization})
 	guest_token = json.loads(ga_content)['guest_token']
 
-	api_url = 'https://api.twitter.com/2/timeline/conversation/%s.json?tweet_mode=extended' % item_id
+	api_url = 'https://api.x.com/2/timeline/conversation/%s.json?tweet_mode=extended' % item_id
 	api_content = get_content(api_url, headers={'authorization': authorization, 'x-guest-token': guest_token})
 
 	info = json.loads(api_content)
